@@ -6,3 +6,5 @@ data/*.csv
 internal/*landarea.csv
 internal/*population.csv
 internal/*.svg
+internal/assets/node_modules
+internal/static/dist

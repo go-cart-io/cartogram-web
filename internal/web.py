@@ -109,7 +109,10 @@ import email.mime.text
 import socket
 import redis
 
+from asset import Asset
+
 app = Flask(__name__)
+Asset(app)
 
 app.secret_key = "LTTNWg8luqfWKfDxjFaeC3vYoGrC2r2f5mtXo5IE/jt1GcY7/JaSq8V/tB"
 app.config['SQLALCHEMY_DATABASE_URI'] = settings.DATABASE_URI
@@ -266,7 +269,6 @@ def index():
 @app.route('/about', methods=['GET'])
 def about():
     return render_template('about.html', page_active='about', tracking=tracking.determine_tracking_action(request))
-
 
 @app.route('/cartogram', methods=['GET'])
 def make_cartogram():    
