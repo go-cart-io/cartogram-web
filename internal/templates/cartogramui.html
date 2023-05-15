@@ -232,7 +232,7 @@
                   </select>
              </div>
              <div class="col-4">
-                <input type="button" class="btn btn-primary mb-2 d-block w-100" value="Upload Data" onclick="clearFileInput(document.getElementById('csv'));document.getElementById('csv').click();" id="upload-button"/>
+                <input type="button" class="btn btn-primary mb-2 d-block w-100" value="Upload Data" onclick="window.util.clearFileInput(document.getElementById('csv'));document.getElementById('csv').click();" id="upload-button"/>
                 <input type="button" class="btn btn-primary mb-2 d-block w-100" value="Edit" id="edit-button"  onclick="window.cartogram.launchGridEdit();" disabled/>
              </div>
            </div>
@@ -380,7 +380,7 @@
             <a id="citation-text2" class="text-primary" href="https://www.pnas.org/content/115/10/E2156" target="_blank" rel="noopener noreferrer" >Gastner MT, Seguy V, More P. Fast 
               low-based algorithm for creating density-equalizing map projections. Proc Natl Acad Sci USA 115(10):E2156–E2164 (2018).</a>
         
-            <button style="margin-top:25px;" class="clipboard-copy" id="clipboard-citation2" data-animation="false" title="Copy" onclick="addClipboard('clipboard-citation2',document.getElementById('citation-text2').innerText);
+            <button style="margin-top:25px;" class="clipboard-copy" id="clipboard-citation2" data-animation="false" title="Copy" onclick="window.util.addClipboard('clipboard-citation2',document.getElementById('citation-text2').innerText);
                 document.getElementById('clipboard-citation2').click()">
               <img id="clipboard-citation2-icon" src="/static/clipboard.svg" alt="Copy button" />
             </button>
@@ -458,7 +458,7 @@
             <a id="citation-text" class="text-primary" href="https://www.pnas.org/content/115/10/E2156" target="_blank" rel="noopener noreferrer" >Gastner MT, Seguy V, More P. Fast 
               low-based algorithm for creating density-equalizing map projections. Proc Natl Acad Sci USA 115(10):E2156–E2164 (2018).</a>
         
-            <button style="margin-top:25px;" class="clipboard-copy" id="clipboard-citation" data-animation="false" title="Copy" onclick="addClipboard('clipboard-citation',document.getElementById('citation-text').innerText);
+            <button style="margin-top:25px;" class="clipboard-copy" id="clipboard-citation" data-animation="false" title="Copy" onclick="window.util.addClipboard('clipboard-citation',document.getElementById('citation-text').innerText);
                 document.getElementById('clipboard-citation').click()">
               <img id="clipboard-citation-icon" src="/static/clipboard.svg" alt="Copy button" />
             </button>

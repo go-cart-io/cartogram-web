@@ -1,11 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <script src="https://d3js.org/d3.v5.min.js"></script>
-    <script src="https://d3js.org/d3-ease.v1.min.js"></script>
-    <script src="https://d3js.org/d3-polygon.v1.min.js"></script>
     <script src="{{ url_for('static', filename='tracking.js') }}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.15.6/xlsx.full.min.js"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="Free Cartogram Generator - Make cartograms for different countries using your own data!">
@@ -387,7 +383,7 @@
               <a id="citation-text" class="text-primary" href="https://www.pnas.org/content/115/10/E2156" target="_blank" rel="noopener noreferrer" >Gastner MT, Seguy V, More P. Fast 
                 low-based algorithm for creating density-equalizing map projections. Proc Natl Acad Sci USA 115(10):E2156–E2164 (2018).</a>
           
-              <button style="margin-top:25px;" class="clipboard-copy" id="clipboard-citation" data-animation="false" title="Copy" onclick="addClipboard('clipboard-citation',document.getElementById('citation-text').innerText);
+              <button style="margin-top:25px;" class="clipboard-copy" id="clipboard-citation" data-animation="false" title="Copy" onclick="window.util.addClipboard('clipboard-citation',document.getElementById('citation-text').innerText);
                   document.getElementById('clipboard-citation').click()">
                 <img id="clipboard-citation-icon" src="/static/clipboard.svg" alt="Copy button" />
               </button>
@@ -412,8 +408,7 @@
   <script src="{{ url_for('static', filename='ie10-viewport-bug-workaround.js') }}"></script>
 
   <script src="{{ url_for('static', filename='oboe-browser.js') }}"></script>
-  <script src="{{ url_for('static', filename='tinycolor.js') }}"></script>
-  <script src="{{ url_for('static', filename='cartogram2.js') }}?v={{cartogram_version}}"></script>
+  <script src="{{ asset.url_for('cartogram.js') }}?v={{cartogram_version}}"></script>
 
   {% if map_name is defined %}
   <script>

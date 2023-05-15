@@ -1,3 +1,14 @@
+import * as XLSX from 'xlsx/xlsx.mjs';
+
+export function clearFileInput(ctrl) {
+    try {
+      ctrl.value = null;
+    } catch(ex) { }
+    if (ctrl.value) {
+      ctrl.parentNode.replaceChild(ctrl.cloneNode(true), ctrl);
+    }
+ }
+
 export function convertExcelToCSV(excel_file) {
   return new Promise((resolve, reject) => {
       let reader = new FileReader();

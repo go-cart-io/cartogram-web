@@ -1,3 +1,6 @@
+import * as d3 from "d3";
+import tinycolor from "tinycolor2";
+
 import Tooltip from './tooltip.js'
 import SVG from './svg.js'
 import Polygon from './polygon.js'
@@ -1234,18 +1237,18 @@ export default class CartMap {
         .attr("stroke", "#000")
         .attr("stroke-width", "0.5")
         .on('mouseenter', (function(map, where_drawn){
-              return function(d, i){
+              return function(event, d, i){
 
                       CartMap.highlightByID(where_drawn, d.region_id, d.color, true);
 
-                      map.drawTooltip(d3.event, d.region_id);
+                      map.drawTooltip(event, d.region_id);
 
                   };
         }(this, where_drawn)))
         .on('mousemove', (function(map){
-              return function(d, i){
+              return function(event, d, i){
 
-                  map.drawTooltip(d3.event, d.region_id);
+                  map.drawTooltip(event, d.region_id);
           };}(this)))
         .on('mouseleave', (function(map, where_drawn){
               return function(d, i){

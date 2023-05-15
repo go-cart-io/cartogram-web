@@ -8,8 +8,7 @@
 
 {% block javascript %}
     <script src="{{ url_for('static', filename='oboe-browser.js') }}"></script>
-    <script src="{{ url_for('static', filename='tinycolor.js') }}"></script>
-    <script src="{{ url_for('static', filename='cartogram2.js') }}?v={{cartogram_version}}"></script>
+    <script src="{{ asset.url_for('cartogram.js') }} }}?v={{cartogram_version}}"></script>
 
     <script>
 

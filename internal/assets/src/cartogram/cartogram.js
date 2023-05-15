@@ -4,11 +4,16 @@
  * @version 2.0.0
  */
 
+import * as d3 from "d3";
+import tinycolor from "tinycolor2";
+import * as XLSX from 'xlsx/xlsx.mjs';
+
 import HTTP from './http.js'
 import Tooltip from './tooltip.js'
 import { MapVersionData, MapDataFormat } from './mapVersion.js'
 import CartMap from './cartMap.js'
 import * as util from './util.js';
+window.util = util;
 
  /**
   * Extrema for a map
@@ -532,12 +537,12 @@ export class Cartogram {
                      .insert("path")
                      .style("fill", d => d.data.color)
                      .attr("class", "slice")
-                     .on("mouseover", function(d, i){
+                     .on("mouseover", function(event, d, i){
 
                          d3.select(this).style("fill", tinycolor(d.data.color).brighten(20));
 
                          Tooltip.drawWithEntries(
-                             d3.event,
+                             event,
                              d.data.name,
                              d.data.abbreviation,
                              [{
@@ -547,10 +552,10 @@ export class Cartogram {
                              }]
                          );
                      })
-                     .on("mousemove", function(d, i){
+                     .on("mousemove", function(event, d, i){
 
                          Tooltip.drawWithEntries(
-                             d3.event,
+                             event,
                              d.data.name,
                              d.data.abbreviation,
                              [{
@@ -560,7 +565,7 @@ export class Cartogram {
                              }]
                          );
                      })
-                     .on("mouseout", function(d, i){
+                     .on("mouseout", function(event, d, i){
 
                          d3.select(this).style("fill", d.data.color);
                          Tooltip.hide();
