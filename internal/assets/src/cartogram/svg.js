@@ -2,7 +2,6 @@
  * SVG contains helper methods for drawing SVG objects
  */
 export default class SVG {
-
   /**
    * lineFunction returns a string of SVG path commands for a polygon with holes
    * @param {Function} scaleX A function to scale X coordinates
@@ -12,37 +11,50 @@ export default class SVG {
    * @returns {string} The SVG path
    */
   static lineFunction(scaleX, scaleY, coordinates, holes) {
+    var path = ''
 
-      var path = "";
+    for (let i = 0; i < coordinates.length; i++) {
+      if (i == 0) {
+        path +=
+          'M ' +
+          scaleX(coordinates[i]).toString() +
+          ',' +
+          scaleY(coordinates[i]).toString() +
+          ' '
+      } else {
+        path +=
+          'L ' +
+          scaleX(coordinates[i]).toString() +
+          ',' +
+          scaleY(coordinates[i]).toString() +
+          ' '
+      }
+    }
 
-      for(let i = 0; i < coordinates.length; i++) {
+    path += 'z '
 
-          if(i == 0) {
-              path += "M " + scaleX(coordinates[i]).toString() + "," + scaleY(coordinates[i]).toString() + " ";
-          } else {
-              path += "L " + scaleX(coordinates[i]).toString() + "," + scaleY(coordinates[i]).toString() + " ";
-          }
-
+    holes.forEach(function (hole_coords) {
+      for (let i = 0; i < hole_coords.length; i++) {
+        if (i == 0) {
+          path +=
+            'M ' +
+            scaleX(hole_coords[i]).toString() +
+            ',' +
+            scaleY(hole_coords[i]).toString() +
+            ' '
+        } else {
+          path +=
+            'L ' +
+            scaleX(hole_coords[i]).toString() +
+            ',' +
+            scaleY(hole_coords[i]).toString() +
+            ' '
+        }
       }
 
-      path += "z ";
+      path += 'z '
+    })
 
-      holes.forEach(function(hole_coords){
-
-          for(let i = 0; i < hole_coords.length; i++) {
-              if(i == 0) {
-                  path += "M " + scaleX(hole_coords[i]).toString() + "," + scaleY(hole_coords[i]).toString() + " ";
-              } else {
-                  path += "L " + scaleX(hole_coords[i]).toString() + "," + scaleY(hole_coords[i]).toString() + " ";
-              }
-          }
-
-          path += "z ";
-
-      });
-
-      return path;
-
+    return path
   }
-
 }

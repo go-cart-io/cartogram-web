@@ -2,7 +2,6 @@
  * MapVersion contains map data for a version of a conventional map or cartogram
  */
 export class MapVersion {
-
   /**
    * constructor creates an instance of the MapVersion class
    * @param {string} name The human-readable name of the map version
@@ -10,42 +9,41 @@ export class MapVersion {
    * @param {Array} dimension The width and height of the map version
    * @param {Labels} labels The labels of the map version. Optional.
    */
-  constructor(name, extrema, dimension, labels=null, world = false) {
-      this.name = name;
-      this.extrema = extrema;
-      this.dimension = dimension;
-      this.labels = labels;
-      this.world = world;
-      // legendData stores legend and gridline information of the map version.
-      this.legendData = {
-          "gridData": {
-              "gridA": {width: null, scaleNiceNumber: null, gridPath: null},
-              "gridB": {width: null, scaleNiceNumber: null, gridPath: null},
-              "gridC": {width: null, scaleNiceNumber: null, gridPath: null}
-          },
-          "scalePowerOf10": null,
-          "unit": null,
-          "versionTotalValue": null,
-      }
+  constructor(name, extrema, dimension, labels = null, world = false) {
+    this.name = name
+    this.extrema = extrema
+    this.dimension = dimension
+    this.labels = labels
+    this.world = world
+    // legendData stores legend and gridline information of the map version.
+    this.legendData = {
+      gridData: {
+        gridA: { width: null, scaleNiceNumber: null, gridPath: null },
+        gridB: { width: null, scaleNiceNumber: null, gridPath: null },
+        gridC: { width: null, scaleNiceNumber: null, gridPath: null }
+      },
+      scalePowerOf10: null,
+      unit: null,
+      versionTotalValue: null
+    }
   }
 }
 
 /**
-* An enum of the supported map data formats.
-* @constant
-* @type {Object<string,number>}
-* @default
-*/
+ * An enum of the supported map data formats.
+ * @constant
+ * @type {Object<string,number>}
+ * @default
+ */
 export const MapDataFormat = {
   GOCARTJSON: 1,
   GEOJSON: 2
-};
+}
 
 /**
-* MapVersionData contains data used to construct a map from raw JSON data
-*/
+ * MapVersionData contains data used to construct a map from raw JSON data
+ */
 export class MapVersionData {
-
   /**
    * constructor creates an instance of the MapVersionData class from raw map data in JSON
    * @param {Array<{id: string, polygon_id: number, coordinates: Array<Array<number,number>>}>} features
@@ -59,206 +57,230 @@ export class MapVersionData {
    * @param {number} format The format of the given map data.
    * @param {boolean} world Whether it is a world map.
    */
-  constructor(features, extrema, tooltip, abbreviations=null, labels=null, format=MapDataFormat.GOCARTJSON, world = false) {
+  constructor(
+    features,
+    extrema,
+    tooltip,
+    abbreviations = null,
+    labels = null,
+    format = MapDataFormat.GOCARTJSON,
+    world = false
+  ) {
+    /**
+     * @type {Object.<string,{polygons: Array<{id: string, coordinates: Array<Array<number,number>>}>, name: string, value: string}}
+     */
+    this.regions = {}
 
-      /**
-       * @type {Object.<string,{polygons: Array<{id: string, coordinates: Array<Array<number,number>>}>, name: string, value: string}}
-       */
-      this.regions = {};
-
-      switch(format) {
+    switch (format) {
       case MapDataFormat.GOCARTJSON:
-          features.forEach(function(feature){
+        features.forEach(function (feature) {
+          if (this.regions.hasOwnProperty(feature.id)) {
+            this.regions[feature.id].polygons.push({
+              id: feature.properties.polygon_id.toString(),
+              coordinates: feature.coordinates,
+              holes: feature.hasOwnProperty('holes') ? feature.holes : []
+            })
+          } else {
+            this.regions[feature.id] = {
+              polygons: [
+                {
+                  id: feature.properties.polygon_id.toString(),
+                  coordinates: feature.coordinates,
+                  holes: feature.hasOwnProperty('holes') ? feature.holes : []
+                }
+              ],
+              name: tooltip.data['id_' + feature.id]['name'],
+              value: tooltip.data['id_' + feature.id]['value'],
+              abbreviation:
+                abbreviations !== null
+                  ? abbreviations[tooltip.data['id_' + feature.id]['name']]
+                  : ''
+            }
+          }
+        }, this)
 
-              if(this.regions.hasOwnProperty(feature.id)) {
-
-                  this.regions[feature.id].polygons.push({
-                      id: feature.properties.polygon_id.toString(),
-                      coordinates: feature.coordinates,
-                      holes: feature.hasOwnProperty("holes") ? feature.holes : []
-                  })
-
-              } else {
-
-                  this.regions[feature.id] = {
-                      polygons: [
-                          {
-                              id: feature.properties.polygon_id.toString(),
-                              coordinates: feature.coordinates,
-                              holes: feature.hasOwnProperty("holes") ? feature.holes : []
-                          }
-                      ],
-                      name: tooltip.data["id_" + feature.id]["name"],
-                      value: tooltip.data["id_" + feature.id]["value"],
-                      abbreviation: abbreviations !== null ? abbreviations[tooltip.data["id_" + feature.id]["name"]] : ""
-                  }
-
-              }
-
-          }, this);
-
-          break;
+        break
       case MapDataFormat.GEOJSON:
+        var next_polygon_id = 1
 
-          var next_polygon_id = 1;
+        features.forEach(function (feature) {
+          switch (feature.geometry.type) {
+            case 'Polygon':
+              var polygon_coords
+              var polygon_holes = []
 
-          features.forEach(function(feature){
+              var polygon_id = next_polygon_id.toString()
 
-              switch(feature.geometry.type) {
-                  case "Polygon":
+              for (let i = 0; i < feature.geometry.coordinates.length; i++) {
+                /* The first array of coordinates is the outer ring. The rest are holes */
+                if (i == 0) {
+                  polygon_coords = feature.geometry.coordinates[0]
+                  next_polygon_id++
+                  continue
+                }
 
-                  var polygon_coords;
-                  var polygon_holes = [];
-
-                  var polygon_id = next_polygon_id.toString();
-
-                  for(let i = 0; i < feature.geometry.coordinates.length; i++) {
-
-                      /* The first array of coordinates is the outer ring. The rest are holes */
-                      if(i == 0) {
-                          polygon_coords = feature.geometry.coordinates[0];
-                          next_polygon_id++;
-                          continue;
-                      }
-
-                      polygon_holes.push(feature.geometry.coordinates[i]);
-                      /* We increase the polygon ID for holes for compatibility reasons. This is what the gen2json
+                polygon_holes.push(feature.geometry.coordinates[i])
+                /* We increase the polygon ID for holes for compatibility reasons. This is what the gen2json
                          Python script does.
                       */
-                      next_polygon_id++;
-                  }
-
-                  /* If the map is a world map, we transform the coordinates
-                  using Gall-Peters projection.
-                  */
-                  if (world) {
-                      let projection = new GallPetersProjection();
-
-                      for (let i = 0; i < polygon_coords.length; i++) {
-                          polygon_coords[i] = projection.transformLongLat(polygon_coords[i]);
-                      }
-
-                      for (let i = 0; i < polygon_holes.length; i++) {
-                          for (let j = 0; j < polygon_holes[i].length; j++) {
-                              polygon_holes[i][j] = projection.transformLongLat(polygon_holes[i][j]);
-                          }
-                      }
-                  }
-
-                  this.regions[feature.properties.cartogram_id] = {
-                      polygons: [
-                          {
-                              id: polygon_id,
-                              coordinates: polygon_coords,
-                              holes: polygon_holes
-                          }
-                      ],
-                      name: tooltip.data["id_" + feature.properties.cartogram_id]["name"],
-                      value: tooltip.data["id_" + feature.properties.cartogram_id]["value"],
-                      abbreviation: abbreviations !== null ? abbreviations[tooltip.data["id_" + feature.properties.cartogram_id]["name"]] : ""
-                  }
-
-                  break;
-              case "MultiPolygon":
-
-                  var polygons = [];
-
-                  feature.geometry.coordinates.forEach(function(polygon){
-
-                      var polygon_coords;
-                      var polygon_holes = [];
-                      var polygon_id = next_polygon_id.toString();
-
-                      for(let i = 0; i < polygon.length; i++) {
-
-                          /* The first array of coordinates is the outer ring. The rest are holes */
-                          if(i == 0) {
-                              polygon_coords = polygon[0];
-                              next_polygon_id++;
-                              continue;
-                          }
-
-                          polygon_holes.push(polygon[i]);
-                          next_polygon_id++;
-                      }
-
-                      /* If the map is a world map, we transform the coordinates
-                      using Gall-Peters projection.
-                      */
-                      if (world) {
-                          let projection = new GallPetersProjection();
-
-                          for (let i = 0; i < polygon_coords.length; i++) {
-                              polygon_coords[i] = projection.transformLongLat(polygon_coords[i]);
-                          }
-
-                          for (let i = 0; i < polygon_holes.length; i++) {
-                              for (let j = 0; j < polygon_holes[i].length; j++) {
-                                  polygon_holes[i][j] = projection.transformLongLat(polygon_holes[i][j]);
-                              }
-                          }
-                      }
-
-                      polygons.push({
-                          id: polygon_id,
-                          coordinates: polygon_coords,
-                          holes: polygon_holes
-                      });
-
-                  }, this);
-
-                  this.regions[feature.properties.cartogram_id] = {
-                      polygons: polygons,
-                      name: tooltip.data["id_" + feature.properties.cartogram_id]["name"],
-                      value: tooltip.data["id_" + feature.properties.cartogram_id]["value"],
-                      abbreviation: abbreviations !== null ? abbreviations[tooltip.data["id_" + feature.properties.cartogram_id]["name"]] : ""
-                  }
-
-                  break;
-              default:
-                  throw ("Feature type '" + feature.geometry.type + "' not supported");
-
+                next_polygon_id++
               }
 
-          }, this);
-          break;
+              /* If the map is a world map, we transform the coordinates
+                  using Gall-Peters projection.
+                  */
+              if (world) {
+                let projection = new GallPetersProjection()
+
+                for (let i = 0; i < polygon_coords.length; i++) {
+                  polygon_coords[i] = projection.transformLongLat(
+                    polygon_coords[i]
+                  )
+                }
+
+                for (let i = 0; i < polygon_holes.length; i++) {
+                  for (let j = 0; j < polygon_holes[i].length; j++) {
+                    polygon_holes[i][j] = projection.transformLongLat(
+                      polygon_holes[i][j]
+                    )
+                  }
+                }
+              }
+
+              this.regions[feature.properties.cartogram_id] = {
+                polygons: [
+                  {
+                    id: polygon_id,
+                    coordinates: polygon_coords,
+                    holes: polygon_holes
+                  }
+                ],
+                name: tooltip.data['id_' + feature.properties.cartogram_id][
+                  'name'
+                ],
+                value:
+                  tooltip.data['id_' + feature.properties.cartogram_id][
+                    'value'
+                  ],
+                abbreviation:
+                  abbreviations !== null
+                    ? abbreviations[
+                        tooltip.data['id_' + feature.properties.cartogram_id][
+                          'name'
+                        ]
+                      ]
+                    : ''
+              }
+
+              break
+            case 'MultiPolygon':
+              var polygons = []
+
+              feature.geometry.coordinates.forEach(function (polygon) {
+                var polygon_coords
+                var polygon_holes = []
+                var polygon_id = next_polygon_id.toString()
+
+                for (let i = 0; i < polygon.length; i++) {
+                  /* The first array of coordinates is the outer ring. The rest are holes */
+                  if (i == 0) {
+                    polygon_coords = polygon[0]
+                    next_polygon_id++
+                    continue
+                  }
+
+                  polygon_holes.push(polygon[i])
+                  next_polygon_id++
+                }
+
+                /* If the map is a world map, we transform the coordinates
+                      using Gall-Peters projection.
+                      */
+                if (world) {
+                  let projection = new GallPetersProjection()
+
+                  for (let i = 0; i < polygon_coords.length; i++) {
+                    polygon_coords[i] = projection.transformLongLat(
+                      polygon_coords[i]
+                    )
+                  }
+
+                  for (let i = 0; i < polygon_holes.length; i++) {
+                    for (let j = 0; j < polygon_holes[i].length; j++) {
+                      polygon_holes[i][j] = projection.transformLongLat(
+                        polygon_holes[i][j]
+                      )
+                    }
+                  }
+                }
+
+                polygons.push({
+                  id: polygon_id,
+                  coordinates: polygon_coords,
+                  holes: polygon_holes
+                })
+              }, this)
+
+              this.regions[feature.properties.cartogram_id] = {
+                polygons: polygons,
+                name: tooltip.data['id_' + feature.properties.cartogram_id][
+                  'name'
+                ],
+                value:
+                  tooltip.data['id_' + feature.properties.cartogram_id][
+                    'value'
+                  ],
+                abbreviation:
+                  abbreviations !== null
+                    ? abbreviations[
+                        tooltip.data['id_' + feature.properties.cartogram_id][
+                          'name'
+                        ]
+                      ]
+                    : ''
+              }
+
+              break
+            default:
+              throw "Feature type '" + feature.geometry.type + "' not supported"
+          }
+        }, this)
+        break
       default:
-          throw "Unsupported map format";
+        throw 'Unsupported map format'
+    }
+
+    /**
+     * @type {Extrema}
+     */
+    if (world) {
+      let projection = new GallPetersProjection()
+      this.extrema = {
+        min_x: projection.transformLongitude(-180),
+        min_y: projection.transformLatitude(-90),
+        max_x: projection.transformLongitude(180),
+        max_y: projection.transformLatitude(90)
       }
+    } else this.extrema = extrema
 
-      /**
-       * @type {Extrema}
-       */
-      if (world) {
-          let projection = new GallPetersProjection();
-          this.extrema = {
-              min_x: projection.transformLongitude(-180),
-              min_y: projection.transformLatitude(-90),
-              max_x: projection.transformLongitude(180),
-              max_y: projection.transformLatitude(90)
-          };
-      } else
-          this.extrema = extrema;
+    /**
+     * @type {string}
+     */
+    this.name = tooltip.label
 
-      /**
-       * @type {string}
-       */
-      this.name = tooltip.label;
+    /**
+     * @type {string}
+     */
+    this.unit = tooltip.unit
 
-      /**
-       * @type {string}
-       */
-      this.unit = tooltip.unit;
+    /**
+     * @type {Labels}
+     */
+    this.labels = labels
 
-      /**
-       * @type {Labels}
-       */
-      this.labels = labels;
-
-      /**
-       * @type {boolean}
-       */
-      this.world = world;
+    /**
+     * @type {boolean}
+     */
+    this.world = world
   }
-
 }

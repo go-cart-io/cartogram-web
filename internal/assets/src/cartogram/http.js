@@ -2,7 +2,6 @@
  * HTTP contains some helper methods for making AJAX requests
  */
 export default class HTTP {
-
   /**
    * Performs an HTTP GET request and returns a promise with the JSON/CSV value of the response
    * @param {string} url The URL of the GET request
@@ -11,61 +10,47 @@ export default class HTTP {
    * @param {boolean} parse_json Whether to parse the response as JSON
    * @returns {Promise} A promise to the HTTP response
    */
-  static get(url, timeout=null, onprogress=null, parse_json=true) {
-      return new Promise(function(resolve, reject){
+  static get(url, timeout = null, onprogress = null, parse_json = true) {
+    return new Promise(function (resolve, reject) {
+      var xhttp = new XMLHttpRequest()
 
-          var xhttp = new XMLHttpRequest();
-
-          xhttp.onreadystatechange = function() {
-              if(this.readyState == 4)
-              {
-                  if(this.status == 200)
-                  {
-                      try
-                      {
-                          
-                          if(!parse_json) 
-                          {
-                              resolve(this.response);
-                          } 
-                          else 
-                          {
-                              resolve(JSON.parse(this.responseText));
-                          }
-                      }
-                      catch(e)
-                      {
-                          console.log(e);
-                          console.log(this.responseText);
-                          reject(Error('Unable to parse output.'));
-                      }
-                  }
-                  else
-                  {
-                      console.log(url);
-                      reject(Error('Unable to fetch data from the server.'));
-                  }
+      xhttp.onreadystatechange = function () {
+        if (this.readyState == 4) {
+          if (this.status == 200) {
+            try {
+              if (!parse_json) {
+                resolve(this.response)
+              } else {
+                resolve(JSON.parse(this.responseText))
               }
-          };
-
-          if(onprogress !== null) {
-              xhttp.onprogress = onprogress;
+            } catch (e) {
+              console.log(e)
+              console.log(this.responseText)
+              reject(Error('Unable to parse output.'))
+            }
+          } else {
+            console.log(url)
+            reject(Error('Unable to fetch data from the server.'))
           }
+        }
+      }
 
-          xhttp.ontimeout = function(e) {
-              reject(Error('The request has timed out.'));
-          }
+      if (onprogress !== null) {
+        xhttp.onprogress = onprogress
+      }
 
-          if(timeout !== null) {
-              xhttp.timeout = timeout;
-          }
+      xhttp.ontimeout = function (e) {
+        reject(Error('The request has timed out.'))
+      }
 
-          xhttp.open("GET", url, true);
-          xhttp.send();
+      if (timeout !== null) {
+        xhttp.timeout = timeout
+      }
 
-      });
+      xhttp.open('GET', url, true)
+      xhttp.send()
+    })
   }
-          
 
   /**
    * Performs an HTTP POST request and returns a promise with the JSON value of the response
@@ -75,51 +60,40 @@ export default class HTTP {
    * @param {number} timeout The timeout, in seconds, of the GET request
    * @returns {Promise<Object|string>} A promise to the HTTP response
    */
-  static post(url, form_data, headers={}, timeout=30000) {
+  static post(url, form_data, headers = {}, timeout = 30000) {
+    return new Promise(function (resolve, reject) {
+      var xhttp = new XMLHttpRequest()
 
-      return new Promise(function(resolve, reject){
-
-          var xhttp = new XMLHttpRequest();
-
-          xhttp.onreadystatechange = function() {
-              if(this.readyState == 4)
-              {
-                  if(this.status == 200)
-                  {
-                      try
-                      {
-                          resolve(JSON.parse(this.responseText));
-                      }
-                      catch(e)
-                      {
-                          console.log(e);
-                          console.log(this.responseText);
-                          reject(Error('Unable to parse output.'));
-                      }
-                  }
-                  else
-                  {
-                      console.log(url);
-                      reject(Error('Unable to fetch data from the server.'));
-                  }
-              }
-          };
-
-          xhttp.ontimeout = function(e) {
-              reject(Error('The request has timed out.'));
+      xhttp.onreadystatechange = function () {
+        if (this.readyState == 4) {
+          if (this.status == 200) {
+            try {
+              resolve(JSON.parse(this.responseText))
+            } catch (e) {
+              console.log(e)
+              console.log(this.responseText)
+              reject(Error('Unable to parse output.'))
+            }
+          } else {
+            console.log(url)
+            reject(Error('Unable to fetch data from the server.'))
           }
+        }
+      }
 
-          xhttp.open("POST", url, true);
-          xhttp.timeout = timeout;
+      xhttp.ontimeout = function (e) {
+        reject(Error('The request has timed out.'))
+      }
 
-          Object.keys(headers).forEach(function(key, index) {
-              xhttp.setRequestHeader(key, headers[key]);
-          });
+      xhttp.open('POST', url, true)
+      xhttp.timeout = timeout
 
-          xhttp.send(form_data);
+      Object.keys(headers).forEach(function (key, index) {
+        xhttp.setRequestHeader(key, headers[key])
+      })
 
-      });
-
+      xhttp.send(form_data)
+    })
   }
 
   /**
@@ -128,19 +102,16 @@ export default class HTTP {
    * @returns {string}
    */
   static serializePostVariables(vars) {
+    var post_string = ''
+    var first_entry = true
 
-      var post_string = "";
-      var first_entry = true;
+    Object.keys(vars).forEach(function (key, index) {
+      post_string +=
+        (first_entry ? '' : '&') + key + '=' + encodeURIComponent(vars[key])
+      first_entry = false
+    })
 
-      Object.keys(vars).forEach(function(key, index) {
-
-          post_string += (first_entry ? "" : "&" ) + key + "=" + encodeURIComponent(vars[key]);
-          first_entry = false;
-
-      });
-
-      return post_string;
-
+    return post_string
   }
 
   /**
@@ -148,14 +119,13 @@ export default class HTTP {
    * @returns {string}
    */
   static generateMIMEBoundary() {
+    var text = '---------'
+    var possible =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
-      var text = "---------";
-      var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for (var i = 0; i < 25; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length))
 
-      for (var i = 0; i < 25; i++)
-          text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-      return text;
-
+    return text
   }
 }
