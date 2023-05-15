@@ -988,14 +988,6 @@ export class Cartogram {
 
                 };
             }(this, unique_sharing_key), 500);
-            
-            // HTTP.streaming(
-            //     this.config.cartogram_url,
-            //     "POST",
-            //     {'Content-type': 'application/x-www-form-urlencoded'},
-            //     req_body,
-            //     {}
-            // )
 
             HTTP.post(
                 this.config.cartogram_url,

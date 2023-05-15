@@ -123,40 +123,6 @@ export default class HTTP {
   }
 
   /**
-   * Performs an HTTP request when a streaming response is expected.
-   * @param {string} url The URL of the request
-   * @param {string} method The HTTP method of the request
-   * @param {Object.<string,string>} headers The HTTP headers of the request
-   * @param {string} body The body of the request
-   * @param {Object.<string,Function>} nodes A map of JSON nodes to event handlers that will be called when a new JSON
-   * element matching the node description is detected.
-   * @returns {Promise}
-   */
-  static streaming(url, method, headers, body, nodes) {
-
-      return new Promise(function(resolve,reject){
-
-          var oboe_request = oboe({
-              url: url,
-              method: method,
-              headers: headers,
-              body: body,
-          });
-
-          Object.keys(nodes).forEach(function(node){
-
-              oboe_request = oboe_request.node(node, nodes[node]);
-
-          });
-
-          oboe_request = oboe_request.done(result => resolve(result));
-          oboe_request = oboe_request.fail(() => reject(Error('Unable to fetch data from the server.')));
-
-      });
-
-  }
-
-  /**
    * serializePostVariables produces a www-form-urlencoded POST body from the given variables.
    * @param {Object.<string,string>} vars The variables to encode in the body
    * @returns {string}
