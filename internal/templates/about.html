@@ -1,107 +1,106 @@
 {% extends 'base_layout.html' %}
 
-{%  block head_extra %}
-    <style>
+{% block head_extra %}
+<style>
+  ol {
+    list-style: none outside;
+    padding-left: 0;
+    counter-reset: citations-counter;
+  }
 
-        ol {
-            list-style: none outside;
-            padding-left: 0;
-          counter-reset: citations-counter;
-        }
+  ol li {
+    counter-increment: citations-counter;
+    display: table-row;
+  }
 
-        ol li {
-          counter-increment: citations-counter;
-            display: table-row;
-        }
-
-        .citations li::before {
-            content: "[ " counter(citations-counter) " ]";
-            margin-right: 10px;
-            display: table-cell;
-            width: 2.5em;
-        }
-    </style>
-{%  endblock %}
+  .citations li::before {
+    content: "[ " counter(citations-counter) " ]";
+    margin-right: 10px;
+    display: table-cell;
+    width: 2.5em;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 
 <div class="container mt-5">
-       <h1 class="text-primary">About</h1>
+  <h1 class="text-primary">About</h1>
 
-       <h3>What are Cartograms?</h3>
+  <h3>What are Cartograms?</h3>
 
-       <p class="text-justify">Cartograms are maps in which the areas of regions (e.g.&nbsp;states or provinces) are
-                rescaled to be proportional to statistical data (e.g.&nbsp;population size or gross domestic product).
-                Cartograms are called &lsquo;contiguous&rsquo; if they maintain the topology of the conventional map
-                (i.e.&nbsp;regions are displayed as neighbours on the cartogram if and only if they are geographic
-                neighbours).</p>
+  <p class="text-justify">Cartograms are maps in which the areas of regions (e.g.&nbsp;states or provinces) are
+    rescaled to be proportional to statistical data (e.g.&nbsp;population size or gross domestic product).
+    Cartograms are called &lsquo;contiguous&rsquo; if they maintain the topology of the conventional map
+    (i.e.&nbsp;regions are displayed as neighbours on the cartogram if and only if they are geographic
+    neighbours).</p>
 
-        <p class="text-justify">Creating cartograms has traditionally been a complex endeavour that required expert
-                knowledge in cartography and programming.
-                However, producing cartograms should not be the privilege of only a handful of experts.
-                Journalists or bloggers, for example, may also benefit from a cartogram as an intriguing illustration
-                of their own data.
-                Similarly, students may enrich a term paper with a cartogram that can summarize data more effectively
-                than raw numeric tables.</p>
+  <p class="text-justify">Creating cartograms has traditionally been a complex endeavour that required expert
+    knowledge in cartography and programming.
+    However, producing cartograms should not be the privilege of only a handful of experts.
+    Journalists or bloggers, for example, may also benefit from a cartogram as an intriguing illustration
+    of their own data.
+    Similarly, students may enrich a term paper with a cartogram that can summarize data more effectively
+    than raw numeric tables.</p>
 
-        <h3>Why go-cart.io?</h3>
+  <h3>Why go-cart.io?</h3>
 
-        <p class="text-justify">In the past, the creation of contiguous cartograms was far from user-friendly.
-                Even experts in data visualisation found it difficult and time-consuming to learn the required
-                computer skills.
-                Scientific publications that introduced new cartogram algorithms rarely included computer code.
-                Some authors of more recent publications have posted their code online
-                (e.g.&nbsp;in <a href="https://github.com/Flow-Based-Cartograms/go_cart">this GitHub repo</a>), but
-                their software usually assumes technical knowledge about shell scripting, compiling and geographic
-                data structures.
-                These prerequisites pose insurmountable obstacles for most users.
-                The aim of go-cart.io is to simplify cartogram generation.
-                With a simple interface, we want to eliminate hurdles for non-experts and provide a convenient way
-                to create readable cartograms.</p>
+  <p class="text-justify">In the past, the creation of contiguous cartograms was far from user-friendly.
+    Even experts in data visualisation found it difficult and time-consuming to learn the required
+    computer skills.
+    Scientific publications that introduced new cartogram algorithms rarely included computer code.
+    Some authors of more recent publications have posted their code online
+    (e.g.&nbsp;in <a href="https://github.com/Flow-Based-Cartograms/go_cart">this GitHub repo</a>), but
+    their software usually assumes technical knowledge about shell scripting, compiling and geographic
+    data structures.
+    These prerequisites pose insurmountable obstacles for most users.
+    The aim of go-cart.io is to simplify cartogram generation.
+    With a simple interface, we want to eliminate hurdles for non-experts and provide a convenient way
+    to create readable cartograms.</p>
 
-        <h3>How Does go-cart.io Work?</h3>
+  <h3>How Does go-cart.io Work?</h3>
 
-        <p class="text-justify">While previous cartogram generators required users to install software on their
-                computer, go-cart.io is based on JavaScript that can be run in any contemporary web browser without
-                additional downloads.
-                We decided to simplify the data input as much as possible.
-                We have curated a &lsquo;library&rsquo; of topologies so that users do not need GIS expertise to
-                create geospatial vector data.
-                After data are transmitted, a remote server calculates the cartogram transformation with the fast
-                flow-based algorithm [1].
-                Because the calculation is entirely server-side, we eliminate any dependence on the client&apos;s
-                hardware.
-                For typical input, the calculation finishes within 10 to 15 seconds.
-                If the calculation needs substantially longer, the application displays a bar chart instead of a
-                cartogram as a fallback.
-                The cartogram is displayed in the browser window side by side with the conventional
-                (i.e.&nbsp;equal-area) map.
-                The user can explore both maps with various interactive features implemented using the D3.js
-                library [2].</p>
+  <p class="text-justify">While previous cartogram generators required users to install software on their
+    computer, go-cart.io is based on JavaScript that can be run in any contemporary web browser without
+    additional downloads.
+    We decided to simplify the data input as much as possible.
+    We have curated a &lsquo;library&rsquo; of topologies so that users do not need GIS expertise to
+    create geospatial vector data.
+    After data are transmitted, a remote server calculates the cartogram transformation with the fast
+    flow-based algorithm [1].
+    Because the calculation is entirely server-side, we eliminate any dependence on the client&apos;s
+    hardware.
+    For typical input, the calculation finishes within 10 to 15 seconds.
+    If the calculation needs substantially longer, the application displays a bar chart instead of a
+    cartogram as a fallback.
+    The cartogram is displayed in the browser window side by side with the conventional
+    (i.e.&nbsp;equal-area) map.
+    The user can explore both maps with various interactive features implemented using the D3.js
+    library [2].</p>
 
-        <h3>What is the Fast Flow-based Algorithm?</h3>
+  <h3>What is the Fast Flow-based Algorithm?</h3>
 
-        <p class="text-justify">One way to create a contiguous cartogram is to create a map projection that transforms
-                every coordinate on a conventional map such that the projected regions on the cartogram have the
-                desired areas.
-                The fast flow-based algorithm translates the cartographic deformations into physics-inspired equations
-                of motion.
-                The basic idea is to allow densely populated regions to flow into regions with lower population.
-                The equations guarantee that we reach the desired areas at the end of the flow process and that
-                neighbouring regions stay connected.
-                In our paper [1], we describe several mathematical and computational tricks that speed up the
-                calculation.</p>
+  <p class="text-justify">One way to create a contiguous cartogram is to create a map projection that transforms
+    every coordinate on a conventional map such that the projected regions on the cartogram have the
+    desired areas.
+    The fast flow-based algorithm translates the cartographic deformations into physics-inspired equations
+    of motion.
+    The basic idea is to allow densely populated regions to flow into regions with lower population.
+    The equations guarantee that we reach the desired areas at the end of the flow process and that
+    neighbouring regions stay connected.
+    In our paper [1], we describe several mathematical and computational tricks that speed up the
+    calculation.</p>
 
-        <h3>References</h3>
+  <h3>References</h3>
 
-        <ol class="citations">
-            <li>Gastner  MT,  Seguy  V,  More  P.
-                Fast  flow-based  algorithm  for  creating  density-equalizing  map  projections.
-                Proc Natl Acad Sci USA 115(10):E2156–E2164 (2018).</li>
-            <li>Bostock M, Ogievetsky V, Heer J.
-                D3 Data-Driven Documents.
-                IEEE Trans Vis Comput Graph 17(12):2301–2309(2011).</li>
-        </ol>
+  <ol class="citations">
+    <li>Gastner MT, Seguy V, More P.
+      Fast flow-based algorithm for creating density-equalizing map projections.
+      Proc Natl Acad Sci USA 115(10):E2156–E2164 (2018).</li>
+    <li>Bostock M, Ogievetsky V, Heer J.
+      D3 Data-Driven Documents.
+      IEEE Trans Vis Comput Graph 17(12):2301–2309(2011).</li>
+  </ol>
 
 
 

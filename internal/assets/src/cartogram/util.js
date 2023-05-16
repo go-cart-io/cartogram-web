@@ -37,13 +37,13 @@ export function addClipboard(button_id, message) {
   document.getElementById(button_id).onclick = function () {
     var icon_id = button_id + '-icon'
     navigator.clipboard.writeText(message)
-    document.getElementById(icon_id).src = 'static/clipboard-check.svg'
+    document.getElementById(icon_id).src = 'static/img/clipboard-check.svg'
     $('#' + button_id)
       .attr('data-original-title', 'Copied!')
       .tooltip('show')
 
     setTimeout(function () {
-      document.getElementById(icon_id).src = 'static/clipboard.svg'
+      document.getElementById(icon_id).src = 'static/img/clipboard.svg'
       $('#' + button_id).attr('data-original-title', 'Copy')
     }, 2000)
   }

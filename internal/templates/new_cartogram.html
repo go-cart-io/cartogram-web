@@ -11,46 +11,46 @@
 
 <script>
 
-    var cartogramui_data = {{ cartogramui_data| safe}};
-    var cartogram_data = {{ cartogram_data| safe}};
+  var cartogramui_data = {{ cartogramui_data| safe}};
+  var cartogram_data = {{ cartogram_data| safe}};
 
-    window.onload = function () {
+  window.onload = function () {
 
-        window.cartogram = new Cartogram("{{cartogram_url}}", "{{cartogramui_url}}", "{{cartogram_data_dir}}", "{{url_for('gridedit')}}", "{{getprogress_url}}", "{{cartogram_version}}");
+    window.cartogram = new Cartogram("{{cartogram_url}}", "{{cartogramui_url}}", "{{cartogram_data_dir}}", "{{url_for('gridedit')}}", "{{getprogress_url}}", "{{cartogram_version}}");
 
-        document.getElementById('handler').addEventListener('change', function (e) {
+    document.getElementById('handler').addEventListener('change', function (e) {
 
-            window.cartogram.switchMap(document.getElementById('handler').value, "");
+      window.cartogram.switchMap(document.getElementById('handler').value, "");
 
-        });
+    });
 
-        /* We need to find out the map format. If the extrema is located in the bbox property, then we have
-           GeoJSON. Otherwise, we have the old JSON format.
-        */
-        if (cartogram_data.hasOwnProperty("bbox")) {
+    /* We need to find out the map format. If the extrema is located in the bbox property, then we have
+       GeoJSON. Otherwise, we have the old JSON format.
+    */
+    if (cartogram_data.hasOwnProperty("bbox")) {
 
-            var extrema = {
-                min_x: cartogram_data.bbox[0],
-                min_y: cartogram_data.bbox[1],
-                max_x: cartogram_data.bbox[2],
-                max_y: cartogram_data.bbox[3]
-            };
+      var extrema = {
+        min_x: cartogram_data.bbox[0],
+        min_y: cartogram_data.bbox[1],
+        max_x: cartogram_data.bbox[2],
+        max_y: cartogram_data.bbox[3]
+      };
 
-            // We check if the generated cartogram is a world map by detecting the extent key
-            let world = false;
-            if ("extent" in cartogram_data) {
-                world = (cartogram_data.extent === 'world');
-            }
-            window.cartogram.switchMap("{{default_cartogram_handler}}", "", window.cartogram.newMapVersionData(cartogram_data.features, extrema, cartogramui_data.tooltip, null, null, 'GEOJSON', world), cartogramui_data.color_data, cartogramui_data.unique_sharing_key);
-
-
-        } else {
-            window.cartogram.switchMap("{{default_cartogram_handler}}", "", window.cartogram.newMapVersionData(cartogram_data.features, cartogram_data.extrema, cartogramui_data.tooltip, null, null, 'GOCARTJSON'), cartogramui_data.color_data, cartogramui_data.unique_sharing_key);
-        }
+      // We check if the generated cartogram is a world map by detecting the extent key
+      let world = false;
+      if ("extent" in cartogram_data) {
+        world = (cartogram_data.extent === 'world');
+      }
+      window.cartogram.switchMap("{{default_cartogram_handler}}", "", window.cartogram.newMapVersionData(cartogram_data.features, extrema, cartogramui_data.tooltip, null, null, 'GEOJSON', world), cartogramui_data.color_data, cartogramui_data.unique_sharing_key);
 
 
+    } else {
+      window.cartogram.switchMap("{{default_cartogram_handler}}", "", window.cartogram.newMapVersionData(cartogram_data.features, cartogram_data.extrema, cartogramui_data.tooltip, null, null, 'GOCARTJSON'), cartogramui_data.color_data, cartogramui_data.unique_sharing_key);
+    }
 
 
-    };
+
+
+  };
 </script>
 {% endblock javascript %}

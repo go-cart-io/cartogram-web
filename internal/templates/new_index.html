@@ -12,22 +12,22 @@
 <script src="{{ asset.url_for('cartogram.js') }}"></script>
 
 
-    <script>
-      window.onload = function() {
+<script>
+  window.onload = function () {
 
-            window.cartogram = new Cartogram("{{cartogram_url}}", "{{cartogramui_url}}", "{{cartogram_data_dir}}", "{{url_for('gridedit')}}","{{getprogress_url}}", "{{cartogram_version}}");
+    window.cartogram = new Cartogram("{{cartogram_url}}", "{{cartogramui_url}}", "{{cartogram_data_dir}}", "{{url_for('gridedit')}}", "{{getprogress_url}}", "{{cartogram_version}}");
 
 
-            // When user uses the dropdown list and changes the map
-            document.getElementById('handler').addEventListener('change', function(e){
+    // When user uses the dropdown list and changes the map
+    document.getElementById('handler').addEventListener('change', function (e) {
 
-                window.cartogram.switchMap(document.getElementById('handler').value, "");
+      window.cartogram.switchMap(document.getElementById('handler').value, "");
 
-            });
+    });
 
-          window.cartogram.switchMap(document.getElementById('handler').value, "");
+    window.cartogram.switchMap(document.getElementById('handler').value, "");
 
-        };
-    </script>
+  };
+</script>
 
 {% endblock javascript %}

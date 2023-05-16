@@ -4,100 +4,104 @@
 {% endblock %}
 
 {% block content %}
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-md-4">
-                    <img src="{{ url_for('static', filename='usacartogram.svg') }}" class="img-fluid" alt="USA Cartogram"/>
+<div class="container">
+  <div class="row align-items-center">
+    <div class="col-md-4">
+      <img src="{{ url_for('static', filename='img/usacartogram.svg') }}" class="img-fluid" alt="USA Cartogram" />
+    </div>
+    <div class="col-md-8">
+
+      <h1 class="text-primary display-4 text-center">Contact</h1>
+
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      {% for category, message in messages %}
+      <div class="alert alert-{{category}} alert-dismissible fade show" role="alert">
+        {{message}}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
+
+      <div class="alert alert-danger alert-dismissible fade show" style="display: none" role="alert" id="captcha-alert">
+        You must complete the CAPTCHA.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="{{url_for('contact')}}" method="POST">
+        <div class="row">
+          <div class="col-md-5 d-flex flex-column justify-content-between">
+            <div class="form-group">
+              <label for="name" class="text-success">
+                Name</label>
+              <input type="text" class="form-control" id="name" name="name" required="required" value="{{name}}" />
             </div>
-            <div class="col-md-8">
-
-            <h1 class="text-primary display-4 text-center">Contact</h1>
- 
-
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                          {% for category, message in messages %}
-                          <div class="alert alert-{{category}} alert-dismissible fade show" role="alert">
-                                {{message}}
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                  <span aria-hidden="true">&times;</span>
-                                </button>
-                          </div>
-                          {% endfor %}
-                        {% endif %}
-                      {% endwith %}
-
-                      <div class="alert alert-danger alert-dismissible fade show" style="display: none" role="alert" id="captcha-alert">
-                            You must complete the CAPTCHA.
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                              <span aria-hidden="true">&times;</span>
-                            </button>
-                      </div>
-                    <form action="{{url_for('contact')}}" method="POST">
-                    <div class="row">
-                        <div class="col-md-5 d-flex flex-column justify-content-between">
-                            <div class="form-group">
-                                <label for="name" class="text-success">
-                                    Name</label>
-                                <input type="text" class="form-control" id="name" name="name" required="required" value="{{name}}"/>
-                            </div>
-                            <div class="form-group">
-                                <label for="email" class="text-success">
-                                    Email Address</label>
-                                    <input type="email" class="form-control" id="email" name="email"  required="required" value="{{email_address}}"/>
-                            </div>
-                            <div class="form-group">
-                                <label for="subject" class="text-success">
-                                    Subject</label>
-                                <input type="text" class="form-control" id="subject" name="subject"  required="required" value="{{subject}}"/>
-                            </div>
-                            <div class="form-group">
-                                <label for="captcha" class="text-success">
-                                    Captcha</label>
-                                <br/>
-                                <div id="captcha-ui-image">
-                                    <img src="{{ captcha_image }}" id="captcha-image" class="mb-1" alt="Captcha"/>
-                                </div>
-                                <div id="captcha-ui-audio" style="display: none">
-                                    <audio id="captcha-audio" controls>
-                                        <source id="captcha-audio-source" src="{{ captcha_audio }}" type="audio/wav"/>
-                                    </audio>
-                                </div>
-                                <div class="btn-toolbar my-2" role="toolbar" aria-label="Captcha toolbar">
-                                    <div class="btn-group btn-group-sm mr-2" role="group" aria-label="Captcha type">
-                                        <button type="button" class="btn btn-secondary active" id="captcha-button-image">
-                                            Image
-                                        </button>
-                                        <button type="button" class="btn btn-secondary" id="captcha-button-audio">
-                                            Audio
-                                        </button>
-                                    </div>
-                                    <div class="btn-group btn-group-sm" role="group" aria-label="Captcha regeneration">
-                                        <button id="captcha-regenerate" type="button" class="btn btn-secondary" aria-label="Regenerate captcha">
-                                            <i class="fas fa-redo"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <input type="text" class="form-control" id="captcha" name="captcha"  required="required" value="" style="width: 160px;"/>
-                            </div>
-                        </div>
-                        <div class="col-md-7">
-                            <div class="form-group">
-                                <label for="message" class="text-success">
-                                    Message</label>
-                                <textarea name="message" id="message" class="form-control" rows="8" cols="25" required="required"
-                                  >{{message}}</textarea>
-                            </div>
-                        </div>
-                        <div class="col-md-12">
-                            <input type="hidden" name="csrftoken" value="{{csrf_token}}"/>
-                            <button type="submit" class="btn btn-primary pull-right" id="btnContactUs">
-                                Send Message</button>
-                        </div>
-                    </div>
-                    </form>
+            <div class="form-group">
+              <label for="email" class="text-success">
+                Email Address</label>
+              <input type="email" class="form-control" id="email" name="email" required="required"
+                value="{{email_address}}" />
             </div>
-            <!--<div class="col-md-4">
+            <div class="form-group">
+              <label for="subject" class="text-success">
+                Subject</label>
+              <input type="text" class="form-control" id="subject" name="subject" required="required"
+                value="{{subject}}" />
+            </div>
+            <div class="form-group">
+              <label for="captcha" class="text-success">
+                Captcha</label>
+              <br />
+              <div id="captcha-ui-image">
+                <img src="{{ captcha_image }}" id="captcha-image" class="mb-1" alt="Captcha" />
+              </div>
+              <div id="captcha-ui-audio" style="display: none">
+                <audio id="captcha-audio" controls>
+                  <source id="captcha-audio-source" src="{{ captcha_audio }}" type="audio/wav" />
+                </audio>
+              </div>
+              <div class="btn-toolbar my-2" role="toolbar" aria-label="Captcha toolbar">
+                <div class="btn-group btn-group-sm mr-2" role="group" aria-label="Captcha type">
+                  <button type="button" class="btn btn-secondary active" id="captcha-button-image">
+                    Image
+                  </button>
+                  <button type="button" class="btn btn-secondary" id="captcha-button-audio">
+                    Audio
+                  </button>
+                </div>
+                <div class="btn-group btn-group-sm" role="group" aria-label="Captcha regeneration">
+                  <button id="captcha-regenerate" type="button" class="btn btn-secondary"
+                    aria-label="Regenerate captcha">
+                    <i class="fas fa-redo"></i>
+                  </button>
+                </div>
+              </div>
+              <input type="text" class="form-control" id="captcha" name="captcha" required="required" value=""
+                style="width: 160px;" />
+            </div>
+          </div>
+          <div class="col-md-7">
+            <div class="form-group">
+              <label for="message" class="text-success">
+                Message</label>
+              <textarea name="message" id="message" class="form-control" rows="8" cols="25"
+                required="required">{{message}}</textarea>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <input type="hidden" name="csrftoken" value="{{csrf_token}}" />
+            <button type="submit" class="btn btn-primary pull-right" id="btnContactUs">
+              Send Message</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <!--<div class="col-md-4">
                 
                 <p></br></p>
                 <p></br></p>
@@ -116,14 +120,13 @@
                 </address>
                 
             </div>-->
-        </div>
-    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block javascript %}
-    <script src="{{ url_for('static', filename='gocartcaptcha.js') }}"></script>
-    <script>
-        window.gocartcaptcha = new GoCartCaptcha();
-    </script>
+<script src="{{ url_for('static', filename='gocartcaptcha.js') }}"></script>
+<script>
+  window.gocartcaptcha = new GoCartCaptcha();
+</script>
 {% endblock %}
-

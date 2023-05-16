@@ -2,89 +2,91 @@
 
 {% block content %}
 
-    <div class="container mt-5">
+<div class="container mt-5">
 
-      <h1 class="text-primary">Cartogram Generation Tutorial</h1>
+  <h1 class="text-primary">Cartogram Generation Tutorial</h1>
 
 
-        <h3>1. Select a Map</h3>
+  <h3>1. Select a Map</h3>
 
-        <p class="text-justify">On the right-hand side of the 'Input'
-        section, there are currently several maps to choose from. If
-        you select a map, the display below will update to display the
-        conventional land-area version of the map, and a population
-        cartogram.</p>
+  <p class="text-justify">On the right-hand side of the 'Input'
+    section, there are currently several maps to choose from. If
+    you select a map, the display below will update to display the
+    conventional land-area version of the map, and a population
+    cartogram.</p>
 
-        <img src="{{ url_for('static', filename='tutimg/new1-e.png') }}" class="img-fluid my-4" alt="Tutorial Image: Select Map"/>
+  <img src="{{ url_for('static', filename='tutimg/new1-e.png') }}" class="img-fluid my-4"
+    alt="Tutorial Image: Select Map" />
 
-        <h3>2. Fill In Your Data</h3>
+  <h3>2. Fill In Your Data</h3>
 
-	<p class="text-justify">The easiest wayt to fill in your data
-	  is to use a spreadsheet program like Microsoft Excel or
-	  LibreOffice Calc. Click the 'Download CSV Template' button
-	  on the left-hand side of the 'Input' section. You can open
-	  the downloaded template with the spreadsheet program of your
-	  choice.</p>
+  <p class="text-justify">The easiest wayt to fill in your data
+    is to use a spreadsheet program like Microsoft Excel or
+    LibreOffice Calc. Click the 'Download CSV Template' button
+    on the left-hand side of the 'Input' section. You can open
+    the downloaded template with the spreadsheet program of your
+    choice.</p>
 
-	<img src="{{ url_for('static', filename='tutimg/new3.png') }}" class="img-fluid my-4" alt="Tutorial Image: Template File"/>
-        <br/><br/>
+  <img src="{{ url_for('static', filename='tutimg/new3.png') }}" class="img-fluid my-4"
+    alt="Tutorial Image: Template File" />
+  <br /><br />
 
-	<p class="text-justify">The province or state column, as well
-	  as the population column, are for reference only. You will
-	  need to insert your data into the third column, and change
-	  the header for the third column to match the name of your
-	  dataset.  If you do not like the default colour scheme, you
-	  may also specify your own colour for each region by using
-	  hexadecimal colour codes.</p>
+  <p class="text-justify">The province or state column, as well
+    as the population column, are for reference only. You will
+    need to insert your data into the third column, and change
+    the header for the third column to match the name of your
+    dataset. If you do not like the default colour scheme, you
+    may also specify your own colour for each region by using
+    hexadecimal colour codes.</p>
 
-        <p class="text-justify">For more information about suitable
-        datasets and colour codes, please see
-          the <a href="{{url_for('faq')}}">FAQ</a>.</p>
+  <p class="text-justify">For more information about suitable
+    datasets and colour codes, please see
+    the <a href="{{url_for('faq')}}">FAQ</a>.</p>
 
-	<p class="text-justify">When you've filled in the template
-        with your data and colour information, go back to the
-        go-cart.io website and click 'Upload Data' in the top right
-        corner of the website. Once you select your CSV file to
-        upload, cartogram generation will begin. The time it takes to
-        generate a cartogram varies, but it averages around a few
-        seconds.</p>
+  <p class="text-justify">When you've filled in the template
+    with your data and colour information, go back to the
+    go-cart.io website and click 'Upload Data' in the top right
+    corner of the website. Once you select your CSV file to
+    upload, cartogram generation will begin. The time it takes to
+    generate a cartogram varies, but it averages around a few
+    seconds.</p>
 
-        <p class="text-justify">Alternatively, in a pinch you may use
-        the built-in editing interface, which can be launched by
-        clicking the 'Edit' button on the far right-hand side of the
-        input section.</p>
+  <p class="text-justify">Alternatively, in a pinch you may use
+    the built-in editing interface, which can be launched by
+    clicking the 'Edit' button on the far right-hand side of the
+    input section.</p>
 
-        <img src="{{ url_for('static', filename='tutimg/new2.png') }}" class="img-fluid my-4" alt="Tutorial Image: Grid Document"/>
-        <br/><br/>
-        <p class="text-justify">The editor interface functions like a
-        spreadsheet program. Again, the region name and population
-        columns are for reference only, and cannot be changed. You
-        will need to insert your data into the third column. You
-        should also fill in the title of your dataset into the header
-        for the third column.</p>
+  <img src="{{ url_for('static', filename='tutimg/new2.png') }}" class="img-fluid my-4"
+    alt="Tutorial Image: Grid Document" />
+  <br /><br />
+  <p class="text-justify">The editor interface functions like a
+    spreadsheet program. Again, the region name and population
+    columns are for reference only, and cannot be changed. You
+    will need to insert your data into the third column. You
+    should also fill in the title of your dataset into the header
+    for the third column.</p>
 
-        <p class="text-justify">When you are done filling in your
-        data, click the 'Update' button at the top of the editor
-        interface to generate your cartogram.</p>
+  <p class="text-justify">When you are done filling in your
+    data, click the 'Update' button at the top of the editor
+    interface to generate your cartogram.</p>
 
-        <h3>3. View, Download, and Share Your Cartogram</h3>
+  <h3>3. View, Download, and Share Your Cartogram</h3>
 
-        <p class="text-justify">When your cartogram has finished
-        generating, our website provides several interactive tools to
-        help you analyze it. Hovering over each region displays
-        detailed information about that region in a
-        tooltip. Additionally, you may switch between your cartogram,
-        a population cartogram, and the land area map by using the
-        dropdown in the right hand column.</p>
+  <p class="text-justify">When your cartogram has finished
+    generating, our website provides several interactive tools to
+    help you analyze it. Hovering over each region displays
+    detailed information about that region in a
+    tooltip. Additionally, you may switch between your cartogram,
+    a population cartogram, and the land area map by using the
+    dropdown in the right hand column.</p>
 
-        <img src="{{ url_for('static', filename='tutimg/new4-e.png') }}" class="img-fluid my-4" alt="Tutorial Image: Cartogram Selector"/>
+  <img src="{{ url_for('static', filename='tutimg/new4-e.png') }}" class="img-fluid my-4"
+    alt="Tutorial Image: Cartogram Selector" />
 
-        <p class="text-justify">You may also download an SVG version
-        of each of these maps by using the buttons below each
-        map. Finally, you can also share your map on social media by
-        using the button at the bottom of the page.</p>
-        
+  <p class="text-justify">You may also download an SVG version
+    of each of these maps by using the buttons below each
+    map. Finally, you can also share your map on social media by
+    using the button at the bottom of the page.</p>
+
 </div>
 {% endblock %}
-
-

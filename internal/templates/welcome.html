@@ -2,79 +2,78 @@
 
 {% block head_extra %}
 <style>
-@media only screen and (max-width: 1000px) {
-#welcome-row {
-    display: block;
-}
-
-#welcome-row .col-md-6 {
-    max-width: 100% !important;
-}px
-
-}
-
-#infographic-mobile {
-        display: none;
+  @media only screen and (max-width: 1000px) {
+    #welcome-row {
+      display: block;
     }
 
-#title-mobile {
-    display: none;
-}
+    #welcome-row .col-md-6 {
+      max-width: 100% !important;
+    }
+  }
 
-@media only screen and (max-width: 1000px) {
+  #infographic-mobile {
+    display: none;
+  }
+
+  #title-mobile {
+    display: none;
+  }
+
+  @media only screen and (max-width: 1000px) {
     #infographic-mobile {
-        margin-top: 75px;
-        display: block;
+      margin-top: 75px;
+      display: block;
     }
 
     #title-mobile {
-        display: block;
+      display: block;
     }
 
     #title-desktop {
-        display: none;
+      display: none;
     }
 
     #infographic-desktop {
-        display: none;
+      display: none;
     }
-}
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 
 <div class="container mt-5">
-        <div class="row align-items-center" id="welcome-row">
-                <div class="col-md-6">
-                    <h1 class="display-3 text-primary text-center mb-3" id="title-desktop">Cartograms</h1>
-                    <h1 class="display-4 text-primary text-center mb-3" id="title-mobile">Cartograms</h1>
-                    <h3 class="text-success text-center mb-3">Maps and data reimagined</h3>
-                    <div class="text-center">
-                            <a href="/cartogram" class="btn btn-lg btn-primary" style="border-radius: 1.2em">Make Your Cartogram</a>
-                    </div>                    
-                </div>
-                <div class="col-md-6">
-                    <div class="w-100 text-center">
-                            <img src="{{ url_for('static', filename='worldcartogram.png') }}" class="img-fluid" style="width: 150%"/>
-                            <p class="mt-1">A world population cartogram<a href="#disclaimer">*</a></p>
-                    </div>
-                    
-                </div>
-            </div>
+  <div class="row align-items-center" id="welcome-row">
+    <div class="col-md-6">
+      <h1 class="display-3 text-primary text-center mb-3" id="title-desktop">Cartograms</h1>
+      <h1 class="display-4 text-primary text-center mb-3" id="title-mobile">Cartograms</h1>
+      <h3 class="text-success text-center mb-3">Maps and data reimagined</h3>
+      <div class="text-center">
+        <a href="/cartogram" class="btn btn-lg btn-primary" style="border-radius: 1.2em">Make Your Cartogram</a>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="w-100 text-center">
+        <img src="{{ url_for('static', filename='img/worldcartogram.png') }}" class="img-fluid" style="width: 150%" />
+        <p class="mt-1">A world population cartogram<a href="#disclaimer">*</a></p>
+      </div>
 
-        <div class="w-75 mt-5 mx-auto" id="infographic-desktop">
-            <img src="{{ url_for('static', filename='infographic.svg') }}" class="img-fluid"/>
-        </div>
+    </div>
+  </div>
 
-        <div class="w-75 mx-auto" id="infographic-mobile">
-            <img src="{{ url_for('static', filename='infographic-mobile.svg') }}" class="img-fluid"/>
-        </div>
-        <p class="small mt-5 text-justify" id="disclaimer">
-            *Region boundaries and population data for the world cartogram are sourced directly from
-            <a href="https://www.naturalearthdata.com">Natural Earth</a>,
-            which adopts boundaries based on defacto status. We do not adopt a political stance on these boundaries.
-        </p>
+  <div class="w-75 mt-5 mx-auto" id="infographic-desktop">
+    <img src="{{ url_for('static', filename='img/infographic.svg') }}" class="img-fluid" />
+  </div>
+
+  <div class="w-75 mx-auto" id="infographic-mobile">
+    <img src="{{ url_for('static', filename='img/infographic-mobile.svg') }}" class="img-fluid" />
+  </div>
+  <p class="small mt-5 text-justify" id="disclaimer">
+    *Region boundaries and population data for the world cartogram are sourced directly from
+    <a href="https://www.naturalearthdata.com">Natural Earth</a>,
+    which adopts boundaries based on defacto status. We do not adopt a political stance on these boundaries.
+  </p>
 </div>
 
 
