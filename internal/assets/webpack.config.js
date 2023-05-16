@@ -1,10 +1,10 @@
-const path = require('path');
+const path = require('path')
 const { WebpackManifestPlugin } = require('webpack-manifest-plugin')
 
 module.exports = {
   entry: {
     main: './src/index.js',
-    cartogram: './src/cartogram/cartogram.js',
+    cartogram: './src/cartogram/cartogram.js'
   },
   output: {
     filename: '[name].[contenthash].js',
@@ -15,7 +15,5 @@ module.exports = {
     // prevent error: `Uncaught ReferenceError: self is not define`
     globalObject: 'this'
   },
-  plugins: [
-    new WebpackManifestPlugin()
-  ]
-};
+  plugins: [new WebpackManifestPlugin()]
+}

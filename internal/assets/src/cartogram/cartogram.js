@@ -876,7 +876,11 @@ export class Cartogram {
    */
   generateEmbedHTML(mode, key) {
     var embeded_html =
-      '<iframe src="https://go-cart.io/embed/' +
+      '<iframe src="' +
+      location.protocol +
+      '//' +
+      window.location.host +
+      '/embed/' +
       mode +
       '/' +
       key +
@@ -1342,7 +1346,11 @@ export class Cartogram {
                     this.model.current_sysname = '3-cartogram'
 
                     this.generateSocialMediaLinks(
-                      'https://go-cart.io/cart/' + response.unique_sharing_key
+                      location.protocol +
+                        '//' +
+                        location.host +
+                        '/cart/' +
+                        response.unique_sharing_key
                     )
                     this.generateEmbedHTML('cart', response.unique_sharing_key)
                     this.generateSVGDownloadLinks()
@@ -1650,10 +1658,14 @@ export class Cartogram {
         this.exitLoadingState()
 
         if (sharing_key !== null) {
-          this.generateSocialMediaLinks('https://go-cart.io/cart/' + sharing_key)
+          this.generateSocialMediaLinks(
+            location.protocol + '//' + location.host + '/cart/' + sharing_key
+          )
           this.generateEmbedHTML('cart', sharing_key)
         } else {
-          this.generateSocialMediaLinks('https://go-cart.io/cartogram/' + sysname)
+          this.generateSocialMediaLinks(
+            location.protocol + '//' + location.host + '/cartogram/' + sysname
+          )
           this.generateEmbedHTML('map', sysname)
         }
 
@@ -1685,6 +1697,18 @@ export class Cartogram {
 
         document.getElementById('cartogram').style.display = 'block'
       }.bind(this)
+    )
+  }
+
+  newMapVersionData(features, extrema, tooltip, abbreviations, labels, format, world) {
+    return new MapVersionData(
+      features,
+      extrema,
+      tooltip,
+      abbreviations,
+      labels,
+      MapDataFormat[format],
+      world
     )
   }
 }

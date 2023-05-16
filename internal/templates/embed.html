@@ -1,35 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <script src="{{ url_for('static', filename='tracking.js') }}"></script>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="Free Cartogram Generator - Make cartograms for different countries using your own data!">
-    <meta name="author" content="Michael T. Gastner">
-    <meta property="og:title" content="Creating Cartograms Online">
-    <meta property="og:description" content="Free Cartogram Generator - Make cartograms for different countries using your own data!">
-    <meta property="og:site_name" content="go-cart.io">
-    <meta name="twitter:title" content="Creating Cartograms Online">
-    <meta name="twitter:description" content="Free Cartogram Generator - Make cartograms for different countries using your own data!">
-    <meta name="twitter:image" content="{{ url_for('static', filename='favicon.png') }}">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
 
-    <title>Creating Cartograms Online</title>
+<head>
+  <script src="{{ url_for('static', filename='tracking.js') }}"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta name="description"
+    content="Free Cartogram Generator - Make cartograms for different countries using your own data!" />
+  <meta name="author" content="Michael T. Gastner" />
+  <meta property="og:title" content="Creating Cartograms Online" />
+  <meta property="og:description"
+    content="Free Cartogram Generator - Make cartograms for different countries using your own data!" />
+  <meta property="og:site_name" content="go-cart.io" />
+  <meta name="twitter:title" content="Creating Cartograms Online" />
+  <meta name="twitter:description"
+    content="Free Cartogram Generator - Make cartograms for different countries using your own data!" />
+  <meta name="twitter:image" content="{{ url_for('static', filename='favicon.png') }}" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
 
-    <!-- Bootstrap core CSS -->
-    <!--<link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet">-->
+  <title>Creating Cartograms Online</title>
 
-    <!-- Custom styles for this template -->
-    <link href="https://fonts.googleapis.com/css?family=Comfortaa&display=swap" rel="stylesheet"> 
-    <link href="{{ url_for('static', filename='bootstrap.min.theme.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
-    <base target="_parent">
-    <style>
+  <!-- Bootstrap core CSS -->
+  <!--<link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet">-->
 
-      .progress-bar {
+  <!-- Custom styles for this template -->
+  <link href="https://fonts.googleapis.com/css?family=Comfortaa&display=swap" rel="stylesheet" />
+  <link href="{{ url_for('static', filename='bootstrap.min.theme.css') }}" rel="stylesheet" />
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css"
+    integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous" />
+  <base target="_parent" />
+  <style>
+    .progress-bar {
       -webkit-transition: width 0.5s ease;
       transition: width 0.5s ease;
-      }
+    }
 
     .social-link {
       font-size: 50px;
@@ -45,6 +49,7 @@
       padding-left: 10px;
       padding-right: 10px;
     }
+
     .navbar-nav .nav-item a {
       text-decoration: underline;
       font-size: 1em !important;
@@ -59,7 +64,7 @@
       text-decoration-color: #D76127;
       color: #D76127 !important;
     }
-    
+
     .customise-popup {
       color: white;
       border: 5px solid #d76127;
@@ -92,7 +97,7 @@
     }
 
     .cookie-consent {
-        background-color: #f5f5f5;
+      background-color: #f5f5f5;
     }
 
     @media screen and (min-width: 1600px) {
@@ -105,26 +110,39 @@
     }
 
     @media only screen and (max-width: 1000px) {
-        .consent-buttons{
-            display: block;
-            text-align: center;
-            margin-top: 5px;
-        }
+      .consent-buttons {
+        display: block;
+        text-align: center;
+        margin-top: 5px;
+      }
+    }
+
+      {
+      #.world-border>svg {
+        #
       }
 
-    {#.world-border > svg {#}
-    {#    border: 1px solid black;#}
-    {#}#}
+        {
+        # border: 1px solid black;
+        #
+      }
+
+        {
+        #
+      }
+
+      #
+    }
 
     @media screen and (max-width: 750px) {
-        #cartogram-row {
-            display: block;
-        }
+      #cartogram-row {
+        display: block;
+      }
 
-        #cartogram-row .col-md-6 {
-            max-width: 100% !important;
+      #cartogram-row .col-md-6 {
+        max-width: 100% !important;
 
-        }
+      }
     }
 
     .share-link {
@@ -132,31 +150,37 @@
       margin-right: 10px;
     }
 
-    .bar{
-        fill: steelblue;
+    .bar {
+      fill: steelblue;
     }
-    .bar:hover{
-        fill: brown;
+
+    .bar:hover {
+      fill: brown;
     }
+
     .axis {
-    font: 11px sans-serif;
+      font: 11px sans-serif;
     }
+
     .axis path,
     .axis line {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
     }
+
     #barchart svg {
-        overflow: visible !important;
+      overflow: visible !important;
     }
+
     #barchart text.label {
-        font-size: .8rem;
-        letter-spacing: -0.01rem;
+      font-size: .8rem;
+      letter-spacing: -0.01rem;
     }
+
     #tooltip {
       display: none;
-      background: rgba(255,255,255,0.7);
+      background: rgba(255, 255, 255, 0.7);
       border: 1px solid black;
       width: auto;
       height: auto;
@@ -171,238 +195,270 @@
 
 
     @media screen and (min-width:1600px) {
-        .main-content {
-            padding-left: 250px;
-            padding-right: 250px;
-        }
+      .main-content {
+        padding-left: 250px;
+        padding-right: 250px;
+      }
     }
 
     path.slice {
-        stroke-width: 2px;
+      stroke-width: 2px;
     }
 
     polyline {
-        opacity: .3;
-        stroke: black;
-        stroke-width: 2px;
-        fill: none;
+      opacity: .3;
+      stroke: black;
+      stroke-width: 2px;
+      fill: none;
     }
 
     #piechart-area svg {
-        width: 960px;
-        height: 450px;
+      width: 960px;
+      height: 450px;
     }
-    
+  </style>
+</head>
 
+<body>
+  <div id="tooltip">&nbsp;</div>
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">
+      <img src="{{ url_for('static', filename='gocart_final.svg') }}" width="150" alt="go-cart.io logo"
+        style="margin-left: 0px" />
+    </a>
+  </div>
+  <div class="container-fluid mt-3">
+    <div id="loading">
+      <p style="font-weight: bold">Loading...</p>
 
-
-
-    </style>
-  </head>
-
-  <body>
-    <div id="tooltip">&nbsp;</div>
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/">
-          <img src="{{ url_for('static', filename='gocart_final.svg') }}" width="150" alt="go-cart.io logo" style="margin-left: 0px" />
-      </a>
-    </div>
-    <div class="container-fluid mt-3">
-      <div id="loading">
-          <p style="font-weight: bold">Loading...</p>
-	  
-          <div class="row" id="loading-progress-container" style="display: none">
-            <div class="col-sm-12 col-md-6">
-              <div class="progress">
-                <div class="progress-bar" role="progressbar" id="loading-progress"></div>
-              </div>
-            </div>
-          </div>
-      </div>
-
-      
-
-      <!-- dummy element so we can reuse existing JS code -->
-      <a href="" id="csv-template-link" style="display: none"></a>
-      <a href="" id="xlsx-template-link" style="display: none"></a>
-      <div id="piechart" style="display: none"></div>
-      <div id="upload-button" style="display: none"></div>
-      <div id="edit-button" style="display: none"></div>
-      <div id="handler" style="display: none"></div>
-
-      <div id="error" style="display: none">
-        <p style="font-weight: bold">Error: <span style="font-weight: normal" id="error-message"></span></p>
-	
-        <div id="error-extended" style="display: none">
-          <p><b>Additional Information: </b> When reporting this error, please include the information below.</p>
-	  
-              <pre id="error-extended-content"></pre>
-        </div>
-      </div>
-      
-      <div id="cartogram">
-        <div class="row" id="cartogram-row">
-
-          <div class="col-md-6" >
-            
-            <div style="height: 40px">
-              <h4 class="mb-0">Equal-Area Map</h4>
-              <!--<p id="tooltip">&nbsp;</p>-->
-            </div>
-            
-
-            <div id="map-area" style="margin-top: 20px" data-grid-visibility="off"></div>
-	    
-            <div style="padding-left: 0;" class="col-12">
-              <svg width="375" height="90" id="map-area-legend" data-legend-type="static" data-current-grid-path="gridA"></svg>
-            </div>
-            
-            <p style="margin-top: 20px; color: white; cursor: pointer" class="d-inline-block"><a class="btn btn-primary btn-customise"
-              id="map-customise">Customise</a></p>
-            <p style="margin-top: 20px; display: none"><a class="btn btn-primary" href="" id="map-download">Download</a></p>
-              
-            <div style="display: none" class="customise-popup" id="map-customise-popup">
-              <form class="customise-container">
-                <input type="checkbox" class="checkbox-customise" id="gridline-toggle-map" name="gridline" value="false" autocomplete="off">
-                <label class="checkbox-label" for="gridline-toggle-map">Show Grid Lines</label><br>
-                <input type="checkbox" class="checkbox-customise" id="legend-toggle-map" name="legend" value="false" autocomplete="off">
-                <label class="checkbox-label" for="legend-toggle-map">Resizable Legend</label>
-              </form>
-            </div>
-            
-          </div>
-	  
-          <div class="col-md-6" id="cartogram-container">
-            
-            <div style="height: 40px">
-              <div class="d-flex align-items-center">
-                <h4 class="d-inline-block mb-0">Cartogram</h4>
-                <div id="map2-switch" class="ml-2">
-                  <div  id="map2-switch-buttons"></div>
-                </div>
-                
-              </div>
-              
-            </div>
-	    
-            <div id = "cartogram-area" style="margin-top: 20px" data-grid-visibility="off"></div>
-	    
-            <div style="padding-left: 0;" class="col-12">
-              <svg width="375" height="90" id="cartogram-area-legend" data-legend-type="static" data-current-grid-path="gridA"></svg>
-            </div>
-
-            <p style="margin-top: 20px; color: white; cursor: pointer;" class="d-inline-block"><a class="btn btn-primary btn-customise"
-              id="cartogram-customise">Customise</a></p>
-            <div style="display: none">
-              <p style="margin-top: 20px" class="d-inline-block"><a class="btn btn-info mr-2 text-light" href="" data-toggle="modal" data-target="#share-modal" >Share</a></p>
-              <p style="margin-top: 20px" class="d-inline-block"><a class="btn btn-primary" href="" download="" id="cartogram-download">Download</a></p>
-            </div>
-            
-            <div style="display: none" class="customise-popup" id="cartogram-customise-popup">
-              <form class="customise-container">
-                <input type="checkbox" class="checkbox-customise" id="gridline-toggle-cartogram" name="gridline" value="false" autocomplete="off">
-                <label class="checkbox-label" for="gridline-toggle-cartogram">Show Grid Lines</label><br>
-                <input type="checkbox" class="checkbox-customise" id="legend-toggle-cartogram" name="legend" value="false" autocomplete="off">
-                <label class="checkbox-label" for="legend-toggle-cartogram">Resizable Legend</label>
-              </form>
-            </div>
+      <div class="row" id="loading-progress-container" style="display: none">
+        <div class="col-sm-12 col-md-6">
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" id="loading-progress"></div>
           </div>
         </div>
-	<span id="map1-switch"></span>
-	
       </div>
     </div>
 
-    <div class="container-fluid">
+    <!-- dummy element so we can reuse existing JS code -->
+    <a href="" id="csv-template-link" style="display: none"></a>
+    <a href="" id="xlsx-template-link" style="display: none"></a>
+    <div id="piechart" style="display: none"></div>
+    <div id="upload-button" style="display: none"></div>
+    <div id="edit-button" style="display: none"></div>
+    <div id="handler" style="display: none"></div>
+
+    <div id="error" style="display: none">
+      <p style="font-weight: bold">
+        Error: <span style="font-weight: normal" id="error-message"></span>
+      </p>
+
+      <div id="error-extended" style="display: none">
+        <p>
+          <b>Additional Information: </b> When reporting this error, please
+          include the information below.
+        </p>
+
+        <pre id="error-extended-content"></pre>
+      </div>
+    </div>
+
+    <div id="cartogram">
+      <div class="row" id="cartogram-row">
+        <div class="col-md-6">
+          <div style="height: 40px">
+            <h4 class="mb-0">Equal-Area Map</h4>
+            <!--<p id="tooltip">&nbsp;</p>-->
+          </div>
+
+          <div id="map-area" style="margin-top: 20px" data-grid-visibility="off"></div>
+
+          <div style="padding-left: 0" class="col-12">
+            <svg width="375" height="90" id="map-area-legend" data-legend-type="static"
+              data-current-grid-path="gridA"></svg>
+          </div>
+
+          <p style="margin-top: 20px; color: white; cursor: pointer" class="d-inline-block">
+            <a class="btn btn-primary btn-customise" id="map-customise">Customise</a>
+          </p>
+          <p style="margin-top: 20px; display: none">
+            <a class="btn btn-primary" href="" id="map-download">Download</a>
+          </p>
+
+          <div style="display: none" class="customise-popup" id="map-customise-popup">
+            <form class="customise-container">
+              <input type="checkbox" class="checkbox-customise" id="gridline-toggle-map" name="gridline" value="false"
+                autocomplete="off" />
+              <label class="checkbox-label" for="gridline-toggle-map">Show Grid Lines</label><br />
+              <input type="checkbox" class="checkbox-customise" id="legend-toggle-map" name="legend" value="false"
+                autocomplete="off" />
+              <label class="checkbox-label" for="legend-toggle-map">Resizable Legend</label>
+            </form>
+          </div>
+        </div>
+
+        <div class="col-md-6" id="cartogram-container">
+          <div style="height: 40px">
+            <div class="d-flex align-items-center">
+              <h4 class="d-inline-block mb-0">Cartogram</h4>
+              <div id="map2-switch" class="ml-2">
+                <div id="map2-switch-buttons"></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="cartogram-area" style="margin-top: 20px" data-grid-visibility="off"></div>
+
+          <div style="padding-left: 0" class="col-12">
+            <svg width="375" height="90" id="cartogram-area-legend" data-legend-type="static"
+              data-current-grid-path="gridA"></svg>
+          </div>
+
+          <p style="margin-top: 20px; color: white; cursor: pointer" class="d-inline-block">
+            <a class="btn btn-primary btn-customise" id="cartogram-customise">Customise</a>
+          </p>
+          <div style="display: none">
+            <p style="margin-top: 20px" class="d-inline-block">
+              <a class="btn btn-info mr-2 text-light" href="" data-toggle="modal" data-target="#share-modal">Share</a>
+            </p>
+            <p style="margin-top: 20px" class="d-inline-block">
+              <a class="btn btn-primary" href="" download="" id="cartogram-download">Download</a>
+            </p>
+          </div>
+
+          <div style="display: none" class="customise-popup" id="cartogram-customise-popup">
+            <form class="customise-container">
+              <input type="checkbox" class="checkbox-customise" id="gridline-toggle-cartogram" name="gridline"
+                value="false" autocomplete="off" />
+              <label class="checkbox-label" for="gridline-toggle-cartogram">Show Grid Lines</label><br />
+              <input type="checkbox" class="checkbox-customise" id="legend-toggle-cartogram" name="legend" value="false"
+                autocomplete="off" />
+              <label class="checkbox-label" for="legend-toggle-cartogram">Resizable Legend</label>
+            </form>
+          </div>
+        </div>
+      </div>
+      <span id="map1-switch"></span>
+    </div>
+  </div>
+
+  <div class="container-fluid">
     <footer class="text-secondary">
       <p>
-	This cartogram was produced using the <a href="https://go-cart.io">go-cart.io</a> website using the <a href="https://www.pnas.org/content/115/10/E2156">Fast Flow-based Algorithm</a> developed by
-	Gastner, Seguy, and More in 2018.
+        This cartogram was produced using the
+        <a href="https://go-cart.io">go-cart.io</a> website using the
+        <a href="https://www.pnas.org/content/115/10/E2156">Fast Flow-based Algorithm</a>
+        developed by Gastner, Seguy, and More in 2018.
       </p>
-      <p>go-cart.io website &copy; <a href="http://michaelgastner.com">Michael T. Gastner</a></p>
+      <p>
+        go-cart.io website &copy;
+        <a href="http://michaelgastner.com">Michael T. Gastner</a>
+      </p>
     </footer>
-    </div> <!-- /container -->
+  </div>
+  <!-- /container -->
 
-      <div class="modal fade" id="share-modal" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <div class="modal-header" style="border-bottom: none">
-              <img src="{{ url_for('static', filename='gocart_final.svg') }}" width="150" alt="go-cart.io logo" />
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
+  <div class="modal fade" id="share-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header" style="border-bottom: none">
+          <img src="{{ url_for('static', filename='gocart_final.svg') }}" width="150" alt="go-cart.io logo" />
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <h3 class="mb-5 text-center">Share Now!</h3>
+          <div class="d-flex mb-1 justify-content-center">
+            <div class="share-link">
+              <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fgo-cart.io"
+                onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=300,width=600');return false;"
+                target="_blank" title="Share on Facebook" class="social-link" id="facebook-share"><i
+                  class="fab fa-facebook-square"></i></a>
+            </div>
+
+            <div class="share-link">
+              <a href="https://www.linkedin.com/shareArticle?url=https%3A%2F%2Fgo-cart.io&mini=true&title=Cartogram&summary=Create%20cartograms%20with%20go-cart.io&source=go-cart.io"
+                onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=520,width=570');return false;"
+                target="_blank" title="Share on LinkedIn" class="social-link" id="linkedin-share"><i
+                  class="fab fa-linkedin"></i></a>
+            </div>
+
+            <div class="share-link">
+              <a href="https://twitter.com/share?url=https%3A%2F%2Fgo-cart.io"
+                onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=300,width=600');return false;"
+                target="_blank" title="Share on Twitter" class="social-link" id="twitter-share"><i
+                  class="fab fa-twitter-square"></i></a>
+            </div>
+
+            <div class="share-link">
+              <a href="mailto:?body=https%3A%2F%2Fgo-cart.io" title="Share by Email" class="social-link"
+                id="email-share"><i class="fas fa-envelope-square"></i></a>
+            </div>
+
+            <div class="mb-2">
+              <h3 class="text-center">Link</h3>
+              <div class="form-group">
+                <input type="text" id="share-link-href" class="form-control w-100" disabled
+                  style="font-family: monospace" value="https://go-cart.io" />
+                <button style="margin-top: 4.7px" data-animation="false" class="clipboard-copy" id="clipboard-link"
+                  title="Copy">
+                  <img id="clipboard-link-icon" src="/static/clipboard.svg" alt="Copy button" />
+                </button>
+              </div>
+            </div>
+
+            <div id="share-embed" class="mb-5" style="display: none">
+              <h3 class="text-center">Embed</h3>
+              <p class="text-center">
+                To embed your cartogram into any webpage, insert the HTML code
+                below:
+              </p>
+              <div class="form-group">
+                <textarea id="share-embed-code" class="form-control w-100" disabled rows="3"
+                  style="font-family: monospace; resize: none"></textarea>
+                <button class="clipboard-copy" id="clipboard-embed" data-animation="false" title="Copy">
+                  <img id="clipboard-embed-icon" src="/static/clipboard.svg" alt="Copy button" />
+                </button>
+              </div>
+            </div>
+          </div>
+          <p class="lead text-center">
+            Liked our work? Make sure to credit us using the citation below:
+          </p>
+          <div class="form-group">
+            <a id="citation-text" class="text-primary" href="https://www.pnas.org/content/115/10/E2156" target="_blank"
+              rel="noopener noreferrer">Gastner MT, Seguy V, More P. Fast low-based algorithm for
+              creating density-equalizing map projections. Proc Natl Acad Sci
+              USA 115(10):E2156–E2164 (2018).</a>
+
+            <button style="margin-top: 25px" class="clipboard-copy" id="clipboard-citation" data-animation="false"
+              title="Copy" onclick="window.util.addClipboard('clipboard-citation',document.getElementById('citation-text').innerText);
+                  document.getElementById('clipboard-citation').click()">
+              <img id="clipboard-citation-icon" src="/static/clipboard.svg" alt="Copy button" />
             </button>
           </div>
-          <div class="modal-body">
-            <h3 class="mb-5 text-center">Share Now!</h3>
-            <div class="d-flex mb-1 justify-content-center">
-
-              <div class="share-link">
-                  <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fgo-cart.io"
-                  onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=300,width=600');return false;"
-            target="_blank" title="Share on Facebook" class="social-link" id="facebook-share"><i class="fab fa-facebook-square"></i></a>
-              </div>
-
-              <div class="share-link">
-                  <a href="https://www.linkedin.com/shareArticle?url=https%3A%2F%2Fgo-cart.io&mini=true&title=Cartogram&summary=Create%20cartograms%20with%20go-cart.io&source=go-cart.io"
-              onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=520,width=570');return false;"
-              target="_blank" title="Share on LinkedIn" class="social-link" id="linkedin-share"><i class="fab fa-linkedin"></i></a>
-              </div>
-
-              <div class="share-link">
-                  <a href="https://twitter.com/share?url=https%3A%2F%2Fgo-cart.io"
-              onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=300,width=600');return false;"
-        target="_blank" title="Share on Twitter" class="social-link" id="twitter-share"><i class="fab fa-twitter-square"></i></a>
-              </div>
-
-              <div class="share-link">
-                  <a href="mailto:?body=https%3A%2F%2Fgo-cart.io"  title="Share by Email" class="social-link" id="email-share"><i class="fas fa-envelope-square"></i></a>
-              </div>
-
-	      <div class="mb-2">
-	      <h3 class="text-center">Link</h3>
-	      <div class="form-group">
-          <input type="text" id="share-link-href" class="form-control w-100" disabled style="font-family: monospace;" value="https://go-cart.io"/>
-          <button style= "margin-top: 4.7px;" data-animation="false" class="clipboard-copy " id="clipboard-link" title="Copy">
-            <img id="clipboard-link-icon" src="/static/clipboard.svg" alt="Copy button" />
-          </button>
-        </div></div>
-	      
-	      <div id="share-embed" class="mb-5" style="display: none">
-	      <h3 class="text-center">Embed</h3>
-	      <p class="text-center">To embed your cartogram into any webpage, insert the HTML code below:</p>
-	      <div class="form-group">
-          <textarea id="share-embed-code" class="form-control w-100" disabled rows="3" style="font-family: monospace; resize: none"></textarea>
-          <button class="clipboard-copy"  id="clipboard-embed" data-animation="false" title="Copy">
-            <img id="clipboard-embed-icon" src="/static/clipboard.svg" alt="Copy button" />
-          </button>
-        </div></div>
-
-            </div>
-            <p class="lead text-center">Liked our work? Make sure to credit us using the citation below:</p>
-            <div class="form-group">
-              <a id="citation-text" class="text-primary" href="https://www.pnas.org/content/115/10/E2156" target="_blank" rel="noopener noreferrer" >Gastner MT, Seguy V, More P. Fast 
-                low-based algorithm for creating density-equalizing map projections. Proc Natl Acad Sci USA 115(10):E2156–E2164 (2018).</a>
-          
-              <button style="margin-top:25px;" class="clipboard-copy" id="clipboard-citation" data-animation="false" title="Copy" onclick="window.util.addClipboard('clipboard-citation',document.getElementById('citation-text').innerText);
-                  document.getElementById('clipboard-citation').click()">
-                <img id="clipboard-citation-icon" src="/static/clipboard.svg" alt="Copy button" />
-              </button>
-              </div>
-            </div>
-          <!--<div class="modal-footer">
+        </div>
+        <!--<div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             <button type="button" class="btn btn-primary">Save changes</button>
           </div>-->
-        </div>
       </div>
     </div>
+  </div>
 
-        <!-- Bootstrap core JavaScript
+  <!-- Bootstrap core JavaScript
     ================================================== -->
   <!-- Placed at the end of the document so the pages load faster -->
-  <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
-  <script>window.jQuery || document.write('<script src="jquery.min.js"><\/script>')</script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"
+    integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n"
+    crossorigin="anonymous"></script>
+  <script>
+    window.jQuery || document.write('<script src="jquery.min.js"><\/script>');
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"
+    integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb"
+    crossorigin="anonymous"></script>
   <script src="{{ url_for('static', filename='bootstrap.min.js') }}"></script>
   <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
   <script src="{{ url_for('static', filename='ie10-viewport-bug-workaround.js') }}"></script>
@@ -410,52 +466,55 @@
 
   {% if map_name is defined %}
   <script>
-    window.onload = function() {
+    window.onload = function () {
+      window.cartogram = new Cartogram(
+        "{{cartogram_url}}",
+        "{{cartogramui_url}}",
+        "{{cartogram_data_dir}}",
+        "{{url_for('gridedit')}}",
+        "{{getprogress_url}}",
+        "{{cartogram_version}}",
+        0.9
+      );
 
-    window.cartogram = new Cartogram("{{cartogram_url}}", "{{cartogramui_url}}", "{{cartogram_data_dir}}", "{{url_for('gridedit')}}", "{{getprogress_url}}", "{{cartogram_version}}", 0.9);
-
-    window.cartogram.switchMap("{{map_name}}", "", null, null, null, true);
-    
+      window.cartogram.switchMap("{{map_name}}", "", null, null, null, true);
     };
   </script>
   {% else %}
   <script>
-    var cartogramui_data = {{cartogramui_data|safe}};
-    var cartogram_data = {{cartogram_data|safe}};
-    
-    window.onload = function() {
+    var cartogramui_data = {{ cartogramui_data| safe}};
+    var cartogram_data = {{ cartogram_data| safe}};
 
-    window.cartogram = new Cartogram("{{cartogram_url}}", "{{cartogramui_url}}", "{{cartogram_data_dir}}", "{{url_for('gridedit')}}", "{{getprogress_url}}", "{{cartogram_version}}", 0.9);
+    window.onload = function () {
 
-    /* We need to find out the map format. If the extrema is located in the bbox property, then we have
-    GeoJSON. Otherwise, we have the old JSON format.
-    */
-    if(cartogram_data.hasOwnProperty("bbox")) {
-    
-    var extrema = {
-    min_x: cartogram_data.bbox[0],
-    min_y: cartogram_data.bbox[1],
-    max_x: cartogram_data.bbox[2],
-    max_y: cartogram_data.bbox[3]
+      window.cartogram = new Cartogram("{{cartogram_url}}", "{{cartogramui_url}}", "{{cartogram_data_dir}}", "{{url_for('gridedit')}}", "{{getprogress_url}}", "{{cartogram_version}}", 0.9);
+
+      /* We need to find out the map format. If the extrema is located in the bbox property, then we have
+      GeoJSON. Otherwise, we have the old JSON format.
+      */
+      if (cartogram_data.hasOwnProperty("bbox")) {
+
+        var extrema = {
+          min_x: cartogram_data.bbox[0],
+          min_y: cartogram_data.bbox[1],
+          max_x: cartogram_data.bbox[2],
+          max_y: cartogram_data.bbox[3]
+        };
+
+        // We check if the generated cartogram is a world map by detecting the extent key
+        let world = false;
+        if ("extent" in cartogram_data) {
+          world = (cartogram_data.extent === 'world');
+        }
+        window.cartogram.switchMap("{{default_cartogram_handler}}", "", window.cartogram.newMapVersionData(cartogram_data.features, extrema, cartogramui_data.tooltip, null, null, 'GEOJSON', world), cartogramui_data.color_data);
+      } else {
+        window.cartogram.switchMap("{{default_cartogram_handler}}", "", window.cartogram.newMapVersionData(cartogram_data.features, cartogram_data.extrema, cartogramui_data.tooltip, null, null, 'GOCARTJSON'), cartogramui_data.color_data);
+      }
+
+
     };
-    
-    // We check if the generated cartogram is a world map by detecting the extent key
-    let world = false;
-    if ("extent" in cartogram_data) {
-    world = (cartogram_data.extent === 'world');
-    }
-    window.cartogram.switchMap("{{default_cartogram_handler}}", "", new MapVersionData(cartogram_data.features, extrema, cartogramui_data.tooltip, null, null, MapDataFormat.GEOJSON, world), cartogramui_data.color_data);
-    
-    
-    } else {
-    window.cartogram.switchMap("{{default_cartogram_handler}}", "", new MapVersionData(cartogram_data.features, cartogram_data.extrema, cartogramui_data.tooltip, null, null, MapDataFormat.GOCARTJSON), cartogramui_data.color_data);
-    }
-
-    
-    };
-  </script>    
+  </script>
   {% endif %}
-    
-  
-  </body>
+</body>
+
 </html>
