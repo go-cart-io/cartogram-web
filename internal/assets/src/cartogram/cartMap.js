@@ -101,11 +101,9 @@ export default class CartMap {
    */
   getVersionPolygonScale(sysname) {
     const version_width =
-      this.versions[sysname].extrema.max_x -
-      this.versions[sysname].extrema.min_x
+      this.versions[sysname].extrema.max_x - this.versions[sysname].extrema.min_x
     const version_height =
-      this.versions[sysname].extrema.max_y -
-      this.versions[sysname].extrema.min_y
+      this.versions[sysname].extrema.max_y - this.versions[sysname].extrema.min_y
 
     const scale_x = this.versions[sysname].dimension.x / version_width
     const scale_y = this.versions[sysname].dimension.y / version_height
@@ -124,17 +122,15 @@ export default class CartMap {
     const na_regions = []
     Object.keys(this.regions).forEach(function (region_id) {
       var areaValue = 0
-      this.regions[region_id]
-        .getVersion(sysname)
-        .polygons.forEach(function (polygon) {
-          const coordinates = polygon.coordinates
+      this.regions[region_id].getVersion(sysname).polygons.forEach(function (polygon) {
+        const coordinates = polygon.coordinates
 
-          areaValue += Math.abs(d3.polygonArea(coordinates))
+        areaValue += Math.abs(d3.polygonArea(coordinates))
 
-          polygon.holes.forEach(function (hole) {
-            areaValue -= Math.abs(d3.polygonArea(hole))
-          }, this)
+        polygon.holes.forEach(function (hole) {
+          areaValue -= Math.abs(d3.polygonArea(hole))
         }, this)
+      }, this)
 
       const regionValue = this.regions[region_id].getVersion(sysname).value
 
@@ -182,15 +178,13 @@ export default class CartMap {
   getTotalAreaForVersion(sysname) {
     var area = 0
     Object.keys(this.regions).forEach(function (region_id) {
-      this.regions[region_id]
-        .getVersion(sysname)
-        .polygons.forEach(function (polygon) {
-          const coordinates = polygon.coordinates
+      this.regions[region_id].getVersion(sysname).polygons.forEach(function (polygon) {
+        const coordinates = polygon.coordinates
 
-          const areaValue = d3.polygonArea(coordinates)
+        const areaValue = d3.polygonArea(coordinates)
 
-          area += areaValue
-        })
+        area += areaValue
+      })
     }, this)
     return area
   }
@@ -203,13 +197,11 @@ export default class CartMap {
    */
   verifyLegend(sysname, squareWidth, valuePerSquare) {
     const [scaleX, scaleY] = this.getVersionPolygonScale(sysname)
-    const [versionArea, versionTotalValue] =
-      this.getTotalAreasAndValuesForVersion(sysname)
+    const [versionArea, versionTotalValue] = this.getTotalAreasAndValuesForVersion(sysname)
     const tolerance = 0.001
 
     const legendTotalValue =
-      (valuePerSquare * (versionArea * scaleX * scaleY)) /
-      (squareWidth * squareWidth)
+      (valuePerSquare * (versionArea * scaleX * scaleY)) / (squareWidth * squareWidth)
 
     if (!(Math.abs(versionTotalValue - legendTotalValue) < tolerance)) {
       console.warn(
@@ -232,8 +224,7 @@ export default class CartMap {
 
     // Obtain the scaling factors, area and total value for this map version.
     const [scaleX, scaleY] = this.getVersionPolygonScale(sysname)
-    const [versionArea, versionTotalValue] =
-      this.getTotalAreasAndValuesForVersion(sysname)
+    const [versionArea, versionTotalValue] = this.getTotalAreasAndValuesForVersion(sysname)
     const valuePerPixel = versionTotalValue / (versionArea * scaleX * scaleY)
 
     // Each square to be in the whereabouts of 1% of versionTotalValue.
@@ -283,15 +274,9 @@ export default class CartMap {
       scalePowerOf10 += 1
     }
 
-    widthA *= Math.sqrt(
-      (scaleNiceNumberA * Math.pow(10, scalePowerOf10)) / valuePerSquare
-    )
-    widthB *= Math.sqrt(
-      (scaleNiceNumberB * Math.pow(10, scalePowerOf10)) / valuePerSquare
-    )
-    widthC *= Math.sqrt(
-      (scaleNiceNumberC * Math.pow(10, scalePowerOf10)) / valuePerSquare
-    )
+    widthA *= Math.sqrt((scaleNiceNumberA * Math.pow(10, scalePowerOf10)) / valuePerSquare)
+    widthB *= Math.sqrt((scaleNiceNumberB * Math.pow(10, scalePowerOf10)) / valuePerSquare)
+    widthC *= Math.sqrt((scaleNiceNumberC * Math.pow(10, scalePowerOf10)) / valuePerSquare)
 
     const gridPathA = this.getGridPath(widthA, this.max_width, this.max_height)
     const gridPathB = this.getGridPath(widthB, this.max_width, this.max_height)
@@ -302,12 +287,9 @@ export default class CartMap {
     this.versions[sysname].legendData.gridData.gridB.width = widthB
     this.versions[sysname].legendData.gridData.gridC.width = widthC
 
-    this.versions[sysname].legendData.gridData.gridA.scaleNiceNumber =
-      scaleNiceNumberA
-    this.versions[sysname].legendData.gridData.gridB.scaleNiceNumber =
-      scaleNiceNumberB
-    this.versions[sysname].legendData.gridData.gridC.scaleNiceNumber =
-      scaleNiceNumberC
+    this.versions[sysname].legendData.gridData.gridA.scaleNiceNumber = scaleNiceNumberA
+    this.versions[sysname].legendData.gridData.gridB.scaleNiceNumber = scaleNiceNumberB
+    this.versions[sysname].legendData.gridData.gridC.scaleNiceNumber = scaleNiceNumberC
 
     this.versions[sysname].legendData.gridData.gridA.gridPath = gridPathA
     this.versions[sysname].legendData.gridData.gridB.gridPath = gridPathB
@@ -351,26 +333,19 @@ export default class CartMap {
     else {
       if (prevLegendType == 'static') {
         transitionWidth =
-          this.versions[old_sysname].legendData['gridData'][currentGridPath][
-            'width'
-          ]
+          this.versions[old_sysname].legendData['gridData'][currentGridPath]['width']
       } else {
-        transitionWidth =
-          this.versions[old_sysname].legendData.gridData.gridC.width
+        transitionWidth = this.versions[old_sysname].legendData.gridData.gridC.width
       }
     }
 
     // Retrive legend information
     const unit = this.versions[sysname].legendData.unit
-    const versionTotalValue =
-      this.versions[sysname].legendData.versionTotalValue
-    const width =
-      this.versions[sysname].legendData['gridData'][currentGridPath]['width']
+    const versionTotalValue = this.versions[sysname].legendData.versionTotalValue
+    const width = this.versions[sysname].legendData['gridData'][currentGridPath]['width']
 
     const scaleNiceNumber =
-      this.versions[sysname].legendData['gridData'][currentGridPath][
-        'scaleNiceNumber'
-      ]
+      this.versions[sysname].legendData['gridData'][currentGridPath]['scaleNiceNumber']
     const scalePowerOf10 = this.versions[sysname].legendData.scalePowerOf10
 
     const legendSquare = legendSVG
@@ -434,10 +409,7 @@ export default class CartMap {
         d3.select('#' + legendSVGID + '-unit').text(' million ' + unit)
       } else {
         d3.select('#' + legendSVGID + '-number').text(
-          (scaleNiceNumber * Math.pow(10, scalePowerOf10))
-            .toLocaleString()
-            .split(',')
-            .join(' ')
+          (scaleNiceNumber * Math.pow(10, scalePowerOf10)).toLocaleString().split(',').join(' ')
         )
         d3.select('#' + legendSVGID + '-unit').text(' ' + unit)
       }
@@ -451,11 +423,7 @@ export default class CartMap {
     else {
       d3.select('#' + legendSVGID + '-number').text(scaleNiceNumber)
       d3.select('#' + legendSVGID + '-unit').html(' &#xD7; 10')
-      legendText
-        .append('tspan')
-        .text(scalePowerOf10)
-        .style('font-size', '10px')
-        .attr('dy', '-10px')
+      legendText.append('tspan').text(scalePowerOf10).style('font-size', '10px').attr('dy', '-10px')
       legendText.append('tspan').text(unit).attr('dy', '10px').attr('dx', '8px')
     }
 
@@ -476,9 +444,7 @@ export default class CartMap {
       if (totalScalePowerOfTen in largeNumberNames)
         totalValue.text(
           'Total: ' +
-            (
-              versionTotalValue / Math.pow(10, totalScalePowerOfTen)
-            ).toPrecision(3) +
+            (versionTotalValue / Math.pow(10, totalScalePowerOfTen)).toPrecision(3) +
             ' ' +
             largeNumberNames[totalScalePowerOfTen] +
             ' ' +
@@ -486,25 +452,16 @@ export default class CartMap {
         )
       else if (totalScalePowerOfTen > 9)
         totalValue.text(
-          'Total: ' +
-            (versionTotalValue / Math.pow(10, 9)).toPrecision(3) +
-            ' billion ' +
-            unit
+          'Total: ' + (versionTotalValue / Math.pow(10, 9)).toPrecision(3) + ' billion ' + unit
         )
       else if (totalScalePowerOfTen > 6)
         totalValue.text(
-          'Total: ' +
-            (versionTotalValue / Math.pow(10, 6)).toPrecision(3) +
-            ' million ' +
-            unit
+          'Total: ' + (versionTotalValue / Math.pow(10, 6)).toPrecision(3) + ' million ' + unit
         )
       // Else we display the total as it is
       else
         totalValue.text(
-          'Total: ' +
-            versionTotalValue.toLocaleString().split(',').join(' ') +
-            ' ' +
-            unit
+          'Total: ' + versionTotalValue.toLocaleString().split(',').join(' ') + ' ' + unit
         )
     }
     // If totalScalePowerOfTen is too extreme, we use scientific notation
@@ -513,9 +470,7 @@ export default class CartMap {
         .append('tspan')
         .html(
           'Total : ' +
-            (
-              versionTotalValue / Math.pow(10, totalScalePowerOfTen)
-            ).toPrecision(3) +
+            (versionTotalValue / Math.pow(10, totalScalePowerOfTen)).toPrecision(3) +
             ' &#xD7; 10'
         )
       totalValue
@@ -570,11 +525,7 @@ export default class CartMap {
     legendSVG.attr('height', legendSVGHeight + 30)
 
     // Verify if legend is accurate
-    this.verifyLegend(
-      sysname,
-      width,
-      scaleNiceNumber * Math.pow(10, scalePowerOf10)
-    )
+    this.verifyLegend(sysname, width, scaleNiceNumber * Math.pow(10, scalePowerOf10))
 
     // Update Selected Legend Type in SVG Data
     document.getElementById(legendSVGID).dataset.legendType = 'static'
@@ -596,18 +547,14 @@ export default class CartMap {
 
     // Retrive legend information
     const unit = this.versions[sysname].legendData.unit
-    const versionTotalValue =
-      this.versions[sysname].legendData.versionTotalValue
+    const versionTotalValue = this.versions[sysname].legendData.versionTotalValue
     const scalePowerOf10 = this.versions[sysname].legendData.scalePowerOf10
     const widthA = this.versions[sysname].legendData.gridData.gridA.width
     const widthB = this.versions[sysname].legendData.gridData.gridB.width
     const widthC = this.versions[sysname].legendData.gridData.gridC.width
-    const scaleNiceNumberA =
-      this.versions[sysname].legendData.gridData.gridA.scaleNiceNumber
-    const scaleNiceNumberB =
-      this.versions[sysname].legendData.gridData.gridB.scaleNiceNumber
-    const scaleNiceNumberC =
-      this.versions[sysname].legendData.gridData.gridC.scaleNiceNumber
+    const scaleNiceNumberA = this.versions[sysname].legendData.gridData.gridA.scaleNiceNumber
+    const scaleNiceNumberB = this.versions[sysname].legendData.gridData.gridB.scaleNiceNumber
+    const scaleNiceNumberC = this.versions[sysname].legendData.gridData.gridC.scaleNiceNumber
     const gridA = this.versions[sysname].legendData.gridData.gridA.gridPath
     const gridB = this.versions[sysname].legendData.gridData.gridB.gridPath
     const gridC = this.versions[sysname].legendData.gridData.gridC.gridPath
@@ -626,9 +573,7 @@ export default class CartMap {
       transitionWidthA =
         transitionWidthB =
         transitionWidthC =
-          this.versions[sysname].legendData['gridData'][currentGridPath][
-            'width'
-          ]
+          this.versions[sysname].legendData['gridData'][currentGridPath]['width']
     }
     // When switching between static and selectable legend.
     else {
@@ -636,16 +581,11 @@ export default class CartMap {
         transitionWidthA =
           transitionWidthB =
           transitionWidthC =
-            this.versions[old_sysname].legendData['gridData'][currentGridPath][
-              'width'
-            ]
+            this.versions[old_sysname].legendData['gridData'][currentGridPath]['width']
       } else {
-        transitionWidthA =
-          this.versions[old_sysname].legendData.gridData.gridA.width
-        transitionWidthB =
-          this.versions[old_sysname].legendData.gridData.gridB.width
-        transitionWidthC =
-          this.versions[old_sysname].legendData.gridData.gridC.width
+        transitionWidthA = this.versions[old_sysname].legendData.gridData.gridA.width
+        transitionWidthB = this.versions[old_sysname].legendData.gridData.gridB.width
+        transitionWidthC = this.versions[old_sysname].legendData.gridData.gridC.width
       }
     }
 
@@ -762,10 +702,7 @@ export default class CartMap {
         d3.select('#' + legendSVGID + '-unit').text(' million ' + unit)
       } else {
         d3.select('#' + legendSVGID + '-number').text(
-          (scaleNiceNumberA * Math.pow(10, scalePowerOf10))
-            .toLocaleString()
-            .split(',')
-            .join(' ')
+          (scaleNiceNumberA * Math.pow(10, scalePowerOf10)).toLocaleString().split(',').join(' ')
         )
         d3.select('#' + legendSVGID + '-unit').text(' ' + unit)
       }
@@ -779,11 +716,7 @@ export default class CartMap {
     else {
       d3.select('#' + legendSVGID + '-number').text(scaleNiceNumberA)
       d3.select('#' + legendSVGID + '-unit').html(' &#xD7; 10')
-      legendText
-        .append('tspan')
-        .text(scalePowerOf10)
-        .style('font-size', '10px')
-        .attr('dy', '-10px')
+      legendText.append('tspan').text(scalePowerOf10).style('font-size', '10px').attr('dy', '-10px')
       legendText.append('tspan').text(unit).attr('dy', '10px').attr('dx', '8px')
     }
 
@@ -805,8 +738,7 @@ export default class CartMap {
 
       d3.select('#' + legendSVGID + '-number').text(
         parseInt(
-          (parseInt(legendNumber.substring(0, 1)) / scaleNiceNumberA) *
-            scaleNiceNumberC +
+          (parseInt(legendNumber.substring(0, 1)) / scaleNiceNumberA) * scaleNiceNumberC +
             legendNumber.substring(1, legendNumber.length).split(' ').join('')
         )
           .toLocaleString()
@@ -830,8 +762,7 @@ export default class CartMap {
 
       d3.select('#' + legendSVGID + '-number').text(
         parseInt(
-          (parseInt(legendNumber.substring(0, 1)) / scaleNiceNumberA) *
-            scaleNiceNumberB +
+          (parseInt(legendNumber.substring(0, 1)) / scaleNiceNumberA) * scaleNiceNumberB +
             legendNumber.substring(1, legendNumber.length).split(' ').join('')
         )
           .toLocaleString()
@@ -867,8 +798,7 @@ export default class CartMap {
       d3.select('#' + legendSVGID + 'B').attr('fill', '#FFFFFF')
       d3.select('#' + legendSVGID + 'A').attr('fill', '#FFFFFF')
       d3.select('#' + legendSVGID + '-number').text(
-        (parseInt(legendNumber.substring(0, 1)) / scaleNiceNumberA) *
-          scaleNiceNumberB +
+        (parseInt(legendNumber.substring(0, 1)) / scaleNiceNumberA) * scaleNiceNumberB +
           legendNumber.substring(1, legendNumber.length)
       )
     } else if (currentGridPath == 'gridC') {
@@ -876,8 +806,7 @@ export default class CartMap {
       d3.select('#' + legendSVGID + 'B').attr('fill', '#FFFFFF')
       d3.select('#' + legendSVGID + 'A').attr('fill', '#FFFFFF')
       d3.select('#' + legendSVGID + '-number').text(
-        (parseInt(legendNumber.substring(0, 1)) / scaleNiceNumberA) *
-          scaleNiceNumberC +
+        (parseInt(legendNumber.substring(0, 1)) / scaleNiceNumberA) * scaleNiceNumberC +
           legendNumber.substring(1, legendNumber.length)
       )
     }
@@ -959,9 +888,7 @@ export default class CartMap {
       if (totalScalePowerOfTen in largeNumberNames)
         totalValue.text(
           'Total: ' +
-            (
-              versionTotalValue / Math.pow(10, totalScalePowerOfTen)
-            ).toPrecision(3) +
+            (versionTotalValue / Math.pow(10, totalScalePowerOfTen)).toPrecision(3) +
             ' ' +
             largeNumberNames[totalScalePowerOfTen] +
             ' ' +
@@ -969,25 +896,16 @@ export default class CartMap {
         )
       else if (totalScalePowerOfTen > 9)
         totalValue.text(
-          'Total: ' +
-            (versionTotalValue / Math.pow(10, 9)).toPrecision(3) +
-            ' billion ' +
-            unit
+          'Total: ' + (versionTotalValue / Math.pow(10, 9)).toPrecision(3) + ' billion ' + unit
         )
       else if (totalScalePowerOfTen > 6)
         totalValue.text(
-          'Total: ' +
-            (versionTotalValue / Math.pow(10, 6)).toPrecision(3) +
-            ' million ' +
-            unit
+          'Total: ' + (versionTotalValue / Math.pow(10, 6)).toPrecision(3) + ' million ' + unit
         )
       // Else we display the total as it is
       else
         totalValue.text(
-          'Total: ' +
-            versionTotalValue.toLocaleString().split(',').join(' ') +
-            ' ' +
-            unit
+          'Total: ' + versionTotalValue.toLocaleString().split(',').join(' ') + ' ' + unit
         )
     }
     // If totalScalePowerOfTen is too extreme, we use scientific notation
@@ -996,9 +914,7 @@ export default class CartMap {
         .append('tspan')
         .html(
           'Total : ' +
-            (
-              versionTotalValue / Math.pow(10, totalScalePowerOfTen)
-            ).toPrecision(3) +
+            (versionTotalValue / Math.pow(10, totalScalePowerOfTen)).toPrecision(3) +
             ' &#xD7; 10'
         )
       totalValue
@@ -1010,47 +926,18 @@ export default class CartMap {
     }
 
     // Add transition to Text elements
-    c_label
-      .transition()
-      .ease(d3.easeCubic)
-      .delay(200)
-      .duration(800)
-      .attr('opacity', 1)
+    c_label.transition().ease(d3.easeCubic).delay(200).duration(800).attr('opacity', 1)
 
-    b_label
-      .transition()
-      .ease(d3.easeCubic)
-      .delay(200)
-      .duration(800)
-      .attr('opacity', 1)
+    b_label.transition().ease(d3.easeCubic).delay(200).duration(800).attr('opacity', 1)
 
-    a_label
-      .transition()
-      .ease(d3.easeCubic)
-      .delay(200)
-      .duration(800)
-      .attr('opacity', 1)
+    a_label.transition().ease(d3.easeCubic).delay(200).duration(800).attr('opacity', 1)
 
-    totalValue
-      .transition()
-      .ease(d3.easeCubic)
-      .delay(300)
-      .duration(700)
-      .attr('opacity', 1)
+    totalValue.transition().ease(d3.easeCubic).delay(300).duration(700).attr('opacity', 1)
 
-    legendText
-      .transition()
-      .ease(d3.easeCubic)
-      .delay(300)
-      .duration(700)
-      .attr('opacity', 1)
+    legendText.transition().ease(d3.easeCubic).delay(300).duration(700).attr('opacity', 1)
 
     // Verify if legend is accurate
-    this.verifyLegend(
-      sysname,
-      widthA,
-      scaleNiceNumberA * Math.pow(10, scalePowerOf10)
-    )
+    this.verifyLegend(sysname, widthA, scaleNiceNumberA * Math.pow(10, scalePowerOf10))
 
     // Update Selected Legend Type in SVG Data
     document.getElementById(legendSVGID).dataset.legendType = 'resizable'
@@ -1067,26 +954,13 @@ export default class CartMap {
 
     // Vertical lines
     for (let i = 0; i < 30; i++) {
-      gridPath +=
-        'M' +
-        (20 + gridWidth * i) +
-        ' 0 L' +
-        (20 + gridWidth * i) +
-        ' ' +
-        height +
-        ' '
+      gridPath += 'M' + (20 + gridWidth * i) + ' 0 L' + (20 + gridWidth * i) + ' ' + height + ' '
     }
 
     // Horizontal Lines
     for (let j = 1; j <= 30; j++) {
       gridPath +=
-        'M0 ' +
-        (height - gridWidth * j) +
-        ' L' +
-        width +
-        ' ' +
-        (height - gridWidth * j) +
-        ' '
+        'M0 ' + (height - gridWidth * j) + ' L' + width + ' ' + (height - gridWidth * j) + ' '
     }
 
     return gridPath
@@ -1099,12 +973,9 @@ export default class CartMap {
    * @param {string} old_sysname The previous sysname after map version switch. Optional.
    */
   drawGridLines(sysname, mapSVGID, old_sysname = null) {
-    const currentGridPath = document.getElementById(mapSVGID + '-legend')
-      .dataset.currentGridPath
-    const gridPath =
-      this.versions[sysname].legendData['gridData'][currentGridPath]['gridPath']
-    const gridVisibility =
-      document.getElementById(mapSVGID).dataset.gridVisibility
+    const currentGridPath = document.getElementById(mapSVGID + '-legend').dataset.currentGridPath
+    const gridPath = this.versions[sysname].legendData['gridData'][currentGridPath]['gridPath']
+    const gridVisibility = document.getElementById(mapSVGID).dataset.gridVisibility
 
     const mapSVG = d3.select('#' + mapSVGID + '-svg')
     let gridSVGID = mapSVGID + '-grid'
@@ -1122,9 +993,7 @@ export default class CartMap {
 
     if (old_sysname != null) {
       transitionGridPath =
-        this.versions[old_sysname].legendData['gridData'][currentGridPath][
-          'gridPath'
-        ]
+        this.versions[old_sysname].legendData['gridData'][currentGridPath]['gridPath']
     }
 
     mapSVG
@@ -1177,18 +1046,13 @@ export default class CartMap {
 
     if (this.versions.hasOwnProperty(base_sysname)) {
       // Calculate the base version's area to equalise current sysname's area
-      const base_version_geojson_area =
-        this.getTotalAreasAndValuesForVersion(base_sysname)[0]
+      const base_version_geojson_area = this.getTotalAreasAndValuesForVersion(base_sysname)[0]
       const base_version_width_geojson =
-        this.versions[base_sysname].extrema.max_x -
-        this.versions[base_sysname].extrema.min_x
+        this.versions[base_sysname].extrema.max_x - this.versions[base_sysname].extrema.min_x
       const base_version_height_geojson =
-        this.versions[base_sysname].extrema.max_y -
-        this.versions[base_sysname].extrema.min_y
-      const base_version_width =
-        this.versions[base_sysname].dimension.x / this.config.scale
-      const base_version_height =
-        this.versions[base_sysname].dimension.y / this.config.scale
+        this.versions[base_sysname].extrema.max_y - this.versions[base_sysname].extrema.min_y
+      const base_version_width = this.versions[base_sysname].dimension.x / this.config.scale
+      const base_version_height = this.versions[base_sysname].dimension.y / this.config.scale
       const area_factor =
         (base_version_height_geojson / base_version_height) *
         (base_version_width_geojson / base_version_width)
@@ -1214,8 +1078,7 @@ export default class CartMap {
 
       var version_area =
         version_total_area_geojson /
-        ((version_width_geojson / version_width) *
-          (version_height_geojson / version_height))
+        ((version_width_geojson / version_width) * (version_height_geojson / version_height))
       const equalization_factor = base_version_area / version_area
 
       //Update the version_width and version_height with new equalised values
@@ -1253,8 +1116,7 @@ export default class CartMap {
                       .y(d => scale_factors[sysname].y * ((data.extrema.max_y) - d[1]))
                       .interpolate("linear")(polygon.coordinates),*/
             SVG.lineFunction(
-              (d) =>
-                scale_factors[sysname].x * (-1 * data.extrema.min_x + d[0]),
+              (d) => scale_factors[sysname].x * (-1 * data.extrema.min_x + d[0]),
               (d) => scale_factors[sysname].y * (data.extrema.max_y - d[1]),
               polygon.coordinates,
               polygon.holes
@@ -1293,9 +1155,7 @@ export default class CartMap {
    */
   static highlightByID(where_drawn, region_id, color, highlight) {
     where_drawn.forEach(function (element_id) {
-      var polygons = document.getElementsByClassName(
-        'path-' + element_id + '-' + region_id
-      )
+      var polygons = document.getElementsByClassName('path-' + element_id + '-' + region_id)
 
       for (let i = 0; i < polygons.length; i++) {
         if (highlight) {
@@ -1356,20 +1216,18 @@ export default class CartMap {
 
     // First we collect the information for each polygon to make using D3 easier.
     Object.keys(this.regions).forEach(function (region_id) {
-      this.regions[region_id]
-        .getVersion(sysname)
-        .polygons.forEach(function (polygon) {
-          if (!this.config.dont_draw.includes(polygon.id)) {
-            polygons_to_draw.push({
-              region_id: region_id,
-              polygon_id: polygon.id,
-              path: polygon.path,
-              color: this.colors[region_id],
-              elevated: this.config.elevate.includes(polygon.id),
-              value: this.regions[region_id].getVersion(sysname).value
-            })
-          }
-        }, this)
+      this.regions[region_id].getVersion(sysname).polygons.forEach(function (polygon) {
+        if (!this.config.dont_draw.includes(polygon.id)) {
+          polygons_to_draw.push({
+            region_id: region_id,
+            polygon_id: polygon.id,
+            path: polygon.path,
+            color: this.colors[region_id],
+            elevated: this.config.elevate.includes(polygon.id),
+            value: this.regions[region_id].getVersion(sysname).value
+          })
+        }
+      }, this)
     }, this)
 
     /* To elevate polygons, we draw the elevated ones last */
@@ -1401,13 +1259,7 @@ export default class CartMap {
         */
       .attr(
         'class',
-        (d) =>
-          'area' +
-          ' path-' +
-          element_id +
-          '-' +
-          d.region_id +
-          (d.value === 'NA' ? '-na' : '')
+        (d) => 'area' + ' path-' + element_id + '-' + d.region_id + (d.value === 'NA' ? '-na' : '')
       )
       /* NA regions are filled with white */
       .attr('fill', (d) => (d.value === 'NA' ? '#CCCCCC' : d.color))
@@ -1481,26 +1333,16 @@ export default class CartMap {
         const pipe =
           (...fns) =>
           (x) =>
-            fns.reduce(
-              (accumulator, currentFunction) => currentFunction(accumulator),
-              x
-            )
+            fns.reduce((accumulator, currentFunction) => currentFunction(accumulator), x)
 
         const xPipeline = pipe(x2LongLat, x2Gall, x2Ink)
         const yPipeLine = pipe(y2LongLat, y2Gall, y2Ink)
 
-        const scaleX =
-          version_width /
-          ((version.extrema.max_x - version.extrema.min_x) * gallScale)
+        const scaleX = version_width / ((version.extrema.max_x - version.extrema.min_x) * gallScale)
         const scaleY =
-          version_height /
-          ((version.extrema.max_y - version.extrema.min_y) * gallScale)
+          version_height / ((version.extrema.max_y - version.extrema.min_y) * gallScale)
 
-        var text = canvas
-          .selectAll('text')
-          .data(labels.labels)
-          .enter()
-          .append('text')
+        var text = canvas.selectAll('text').data(labels.labels).enter().append('text')
 
         var textLabels = text
           .attr('x', (d) => xPipeline(d.x) * scaleX)
@@ -1510,11 +1352,7 @@ export default class CartMap {
           .attr('fill', '#000')
           .text((d) => d.text)
 
-        var lines = canvas
-          .selectAll('line')
-          .data(labels.lines)
-          .enter()
-          .append('line')
+        var lines = canvas.selectAll('line').data(labels.lines).enter().append('line')
 
         var labelLines = lines
           .attr('x1', (d) => xPipeline(d.x1) * scaleX)
@@ -1527,17 +1365,11 @@ export default class CartMap {
         // Label transformation for non-World Maps.
 
         var scale_x =
-          version_width /
-          ((version.extrema.max_x - version.extrema.min_x) * labels.scale_x)
+          version_width / ((version.extrema.max_x - version.extrema.min_x) * labels.scale_x)
         var scale_y =
-          version_height /
-          ((version.extrema.max_y - version.extrema.min_y) * labels.scale_y)
+          version_height / ((version.extrema.max_y - version.extrema.min_y) * labels.scale_y)
 
-        var text = canvas
-          .selectAll('text')
-          .data(labels.labels)
-          .enter()
-          .append('text')
+        var text = canvas.selectAll('text').data(labels.labels).enter().append('text')
 
         var textLabels = text
           .attr('x', (d) => d.x * scale_x)
@@ -1547,11 +1379,7 @@ export default class CartMap {
           .attr('fill', '#000')
           .text((d) => d.text)
 
-        var lines = canvas
-          .selectAll('line')
-          .data(labels.lines)
-          .enter()
-          .append('line')
+        var lines = canvas.selectAll('line').data(labels.lines).enter().append('line')
 
         var labelLines = lines
           .attr('x1', (d) => d.x1 * scale_x)
@@ -1574,76 +1402,64 @@ export default class CartMap {
     Object.keys(this.regions).forEach(function (region_id) {
       var region = this.regions[region_id]
 
-      this.regions[region_id].versions[current_sysname].polygons.forEach(
-        function (polygon) {
-          // const targetPath = this.regions[region_id].versions[new_sysname].polygons.find(poly => poly.id == polygon.id).path;
-          // console.log(targetPath);
+      this.regions[region_id].versions[current_sysname].polygons.forEach(function (polygon) {
+        // const targetPath = this.regions[region_id].versions[new_sysname].polygons.find(poly => poly.id == polygon.id).path;
+        // console.log(targetPath);
 
-          d3.select('#path-' + element_id + '-' + polygon.id)
-            .attr('d', polygon.path)
-            .transition()
-            .ease(d3.easeCubic)
-            .duration(1000)
-            .attr(
-              'd',
-              this.regions[region_id].versions[new_sysname].polygons.find(
-                (poly) => poly.id == polygon.id
-              ).path
-            )
-          // .attrTween('d', function() {
-          //     return d3.interpolatePath(polygon.path, targetPath);
-          // })
+        d3.select('#path-' + element_id + '-' + polygon.id)
+          .attr('d', polygon.path)
+          .transition()
+          .ease(d3.easeCubic)
+          .duration(1000)
+          .attr(
+            'd',
+            this.regions[region_id].versions[new_sysname].polygons.find(
+              (poly) => poly.id == polygon.id
+            ).path
+          )
+        // .attrTween('d', function() {
+        //     return d3.interpolatePath(polygon.path, targetPath);
+        // })
 
-          /* Change the color and ensure correct highlighting behavior after animation
+        /* Change the color and ensure correct highlighting behavior after animation
                  is complete
               */
-          window.setTimeout(
-            function () {
-              if (
-                this.regions[region_id].versions[new_sysname].value === 'NA'
-              ) {
-                document
-                  .getElementById('path-' + element_id + '-' + polygon.id)
-                  .setAttribute('fill', '#cccccc')
+        window.setTimeout(
+          function () {
+            if (this.regions[region_id].versions[new_sysname].value === 'NA') {
+              document
+                .getElementById('path-' + element_id + '-' + polygon.id)
+                .setAttribute('fill', '#cccccc')
 
-                document
-                  .getElementById('path-' + element_id + '-' + polygon.id)
-                  .classList.remove('path-' + element_id + '-' + region_id)
-                document
-                  .getElementById('path-' + element_id + '-' + polygon.id)
-                  .classList.add('path-' + element_id + '-' + region_id + '-na')
-              } else {
-                document
-                  .getElementById('path-' + element_id + '-' + polygon.id)
-                  .setAttribute('fill', this.colors[region_id])
-                document
-                  .getElementById('path-' + element_id + '-' + polygon.id)
-                  .classList.add('path-' + element_id + '-' + region_id)
-                document
-                  .getElementById('path-' + element_id + '-' + polygon.id)
-                  .classList.remove(
-                    'path-' + element_id + '-' + region_id + '-na'
-                  )
-              }
-            }.bind(this),
-            800
-          )
-        },
-        this
-      )
+              document
+                .getElementById('path-' + element_id + '-' + polygon.id)
+                .classList.remove('path-' + element_id + '-' + region_id)
+              document
+                .getElementById('path-' + element_id + '-' + polygon.id)
+                .classList.add('path-' + element_id + '-' + region_id + '-na')
+            } else {
+              document
+                .getElementById('path-' + element_id + '-' + polygon.id)
+                .setAttribute('fill', this.colors[region_id])
+              document
+                .getElementById('path-' + element_id + '-' + polygon.id)
+                .classList.add('path-' + element_id + '-' + region_id)
+              document
+                .getElementById('path-' + element_id + '-' + polygon.id)
+                .classList.remove('path-' + element_id + '-' + region_id + '-na')
+            }
+          }.bind(this),
+          800
+        )
+      }, this)
     }, this)
 
-    let selectedLegendType = document.getElementById(element_id + '-legend')
-      .dataset.legendType
+    let selectedLegendType = document.getElementById(element_id + '-legend').dataset.legendType
 
     if (selectedLegendType == 'static') {
       this.drawLegend(new_sysname, element_id + '-legend', current_sysname)
     } else {
-      this.drawResizableLegend(
-        new_sysname,
-        element_id + '-legend',
-        current_sysname
-      )
+      this.drawResizableLegend(new_sysname, element_id + '-legend', current_sysname)
     }
 
     this.drawGridLines(new_sysname, element_id, current_sysname)

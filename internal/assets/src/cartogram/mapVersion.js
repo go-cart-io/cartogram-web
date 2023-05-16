@@ -133,16 +133,12 @@ export class MapVersionData {
                 let projection = new GallPetersProjection()
 
                 for (let i = 0; i < polygon_coords.length; i++) {
-                  polygon_coords[i] = projection.transformLongLat(
-                    polygon_coords[i]
-                  )
+                  polygon_coords[i] = projection.transformLongLat(polygon_coords[i])
                 }
 
                 for (let i = 0; i < polygon_holes.length; i++) {
                   for (let j = 0; j < polygon_holes[i].length; j++) {
-                    polygon_holes[i][j] = projection.transformLongLat(
-                      polygon_holes[i][j]
-                    )
+                    polygon_holes[i][j] = projection.transformLongLat(polygon_holes[i][j])
                   }
                 }
               }
@@ -155,20 +151,11 @@ export class MapVersionData {
                     holes: polygon_holes
                   }
                 ],
-                name: tooltip.data['id_' + feature.properties.cartogram_id][
-                  'name'
-                ],
-                value:
-                  tooltip.data['id_' + feature.properties.cartogram_id][
-                    'value'
-                  ],
+                name: tooltip.data['id_' + feature.properties.cartogram_id]['name'],
+                value: tooltip.data['id_' + feature.properties.cartogram_id]['value'],
                 abbreviation:
                   abbreviations !== null
-                    ? abbreviations[
-                        tooltip.data['id_' + feature.properties.cartogram_id][
-                          'name'
-                        ]
-                      ]
+                    ? abbreviations[tooltip.data['id_' + feature.properties.cartogram_id]['name']]
                     : ''
               }
 
@@ -200,16 +187,12 @@ export class MapVersionData {
                   let projection = new GallPetersProjection()
 
                   for (let i = 0; i < polygon_coords.length; i++) {
-                    polygon_coords[i] = projection.transformLongLat(
-                      polygon_coords[i]
-                    )
+                    polygon_coords[i] = projection.transformLongLat(polygon_coords[i])
                   }
 
                   for (let i = 0; i < polygon_holes.length; i++) {
                     for (let j = 0; j < polygon_holes[i].length; j++) {
-                      polygon_holes[i][j] = projection.transformLongLat(
-                        polygon_holes[i][j]
-                      )
+                      polygon_holes[i][j] = projection.transformLongLat(polygon_holes[i][j])
                     }
                   }
                 }
@@ -223,20 +206,11 @@ export class MapVersionData {
 
               this.regions[feature.properties.cartogram_id] = {
                 polygons: polygons,
-                name: tooltip.data['id_' + feature.properties.cartogram_id][
-                  'name'
-                ],
-                value:
-                  tooltip.data['id_' + feature.properties.cartogram_id][
-                    'value'
-                  ],
+                name: tooltip.data['id_' + feature.properties.cartogram_id]['name'],
+                value: tooltip.data['id_' + feature.properties.cartogram_id]['value'],
                 abbreviation:
                   abbreviations !== null
-                    ? abbreviations[
-                        tooltip.data['id_' + feature.properties.cartogram_id][
-                          'name'
-                        ]
-                      ]
+                    ? abbreviations[tooltip.data['id_' + feature.properties.cartogram_id]['name']]
                     : ''
               }
 

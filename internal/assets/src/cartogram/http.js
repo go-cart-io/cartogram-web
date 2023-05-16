@@ -106,8 +106,7 @@ export default class HTTP {
     var first_entry = true
 
     Object.keys(vars).forEach(function (key, index) {
-      post_string +=
-        (first_entry ? '' : '&') + key + '=' + encodeURIComponent(vars[key])
+      post_string += (first_entry ? '' : '&') + key + '=' + encodeURIComponent(vars[key])
       first_entry = false
     })
 
@@ -120,8 +119,7 @@ export default class HTTP {
    */
   static generateMIMEBoundary() {
     var text = '---------'
-    var possible =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
     for (var i = 0; i < 25; i++)
       text += possible.charAt(Math.floor(Math.random() * possible.length))

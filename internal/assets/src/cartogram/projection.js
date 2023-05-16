@@ -17,10 +17,7 @@ export class WorldMapProjection {
   }
 
   transformLongLat(longlat) {
-    return [
-      this.transformLongitude(longlat[0]),
-      this.transformLatitude(longlat[1])
-    ]
+    return [this.transformLongitude(longlat[0]), this.transformLatitude(longlat[1])]
   }
 }
 

@@ -16,18 +16,10 @@ export default class SVG {
     for (let i = 0; i < coordinates.length; i++) {
       if (i == 0) {
         path +=
-          'M ' +
-          scaleX(coordinates[i]).toString() +
-          ',' +
-          scaleY(coordinates[i]).toString() +
-          ' '
+          'M ' + scaleX(coordinates[i]).toString() + ',' + scaleY(coordinates[i]).toString() + ' '
       } else {
         path +=
-          'L ' +
-          scaleX(coordinates[i]).toString() +
-          ',' +
-          scaleY(coordinates[i]).toString() +
-          ' '
+          'L ' + scaleX(coordinates[i]).toString() + ',' + scaleY(coordinates[i]).toString() + ' '
       }
     }
 
@@ -37,18 +29,10 @@ export default class SVG {
       for (let i = 0; i < hole_coords.length; i++) {
         if (i == 0) {
           path +=
-            'M ' +
-            scaleX(hole_coords[i]).toString() +
-            ',' +
-            scaleY(hole_coords[i]).toString() +
-            ' '
+            'M ' + scaleX(hole_coords[i]).toString() + ',' + scaleY(hole_coords[i]).toString() + ' '
         } else {
           path +=
-            'L ' +
-            scaleX(hole_coords[i]).toString() +
-            ',' +
-            scaleY(hole_coords[i]).toString() +
-            ' '
+            'L ' + scaleX(hole_coords[i]).toString() + ',' + scaleY(hole_coords[i]).toString() + ' '
         }
       }
 

@@ -22,12 +22,7 @@ export default class Tooltip {
 
     entries.forEach((entry) => {
       content +=
-        '<br/><i>' +
-        entry.name +
-        ':</i> ' +
-        entry.value.toLocaleString() +
-        ' ' +
-        entry.unit
+        '<br/><i>' + entry.name + ':</i> ' + entry.value.toLocaleString() + ' ' + entry.unit
     }, this)
 
     Tooltip.draw(event, content)

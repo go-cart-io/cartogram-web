@@ -27,9 +27,7 @@ export class RegionVersion {
       },
       geometry: {
         type: 'MultiPolygon',
-        coordinates: this.polygons.map((polygon) =>
-          polygon.toGeoJSONCoordinates()
-        )
+        coordinates: this.polygons.map((polygon) => polygon.toGeoJSONCoordinates())
       }
     }
   }

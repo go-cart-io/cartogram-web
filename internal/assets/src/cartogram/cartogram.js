@@ -95,10 +95,7 @@ export class Cartogram {
 
     // Close the gridedit window upon navigating away from the page if it's open
     window.onbeforeunload = function () {
-      if (
-        this.model.gridedit_window !== null &&
-        !this.model.gridedit_window.closed
-      ) {
+      if (this.model.gridedit_window !== null && !this.model.gridedit_window.closed) {
         this.model.gridedit_window.close()
       }
     }.bind(this)
@@ -134,10 +131,7 @@ export class Cartogram {
   launchGridEdit() {
     if (this.model.grid_document === null || this.model.in_loading_state) return
 
-    if (
-      this.model.gridedit_window === null ||
-      this.model.gridedit_window.closed
-    ) {
+    if (this.model.gridedit_window === null || this.model.gridedit_window.closed) {
       this.model.gridedit_window = window.open(
         this.config.gridedit_url,
         'gridedit_' + new Date().getTime(),
@@ -157,18 +151,14 @@ export class Cartogram {
             /*
                     This sets whether or not the Update button is clickable in the gridedit document
                     */
-            this.model.gridedit_window.gridedit.set_allow_update(
-              !this.model.in_loading_state
-            )
+            this.model.gridedit_window.gridedit.set_allow_update(!this.model.in_loading_state)
 
             this.model.gridedit_window.gridedit.load_document(gd)
           }.bind(this)
         }.bind(this)(this.model.grid_document)
       )
     } else {
-      this.model.gridedit_window.gridedit.load_document(
-        this.model.grid_document
-      )
+      this.model.gridedit_window.gridedit.load_document(this.model.grid_document)
       this.model.gridedit_window.focus()
     }
   }
@@ -204,19 +194,13 @@ export class Cartogram {
     this.model.grid_document = new_gd
 
     if (this.model.grid_document !== null) {
-      if (!this.model.in_loading_state)
-        document.getElementById('edit-button').disabled = false
+      if (!this.model.in_loading_state) document.getElementById('edit-button').disabled = false
 
       /*
             If the gridedit window is open, push the new grid document to it
             */
-      if (
-        this.model.gridedit_window !== null &&
-        !this.model.gridedit_window.closed
-      )
-        this.model.gridedit_window.gridedit.load_document(
-          this.model.grid_document
-        )
+      if (this.model.gridedit_window !== null && !this.model.gridedit_window.closed)
+        this.model.gridedit_window.gridedit.load_document(this.model.grid_document)
     } else {
       document.getElementById('edit-button').disabled = true
     }
@@ -235,8 +219,7 @@ export class Cartogram {
                 We use Excel-style quote escaping. All values are placed within double quotes, and a double quote
                 literal is represented by "".
                 */
-        csv +=
-          '"' + gd.contents[row * gd.width + col].replace(/"/gm, '""') + '"'
+        csv += '"' + gd.contents[row * gd.width + col].replace(/"/gm, '""') + '"'
 
         if (col < gd.width - 1) {
           csv += ','
@@ -284,8 +267,7 @@ export class Cartogram {
     req_body += sysname + '\n'
 
     req_body += '--' + mime_boundary + '\n'
-    req_body +=
-      'Content-Disposition: form-data; name="csv"; filename="data.csv"\n'
+    req_body += 'Content-Disposition: form-data; name="csv"; filename="data.csv"\n'
     req_body += 'Content-Type: text/csv\n\n'
     req_body += csv + '\n'
     req_body += '--' + mime_boundary + '--'
@@ -451,10 +433,7 @@ export class Cartogram {
       const parts = rounded.split('e')
 
       if (parts.length === 2) {
-        return `${parts[0]}&nbsp;&times;&nbsp;10<sup>${parts[1].replace(
-          '+',
-          ''
-        )}</sup>`
+        return `${parts[0]}&nbsp;&times;&nbsp;10<sup>${parts[1].replace('+', '')}</sup>`
       } else {
         return rounded
       }
@@ -462,8 +441,7 @@ export class Cartogram {
 
     const total = dataWithOthers.reduce((acc, datum) => acc + datum.value, 0)
     document.getElementById('data-total').innerHTML =
-      formatAsScientificNotation(total) +
-      (tooltip.unit === '' ? '' : ' ' + tooltip.unit)
+      formatAsScientificNotation(total) + (tooltip.unit === '' ? '' : ' ' + tooltip.unit)
 
     const othersThreshold = total * 0.025
 
@@ -499,10 +477,8 @@ export class Cartogram {
         for (let j = i + 2; j < data.length + i + 2; j++) {
           if (
             data[j % data.length].color !== data[(i + 1) % data.length].color &&
-            data[(j + 1) % data.length].color !==
-              data[(i + 1) % data.length].color &&
-            data[(j - 1) % data.length].color !==
-              data[(i + 1) % data.length].color
+            data[(j + 1) % data.length].color !== data[(i + 1) % data.length].color &&
+            data[(j - 1) % data.length].color !== data[(i + 1) % data.length].color
           ) {
             const temp = data[j % data.length]
             data[j % data.length] = data[(i + 1) % data.length]
@@ -603,10 +579,7 @@ export class Cartogram {
 
     text.exit().remove()
 
-    let polyline = svg
-      .select('.lines')
-      .selectAll('polyline')
-      .data(pie(data), key)
+    let polyline = svg.select('.lines').selectAll('polyline').data(pie(data), key)
 
     polyline
       .enter()
@@ -657,8 +630,7 @@ export class Cartogram {
     document.getElementById('error').style.display = 'block'
 
     if (this.extended_error_info !== null) {
-      document.getElementById('error-extended-content').innerHTML =
-        this.extended_error_info
+      document.getElementById('error-extended-content').innerHTML = this.extended_error_info
       document.getElementById('error-extended').style.display = 'block'
     }
   }
@@ -724,8 +696,7 @@ export class Cartogram {
    * showProgressBar resets the progress bar and shows it to the user when in the loading state.
    */
   showProgressBar() {
-    document.getElementById('loading-progress-container').style.display =
-      'block'
+    document.getElementById('loading-progress-container').style.display = 'block'
     document.getElementById('loading-progress').style.width = '0%'
   }
 
@@ -789,25 +760,16 @@ export class Cartogram {
         const mapHeight = parseFloat(mapAreaSVG.getAttribute('height'))
         mapAreaSVG.setAttribute('height', mapHeight + 100)
 
-        let legendSVG = document
-          .getElementById('map-area-legend')
-          .cloneNode(true)
+        let legendSVG = document.getElementById('map-area-legend').cloneNode(true)
 
         // Iterate legend SVG's text elements and add font attribute.
-        for (
-          let i = 0;
-          i < legendSVG.getElementsByTagName('text').length;
-          i++
-        ) {
-          legendSVG
-            .getElementsByTagName('text')
-            [i].setAttribute('font-family', 'sans-serif')
+        for (let i = 0; i < legendSVG.getElementsByTagName('text').length; i++) {
+          legendSVG.getElementsByTagName('text')[i].setAttribute('font-family', 'sans-serif')
         }
 
         // Iterate legend SVG's elements and append them to map SVG.
         for (let i = 0; i < legendSVG.children.length; i++) {
-          let newY =
-            parseFloat(legendSVG.children[i].getAttribute('y')) + mapHeight
+          let newY = parseFloat(legendSVG.children[i].getAttribute('y')) + mapHeight
           legendSVG.children[i].setAttribute('y', newY)
           let newX = parseFloat(legendSVG.children[i].getAttribute('x')) + 20
           legendSVG.children[i].setAttribute('x', newX)
@@ -818,61 +780,43 @@ export class Cartogram {
         document.getElementById('download-modal-svg-link').href =
           'data:image/svg+xml;base64,' +
           window.btoa(svg_header + mapArea.innerHTML.replace(/×/g, '&#xD7;'))
-        document.getElementById('download-modal-svg-link').download =
-          'equal-area-map.svg'
+        document.getElementById('download-modal-svg-link').download = 'equal-area-map.svg'
 
         document.getElementById('download-modal-geojson-link').href =
           'data:application/json;base64,' + window.btoa(geojson)
-        document.getElementById('download-modal-geojson-link').download =
-          'equal-area-map.geojson'
+        document.getElementById('download-modal-geojson-link').download = 'equal-area-map.geojson'
 
         $('#download-modal').modal()
       }
     })(JSON.stringify(this.model.map.getVersionGeoJSON('1-conventional')))
 
-    document.getElementById('cartogram-download').onclick = (function (
-      geojson
-    ) {
+    document.getElementById('cartogram-download').onclick = (function (geojson) {
       return function (e) {
         e.preventDefault()
 
         /*
                 Append legend elements and total count to the cartogram SVG.
                  */
-        let cartogramArea = document
-          .getElementById('cartogram-area')
-          .cloneNode(true)
+        let cartogramArea = document.getElementById('cartogram-area').cloneNode(true)
         let cartogramAreaSVG = cartogramArea.getElementsByTagName('svg')[0]
 
         // Add SVG xml namespace to SVG element, so that the file can be opened with any web browser.
         cartogramAreaSVG.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
 
         // Increase height of SVG to accommodate legend and total.
-        const cartogramHeight = parseFloat(
-          cartogramAreaSVG.getAttribute('height')
-        )
+        const cartogramHeight = parseFloat(cartogramAreaSVG.getAttribute('height'))
         cartogramAreaSVG.setAttribute('height', cartogramHeight + 100)
 
-        let legendSVG = document
-          .getElementById('cartogram-area-legend')
-          .cloneNode(true)
+        let legendSVG = document.getElementById('cartogram-area-legend').cloneNode(true)
 
         // Iterate legend SVG's text elements and add font attribute
-        for (
-          let i = 0;
-          i < legendSVG.getElementsByTagName('text').length;
-          i++
-        ) {
-          legendSVG
-            .getElementsByTagName('text')
-            [i].setAttribute('font-family', 'sans-serif')
+        for (let i = 0; i < legendSVG.getElementsByTagName('text').length; i++) {
+          legendSVG.getElementsByTagName('text')[i].setAttribute('font-family', 'sans-serif')
         }
 
         // Iterate legend SVG's elements and append them to map SVG
         for (let i = 0; i < legendSVG.children.length; i++) {
-          let newY =
-            parseFloat(legendSVG.children[i].getAttribute('y')) +
-            cartogramHeight
+          let newY = parseFloat(legendSVG.children[i].getAttribute('y')) + cartogramHeight
           legendSVG.children[i].setAttribute('y', newY)
           let newX = parseFloat(legendSVG.children[i].getAttribute('x')) + 20
           legendSVG.children[i].setAttribute('x', newX)
@@ -882,24 +826,16 @@ export class Cartogram {
         //document.getElementById('download-modal-svg-link').href = "data:image/svg+xml;base64," + window.btoa(svg_header + document.getElementById('cartogram-area').innerHTML);
         document.getElementById('download-modal-svg-link').href =
           'data:image/svg+xml;base64,' +
-          window.btoa(
-            svg_header + cartogramArea.innerHTML.replace(/×/g, '&#xD7;')
-          )
-        document.getElementById('download-modal-svg-link').download =
-          'cartogram.svg'
+          window.btoa(svg_header + cartogramArea.innerHTML.replace(/×/g, '&#xD7;'))
+        document.getElementById('download-modal-svg-link').download = 'cartogram.svg'
 
         document.getElementById('download-modal-geojson-link').href =
           'data:application/json;base64,' + window.btoa(geojson)
-        document.getElementById('download-modal-geojson-link').download =
-          'cartogram.geojson'
+        document.getElementById('download-modal-geojson-link').download = 'cartogram.geojson'
 
         $('#download-modal').modal()
       }
-    })(
-      JSON.stringify(
-        this.model.map.getVersionGeoJSON(this.model.current_sysname)
-      )
-    )
+    })(JSON.stringify(this.model.map.getVersionGeoJSON(this.model.current_sysname)))
 
     /*document.getElementById('map-download').href = "data:image/svg+xml;base64," + window.btoa(svg_header + document.getElementById('map-area').innerHTML);
         document.getElementById('map-download').download = "map.svg";*/
@@ -914,8 +850,7 @@ export class Cartogram {
    */
   generateSocialMediaLinks(url) {
     document.getElementById('facebook-share').href =
-      'https://www.facebook.com/sharer/sharer.php?u=' +
-      window.encodeURIComponent(url)
+      'https://www.facebook.com/sharer/sharer.php?u=' + window.encodeURIComponent(url)
 
     document.getElementById('linkedin-share').href =
       'https://www.linkedin.com/shareArticle?url=' +
@@ -925,8 +860,7 @@ export class Cartogram {
     document.getElementById('twitter-share').href =
       'https://twitter.com/share?url=' + window.encodeURIComponent(url)
 
-    document.getElementById('email-share').href =
-      'mailto:?body=' + window.encodeURIComponent(url)
+    document.getElementById('email-share').href = 'mailto:?body=' + window.encodeURIComponent(url)
 
     document.getElementById('share-link-href').value = url
 
@@ -1013,11 +947,7 @@ export class Cartogram {
           }.bind(this),
           function () {
             window.clearInterval(progressUpdater)
-            reject(
-              Error(
-                'There was an error retrieving the cartogram from the server.'
-              )
-            )
+            reject(Error('There was an error retrieving the cartogram from the server.'))
           }
         )
       }.bind(this)
@@ -1088,8 +1018,7 @@ export class Cartogram {
   async downloadTemplateFile(sysname) {
     document.getElementById('csv-template-link').href =
       this.config.cartogram_data_dir + '/' + sysname + '/template.csv'
-    document.getElementById('csv-template-link').download =
-      sysname + '_template.csv'
+    document.getElementById('csv-template-link').download = sysname + '_template.csv'
 
     var csv_file_promise = HTTP.get(
       this.config.cartogram_data_dir + '/' + sysname + '/template.csv',
@@ -1142,13 +1071,11 @@ export class Cartogram {
       let display = style.getPropertyValue('display')
       if (display == 'block') {
         document.getElementById('map-customise-popup').style.display = 'none'
-        document.getElementById('map-customise').style.backgroundColor =
-          '#d76126'
+        document.getElementById('map-customise').style.backgroundColor = '#d76126'
         document.getElementById('map-customise').style.borderColor = '#d76126'
       } else if (display === 'none') {
         document.getElementById('map-customise-popup').style.display = 'block'
-        document.getElementById('map-customise').style.backgroundColor =
-          '#b75220'
+        document.getElementById('map-customise').style.backgroundColor = '#b75220'
         document.getElementById('map-customise').style.borderColor = '#ab4e1f'
       }
     })
@@ -1158,19 +1085,13 @@ export class Cartogram {
       let style = window.getComputedStyle(element)
       let display = style.getPropertyValue('display')
       if (display == 'block') {
-        document.getElementById('cartogram-customise-popup').style.display =
-          'none'
-        document.getElementById('cartogram-customise').style.backgroundColor =
-          '#d76126'
-        document.getElementById('cartogram-customise').style.borderColor =
-          '#d76126'
+        document.getElementById('cartogram-customise-popup').style.display = 'none'
+        document.getElementById('cartogram-customise').style.backgroundColor = '#d76126'
+        document.getElementById('cartogram-customise').style.borderColor = '#d76126'
       } else if (display === 'none') {
-        document.getElementById('cartogram-customise-popup').style.display =
-          'block'
-        document.getElementById('cartogram-customise').style.backgroundColor =
-          '#b75220'
-        document.getElementById('cartogram-customise').style.borderColor =
-          '#ab4e1f'
+        document.getElementById('cartogram-customise-popup').style.display = 'block'
+        document.getElementById('cartogram-customise').style.backgroundColor = '#b75220'
+        document.getElementById('cartogram-customise').style.borderColor = '#ab4e1f'
       }
     })
 
@@ -1236,11 +1157,7 @@ export class Cartogram {
    * @param {string} sysname The sysname of the new version to be displayed
    */
   switchVersion(sysname) {
-    this.model.map.switchVersion(
-      this.model.current_sysname,
-      sysname,
-      'cartogram-area'
-    )
+    this.model.map.switchVersion(this.model.current_sysname, sysname, 'cartogram-area')
 
     this.model.current_sysname = sysname
 
@@ -1268,11 +1185,7 @@ export class Cartogram {
    * CartogramUI
    * @returns {boolean}
    */
-  async requestAndDrawCartogram(
-    gd = null,
-    sysname = null,
-    update_grid_document = true
-  ) {
+  async requestAndDrawCartogram(gd = null, sysname = null, update_grid_document = true) {
     if (this.model.in_loading_state) return false
 
     this.clearNonFatalError()
@@ -1310,28 +1223,18 @@ export class Cartogram {
         await util.convertExcelToCSV(input_data_file).then((csv_file) => {
           input_data_file = csv_file
           form_data.append('csv', input_data_file)
-          cartogramui_promise = HTTP.post(
-            this.config.cartogramui_url,
-            form_data
-          )
+          cartogramui_promise = HTTP.post(this.config.cartogramui_url, form_data)
         })
       } else {
         form_data.append('csv', input_data_file)
         cartogramui_promise = HTTP.post(this.config.cartogramui_url, form_data)
       }
     } else {
-      var cartogramui_req_body =
-        this.generateCartogramUIRequestBodyFromGridDocument(sysname, gd)
+      var cartogramui_req_body = this.generateCartogramUIRequestBodyFromGridDocument(sysname, gd)
 
-      cartogramui_promise = HTTP.post(
-        this.config.cartogramui_url,
-        cartogramui_req_body.req_body,
-        {
-          'Content-Type':
-            'multipart/form-data; boundary=' +
-            cartogramui_req_body.mime_boundary
-        }
-      )
+      cartogramui_promise = HTTP.post(this.config.cartogramui_url, cartogramui_req_body.req_body, {
+        'Content-Type': 'multipart/form-data; boundary=' + cartogramui_req_body.mime_boundary
+      })
     }
 
     cartogramui_promise.then(
@@ -1350,13 +1253,10 @@ export class Cartogram {
 
           this.model.map.colors = colors
 
-          const pieChartButtonsContainer =
-            document.getElementById('piechart-buttons')
+          const pieChartButtonsContainer = document.getElementById('piechart-buttons')
 
           while (pieChartButtonsContainer.firstChild) {
-            pieChartButtonsContainer.removeChild(
-              pieChartButtonsContainer.firstChild
-            )
+            pieChartButtonsContainer.removeChild(pieChartButtonsContainer.firstChild)
           }
 
           const noButton = document.createElement('button')
@@ -1434,11 +1334,10 @@ export class Cartogram {
                       'map-area',
                       'cartogram-area'
                     ])
-                    this.model.map.drawVersion(
-                      '3-cartogram',
-                      'cartogram-area',
-                      ['map-area', 'cartogram-area']
-                    )
+                    this.model.map.drawVersion('3-cartogram', 'cartogram-area', [
+                      'map-area',
+                      'cartogram-area'
+                    ])
 
                     this.model.current_sysname = '3-cartogram'
 
@@ -1457,24 +1356,14 @@ export class Cartogram {
 
                     // The following line draws the conventional legend when the page first loads.
                     let selectedLegendTypeMap =
-                      document.getElementById('map-area-legend').dataset
-                        .legendType
-                    let selectedLegendTypeCartogram = document.getElementById(
-                      'cartogram-area-legend'
-                    ).dataset.legendType
+                      document.getElementById('map-area-legend').dataset.legendType
+                    let selectedLegendTypeCartogram =
+                      document.getElementById('cartogram-area-legend').dataset.legendType
 
                     if (selectedLegendTypeMap == 'static') {
-                      this.model.map.drawLegend(
-                        '1-conventional',
-                        'map-area-legend',
-                        null,
-                        true
-                      )
+                      this.model.map.drawLegend('1-conventional', 'map-area-legend', null, true)
                     } else {
-                      this.model.map.drawResizableLegend(
-                        '1-conventional',
-                        'map-area-legend'
-                      )
+                      this.model.map.drawResizableLegend('1-conventional', 'map-area-legend')
                     }
 
                     if (selectedLegendTypeCartogram == 'static') {
@@ -1492,10 +1381,7 @@ export class Cartogram {
                     }
 
                     this.model.map.drawGridLines('1-conventional', 'map-area')
-                    this.model.map.drawGridLines(
-                      this.model.current_sysname,
-                      'cartogram-area'
-                    )
+                    this.model.map.drawGridLines(this.model.current_sysname, 'cartogram-area')
 
                     this.exitLoadingState()
                     document.getElementById('cartogram').style.display = 'block'
@@ -1505,9 +1391,7 @@ export class Cartogram {
                     console.log(err)
 
                     this.drawBarChartFromTooltip('barchart', response.tooltip)
-                    document.getElementById(
-                      'barchart-container'
-                    ).style.display = 'block'
+                    document.getElementById('barchart-container').style.display = 'block'
                   }.bind(this)
                 )
               }.bind(this)
@@ -1517,11 +1401,7 @@ export class Cartogram {
           pieChartButtonsContainer.appendChild(yesButton)
           pieChartButtonsContainer.appendChild(noButton)
 
-          this.drawPieChartFromTooltip(
-            'piechart-area',
-            response.tooltip,
-            colors
-          )
+          this.drawPieChartFromTooltip('piechart-area', response.tooltip, colors)
           this.exitLoadingState()
           document.getElementById('piechart').style.display = 'block'
         } else {
@@ -1543,9 +1423,7 @@ export class Cartogram {
    * @returns {Promise}
    */
   getPregeneratedVersion(sysname, version) {
-    return HTTP.get(
-      this.config.cartogram_data_dir + '/' + sysname + '/' + version + '.json'
-    )
+    return HTTP.get(this.config.cartogram_data_dir + '/' + sysname + '/' + version + '.json')
   }
 
   /**
@@ -1554,9 +1432,7 @@ export class Cartogram {
    * @returns {Promise}
    */
   getDefaultColors(sysname) {
-    return HTTP.get(
-      this.config.cartogram_data_dir + '/' + sysname + '/colors.json'
-    )
+    return HTTP.get(this.config.cartogram_data_dir + '/' + sysname + '/colors.json')
   }
 
   /**
@@ -1565,9 +1441,7 @@ export class Cartogram {
    * @returns {Promise}
    */
   getGridDocumentTemplate(sysname) {
-    return HTTP.get(
-      this.config.cartogram_data_dir + '/' + sysname + '/griddocument.json'
-    )
+    return HTTP.get(this.config.cartogram_data_dir + '/' + sysname + '/griddocument.json')
   }
 
   /**
@@ -1576,9 +1450,7 @@ export class Cartogram {
    * @returns {Promise}
    */
   getLabels(sysname) {
-    return HTTP.get(
-      this.config.cartogram_data_dir + '/' + sysname + '/labels.json'
-    )
+    return HTTP.get(this.config.cartogram_data_dir + '/' + sysname + '/labels.json')
   }
 
   /**
@@ -1587,9 +1459,7 @@ export class Cartogram {
    * @returns {Promise}
    */
   getAbbreviations(sysname) {
-    return HTTP.get(
-      this.config.cartogram_data_dir + '/' + sysname + '/abbreviations.json'
-    )
+    return HTTP.get(this.config.cartogram_data_dir + '/' + sysname + '/abbreviations.json')
   }
 
   /**
@@ -1598,9 +1468,7 @@ export class Cartogram {
    * @returns {Promise}
    */
   getConfig(sysname) {
-    return HTTP.get(
-      this.config.cartogram_data_dir + '/' + sysname + '/config.json'
-    )
+    return HTTP.get(this.config.cartogram_data_dir + '/' + sysname + '/config.json')
   }
 
   /**
@@ -1616,11 +1484,7 @@ export class Cartogram {
    */
   getMapPack(sysname) {
     return HTTP.get(
-      this.config.cartogram_data_dir +
-        '/' +
-        sysname +
-        '/mappack.json?v=' +
-        this.config.version,
+      this.config.cartogram_data_dir + '/' + sysname + '/mappack.json?v=' + this.config.version,
       null,
       function (e) {
         this.updateProgressBar(0, 100, Math.floor((e.loaded / e.total) * 100))
@@ -1639,14 +1503,7 @@ export class Cartogram {
    *                             cartogram, if any
    * @param {bool} embed Whether the method is called from embed.html or not
    */
-  switchMap(
-    sysname,
-    hrname,
-    cartogram = null,
-    colors = null,
-    sharing_key = null,
-    embed = false
-  ) {
+  switchMap(sysname, hrname, cartogram = null, colors = null, sharing_key = null, embed = false) {
     if (this.model.in_loading_state) return
     this.enterLoadingState()
     this.showProgressBar()
@@ -1778,22 +1635,13 @@ export class Cartogram {
 
         map.colors = colors
 
-        map.drawVersion('1-conventional', 'map-area', [
-          'map-area',
-          'cartogram-area'
-        ])
+        map.drawVersion('1-conventional', 'map-area', ['map-area', 'cartogram-area'])
 
         if (cartogram !== null) {
-          map.drawVersion('3-cartogram', 'cartogram-area', [
-            'map-area',
-            'cartogram-area'
-          ])
+          map.drawVersion('3-cartogram', 'cartogram-area', ['map-area', 'cartogram-area'])
           this.model.current_sysname = '3-cartogram'
         } else {
-          map.drawVersion('2-population', 'cartogram-area', [
-            'map-area',
-            'cartogram-area'
-          ])
+          map.drawVersion('2-population', 'cartogram-area', ['map-area', 'cartogram-area'])
           this.model.current_sysname = '2-population'
         }
 
@@ -1802,14 +1650,10 @@ export class Cartogram {
         this.exitLoadingState()
 
         if (sharing_key !== null) {
-          this.generateSocialMediaLinks(
-            'https://go-cart.io/cart/' + sharing_key
-          )
+          this.generateSocialMediaLinks('https://go-cart.io/cart/' + sharing_key)
           this.generateEmbedHTML('cart', sharing_key)
         } else {
-          this.generateSocialMediaLinks(
-            'https://go-cart.io/cartogram/' + sysname
-          )
+          this.generateSocialMediaLinks('https://go-cart.io/cartogram/' + sysname)
           this.generateEmbedHTML('map', sysname)
         }
 
@@ -1819,46 +1663,25 @@ export class Cartogram {
         this.displayCustomisePopup(this.model.current_sysname)
         this.updateGridDocument(mappack.griddocument)
 
-        let selectedLegendTypeMap =
-          document.getElementById('map-area-legend').dataset.legendType
-        let selectedLegendTypeCartogram = document.getElementById(
-          'cartogram-area-legend'
-        ).dataset.legendType
+        let selectedLegendTypeMap = document.getElementById('map-area-legend').dataset.legendType
+        let selectedLegendTypeCartogram =
+          document.getElementById('cartogram-area-legend').dataset.legendType
 
         if (selectedLegendTypeMap == 'static') {
-          this.model.map.drawLegend(
-            '1-conventional',
-            'map-area-legend',
-            null,
-            true
-          )
+          this.model.map.drawLegend('1-conventional', 'map-area-legend', null, true)
         } else {
-          this.model.map.drawResizableLegend(
-            '1-conventional',
-            'map-area-legend'
-          )
+          this.model.map.drawResizableLegend('1-conventional', 'map-area-legend')
         }
 
         if (selectedLegendTypeCartogram == 'static') {
-          this.model.map.drawLegend(
-            this.model.current_sysname,
-            'cartogram-area-legend',
-            null,
-            true
-          )
+          this.model.map.drawLegend(this.model.current_sysname, 'cartogram-area-legend', null, true)
         } else {
-          this.model.map.drawResizableLegend(
-            this.model.current_sysname,
-            'cartogram-area-legend'
-          )
+          this.model.map.drawResizableLegend(this.model.current_sysname, 'cartogram-area-legend')
         }
 
         // The following line draws the conventional legend when the page first loads.
         this.model.map.drawGridLines('1-conventional', 'map-area')
-        this.model.map.drawGridLines(
-          this.model.current_sysname,
-          'cartogram-area'
-        )
+        this.model.map.drawGridLines(this.model.current_sysname, 'cartogram-area')
 
         document.getElementById('cartogram').style.display = 'block'
       }.bind(this)
