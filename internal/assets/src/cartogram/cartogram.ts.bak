@@ -4,21 +4,68 @@
  * @version 3.0.0
  */
 
+var tinycolor = require('tinycolor2')
 import * as d3 from 'd3'
-import tinycolor from 'tinycolor2'
-import * as XLSX from 'xlsx/xlsx.mjs'
+import * as XLSX from 'xlsx'
 
-import HTTP from './http.ts'
-import Tooltip from './tooltip.ts'
-import { MapVersionData, MapDataFormat } from './mapVersion.ts'
-import CartMap from './cartMap.ts'
-import * as util from './util.ts'
+import HTTP from './http'
+import Tooltip from './tooltip'
+import { MapVersionData, MapDataFormat } from './mapVersion'
+import CartMap from './cartMap'
+import * as util from './util'
+
+declare global {
+  interface Window {
+    util: any
+    gridedit: any
+  }
+}
+
 window.util = util
 
 /**
  * Cartogram contains the main frontend logic for the go-cart web application.
  */
 export class Cartogram {
+  config: {
+    cartogram_url: string
+    cartogramui_url: string
+    cartogram_data_dir: string
+    gridedit_url: string
+    getprogress_url: string
+    version: string
+    scale: number
+  }
+
+  /**
+   * The cartogram model
+   * @property {CartMap|null} map The current map
+   * @property {string} current_sysname The sysname of the map version selected for viewing on the right
+   * @property {string} map_sysname The sysname of the currently selected map
+   * @property {boolean} in_loading_state Whether or not we're in a loading state
+   * @property {Object|null} loading_state The current loading state
+   * @property {Object|null} grid_document The current grid document
+   * @property {Window|null} gridedit_window The {@link Window} of the gridedit interface
+   */
+  model: {
+    map: CartMap | null
+    current_sysname: string
+    map_sysname: string
+    in_loading_state: boolean
+    loading_state: Object | null
+    grid_document: Object | null
+    gridedit_window: Window | null
+  }
+
+  /**
+   * Contains extended information about a fatal error. Used to produce a meaningful error report when cartogram
+   * generation fails
+   * @type {string|null}
+   */
+  extended_error_info: string | null
+
+  grid_document: any
+
   /**
    * constructor creates an instance of the Cartogram class
    * @param {string} c_u The URL of the cartogram generator
@@ -28,8 +75,15 @@ export class Cartogram {
    * @param {string} gp_u The URL to retrieve progress information
    * @param {string} version The version string used to prevent improper caching of map assets
    */
-
-  constructor(c_u, cui_u, c_d, g_u, gp_u, version, scale = 1.3) {
+  constructor(
+    c_u: string,
+    cui_u: string,
+    c_d: string,
+    g_u: string,
+    gp_u: string,
+    version: string,
+    scale = 1.3
+  ) {
     this.config = {
       cartogram_url: c_u,
       cartogramui_url: cui_u,
@@ -40,16 +94,6 @@ export class Cartogram {
       scale: scale
     }
 
-    /**
-     * The cartogram model
-     * @property {CartMap|null} map The current map
-     * @property {string} current_sysname The sysname of the map version selected for viewing on the right
-     * @property {string} map_sysname The sysname of the currently selected map
-     * @property {boolean} in_loading_state Whether or not we're in a loading state
-     * @property {Object|null} loading_state The current loading state
-     * @property {Object|null} grid_document The current grid document
-     * @property {Window|null} gridedit_window The {@link Window} of the gridedit interface
-     */
     this.model = {
       map: null,
       current_sysname: '',
@@ -60,11 +104,6 @@ export class Cartogram {
       gridedit_window: null
     }
 
-    /**
-     * Contains extended information about a fatal error. Used to produce a meaningful error report when cartogram
-     * generation fails
-     * @type {string|null}
-     */
     this.extended_error_info = null
 
     // Close the gridedit window upon navigating away from the page if it's open
@@ -80,7 +119,7 @@ export class Cartogram {
    * display this information.
    * @param {string} info The extended error information, in plaintext
    */
-  setExtendedErrorInfo(info) {
+  setExtendedErrorInfo(info: string): void {
     this.extended_error_info = info
   }
 
@@ -88,21 +127,21 @@ export class Cartogram {
    * appendToExtendedErrorInfo appends new text to the existing extended error information.
    * @param {string} info The additional extended error information, in plaintext
    */
-  appendToExtendedErrorInfo(info) {
+  appendToExtendedErrorInfo(info: string): void {
     this.extended_error_info += info
   }
 
   /**
    * clearExtendedErrorInfo clears the existing extended error information.
    */
-  clearExtendedErrorInfo() {
+  clearExtendedErrorInfo(): void {
     this.extended_error_info = null
   }
 
   /**
    * launchGridEdit opens the gridedit window if possible.
    */
-  launchGridEdit() {
+  launchGridEdit(): void {
     if (this.model.grid_document === null || this.model.in_loading_state) return
 
     if (this.model.gridedit_window === null || this.model.gridedit_window.closed) {
@@ -114,11 +153,11 @@ export class Cartogram {
 
       this.model.gridedit_window.addEventListener(
         'load',
-        function (gd) {
-          return function (e) {
+        function (gd: any) {
+          return function () {
             this.model.gridedit_window.gridedit_init()
 
-            this.model.gridedit_window.gridedit.on_update = function (gd) {
+            this.model.gridedit_window.gridedit.on_update = function (gd: any) {
               this.onGridEditUpdate(gd)
             }.bind(this)
 
@@ -142,7 +181,7 @@ export class Cartogram {
    * update button is clicked in the gridedit interface.
    * @param {Object} gd The updated grid document
    */
-  onGridEditUpdate(gd) {
+  onGridEditUpdate(gd: any) {
     if (this.model.in_loading_state) return
 
     /*
@@ -164,11 +203,12 @@ export class Cartogram {
    * updateGridDocument updates the current grid document.
    * @param {Object} new_gd The new grid document
    */
-  updateGridDocument(new_gd) {
+  updateGridDocument(new_gd: any) {
     this.model.grid_document = new_gd
 
     if (this.model.grid_document !== null) {
-      if (!this.model.in_loading_state) document.getElementById('edit-button').disabled = false
+      if (!this.model.in_loading_state)
+        (document.getElementById('edit-button') as HTMLInputElement).disabled = false
 
       /*
             If the gridedit window is open, push the new grid document to it
@@ -176,7 +216,7 @@ export class Cartogram {
       if (this.model.gridedit_window !== null && !this.model.gridedit_window.closed)
         this.model.gridedit_window.gridedit.load_document(this.model.grid_document)
     } else {
-      document.getElementById('edit-button').disabled = true
+      ;(document.getElementById('edit-button') as HTMLInputElement).disabled = true
     }
   }
 
@@ -184,7 +224,7 @@ export class Cartogram {
    * gridDocumentToCSV takes a grid document and converts it to CSV format with Excel-style quote escaping.
    * @param {Object} gd The grid document to convert
    */
-  gridDocumentToCSV(gd) {
+  gridDocumentToCSV(gd: any) {
     var csv = ''
 
     for (let row = 0; row < gd.height; row++) {
@@ -222,13 +262,13 @@ export class Cartogram {
    * @param {Object} gd The grid document
    * @returns {RequestBody}
    */
-  generateCartogramUIRequestBodyFromGridDocument(sysname, gd) {
+  generateCartogramUIRequestBodyFromGridDocument(sysname: string, gd: any) {
     var mime_boundary = HTTP.generateMIMEBoundary()
     var csv = this.gridDocumentToCSV(gd)
 
     // The MIME boundary can't be contained in the request body text
     while (true) {
-      var search_string = csv + 'csv' + 'handler' + handler
+      var search_string = csv + 'csv' + 'handler' // TODO: the original version has variable 'handler', check if it should be removed or not
       if (search_string.search(mime_boundary) === -1) break
 
       mime_boundary = HTTP.generateMIMEBoundary()
@@ -258,7 +298,7 @@ export class Cartogram {
    * @param {string} container The ID of the element to draw the barchart in
    * @param {Object} tooltip The tooltip to retrieve the data from
    */
-  drawBarChartFromTooltip(container, tooltip) {
+  drawBarChartFromTooltip(container: string, tooltip: any) {
     var margin = { top: 5, right: 5, bottom: 5, left: 50 },
       width = 800 - margin.left - margin.right,
       height = 400 - margin.top - margin.bottom
@@ -351,7 +391,7 @@ export class Cartogram {
       })
   }
 
-  drawPieChartFromTooltip(container, tooltip, colors) {
+  drawPieChartFromTooltip(container: string, tooltip: any, colors: { [key: string]: string }) {
     const containerElement = document.getElementById(container)
 
     while (containerElement.firstChild) {
@@ -374,7 +414,7 @@ export class Cartogram {
     const pie = d3
       .pie()
       .sort(null)
-      .value((d) => d.value)
+      .value((d: any) => d.value)
 
     const arc = d3
       .arc()
@@ -388,7 +428,7 @@ export class Cartogram {
 
     svg.attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')')
 
-    const key = (d) => d.data.label
+    const key = (d: any) => d.data.label
 
     const dataWithOthers = Object.keys(this.model.map.regions)
       .map((region_id, _i, _a) => {
@@ -402,7 +442,7 @@ export class Cartogram {
       }, this)
       .filter((d) => d.value !== 'NA')
 
-    const formatAsScientificNotation = (num) => {
+    const formatAsScientificNotation = (num: number) => {
       const rounded = num.toPrecision(4)
       const parts = rounded.split('e')
 
@@ -475,7 +515,7 @@ export class Cartogram {
       .insert('path')
       .style('fill', (d) => d.data.color)
       .attr('class', 'slice')
-      .on('mouseover', function (event, d, i) {
+      .on('mouseover', function (event, d) {
         d3.select(this).style('fill', tinycolor(d.data.color).brighten(20))
 
         Tooltip.drawWithEntries(event, d.data.name, d.data.abbreviation, [
@@ -486,7 +526,7 @@ export class Cartogram {
           }
         ])
       })
-      .on('mousemove', function (event, d, i) {
+      .on('mousemove', function (event, d) {
         Tooltip.drawWithEntries(event, d.data.name, d.data.abbreviation, [
           {
             name: tooltip.label,
@@ -495,7 +535,7 @@ export class Cartogram {
           }
         ])
       })
-      .on('mouseout', function (event, d, i) {
+      .on('mouseout', function (event, d) {
         d3.select(this).style('fill', d.data.color)
         Tooltip.hide()
       })
@@ -580,14 +620,14 @@ export class Cartogram {
    * doNonFatalError informs the user of a non-critical error.
    * @param {Error} err
    */
-  doNonFatalError(err) {
+  doNonFatalError(err: Error): void {
     document.getElementById('non-fatal-error').innerHTML = err.message
   }
 
   /**
    * clearNonFatalError clears the non-fatal error message currently being displayed.
    */
-  clearNonFatalError() {
+  clearNonFatalError(): void {
     document.getElementById('non-fatal-error').innerHTML = ''
   }
 
@@ -595,7 +635,7 @@ export class Cartogram {
    * doFatalError locks the user interface and informs the user that there has been an unrecoverable error.
    * @param {Error} err
    */
-  doFatalError(err) {
+  doFatalError(err: Error): void {
     document.getElementById('error-message').innerHTML = err.message
 
     document.getElementById('loading').style.display = 'none'
@@ -614,7 +654,7 @@ export class Cartogram {
    * The progress bar is hidden by default. To show it, you must call {@link Cartogram.showProgressBar} after
    * entering the loading state.
    */
-  enterLoadingState() {
+  enterLoadingState(): void {
     /* We set the height of the loading div to the height of the previously displayed blocks */
     /* This makes transition to the loading state seem less jarring */
 

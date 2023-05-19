@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import * as fs from 'fs'
 
-const errors = []
+const errors: Array<Error> = []
 
 test.beforeEach(async ({ page }) => {
   await page.goto('http://localhost:5000/cartogram')
