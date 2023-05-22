@@ -165,19 +165,18 @@ export class Cartogram {
    * @param {Object} new_gd The new grid document
    */
   updateGridDocument(new_gd) {
-    this.model.grid_document = new_gd
-
-    if (this.model.grid_document !== null) {
-      if (!this.model.in_loading_state) document.getElementById('edit-button').disabled = false
-
-      /*
-            If the gridedit window is open, push the new grid document to it
-            */
-      if (this.model.gridedit_window !== null && !this.model.gridedit_window.closed)
-        this.model.gridedit_window.gridedit.load_document(this.model.grid_document)
-    } else {
-      document.getElementById('edit-button').disabled = true
-    }
+    // TODO: Bring this back
+    // this.model.grid_document = new_gd
+    // if (this.model.grid_document !== null) {
+    //   if (!this.model.in_loading_state) document.getElementById('edit-button').disabled = false
+    //   /*
+    //         If the gridedit window is open, push the new grid document to it
+    //         */
+    //   if (this.model.gridedit_window !== null && !this.model.gridedit_window.closed)
+    //     this.model.gridedit_window.gridedit.load_document(this.model.grid_document)
+    // } else {
+    //   document.getElementById('edit-button').disabled = true
+    // }
   }
 
   /**
@@ -628,9 +627,10 @@ export class Cartogram {
       loading_height += document.getElementById('error').clientHeight
     }
 
-    if (document.getElementById('piechart').style.display !== 'none') {
-      loading_height += document.getElementById('piechart').clientHeight
-    }
+    // TODO: Bring this back
+    // if (document.getElementById('piechart').style.display !== 'none') {
+    //   loading_height += document.getElementById('piechart').clientHeight
+    // }
 
     // console.log(loading_height);
 
@@ -644,12 +644,14 @@ export class Cartogram {
     document.getElementById('loading').style.display = 'block'
     document.getElementById('cartogram').style.display = 'none'
     document.getElementById('error').style.display = 'none'
-    document.getElementById('piechart').style.display = 'none'
+    // TODO: Bring this back
+    // document.getElementById('piechart').style.display = 'none'
 
     /* Disable interaction with the upload form */
-    document.getElementById('upload-button').disabled = true
-    document.getElementById('edit-button').disabled = true
-    document.getElementById('handler').disabled = true
+    // TODO: Bring this back
+    // document.getElementById('upload-button').disabled = true
+    // document.getElementById('edit-button').disabled = true
+    // document.getElementById('handler').disabled = true
 
     /* If GridEdit is open, disable updating */
     if (
@@ -693,9 +695,10 @@ export class Cartogram {
    */
   exitLoadingState() {
     document.getElementById('loading').style.display = 'none'
-    document.getElementById('upload-button').disabled = false
-    document.getElementById('edit-button').disabled = this.editButtonDisabled()
-    document.getElementById('handler').disabled = false
+    // TODO: bring this back
+    // document.getElementById('upload-button').disabled = false
+    // document.getElementById('edit-button').disabled = this.editButtonDisabled()
+    // document.getElementById('handler').disabled = false
 
     /* If GridEdit is open, enable updating */
     if (
@@ -715,6 +718,8 @@ export class Cartogram {
    * blob URL.
    */
   generateSVGDownloadLinks() {
+    if (!document.getElementById('map-download')) return
+
     var svg_header = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'
 
     document.getElementById('map-download').onclick = (function (geojson) {
@@ -823,21 +828,18 @@ export class Cartogram {
    * @param {string} url The URL to generate social media sharing links for
    */
   generateSocialMediaLinks(url) {
+    if (!document.getElementById('download-modal')) return
+
     document.getElementById('facebook-share').href =
       'https://www.facebook.com/sharer/sharer.php?u=' + window.encodeURIComponent(url)
-
     document.getElementById('linkedin-share').href =
       'https://www.linkedin.com/shareArticle?url=' +
       window.encodeURIComponent(url) +
       '&mini=true&title=Cartogram&summary=Create%20cartograms%20with%20go-cart.io&source=go-cart.io'
-
     document.getElementById('twitter-share').href =
       'https://twitter.com/share?url=' + window.encodeURIComponent(url)
-
     document.getElementById('email-share').href = 'mailto:?body=' + window.encodeURIComponent(url)
-
     document.getElementById('share-link-href').value = url
-
     util.addClipboard('clipboard-link', url)
   }
 
@@ -849,6 +851,8 @@ export class Cartogram {
    * @param {string} key The embed key
    */
   generateEmbedHTML(mode, key) {
+    if (!document.getElementById('share-modal')) return
+
     var embeded_html =
       '<iframe src="' +
       location.protocol +
@@ -859,11 +863,8 @@ export class Cartogram {
       '/' +
       key +
       '" width="800" height="550" style="border: 1px solid black;"></iframe>'
-
     document.getElementById('share-embed-code').innerHTML = embeded_html
-
     document.getElementById('share-embed').style.display = 'block'
-
     util.addClipboard('clipboard-embed', embeded_html)
   }
 
@@ -994,10 +995,11 @@ export class Cartogram {
    * @param {string} sysname The sysname of the new version to be displayed
    */
   async downloadTemplateFile(sysname) {
+    if (!document.getElementById('csv-template-link')) return
+
     document.getElementById('csv-template-link').href =
       this.config.cartogram_data_dir + '/' + sysname + '/template.csv'
     document.getElementById('csv-template-link').download = sysname + '_template.csv'
-
     var csv_file_promise = HTTP.get(
       this.config.cartogram_data_dir + '/' + sysname + '/template.csv',
       null,
@@ -1010,18 +1012,14 @@ export class Cartogram {
 
     // convert the csv file to json for easy convertion to excel file
     var lines = csv_file.split('\n')
-
     var json_file = []
     var headers = lines[0].split(',')
-
     for (var i = 1; i < lines.length - 1; i++) {
       var obj = {}
       var currentline = lines[i].split(',')
-
       for (var j = 0; j < headers.length; j++) {
         obj[headers[j]] = currentline[j]
       }
-
       json_file.push(obj)
     }
 
@@ -1502,26 +1500,6 @@ export class Cartogram {
         if ('extent' in mappack.original) {
           world = mappack.original.extent === 'world'
         }
-
-        /* If it is a world map, we add a class name to the html elements,
-               and we use this class name in implementing the CSS which draws a border
-             */
-
-        // if (world) {
-        //     let conventional_map = document.getElementById("map-area");
-        //     let cartogram_map = document.getElementById("cartogram-area");
-        //
-        //     if (!conventional_map.classList.contains('world-border')) {
-        //         conventional_map.className += "world-border";
-        //         cartogram_map.className += "world-border";
-        //     }
-        //
-        // } else {
-        //     let conventional_map = document.getElementById("map-area");
-        //     let cartogram_map = document.getElementById("cartogram-area");
-        //     conventional_map.classList.remove("world-border");
-        //     cartogram_map.classList.remove("world-border");
-        // }
 
         /* We need to find out the map format. If the extrema is located in the bbox property, then we have
                GeoJSON. Otherwise, we have the old JSON format.
