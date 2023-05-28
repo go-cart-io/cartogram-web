@@ -54,7 +54,7 @@ export class MapVersionData {
   }
   name: string
   unit: string
-  labels: Labels
+  labels: Labels | null
   world: boolean
   extrema: Extrema
 
@@ -79,8 +79,8 @@ export class MapVersionData {
       unit: string
       data: { [key: string]: { name: string; value: number } }
     },
-    abbreviations: { [key: string]: string } = null,
-    labels: Labels = null,
+    abbreviations: { [key: string]: string } | null = null,
+    labels: Labels | null = null,
     format: number = MapDataFormat.GOCARTJSON,
     world: boolean = false
   ) {

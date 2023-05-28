@@ -12,7 +12,7 @@ export default class HTTP {
    */
   static get(
     url: string,
-    timeout: number = null,
+    timeout: number | null = null,
     onprogress: any = null,
     parse_json: boolean = true
   ): Promise<Object | string> {

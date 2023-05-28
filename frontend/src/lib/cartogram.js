@@ -18,7 +18,7 @@ window.util = util
 /**
  * Cartogram contains the main frontend logic for the go-cart web application.
  */
-export class Cartogram {
+export default class Cartogram {
   /**
    * constructor creates an instance of the Cartogram class
    * @param {string} c_u The URL of the cartogram generator
@@ -165,18 +165,18 @@ export class Cartogram {
    * @param {Object} new_gd The new grid document
    */
   updateGridDocument(new_gd) {
-    // TODO: Bring this back
-    // this.model.grid_document = new_gd
-    // if (this.model.grid_document !== null) {
-    //   if (!this.model.in_loading_state) document.getElementById('edit-button').disabled = false
-    //   /*
-    //         If the gridedit window is open, push the new grid document to it
-    //         */
-    //   if (this.model.gridedit_window !== null && !this.model.gridedit_window.closed)
-    //     this.model.gridedit_window.gridedit.load_document(this.model.grid_document)
-    // } else {
-    //   document.getElementById('edit-button').disabled = true
-    // }
+    this.model.grid_document = new_gd
+    if (this.model.grid_document !== null) {
+      // TODO: bring this back
+      // if (!this.model.in_loading_state) document.getElementById('edit-button').disabled = false
+      /*
+            If the gridedit window is open, push the new grid document to it
+            */
+      if (this.model.gridedit_window !== null && !this.model.gridedit_window.closed)
+        this.model.gridedit_window.gridedit.load_document(this.model.grid_document)
+    } else {
+      document.getElementById('edit-button').disabled = true
+    }
   }
 
   /**
@@ -627,12 +627,9 @@ export class Cartogram {
       loading_height += document.getElementById('error').clientHeight
     }
 
-    // TODO: Bring this back
-    // if (document.getElementById('piechart').style.display !== 'none') {
-    //   loading_height += document.getElementById('piechart').clientHeight
-    // }
-
-    // console.log(loading_height);
+    if (document.getElementById('piechart').style.display !== 'none') {
+      loading_height += document.getElementById('piechart').clientHeight
+    }
 
     /* The loading div will be at least 100px tall */
     if (loading_height > 100) {
@@ -644,11 +641,11 @@ export class Cartogram {
     document.getElementById('loading').style.display = 'block'
     document.getElementById('cartogram').style.display = 'none'
     document.getElementById('error').style.display = 'none'
-    // TODO: Bring this back
+    // TODO: bring this back
     // document.getElementById('piechart').style.display = 'none'
 
     /* Disable interaction with the upload form */
-    // TODO: Bring this back
+    // TODO: bring this back
     // document.getElementById('upload-button').disabled = true
     // document.getElementById('edit-button').disabled = true
     // document.getElementById('handler').disabled = true
@@ -694,8 +691,8 @@ export class Cartogram {
    * element, exitLoadingState does not unhide it. You must do this yourself.
    */
   exitLoadingState() {
-    document.getElementById('loading').style.display = 'none'
     // TODO: bring this back
+    document.getElementById('loading').style.display = 'none'
     // document.getElementById('upload-button').disabled = false
     // document.getElementById('edit-button').disabled = this.editButtonDisabled()
     // document.getElementById('handler').disabled = false
@@ -1650,18 +1647,6 @@ export class Cartogram {
 
         document.getElementById('cartogram').style.display = 'block'
       }.bind(this)
-    )
-  }
-
-  newMapVersionData(features, extrema, tooltip, abbreviations, labels, format, world) {
-    return new MapVersionData(
-      features,
-      extrema,
-      tooltip,
-      abbreviations,
-      labels,
-      MapDataFormat[format],
-      world
     )
   }
 }

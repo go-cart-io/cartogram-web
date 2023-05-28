@@ -1,4 +1,4 @@
-var tinycolor = require('tinycolor2')
+import tinycolor from 'tinycolor2'
 import * as d3 from 'd3'
 
 import Tooltip from './tooltip'
