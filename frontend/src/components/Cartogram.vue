@@ -7,8 +7,6 @@ import CartogramUI from './CartogramUI.vue'
 import CartogramUploadBtn from './CartogramUploadBtn.vue'
 import CartogramChart from './CartogramChart.vue'
 import CartogramEdit from './CartogramEdit.vue'
-import CartogramShare from './CartogramShare.vue'
-import CartogramDownload from './CartogramDownload.vue'
 import ProgressBar from './ProgressBar.vue'
 import type { Mappack } from '@/lib/interface'
 import { Region } from '@/lib/region'
@@ -281,9 +279,6 @@ function clearEditing() {
         v-bind:mode="props.mode"
         v-bind:scale="props.scale"
       />
-
-      <CartogramShare v-bind:sysname="selectedHandler" v-bind:key="sharing_key" />
-      <CartogramDownload />
     </div>
   </div>
 </template>

@@ -1,4 +1,11 @@
 <script setup lang="ts">
+import { ref, reactive } from 'vue'
+import Citation from './Citation.vue'
+
+const state = reactive({
+  show: false
+})
+
 /**
  * generateSVGDownloadLinks generates download links for the map(s) and/or cartogram(s) displayed on the left and
  * right. We do this by taking advantage of the fact that D3 generates SVG markup. We convert the SVG markup into a
@@ -43,7 +50,7 @@ function generateSVGDownloadLinks(area: string, geojson: any) {
     'data:application/json;base64,' + window.btoa(geojson)
   document.getElementById('download-modal-geojson-link').download = 'map.geojson'
 
-  $('#download-modal').modal()
+  state.show = true
 }
 
 defineExpose({
@@ -52,74 +59,28 @@ defineExpose({
 </script>
 
 <template>
-  <div class="modal fade" id="download-modal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header" style="border-bottom: none">
-          <img src="/static/img/gocart_final.svg" width="150" alt="go-cart.io logo" />
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <p class="lead mb-5 text-center">Your map is ready!</p>
-          <p class="text-center mb-5">
-            <a
-              href=""
-              download=""
-              id="download-modal-svg-link"
-              class="btn btn-lg btn-primary"
-              style="border-radius: 1.2em"
-              >Download SVG</a
-            >
-            <a
-              href=""
-              download=""
-              id="download-modal-geojson-link"
-              class="btn btn-lg btn-primary ml-5"
-              style="border-radius: 1.2em"
-              >Download GeoJSON</a
-            >
-          </p>
-          <p class="lead text-center">
-            Liked our work? Make sure to credit us using the citation below:
-          </p>
-          <div class="form-group">
-            <a
-              id="citation-text2"
-              class="text-primary"
-              href="https://www.pnas.org/content/115/10/E2156"
-              target="_blank"
-              rel="noopener noreferrer"
-              >Gastner MT, Seguy V, More P. Fast low-based algorithm for creating density-equalizing
-              map projections. Proc Natl Acad Sci USA 115(10):E2156–E2164 (2018).</a
-            >
-
-            <button
-              style="margin-top: 25px"
-              class="clipboard-copy"
-              id="clipboard-citation2"
-              data-animation="false"
-              title="Copy"
-              v-on:click="
-                util.addClipboard(
-                  'clipboard-citation2',
-                  document.getElementById('citation-text2').innerText
-                )
-              "
-            >
-              <img
-                id="clipboard-citation2-icon"
-                src="/static/img/clipboard.svg"
-                alt="Copy button"
-                title="Copy"
-              />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <b-modal v-model="state.show" hide-footer>
+    <p class="lead mb-5 text-center">Your map is ready!</p>
+    <p class="text-center mb-5">
+      <a
+        href=""
+        download=""
+        id="download-modal-svg-link"
+        class="btn btn-lg btn-primary"
+        style="border-radius: 1.2em"
+        >Download SVG</a
+      >
+      <a
+        href=""
+        download=""
+        id="download-modal-geojson-link"
+        class="btn btn-lg btn-primary ml-5"
+        style="border-radius: 1.2em"
+        >Download GeoJSON</a
+      >
+    </p>
+    <Citation />
+  </b-modal>
 </template>
 
 <style></style>

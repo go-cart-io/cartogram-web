@@ -6,6 +6,7 @@ import { MapVersionData, MapDataFormat, MapVersion } from '@/lib/mapVersion'
 import type { Region } from '@/lib/region'
 import type CartMap from '@/lib/cartMap'
 import CartogramDownload from './CartogramDownload.vue'
+import CartogramShare from './CartogramShare.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -43,7 +44,8 @@ var cartogram = new Cartogram(
   'devel'
 )
 
-var cartogramDownloadEl = ref()
+const cartogramDownloadEl = ref()
+const cartogramShareEl = ref()
 
 onMounted(() => {
   if (!props.cartogram_data) {
@@ -152,20 +154,18 @@ defineExpose({
               <a class="btn btn-primary btn-customise" id="map-customise">Customise</a>
             </p>
             <p style="margin-top: 20px; margin-left: 10px">
-              <a
+              <button
                 class="btn btn-primary"
-                href=""
                 id="map-download"
-                data-toggle="modal"
-                data-target="#download-modal"
                 v-on:click="
                   cartogramDownloadEl.generateSVGDownloadLinks(
                     'map-area',
                     JSON.stringify(cartogram.model.map.getVersionGeoJSON('1-conventional'))
                   )
                 "
-                >Download</a
               >
+                Download
+              </button>
             </p>
           </div>
 
@@ -237,29 +237,23 @@ defineExpose({
             </p>
 
             <p style="margin-top: 20px; margin-left: 10px" class="d-inline-block">
-              <a
+              <button
                 class="btn btn-primary"
-                href=""
                 id="cartogram-download"
-                data-toggle="modal"
-                data-target="#download-modal"
                 v-on:click="
                   cartogramDownloadEl.generateSVGDownloadLinks(
                     'cartogram-area',
                     JSON.stringify(cartogram.model.map.getVersionGeoJSON(state.current_sysname))
                   )
                 "
-                >Download</a
               >
+                Download
+              </button>
             </p>
             <p style="margin-top: 20px; margin-left: 10px" class="d-inline-block">
-              <a
-                class="btn btn-info mr-2 text-light"
-                href=""
-                data-toggle="modal"
-                data-target="#share-modal"
-                >Share</a
-              >
+              <button class="btn btn-info mr-2 text-light" v-on:click="cartogramShareEl.show()">
+                Share
+              </button>
             </p>
           </div>
 
@@ -292,6 +286,11 @@ defineExpose({
     </div>
 
     <CartogramDownload ref="cartogramDownloadEl" />
+    <CartogramShare
+      ref="cartogramShareEl"
+      v-bind:sysname="props.handler"
+      v-bind:key="props.cartogramui_data ? props.cartogramui_data.unique_sharing_key : null"
+    />
   </div>
 </template>
 
