@@ -1,12 +1,8 @@
+import type { Entry } from './interface'
+
 /**
  * Tooltip contains helper functions for drawing and hiding the tooltip
  */
-interface Entry {
-  name: string
-  value: number
-  unit: string
-}
-
 export default class Tooltip {
   /**
    * Draws a tooltip next the mouse cursor with the given content

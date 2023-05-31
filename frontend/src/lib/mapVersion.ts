@@ -1,29 +1,5 @@
 import GallPetersProjection from './projection'
-
-/**
- * Extrema for a map
- */
-interface Extrema {
-  min_x: number
-  max_x: number
-  min_y: number
-  max_y: number
-}
-
-/**
- * Labels for a map version
- * @typedef {Object} Labels
- * @property {number} scale_x Horizontal scaling factor for all label coordinates
- * @property {number} scale_y Vertical scaling factor for all label coordinates
- * @property {Array<{x: number, y: number, text: string}>} labels Text labels
- * @property {Array<{x1: number, y1: number, x2: number, y2: number}>} lines Line labels
- */
-interface Labels {
-  scale_x: number
-  scale_y: number
-  labels: Array<{ x: number; y: number; text: string }>
-  lines: Array<{ x1: number; y1: number; x2: number; y2: number }>
-}
+import type { Extrema, Labels } from './interface'
 
 /**
  * An enum of the supported map data formats.

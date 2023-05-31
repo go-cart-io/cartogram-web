@@ -1,15 +1,6 @@
 import * as XLSX from 'xlsx'
 
-export function clearFileInput(ctrl: HTMLInputElement): void {
-  try {
-    ctrl.value = null
-  } catch (ex) {}
-  if (ctrl.value) {
-    ctrl.parentNode.replaceChild(ctrl.cloneNode(true), ctrl)
-  }
-}
-
-export function convertExcelToCSV(excel_file: File) {
+export function convertExcelToCSV(excel_file: File): Promise<File> {
   return new Promise((resolve, reject) => {
     let reader = new FileReader()
     try {

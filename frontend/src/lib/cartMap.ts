@@ -6,29 +6,7 @@ import SVG from './svg'
 import { Polygon, Region, RegionVersion } from './region'
 import { MapVersion, MapVersionData } from './mapVersion'
 import GallPetersProjection from './projection'
-
-/**
- * Configuration for a map. Some maps do not display properly without modification. This configuration information
- * allows us to draw maps properly by hiding certain polygons, and changing the order in which they are drawn.
- * @typedef {Object} MapConfig
- * @property {Array} dont_draw A list of polygon IDs not to draw
- * @property {Array} elevate A list of polygon IDs to draw after all others
- */
-interface MapConfig {
-  dont_draw: Array<any>
-  elevate: Array<any>
-  scale: number
-}
-
-interface PolygonToDraw {
-  region_id: string
-  polygon_id: string
-  path: string
-  color: string
-  elevated: boolean
-  value: string
-}
-
+import type { MapConfig, PolygonToDraw } from './interface'
 /**
  * CartMap contains map data for a conventional map or cartogram. One map can contain several versions. In a map version,
  * the map geography is used to represent a different dataset (e.g. land area in a conventional map version, or GDP or
