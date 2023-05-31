@@ -3,12 +3,14 @@ import { ref, reactive, onMounted } from 'vue'
 import Cartogram from '../lib/cartogram.js'
 
 import { MapVersionData, MapDataFormat } from '@/lib/mapVersion'
+import type { Region } from '@/lib/region'
 
 const props = withDefaults(
   defineProps<{
     handler?: string
     cartogram_data?: any
     cartogramui_data?: any
+    mappack: any
     mode?: string | null
     scale?: number | null
   }>(),
@@ -20,21 +22,20 @@ const props = withDefaults(
 )
 
 const state = reactive({
-  // loadingProgress: 0,
+  // loadingProgress: 0
 })
 
 var cartogram = new Cartogram(
   '/cartogram',
   '/cartogramui',
   '/static/cartdata',
-  '/gridedit',
   '/getprogress',
   'devel'
 )
 
 onMounted(() => {
   if (!props.cartogram_data) {
-    switchMap(props.handler)
+    switchMap(props.handler, '', props.mappack)
   } else {
     var extrema
     var format
@@ -69,8 +70,8 @@ onMounted(() => {
     switchMap(
       props.handler,
       '',
+      props.mappack,
       mapVersionData,
-      props.cartogramui_data.color_data,
       props.cartogramui_data.unique_sharing_key
     )
   }
@@ -79,67 +80,27 @@ onMounted(() => {
 function switchMap(
   sysname: string,
   hrname: string = '',
+  mappack: any,
   mapVersionData: MapVersionData | null = null,
-  colors: [string, string] | null = null,
-  sharing_key: string | null = null,
-  embed: boolean = false
+  sharing_key: string | null = null
 ) {
-  if (!cartogram) return
-  cartogram.switchMap(sysname, hrname, mapVersionData, colors, sharing_key, props.mode === 'embed')
+  cartogram.switchMap(sysname, hrname, mappack, mapVersionData, sharing_key)
 }
 
-function requestAndDrawCartogram() {
-  console.log('redraw')
-  cartogram.requestAndDrawCartogram()
-}
-
-function launchGridEdit() {
-  cartogram.launchGridEdit()
+function getRegions(): { [key: string]: Region } {
+  // = mappack.original.features
+  return cartogram.model.map.regions
 }
 
 defineExpose({
   switchMap,
-  requestAndDrawCartogram,
-  launchGridEdit
+  getRegions
 })
 </script>
 
 <template>
   <div>
     <p id="tooltip">&nbsp;</p>
-
-    <div id="loading">
-      <p style="font-weight: bold">Loading...</p>
-
-      <div class="row" id="loading-progress-container" style="display: none">
-        <div class="col-sm-12 col-md-6">
-          <div class="progress">
-            <div
-              class="progress-bar"
-              role="progressbar"
-              id="loading-progress"
-              style="width: [[state.progress]]"
-            ></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="error">
-      <p style="font-weight: bold">
-        Error: <span style="font-weight: normal" id="error-message"></span>
-      </p>
-      <p>To continue, please refresh this page.</p>
-
-      <div id="error-extended" style="display: none">
-        <p>
-          <b>Additional Information: </b> When reporting this error, please include the information
-          below.
-        </p>
-
-        <pre id="error-extended-content"></pre>
-      </div>
-    </div>
 
     <div id="cartogram">
       <div class="row" id="cartogram-row">
@@ -294,25 +255,6 @@ defineExpose({
   }
 }
 
-.bar {
-  fill: steelblue;
-}
-
-.bar:hover {
-  fill: brown;
-}
-
-.axis {
-  font: 11px sans-serif;
-}
-
-.axis path,
-.axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
-
 .customise-popup {
   color: white;
   border: 5px solid #d76127;
@@ -340,8 +282,8 @@ defineExpose({
   -o-user-select: none;
 }
 
+/* TODO: move to Tooltip component */
 #tooltip {
-  display: none;
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid black;
   width: auto;
@@ -353,16 +295,5 @@ defineExpose({
   top: 0;
   left: 0;
   z-index: 1000;
-}
-
-path.slice {
-  stroke-width: 2px;
-}
-
-polyline {
-  opacity: 0.3;
-  stroke: black;
-  stroke-width: 2px;
-  fill: none;
 }
 </style>

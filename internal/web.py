@@ -286,12 +286,6 @@ def tutorial():
     return render_template('tutorial.html', page_active='tutorial',
                            tracking=tracking.determine_tracking_action(request))
 
-
-@app.route('/gridedit', methods=['GET'])
-def gridedit():
-    return render_template('gridedit.html')
-
-
 @app.route('/gencaptcha', methods=['GET'])
 def gencaptcha():
     captcha = custom_captcha.generate_captcha()
