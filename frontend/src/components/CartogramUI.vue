@@ -4,6 +4,8 @@ import Cartogram from '../lib/cartogram.js'
 
 import { MapVersionData, MapDataFormat, MapVersion } from '@/lib/mapVersion'
 import type { Region } from '@/lib/region'
+import type CartMap from '@/lib/cartMap'
+import CartogramDownload from './CartogramDownload.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -22,13 +24,15 @@ const props = withDefaults(
 )
 
 interface state {
-  current_sysname: string
   versions: { [key: string]: MapVersion }
+  current_sysname: string
+  current_map: CartMap | null
 }
 
 const state = reactive({
+  versions: {},
   current_sysname: '1-conventional',
-  versions: {}
+  current_map: null
 })
 
 var cartogram = new Cartogram(
@@ -38,6 +42,8 @@ var cartogram = new Cartogram(
   '/getprogress',
   'devel'
 )
+
+var cartogramDownloadEl = ref()
 
 onMounted(() => {
   if (!props.cartogram_data) {
@@ -152,6 +158,12 @@ defineExpose({
                 id="map-download"
                 data-toggle="modal"
                 data-target="#download-modal"
+                v-on:click="
+                  cartogramDownloadEl.generateSVGDownloadLinks(
+                    'map-area',
+                    JSON.stringify(cartogram.model.map.getVersionGeoJSON('1-conventional'))
+                  )
+                "
                 >Download</a
               >
             </p>
@@ -231,6 +243,12 @@ defineExpose({
                 id="cartogram-download"
                 data-toggle="modal"
                 data-target="#download-modal"
+                v-on:click="
+                  cartogramDownloadEl.generateSVGDownloadLinks(
+                    'cartogram-area',
+                    JSON.stringify(cartogram.model.map.getVersionGeoJSON(state.current_sysname))
+                  )
+                "
                 >Download</a
               >
             </p>
@@ -272,6 +290,8 @@ defineExpose({
       </div>
       <span id="map1-switch"></span>
     </div>
+
+    <CartogramDownload ref="cartogramDownloadEl" />
   </div>
 </template>
 

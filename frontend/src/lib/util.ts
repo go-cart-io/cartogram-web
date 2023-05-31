@@ -21,13 +21,11 @@ export function convertExcelToCSV(excel_file: File): Promise<File> {
 }
 
 export function addClipboard(button_id: string, message: string) {
-  document.getElementById(button_id).onclick = function () {
-    var icon_id = button_id + '-icon'
-    navigator.clipboard.writeText(message)
-    document.getElementById(icon_id).setAttribute('src', 'static/img/clipboard-check.svg')
+  var icon_id = button_id + '-icon'
+  navigator.clipboard.writeText(message)
+  document.getElementById(icon_id).setAttribute('src', 'static/img/clipboard-check.svg')
 
-    setTimeout(function () {
-      document.getElementById(icon_id).setAttribute('src', 'static/img/clipboard.svg')
-    }, 2000)
-  }
+  setTimeout(function () {
+    document.getElementById(icon_id).setAttribute('src', 'static/img/clipboard.svg')
+  }, 2000)
 }

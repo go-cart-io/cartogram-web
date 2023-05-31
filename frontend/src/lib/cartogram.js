@@ -5,11 +5,9 @@
  */
 
 import * as d3 from 'd3'
-import tinycolor from 'tinycolor2'
 import * as XLSX from 'xlsx/xlsx.mjs'
 
 import HTTP from './http.ts'
-import Tooltip from './tooltip.ts'
 import { MapVersionData, MapDataFormat } from './mapVersion.ts'
 import CartMap from './cartMap.ts'
 import * as util from './util.ts'
@@ -53,162 +51,6 @@ export default class Cartogram {
       in_loading_state: false,
       loading_state: null
     }
-  }
-
-  /**
-   * generateSVGDownloadLinks generates download links for the map(s) and/or cartogram(s) displayed on the left and
-   * right. We do this by taking advantage of the fact that D3 generates SVG markup. We convert the SVG markup into a
-   * blob URL.
-   */
-  generateSVGDownloadLinks() {
-    if (!document.getElementById('map-download')) return
-
-    var svg_header = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'
-
-    document.getElementById('map-download').onclick = (function (geojson) {
-      return function (e) {
-        e.preventDefault()
-
-        /*
-                Append legend elements and total count to the map SVG.
-                 */
-        let mapArea = document.getElementById('map-area').cloneNode(true)
-        let mapAreaSVG = mapArea.getElementsByTagName('svg')[0]
-
-        // Add SVG xml namespace to SVG element, so that the file can be opened with any web browser.
-        mapAreaSVG.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
-
-        // Increase height of SVG to accommodate legend and total.
-        const mapHeight = parseFloat(mapAreaSVG.getAttribute('height'))
-        mapAreaSVG.setAttribute('height', mapHeight + 100)
-
-        let legendSVG = document.getElementById('map-area-legend').cloneNode(true)
-
-        // Iterate legend SVG's text elements and add font attribute.
-        for (let i = 0; i < legendSVG.getElementsByTagName('text').length; i++) {
-          legendSVG.getElementsByTagName('text')[i].setAttribute('font-family', 'sans-serif')
-        }
-
-        // Iterate legend SVG's elements and append them to map SVG.
-        for (let i = 0; i < legendSVG.children.length; i++) {
-          let newY = parseFloat(legendSVG.children[i].getAttribute('y')) + mapHeight
-          legendSVG.children[i].setAttribute('y', newY)
-          let newX = parseFloat(legendSVG.children[i].getAttribute('x')) + 20
-          legendSVG.children[i].setAttribute('x', newX)
-          mapAreaSVG.appendChild(legendSVG.children[i].cloneNode(true))
-        }
-
-        // document.getElementById('download-modal-svg-link').href = "data:image/svg+xml;base64," + window.btoa(svg_header + document.getElementById('map-area').innerHTML);
-        document.getElementById('download-modal-svg-link').href =
-          'data:image/svg+xml;base64,' +
-          window.btoa(svg_header + mapArea.innerHTML.replace(/×/g, '&#xD7;'))
-        document.getElementById('download-modal-svg-link').download = 'equal-area-map.svg'
-
-        document.getElementById('download-modal-geojson-link').href =
-          'data:application/json;base64,' + window.btoa(geojson)
-        document.getElementById('download-modal-geojson-link').download = 'equal-area-map.geojson'
-
-        $('#download-modal').modal()
-      }
-    })(JSON.stringify(this.model.map.getVersionGeoJSON('1-conventional')))
-
-    document.getElementById('cartogram-download').onclick = (function (geojson) {
-      return function (e) {
-        e.preventDefault()
-
-        /*
-                Append legend elements and total count to the cartogram SVG.
-                 */
-        let cartogramArea = document.getElementById('cartogram-area').cloneNode(true)
-        let cartogramAreaSVG = cartogramArea.getElementsByTagName('svg')[0]
-
-        // Add SVG xml namespace to SVG element, so that the file can be opened with any web browser.
-        cartogramAreaSVG.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
-
-        // Increase height of SVG to accommodate legend and total.
-        const cartogramHeight = parseFloat(cartogramAreaSVG.getAttribute('height'))
-        cartogramAreaSVG.setAttribute('height', cartogramHeight + 100)
-
-        let legendSVG = document.getElementById('cartogram-area-legend').cloneNode(true)
-
-        // Iterate legend SVG's text elements and add font attribute
-        for (let i = 0; i < legendSVG.getElementsByTagName('text').length; i++) {
-          legendSVG.getElementsByTagName('text')[i].setAttribute('font-family', 'sans-serif')
-        }
-
-        // Iterate legend SVG's elements and append them to map SVG
-        for (let i = 0; i < legendSVG.children.length; i++) {
-          let newY = parseFloat(legendSVG.children[i].getAttribute('y')) + cartogramHeight
-          legendSVG.children[i].setAttribute('y', newY)
-          let newX = parseFloat(legendSVG.children[i].getAttribute('x')) + 20
-          legendSVG.children[i].setAttribute('x', newX)
-          cartogramAreaSVG.appendChild(legendSVG.children[i].cloneNode(true))
-        }
-
-        //document.getElementById('download-modal-svg-link').href = "data:image/svg+xml;base64," + window.btoa(svg_header + document.getElementById('cartogram-area').innerHTML);
-        document.getElementById('download-modal-svg-link').href =
-          'data:image/svg+xml;base64,' +
-          window.btoa(svg_header + cartogramArea.innerHTML.replace(/×/g, '&#xD7;'))
-        document.getElementById('download-modal-svg-link').download = 'cartogram.svg'
-
-        document.getElementById('download-modal-geojson-link').href =
-          'data:application/json;base64,' + window.btoa(geojson)
-        document.getElementById('download-modal-geojson-link').download = 'cartogram.geojson'
-
-        $('#download-modal').modal()
-      }
-    })(JSON.stringify(this.model.map.getVersionGeoJSON(this.model.current_sysname)))
-
-    /*document.getElementById('map-download').href = "data:image/svg+xml;base64," + window.btoa(svg_header + document.getElementById('map-area').innerHTML);
-        document.getElementById('map-download').download = "map.svg";*/
-
-    /*document.getElementById('cartogram-download').href = "data:image/svg+xml;base64," + window.btoa(svg_header + document.getElementById('cartogram-area').innerHTML);
-        document.getElementById('cartogram-download').download = "cartogram.svg";*/
-  }
-
-  /**
-   * generateSocialMediaLinks generates social media sharing links for the given URL
-   * @param {string} url The URL to generate social media sharing links for
-   */
-  generateSocialMediaLinks(url) {
-    if (!document.getElementById('download-modal')) return
-
-    document.getElementById('facebook-share').href =
-      'https://www.facebook.com/sharer/sharer.php?u=' + window.encodeURIComponent(url)
-    document.getElementById('linkedin-share').href =
-      'https://www.linkedin.com/shareArticle?url=' +
-      window.encodeURIComponent(url) +
-      '&mini=true&title=Cartogram&summary=Create%20cartograms%20with%20go-cart.io&source=go-cart.io'
-    document.getElementById('twitter-share').href =
-      'https://twitter.com/share?url=' + window.encodeURIComponent(url)
-    document.getElementById('email-share').href = 'mailto:?body=' + window.encodeURIComponent(url)
-    document.getElementById('share-link-href').value = url
-    util.addClipboard('clipboard-link', url)
-  }
-
-  /**
-   * generateEmbedHTML generates the code for embedding the given cartogram
-   * @param {string} mode The embedding mode ('map' for embedding the map
-   *                      with no user data, and 'cart' for embedding a map
-   *                      with user data
-   * @param {string} key The embed key
-   */
-  generateEmbedHTML(mode, key) {
-    if (!document.getElementById('share-modal')) return
-
-    var embeded_html =
-      '<iframe src="' +
-      location.protocol +
-      '//' +
-      window.location.host +
-      '/embed/' +
-      mode +
-      '/' +
-      key +
-      '" width="800" height="550" style="border: 1px solid black;"></iframe>'
-    document.getElementById('share-embed-code').innerHTML = embeded_html
-    document.getElementById('share-embed').style.display = 'block'
-    util.addClipboard('clipboard-embed', embeded_html)
   }
 
   /**
@@ -576,19 +418,6 @@ export default class Cartogram {
 
     this.model.map = map
 
-    if (sharing_key !== null) {
-      this.generateSocialMediaLinks(
-        location.protocol + '//' + location.host + '/cart/' + sharing_key
-      )
-      this.generateEmbedHTML('cart', sharing_key)
-    } else {
-      this.generateSocialMediaLinks(
-        location.protocol + '//' + location.host + '/cartogram/' + sysname
-      )
-      this.generateEmbedHTML('map', sysname)
-    }
-
-    this.generateSVGDownloadLinks()
     this.downloadTemplateFile(sysname)
     this.displayCustomisePopup(this.model.current_sysname)
 
