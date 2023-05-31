@@ -2,7 +2,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import Cartogram from '../lib/cartogram.js'
 
-import { MapVersionData, MapDataFormat } from '@/lib/mapVersion'
+import { MapVersionData, MapDataFormat, MapVersion } from '@/lib/mapVersion'
 import type { Region } from '@/lib/region'
 
 const props = withDefaults(
@@ -21,8 +21,14 @@ const props = withDefaults(
   }
 )
 
+interface state {
+  current_sysname: string
+  versions: { [key: string]: MapVersion }
+}
+
 const state = reactive({
-  // loadingProgress: 0
+  current_sysname: '1-conventional',
+  versions: {}
 })
 
 var cartogram = new Cartogram(
@@ -85,6 +91,12 @@ function switchMap(
   sharing_key: string | null = null
 ) {
   cartogram.switchMap(sysname, hrname, mappack, mapVersionData, sharing_key)
+  state.versions = cartogram.model.map.versions
+}
+
+function switchVersion(event) {
+  cartogram.model.map.switchVersion(state.current_sysname, event.target.value, 'cartogram-area')
+  state.current_sysname = event.target.value
 }
 
 function getRegions(): { [key: string]: Region } {
@@ -134,7 +146,14 @@ defineExpose({
               <a class="btn btn-primary btn-customise" id="map-customise">Customise</a>
             </p>
             <p style="margin-top: 20px; margin-left: 10px">
-              <a class="btn btn-primary" href="" id="map-download">Download</a>
+              <a
+                class="btn btn-primary"
+                href=""
+                id="map-download"
+                data-toggle="modal"
+                data-target="#download-modal"
+                >Download</a
+              >
             </p>
           </div>
 
@@ -167,7 +186,17 @@ defineExpose({
             <div class="d-flex align-items-center">
               <h4 class="d-inline-block mb-0">Cartogram</h4>
               <div id="map2-switch" class="ml-2">
-                <div id="map2-switch-buttons"></div>
+                <div id="map2-switch-buttons">
+                  <select
+                    style="cursor: pointer"
+                    class="form-control bg-primary text-light border-primary"
+                    v-on:change="switchVersion"
+                  >
+                    <option v-for="(version, index) in state.versions" v-bind:value="index">
+                      {{ version.name }}
+                    </option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -196,7 +225,14 @@ defineExpose({
             </p>
 
             <p style="margin-top: 20px; margin-left: 10px" class="d-inline-block">
-              <a class="btn btn-primary" href="" download="" id="cartogram-download">Download</a>
+              <a
+                class="btn btn-primary"
+                href=""
+                id="cartogram-download"
+                data-toggle="modal"
+                data-target="#download-modal"
+                >Download</a
+              >
             </p>
             <p style="margin-top: 20px; margin-left: 10px" class="d-inline-block">
               <a
@@ -240,11 +276,6 @@ defineExpose({
 </template>
 
 <style scoped>
-.progress-bar {
-  -webkit-transition: width 0.5s ease;
-  transition: width 0.5s ease;
-}
-
 @media screen and (max-width: 1000px) {
   #cartogram-row {
     display: block;
