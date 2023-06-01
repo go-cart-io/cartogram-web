@@ -37,15 +37,18 @@ defineExpose({
 </script>
 
 <template>
-  <div v-if="state.loadingProgress < props.max">
-    <p style="font-weight: bold">Loading...</p>
+  <div class="text-center" v-if="state.loadingProgress < props.max">
+    <h4>Loading...</h4>
 
-    <div class="row" id="loading-progress-container">
-      <div class="col-sm-12 col-md-6">
-        <div class="progress">
-          <div class="progress-bar" :style="{ width: state.loadingProgress + '%' }"></div>
-        </div>
-      </div>
+    <div
+      class="progress"
+      role="progressbar"
+      aria-label="Basic example"
+      aria-valuenow="0"
+      aria-valuemin="0"
+      aria-valuemax="100"
+    >
+      <div class="progress-bar bg-primary" :style="{ width: state.loadingProgress + '%' }"></div>
     </div>
   </div>
 </template>

@@ -101,32 +101,52 @@ function updateCartogram() {
 </script>
 
 <template>
-  <div>
-    <div>
-      <button class="float-right" v-on:click="updateCartogram">Update Cartogram</button>
-      <h2>{{ grid_document.name }}</h2>
-    </div>
-    <b-table :items="state.items" :fields="state.fields">
-      <template v-for="(field, index) in state.fields" v-slot:[`head(${field.key})`]="data">
-        <span v-if="!field.headerEditable">{{ data.label }}</span>
-        <b-form-input v-else type="text" v-model="field.label"></b-form-input>
-      </template>
+  <!-- Button trigger modal -->
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal">Edit</button>
 
-      <template v-for="(field, index) in state.fields" v-slot:[`cell(${field.key})`]="data">
-        <span v-if="!field.editable">{{ data.value }}</span>
-        <b-form-input
-          v-else
-          v-model="state.items[data.index][field.key]"
-          :type="field.type"
-        ></b-form-input>
-      </template>
-    </b-table>
-    <pre>
-      {{ state.fields }}
-    </pre>
-    <pre>
-      {{ state.items }}
-    </pre>
+  <!-- Modal -->
+  <div
+    class="modal fade"
+    id="editModal"
+    tabindex="-1"
+    aria-labelledby="editModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="shareModalLabel">Update {{ grid_document.name }}</h1>
+        </div>
+        <div class="modal-body">
+          <b-table :items="state.items" :fields="state.fields">
+            <template v-for="(field, index) in state.fields" v-slot:[`head(${field.key})`]="data">
+              <span v-if="!field.headerEditable">{{ data.label }}</span>
+              <b-form-input v-else type="text" v-model="field.label"></b-form-input>
+            </template>
+
+            <template v-for="(field, index) in state.fields" v-slot:[`cell(${field.key})`]="data">
+              <span v-if="!field.editable">{{ data.value }}</span>
+              <b-form-input
+                v-else
+                v-model="state.items[data.index][field.key]"
+                :type="field.type"
+              ></b-form-input>
+            </template>
+          </b-table>
+        </div>
+        <div class="modal-footer modal-footer--sticky bg-white">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            data-bs-dismiss="modal"
+            v-on:click="updateCartogram"
+          >
+            Save changes
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -140,5 +160,12 @@ th {
   text-align: left;
   width: 100px;
   vertical-align: middle;
+}
+
+.modal-footer--sticky {
+  position: sticky;
+  bottom: 0;
+  background-color: inherit;
+  z-index: 1055;
 }
 </style>

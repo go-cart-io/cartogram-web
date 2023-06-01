@@ -202,13 +202,6 @@ function clearEditing() {
         v-bind:scale="props.scale"
       />
     </div>
-    <div v-else-if="state.currentComponent === 'edit'">
-      <CartogramEdit
-        :grid_document="mappack.griddocument"
-        :sysname="selectedHandler"
-        v-on:change="confirmData"
-      />
-    </div>
     <div v-else-if="state.currentComponent === 'chart'">
       <CartogramChart
         ref="cartogramChartEl"
@@ -255,12 +248,10 @@ function clearEditing() {
             </div>
             <div class="col-4">
               <CartogramUploadBtn :sysname="selectedHandler" v-on:change="confirmData" />
-              <input
-                type="button"
-                class="btn btn-primary mb-2 d-block w-100"
-                value="Edit"
-                id="edit-button"
-                v-on:click="state.currentComponent = 'edit'"
+              <CartogramEdit
+                :grid_document="mappack.griddocument"
+                :sysname="selectedHandler"
+                v-on:change="confirmData"
               />
             </div>
           </div>

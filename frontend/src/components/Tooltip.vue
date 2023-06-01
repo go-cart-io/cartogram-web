@@ -45,6 +45,7 @@ defineExpose({
 <template>
   <div
     ref="tooltipEl"
+    v-if="state.isShow"
     class="tooltip"
     :style="{ top: state.top + 'px', left: state.left + 'px' }"
     v-html="state.content"
