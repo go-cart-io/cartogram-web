@@ -243,7 +243,7 @@ function clearEditing() {
             <div class="col-5">
               <select
                 style="cursor: pointer"
-                class="form-control border-primary bg-primary text-light"
+                class="form-select bg-primary text-light"
                 id="handler"
                 v-model="selectedHandler"
                 v-on:change="switchMap"
@@ -284,16 +284,6 @@ function clearEditing() {
 </template>
 
 <style scoped>
-.social-link {
-  font-size: 50px;
-  color: #707070;
-  text-decoration: none;
-}
-
-.social-link:hover {
-  color: #d76127;
-}
-
 .share-link {
   margin-left: 10px;
   margin-right: 10px;
@@ -348,21 +338,6 @@ function clearEditing() {
 
 .form-group {
   position: relative;
-}
-
-.clipboard-copy {
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin-top: 8px;
-  margin-right: 15px;
-  cursor: pointer;
-  border-radius: 3px;
-  border: 1px solid #d7d3d3;
-}
-
-.clipboard-copy:hover {
-  background-color: #dfdbdb;
 }
 
 @media screen and (min-width: 1600px) {

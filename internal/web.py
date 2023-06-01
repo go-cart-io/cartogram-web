@@ -443,7 +443,7 @@ def make_cartogram_by_name(map_name):
 
     cartogram_handlers_select.sort(key=lambda h: h['display_name'])
 
-    return render_template('new_cartogram.html', page_active='cartogram', cartogram_url=url_for('cartogram'),
+    return render_template('cartogram.html', page_active='cartogram', cartogram_url=url_for('cartogram'),
                            cartogramui_url=url_for('cartogram_ui'), getprogress_url=url_for('getprogress'),
                            cartogram_data_dir=url_for('static', filename='cartdata'),
                            cartogram_handlers=cartogram_handlers_select,
@@ -464,7 +464,7 @@ def cartogram_by_key(string_key):
     cartogram_handlers_select = [{'id': key, 'display_name': handler.get_name()} for key, handler in
                                  cartogram_handlers.items()]
 
-    return render_template('new_cartogram.html', page_active='cartogram', cartogram_url=url_for('cartogram'),
+    return render_template('cartogram.html', page_active='cartogram', cartogram_url=url_for('cartogram'),
                            cartogramui_url=url_for('cartogram_ui'), getprogress_url=url_for('getprogress'),
                            cartogram_data_dir=url_for('static', filename='cartdata'),
                            cartogram_handlers=cartogram_handlers_select,

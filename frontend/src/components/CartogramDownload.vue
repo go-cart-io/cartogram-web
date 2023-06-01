@@ -59,28 +59,35 @@ defineExpose({
 </script>
 
 <template>
-  <b-modal v-model="state.show" hide-footer>
-    <p class="lead mb-5 text-center">Your map is ready!</p>
-    <p class="text-center mb-5">
-      <a
-        href=""
-        download=""
-        id="download-modal-svg-link"
-        class="btn btn-lg btn-primary"
-        style="border-radius: 1.2em"
-        >Download SVG</a
-      >
-      <a
-        href=""
-        download=""
-        id="download-modal-geojson-link"
-        class="btn btn-lg btn-primary ml-5"
-        style="border-radius: 1.2em"
-        >Download GeoJSON</a
-      >
-    </p>
-    <Citation />
-  </b-modal>
+  <div
+    class="modal fade"
+    id="downloadModal"
+    tabindex="-1"
+    aria-labelledby="downloadModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="downloadModalLabel">Your map is ready!</h1>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p class="lead text-center">Download</p>
+          <p class="text-center mb-5">
+            <button id="download-modal-svg-link" class="btn btn-lg btn-primary mx-3">SVG</button>
+            <button id="download-modal-geojson-link" class="btn btn-lg btn-primary">GeoJSON</button>
+          </p>
+          <Citation />
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style></style>

@@ -4,16 +4,14 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container-fluid p-3">
+  <h1 class="text-primary">Contact</h1>
+
   <div class="row align-items-center">
     <div class="col-md-4">
       <img src="{{ url_for('static', filename='img/usacartogram.svg') }}" class="img-fluid" alt="USA Cartogram" />
     </div>
     <div class="col-md-8">
-
-      <h1 class="text-primary display-4 text-center">Contact</h1>
-
-
       {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
       {% for category, message in messages %}
@@ -95,31 +93,12 @@
           </div>
           <div class="col-md-12">
             <input type="hidden" name="csrftoken" value="{{csrf_token}}" />
-            <button type="submit" class="btn btn-primary pull-right" id="btnContactUs">
+            <button type="submit" class="btn btn-primary pull-right mt-2" id="btnContactUs">
               Send Message</button>
           </div>
         </div>
       </form>
     </div>
-    <!--<div class="col-md-4">
-                
-                <p></br></p>
-                <p></br></p>
-                <legend><span class="glyphicon glyphicon-globe"></span> Our location:</legend>
-                <address>
-                    <strong>Yale-NUS College</strong><br>
-                    28 College Avenue West<br>
-                    Singapore, 138609<br>
-                    <abbr title="Phone">
-                        P:</abbr>
-                    (65) 1234-5678
-                </address>
-                <address>
-                    <strong>Michael Gastner</strong><br>
-                    <a href="mailto:michael.gastner@yale-nus.edu.sg">michael.gastner@yale-nus.edu.sg</a>
-                </address>
-                
-            </div>-->
   </div>
 </div>
 {% endblock %}

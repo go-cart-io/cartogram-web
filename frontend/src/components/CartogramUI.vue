@@ -45,7 +45,6 @@ var cartogram = new Cartogram(
 )
 
 const cartogramDownloadEl = ref()
-const cartogramShareEl = ref()
 
 onMounted(() => {
   if (!props.cartogram_data) {
@@ -120,7 +119,7 @@ defineExpose({
 
 <template>
   <div>
-    <p id="tooltip">&nbsp;</p>
+    <p id="tooltip" style="display: none">&nbsp;</p>
 
     <div id="cartogram">
       <div class="row" id="cartogram-row">
@@ -131,7 +130,7 @@ defineExpose({
 
           <!--CartogramMap ref="mapArea" /-->
           <div id="map-area" style="margin-top: 20px" data-grid-visibility="off"></div>
-          <div style="padding-left: 0; padding-top: 10px" class="col-12">
+          <div style="padding-left: 0; padding-top: 10px; position: relative" class="col-12">
             <!-- padding-top to add spacing between mapSVG and legend -->
             <svg
               width="375"
@@ -163,6 +162,8 @@ defineExpose({
                     JSON.stringify(cartogram.model.map.getVersionGeoJSON('1-conventional'))
                   )
                 "
+                data-bs-toggle="modal"
+                data-bs-target="#downloadModal"
               >
                 Download
               </button>
@@ -201,7 +202,7 @@ defineExpose({
                 <div id="map2-switch-buttons">
                   <select
                     style="cursor: pointer"
-                    class="form-control bg-primary text-light border-primary"
+                    class="form-select bg-primary text-light"
                     v-on:change="switchVersion"
                   >
                     <option v-for="(version, index) in state.versions" v-bind:value="index">
@@ -214,7 +215,7 @@ defineExpose({
           </div>
 
           <div id="cartogram-area" style="margin-top: 20px" data-grid-visibility="off"></div>
-          <div style="padding-left: 0; padding-top: 10px" class="col-12">
+          <div style="padding-left: 0; padding-top: 10px; position: relative" class="col-12">
             <svg
               width="375"
               height="90"
@@ -246,14 +247,19 @@ defineExpose({
                     JSON.stringify(cartogram.model.map.getVersionGeoJSON(state.current_sysname))
                   )
                 "
+                data-bs-toggle="modal"
+                data-bs-target="#downloadModal"
               >
                 Download
               </button>
             </p>
             <p style="margin-top: 20px; margin-left: 10px" class="d-inline-block">
-              <button class="btn btn-info mr-2 text-light" v-on:click="cartogramShareEl.show()">
-                Share
-              </button>
+              <CartogramShare
+                v-bind:sysname="props.handler"
+                v-bind:key="
+                  props.cartogramui_data ? props.cartogramui_data.unique_sharing_key : null
+                "
+              />
             </p>
           </div>
 
@@ -286,11 +292,6 @@ defineExpose({
     </div>
 
     <CartogramDownload ref="cartogramDownloadEl" />
-    <CartogramShare
-      ref="cartogramShareEl"
-      v-bind:sysname="props.handler"
-      v-bind:key="props.cartogramui_data ? props.cartogramui_data.unique_sharing_key : null"
-    />
   </div>
 </template>
 
