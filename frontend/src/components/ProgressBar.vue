@@ -37,7 +37,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="text-center" v-if="state.loadingProgress < props.max">
+  <div class="container-fluid p-3 text-center" v-if="state.loadingProgress < props.max">
     <h4>Loading...</h4>
 
     <div

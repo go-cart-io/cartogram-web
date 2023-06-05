@@ -37,13 +37,14 @@ async function processFile() {
 </script>
 
 <template>
-  <input
-    type="button"
-    class="btn btn-primary mb-2 d-block w-100"
-    value="Upload Data"
+  <button
+    class="btn btn-primary ms-2"
     v-on:click="csvInput.click()"
     id="upload-button"
-  />
+    title="Upload data"
+  >
+    <i class="fas fa-file-upload"></i>
+  </button>
 
   <input
     ref="csvInput"

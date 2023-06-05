@@ -14,7 +14,6 @@ function drawPieChartFromTooltip(
   tooltip: any,
   colors: { [key: string]: string } = {}
 ) {
-  console.log(colors)
   const container = 'piechart-area'
   const containerElement = document.getElementById(container)
 
@@ -22,18 +21,19 @@ function drawPieChartFromTooltip(
     containerElement.removeChild(containerElement.firstChild)
   }
 
+  const width = 600,
+    height = 450,
+    radius = Math.min(width, height) / 2
+
   const svg = d3
     .select('#' + container)
     .append('svg')
+    .attr('viewBox', '0 0 ' + width + ' ' + height)
     .append('g')
 
   svg.append('g').attr('class', 'slices')
   svg.append('g').attr('class', 'labels')
   svg.append('g').attr('class', 'lines')
-
-  const width = 600,
-    height = 450,
-    radius = Math.min(width, height) / 2
 
   const pie = d3
     .pie()
@@ -345,7 +345,7 @@ defineExpose({
 </script>
 
 <template>
-  <div>
+  <div class="container-fluid p-3">
     <Tooltip ref="tooltipEl" />
     <div id="barchart-container" style="display: none">
       <p>
@@ -358,7 +358,7 @@ defineExpose({
 
     <div id="piechart">
       <div class="row">
-        <div class="col-md-6">
+        <div>
           <h4>Confirm your data are appropriate for a cartogram</h4>
           <p>
             Your data sums to an approximate total of <b id="data-total"></b>. Is this a
@@ -370,9 +370,9 @@ defineExpose({
         </div>
       </div>
       <div id="piechart-area"></div>
-      <div class="row" id="piechart-buttons">
-        <button class="btn btn-primary mr-5" v-on:click="emit('confirm')">Yes, I Confirm</button>
-        <button class="btn btn-primary" v-on:click="emit('cancel')">Cancel</button>
+      <div class="text-center" id="piechart-buttons">
+        <button class="btn btn-primary" v-on:click="emit('confirm')">Yes, I Confirm</button>
+        <button class="btn btn-primary mx-2" v-on:click="emit('cancel')">Cancel</button>
       </div>
     </div>
   </div>
@@ -386,11 +386,6 @@ defineExpose({
 #barchart text.label {
   font-size: 0.8rem;
   letter-spacing: -0.01rem;
-}
-
-#piechart-area svg {
-  width: 960px;
-  height: 450px;
 }
 
 path.slice {

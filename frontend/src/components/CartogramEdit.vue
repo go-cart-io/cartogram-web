@@ -102,7 +102,14 @@ function updateCartogram() {
 
 <template>
   <!-- Button trigger modal -->
-  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal">Edit</button>
+  <button
+    class="btn btn-primary ms-2"
+    data-bs-toggle="modal"
+    data-bs-target="#editModal"
+    title="Edit data"
+  >
+    <i class="far fa-edit"></i>
+  </button>
 
   <!-- Modal -->
   <div

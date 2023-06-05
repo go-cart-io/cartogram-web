@@ -32,7 +32,7 @@ interface state {
 
 const state = reactive({
   versions: {},
-  current_sysname: '1-conventional',
+  current_sysname: '2-population',
   current_map: null
 })
 
@@ -101,9 +101,9 @@ function switchMap(
   state.versions = cartogram.model.map.versions
 }
 
-function switchVersion(event) {
-  cartogram.model.map.switchVersion(state.current_sysname, event.target.value, 'cartogram-area')
-  state.current_sysname = event.target.value
+function switchVersion(version) {
+  cartogram.model.map.switchVersion(state.current_sysname, version, 'cartogram-area')
+  state.current_sysname = version
 }
 
 function getRegions(): { [key: string]: Region } {
@@ -111,9 +111,15 @@ function getRegions(): { [key: string]: Region } {
   return cartogram.model.map.regions
 }
 
+function getVersions(): { [key: string]: MapVersion } {
+  return cartogram.model.map.versions
+}
+
 defineExpose({
   switchMap,
-  getRegions
+  switchVersion,
+  getRegions,
+  getVersions
 })
 </script>
 
@@ -121,15 +127,12 @@ defineExpose({
   <div>
     <p id="tooltip" style="display: none">&nbsp;</p>
 
-    <div id="cartogram">
-      <div class="row" id="cartogram-row">
-        <div class="col-md-6">
-          <div style="height: 40px">
-            <h4 class="mb-0">Equal-Area Map</h4>
-          </div>
+    <div id="cartogram" class="container-fluid p-0">
+      <div class="row">
+        <div class="col-6 p-2 d-none d-md-inline">
+          <h4>Equal-Area Map</h4>
 
-          <!--CartogramMap ref="mapArea" /-->
-          <div id="map-area" style="margin-top: 20px" data-grid-visibility="off"></div>
+          <div id="map-area" class="my-2" data-grid-visibility="off"></div>
           <div style="padding-left: 0; padding-top: 10px; position: relative" class="col-12">
             <!-- padding-top to add spacing between mapSVG and legend -->
             <svg
@@ -148,11 +151,11 @@ defineExpose({
             />
           </div>
 
-          <div class="d-flex">
-            <p style="margin-top: 20px; color: white; cursor: pointer" class="d-inline-block">
+          <div class="d-flex my-2">
+            <p style="color: white; cursor: pointer" class="d-inline-block">
               <a class="btn btn-primary btn-customise" id="map-customise">Customise</a>
             </p>
-            <p style="margin-top: 20px; margin-left: 10px">
+            <p class="ms-2" v-if="mode !== 'embed'">
               <button
                 class="btn btn-primary"
                 id="map-download"
@@ -194,27 +197,10 @@ defineExpose({
           </div>
         </div>
 
-        <div class="col-md-6" id="cartogram-container">
-          <div style="height: 40px">
-            <div class="d-flex align-items-center">
-              <h4 class="d-inline-block mb-0">Cartogram</h4>
-              <div id="map2-switch" class="ml-2">
-                <div id="map2-switch-buttons">
-                  <select
-                    style="cursor: pointer"
-                    class="form-select bg-primary text-light"
-                    v-on:change="switchVersion"
-                  >
-                    <option v-for="(version, index) in state.versions" v-bind:value="index">
-                      {{ version.name }}
-                    </option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="col-12 col-md-6 p-2" id="cartogram-container">
+          <h4>Cartogram</h4>
 
-          <div id="cartogram-area" style="margin-top: 20px" data-grid-visibility="off"></div>
+          <div id="cartogram-area" class="my-2" data-grid-visibility="off"></div>
           <div style="padding-left: 0; padding-top: 10px; position: relative" class="col-12">
             <svg
               width="375"
@@ -232,12 +218,12 @@ defineExpose({
             />
           </div>
 
-          <div class="d-flex">
-            <p style="margin-top: 20px; color: white; cursor: pointer" class="d-inline-block">
+          <div class="d-flex my-2">
+            <p style="color: white; cursor: pointer" class="d-inline-block">
               <a class="btn btn-primary btn-customise" id="cartogram-customise">Customise</a>
             </p>
 
-            <p style="margin-top: 20px; margin-left: 10px" class="d-inline-block">
+            <p class="d-inline-block ms-2" v-if="mode !== 'embed'">
               <button
                 class="btn btn-primary"
                 id="cartogram-download"
@@ -253,7 +239,7 @@ defineExpose({
                 Download
               </button>
             </p>
-            <p style="margin-top: 20px; margin-left: 10px" class="d-inline-block">
+            <p class="d-inline-block ms-2" v-if="mode !== 'embed'">
               <CartogramShare
                 v-bind:sysname="props.handler"
                 v-bind:key="
@@ -288,7 +274,6 @@ defineExpose({
           </div>
         </div>
       </div>
-      <span id="map1-switch"></span>
     </div>
 
     <CartogramDownload ref="cartogramDownloadEl" />
@@ -296,16 +281,6 @@ defineExpose({
 </template>
 
 <style scoped>
-@media screen and (max-width: 1000px) {
-  #cartogram-row {
-    display: block;
-  }
-
-  #cartogram-row .col-md-6 {
-    max-width: 100% !important;
-  }
-}
-
 .customise-popup {
   color: white;
   border: 5px solid #d76127;

@@ -26,7 +26,8 @@ const state = reactive({
   currentComponent: 'map',
   isLoading: true,
   isLoaded: false,
-  error: ''
+  error: '',
+  selectedVersion: '2-population'
 })
 
 // Form values
@@ -50,10 +51,6 @@ onMounted(async () => {
   state.isLoaded = true // to prevent rendering map without mappack
   await nextTick()
   regions = cartogramUIEl.value.getRegions()
-
-  console.log(mappack)
-  console.log(cartogram_data)
-  console.log(cartogramui_data)
 })
 
 /**
@@ -75,8 +72,6 @@ async function getMapPack() {
       progressBarEl.value.setValue(Math.floor((e.loaded / e.total) * 100))
     }
   )
-
-  console.log(mappack)
 }
 
 async function switchMap() {
@@ -88,7 +83,6 @@ async function switchMap() {
 function confirmData(cartogramui_promise: Promise<any>) {
   // TODO: show error if any
   cartogramui_promise.then(async function (response: any) {
-    console.log(response)
     cartogramResponse = response
     if (response.error == 'none') {
       state.currentComponent = 'chart'
@@ -162,6 +156,7 @@ async function getGeneratedCartogram() {
   cartogramui_data = cartogramResponse
 
   state.currentComponent = 'map'
+  state.selectedVersion = '3-cartogram'
   await nextTick()
   cartogramResponse = null
 }
@@ -173,8 +168,104 @@ function clearEditing() {
 </script>
 
 <template>
+  <nav class="navbar bg-light mb-2">
+    <div class="w-100 d-flex align-items-end">
+      <div class="p-2">
+        <img
+          v-if="mode === 'embed'"
+          src="/static/img/gocart_final.svg"
+          width="100"
+          alt="go-cart.io logo"
+        />
+      </div>
+
+      <div v-if="mode !== 'embed'" class="p-2" style="max-width: 30%">
+        <label for="handler">Map:</label>
+        <div class="d-flex">
+          <select
+            class="form-select"
+            id="handler"
+            v-model="selectedHandler"
+            v-on:change="switchMap"
+          >
+            <option v-for="handler in props.cartogram_handlers" v-bind:value="handler.id">
+              {{ handler.display_name }}
+            </option>
+          </select>
+          <a
+            class="btn btn-primary ms-2"
+            title="Download template"
+            v-bind:href="'/static/cartdata/' + selectedHandler + '/template.csv'"
+          >
+            <i class="fas fa-file-download"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="p-2">
+        <label for="versionSelection">Data:</label>
+        <div class="d-flex">
+          <!-- Version selection -->
+          <select
+            style="cursor: pointer"
+            class="form-select d-sm-block d-md-none"
+            :disabled="!cartogramUIEl"
+            id="versionSelection"
+            v-model="state.selectedVersion"
+            v-on:change="cartogramUIEl.switchVersion(state.selectedVersion)"
+          >
+            <option
+              v-if="cartogramUIEl"
+              v-for="(version, index) in cartogramUIEl.getVersions()"
+              v-bind:value="index"
+            >
+              {{ version.name }}
+            </option>
+          </select>
+
+          <div class="btn-group d-none d-md-flex" role="group" aria-label="Data">
+            <button
+              type="button"
+              class="btn btn-outline-primary"
+              v-bind:class="{ active: state.selectedVersion === index }"
+              v-if="cartogramUIEl"
+              v-for="(version, index) in cartogramUIEl.getVersions()"
+              v-on:click="
+                () => {
+                  state.selectedVersion = index
+                  cartogramUIEl.switchVersion(state.selectedVersion)
+                }
+              "
+            >
+              {{ version.name }}
+              <i class="fas fa-check" v-if="state.selectedVersion === index"></i>
+            </button>
+            <button v-else type="button" class="btn btn-primary disabled">loading...</button>
+          </div>
+
+          <!-- Menu -->
+          <div v-if="cartogramUIEl && mode !== 'embed'" class="d-flex flex-nowrap">
+            <CartogramUploadBtn :sysname="selectedHandler" v-on:change="confirmData" />
+            <CartogramEdit
+              :grid_document="mappack.griddocument"
+              :sysname="selectedHandler"
+              v-on:change="confirmData"
+            />
+          </div>
+          <div v-else-if="mode !== 'embed'" class="d-flex flex-nowrap">
+            <button type="button" class="btn btn-primary disabled ms-2" title="Upload data">
+              <i class="fas fa-file-upload"></i>
+            </button>
+            <button type="button" class="btn btn-primary disabled ms-2" title="Edit data">
+              <i class="far fa-edit"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
   <ProgressBar ref="progressBarEl" v-on:change="(isLoading) => (state.isLoading = isLoading)" />
-  <div v-if="!state.isLoading && state.isLoaded">
+  <div v-if="!state.isLoading && state.isLoaded" class="container-fluid">
     <div id="error" v-if="state.error">
       <p style="font-weight: bold">
         Error: <span style="font-weight: normal" id="error-message"></span>
@@ -191,76 +282,14 @@ function clearEditing() {
       </div>
     </div>
 
-    <div v-if="props.mode === 'embed'" class="container-fluid mt-3">
-      <CartogramUI
-        ref="cartogramUIEl"
-        v-bind:handler="selectedHandler"
-        v-bind:mappack="mappack"
-        v-bind:cartogram_data="cartogram_data"
-        v-bind:cartogramui_data="cartogramui_data"
-        v-bind:mode="props.mode"
-        v-bind:scale="props.scale"
-      />
-    </div>
-    <div v-else-if="state.currentComponent === 'chart'">
+    <div v-if="state.currentComponent === 'chart'">
       <CartogramChart
         ref="cartogramChartEl"
         v-on:confirm="getGeneratedCartogram"
         v-on:cancel="clearEditing"
       />
     </div>
-    <div v-else class="container-fluid mt-5 main-content">
-      <div class="row">
-        <div class="col-md-6">
-          <div class="row">
-            <div class="col-2">
-              <p class="lead">Input:</p>
-            </div>
-            <div class="col-10">
-              <div class="dropdown">
-                <button class="btn btn btn-primary no-click">Download Template Data</button>
-                <div class="dropdown-content">
-                  <a class="top-item" id="csv-template-link" href="#">CSV File</a>
-                  <a class="bottom-item" id="xlsx-template-link" href="#">Excel File</a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-6">
-          <div class="row">
-            <div class="col-3">
-              <p class="lead">Select Map:</p>
-            </div>
-            <div class="col-5">
-              <select
-                style="cursor: pointer"
-                class="form-select bg-primary text-light"
-                id="handler"
-                v-model="selectedHandler"
-                v-on:change="switchMap"
-              >
-                <option v-for="handler in props.cartogram_handlers" v-bind:value="handler.id">
-                  {{ handler.display_name }}
-                </option>
-              </select>
-            </div>
-            <div class="col-4">
-              <CartogramUploadBtn :sysname="selectedHandler" v-on:change="confirmData" />
-              <CartogramEdit
-                :grid_document="mappack.griddocument"
-                :sysname="selectedHandler"
-                v-on:change="confirmData"
-              />
-            </div>
-          </div>
-          <p id="non-fatal-error" class="text-danger font-weight-bold"></p>
-        </div>
-      </div>
-
-      <p class="lead">Output:</p>
-
+    <div v-else>
       <CartogramUI
         ref="cartogramUIEl"
         v-bind:handler="selectedHandler"
@@ -273,68 +302,3 @@ function clearEditing() {
     </div>
   </div>
 </template>
-
-<style scoped>
-.share-link {
-  margin-left: 10px;
-  margin-right: 10px;
-}
-
-.no-click {
-  pointer-events: none;
-}
-
-.dropdown {
-  margin-right: 10px;
-  position: relative;
-  display: inline-block;
-}
-
-.dropdown-content {
-  list-style: none;
-  position: absolute;
-  left: -9999px;
-  /* Move it off-screen until hover */
-  border-radius: 1.2rem;
-  margin-top: 1px;
-  width: 100px;
-  background-color: #d76127;
-  z-index: 1;
-}
-
-.dropdown-content a {
-  color: white;
-  padding: 6px 8px;
-  text-decoration: none;
-  display: block;
-}
-
-.dropdown-content a:hover {
-  background-color: #b75222;
-}
-
-.dropdown-content .top-item:hover {
-  border-radius: 1.2rem 1.2rem 0 0;
-}
-
-.dropdown-content .bottom-item:hover {
-  border-radius: 0 0 1.2rem 1.2rem;
-}
-
-.dropdown:hover .dropdown-content {
-  left: auto;
-  /* Bring back on-screen when needed */
-  right: 0;
-}
-
-.form-group {
-  position: relative;
-}
-
-@media screen and (min-width: 1600px) {
-  .main-content {
-    padding-left: 250px;
-    padding-right: 250px;
-  }
-}
-</style>

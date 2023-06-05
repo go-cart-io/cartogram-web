@@ -1219,8 +1219,7 @@ export default class CartMap {
       .select('#' + element_id)
       .append('svg')
       .attr('id', element_id + '-svg')
-      .attr('width', this.max_width)
-      .attr('height', this.max_height)
+      .attr('viewBox', '0 0 ' + this.max_width + ' ' + this.max_height)
 
     var polygons_to_draw: Array<{
       region_id: string

@@ -36,14 +36,15 @@
   {% endblock %}
 </head>
 
-<body>
-  <nav class="navbar navbar-expand-md">
+<body class="d-flex flex-column min-vh-100">
+  <nav class="navbar navbar-expand-md bg-dark">
     <div class="container-fluid">
       <a class="navbar-brand" href="/">
         <img src="{{ url_for('static', filename='img/gocart_final.svg') }}" width="100" alt="go-cart.io logo" />
       </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="navbar-toggler navbar-dark" type="button" data-bs-toggle="collapse"
+        data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+        aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -52,7 +53,7 @@
             <a class="nav-link" href="/">Home</a>
           </li>
           <li class="nav-item {%if page_active=='cartogram'%}active{%endif%}">
-            <a class="nav-link" href="/cartogram">Make Cartogram</a>
+            <a class="nav-link" href="/cartogram">Cartogram</a>
           </li>
           <li class="nav-item {%if page_active=='tutorial'%}active{%endif%}">
             <a class="nav-link" href="/tutorial">Tutorial</a>
@@ -74,7 +75,7 @@
 
   {% block content %}{% endblock %}
 
-  <footer class="text-secondary px-3">
+  <footer class="container-fluid text-secondary">
     <p>&copy; Michael T. Gastner<br />
       <a href="http://michaelgastner.com/">michaelgastner.com</a><br />
       Yale-NUS College, Division of Science <br />

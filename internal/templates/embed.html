@@ -33,7 +33,6 @@
 
   <!-- Custom styles for this template -->
   <link href="https://fonts.googleapis.com/css?family=Comfortaa&display=swap" rel="stylesheet" />
-  <link href="{{ url_for('static', filename='bootstrap.min.theme.css') }}" rel="stylesheet" />
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css"
     integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous" />
   <base target="_parent" />
@@ -45,12 +44,6 @@
 </head>
 
 <body>
-  <div class="container-fluid">
-    <a class="navbar-brand" href="/">
-      <img src="{{ url_for('static', filename='img/gocart_final.svg') }}" width="150" alt="go-cart.io logo"
-        style="margin-left: 0px" />
-    </a>
-  </div>
   <div id="cartogram-app">
   </div>
 
@@ -75,7 +68,7 @@
     var cartogram_handlers = {{ (cartogram_handlers | safe) or 'null' }};
     var cartogram_data = {{ (cartogram_data | safe) or 'null' }};
     var cartogramui_data = {{ (cartogramui_data | safe) or 'null'}};
-    var mode = "{{ mode }}";
+    var mode = "embed";
     var scale = 0.9;
   </script>
 </body>

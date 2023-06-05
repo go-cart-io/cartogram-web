@@ -2,18 +2,18 @@
 
 {% block content %}
 
-<div id="cartogram-app" class="container-fluid p-3" style="min-height: 50vh;">
+<div id="cartogram-app" class="flex-fill">
 </div>
 
 {% endblock %}
 
 {% block javascript %}
 <script>
-  var defaultHandler = "{{ default_cartogram_handler or 'usa' }}";
+  var defaultHandler = "{{ default_cartogram_handler }}";
   var cartogram_handlers = {{ (cartogram_handlers | safe) or 'null' }};
   var cartogram_data = {{ (cartogram_data | safe) or 'null' }};
   var cartogramui_data = {{ (cartogramui_data | safe) or 'null'}};
-  var mode = {{ mode or 'null' }};
+  var mode = null;
   var scale = 1.3;
 </script>
 {% endblock javascript %}
