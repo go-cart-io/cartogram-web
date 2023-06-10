@@ -1210,6 +1210,16 @@ export default class CartMap {
     var version_width = this.versions[sysname].dimension.x
     var version_height = this.versions[sysname].dimension.y
 
+    // status of the square
+    let angle = 0, // (A)
+      position = [0, 0], // (B)
+      size = [1, 1] // (C)
+
+    // status of the pointer(s)
+    let pointerangle, // (A)
+      pointerposition, // (B)
+      pointerdistance // (C)
+
     // Empty the map container element
     while (map_container.firstChild) {
       map_container.removeChild(map_container.firstChild)
@@ -1220,6 +1230,98 @@ export default class CartMap {
       .append('svg')
       .attr('id', element_id + '-svg')
       .attr('viewBox', '0 0 ' + this.max_width + ' ' + this.max_height)
+      // https://observablehq.com/@d3/multitouch
+      .on(
+        'mousedown touchstart',
+        (function (map) {
+          return function (event) {
+            event.preventDefault()
+            const t = d3.pointers(event, map)
+            pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
+            pointerposition = [d3.mean(t, (d) => d[0]), d3.mean(t, (d) => d[1])] // (B)
+            pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
+
+            //map.style.cursor = 'grabbing' // (F)
+            //map.update(pointerangle)
+          }
+        })(this)
+      )
+      .on(
+        'mouseup touchend',
+        (function (map) {
+          return function (event) {
+            pointerposition = null // signals mouse up for (D) and (E)
+            // map.style.cursor = 'grab'
+            // map.update(pointerangle)
+          }
+        })(this)
+      )
+      .on(
+        'mousemove touchmove',
+        (function (map) {
+          return function (event) {
+            //map.update(event)
+            if (!pointerposition) return // mousemove with the mouse up
+
+            const t = d3.pointers(event, map)
+
+            // (A)
+            position[0] -= pointerposition[0]
+            position[1] -= pointerposition[1]
+            pointerposition = [d3.mean(t, (d) => d[0]), d3.mean(t, (d) => d[1])]
+            position[0] += pointerposition[0]
+            position[1] += pointerposition[1]
+
+            console.log(t.length)
+            if (t.length === 4) {
+              size[0] = pointerdistance ? size[0] / pointerdistance : size[0]
+              size[1] = pointerdistance ? size[1] / pointerdistance : size[1]
+              pointerdistance = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
+              size[0] = pointerdistance ? size[0] * pointerdistance : size[0]
+              size[1] = pointerdistance ? size[1] * pointerdistance : size[1]
+            } else if (t.length > 1) {
+              // (B)
+              angle -= pointerangle
+              pointerangle = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
+              angle += pointerangle
+              // (C)
+              size[0] = pointerdistance ? size[0] / pointerdistance : size[0]
+              size[1] = pointerdistance ? size[1] / pointerdistance : size[1]
+              pointerdistance = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
+              size[0] = pointerdistance ? size[0] * pointerdistance : size[0]
+              size[1] = pointerdistance ? size[1] * pointerdistance : size[1]
+            }
+            console.log(size)
+
+            // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
+            canvas.attr(
+              'transform',
+              'translate(' +
+                position[0] +
+                ' ' +
+                position[1] +
+                ') scale(' +
+                size[0] +
+                ' ' +
+                size[1] +
+                ') rotate(' +
+                angle * (180 / Math.PI) +
+                ')'
+            )
+          }
+        })(this)
+      )
+      // .on("wheel", function(event) {
+      //   // (D) and (E), pointerposition also tracks mouse down/up
+      //   if (pointerposition) {
+      //     angle += event.wheelDelta / 1000;
+      //   } else {
+      //     size *= 1 + event.wheelDelta / 1000;
+      //   }
+      //   this.update(event);
+      //   event.preventDefault();
+      // })
+      .append('g')
 
     var polygons_to_draw: Array<{
       region_id: string

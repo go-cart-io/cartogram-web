@@ -280,6 +280,14 @@ defineExpose({
   </div>
 </template>
 
+<style>
+#map-area-svg g,
+#cartogram-area-svg g {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+</style>
+
 <style scoped>
 .customise-popup {
   color: white;
