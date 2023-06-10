@@ -22,8 +22,8 @@
   <link rel="stylesheet" href="/static/dist/{{ asset.url_for('style.css').file }}" />
   <script type="module" src="/static/dist/{{ asset.url_for('src/main.ts').file }}"></script>
   {% else %}
-  <script type="module" src="http://localhost:5173/@vite/client"></script>
-  <script type="module" src="http://localhost:5173/src/main.ts"></script>
+  <script type="module" src="{{ request.host_url.replace(':5000', ':5173' ) }}@vite/client"></script>
+  <script type="module" src="{{ request.host_url.replace(':5000', ':5173' ) }}src/main.ts"></script>
   {% endif %}
 
   <title>Creating Cartograms Online</title>
