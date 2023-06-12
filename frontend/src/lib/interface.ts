@@ -1,10 +1,7 @@
 export interface Mappack {
   abbreviations: { [key: string]: string } // e.g. Alabama: 'AL'
   colors: { [key: string]: string } // e.g. id_1: '#7570b3'
-  config: {
-    dont_draw: Array<any>
-    elevate: Array<any>
-  }
+  config: MapConfig
   griddocument: any
   labels: Labels
   original: any // land area map
@@ -62,4 +59,12 @@ export interface Entry {
   name: string
   value: number
   unit: string
+}
+
+export interface ChartDataItem {
+  label: string
+  value: number
+  color: string
+  abbreviation: string
+  name: string
 }

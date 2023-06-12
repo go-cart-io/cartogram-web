@@ -8,8 +8,8 @@ const props = defineProps<{
 }>()
 
 const state = reactive({
-  fields: [],
-  items: []
+  fields: [] as Array<any>,
+  items: [] as Array<any>
 })
 
 const emit = defineEmits<{

@@ -5,132 +5,121 @@
  */
 
 import * as d3 from 'd3'
-import * as XLSX from 'xlsx/xlsx.mjs'
+// import * as XLSX from 'xlsx/xlsx.mjs'
 
-import HTTP from './http.ts'
-import { MapVersionData, MapDataFormat } from './mapVersion.ts'
-import CartMap from './cartMap.ts'
-import * as util from './util.ts'
-window.util = util
+import HTTP from './http.js'
+import { MapVersionData, MapDataFormat } from './mapVersion.js'
+import CartMap from './cartMap.js'
+import * as util from './util.js'
+import type { Mappack } from './interface.js'
 
 /**
  * Cartogram contains the main frontend logic for the go-cart web application.
  */
 export default class Cartogram {
+  cartogram_data_dir: string
+  scale: number
+
   /**
-   * constructor creates an instance of the Cartogram class
-   * @param {string} c_u The URL of the cartogram generator
-   * @param {string} cui_u The cartogramui URL
-   * @param {string} c_d  The URL of the cartogram data directory
-   * @param {string} gp_u The URL to retrieve progress information
-   * @param {string} version The version string used to prevent improper caching of map assets
+   * The cartogram model
+   * @property {CartMap|null} map The current map
+   * @property {string} current_sysname The sysname of the map version selected for viewing on the right
+   * @property {string} map_sysname The sysname of the currently selected map
+   * @property {boolean} in_loading_state Whether or not we're in a loading state
+   * @property {Object|null} loading_state The current loading state
    */
+  model = {
+    map: null as CartMap | null,
+    current_sysname: '',
+    map_sysname: '',
+    in_loading_state: false,
+    loading_state: null as Object | null
+  }
 
-  constructor(c_u, cui_u, c_d, gp_u, version, scale = 1.3) {
-    this.config = {
-      cartogram_url: c_u,
-      cartogramui_url: cui_u,
-      cartogram_data_dir: c_d,
-      getprogress_url: gp_u,
-      version: version,
-      scale: scale
-    }
-
-    /**
-     * The cartogram model
-     * @property {CartMap|null} map The current map
-     * @property {string} current_sysname The sysname of the map version selected for viewing on the right
-     * @property {string} map_sysname The sysname of the currently selected map
-     * @property {boolean} in_loading_state Whether or not we're in a loading state
-     * @property {Object|null} loading_state The current loading state
-     */
-    this.model = {
-      map: null,
-      current_sysname: '',
-      map_sysname: '',
-      in_loading_state: false,
-      loading_state: null
-    }
+  constructor(c_d: string, scale = 1.3) {
+    this.cartogram_data_dir = c_d
+    this.scale = scale
   }
 
   /**
    * downloadTemplateFile allows download of both CSV and Excel files
    * @param {string} sysname The sysname of the new version to be displayed
    */
-  async downloadTemplateFile(sysname) {
-    if (!document.getElementById('csv-template-link')) return
+  // async downloadTemplateFile(sysname: string) {
+  //   if (!document.getElementById('csv-template-link')) return
 
-    document.getElementById('csv-template-link').href =
-      this.config.cartogram_data_dir + '/' + sysname + '/template.csv'
-    document.getElementById('csv-template-link').download = sysname + '_template.csv'
-    var csv_file_promise = HTTP.get(
-      this.config.cartogram_data_dir + '/' + sysname + '/template.csv',
-      null,
-      null,
-      false
-    )
-    var csv_file = await csv_file_promise.then(function (response) {
-      return response
-    })
+  //   let templateLinkEl = document.getElementById('csv-template-link')! as HTMLAnchorElement
+  //   templateLinkEl.href = this.cartogram_data_dir + '/' + sysname + '/template.csv'
+  //   templateLinkEl.download = sysname + '_template.csv'
+  //   var csv_file_promise = HTTP.get(
+  //     this.cartogram_data_dir + '/' + sysname + '/template.csv',
+  //     null,
+  //     null,
+  //     false
+  //   )
+  //   var csv_file = await csv_file_promise.then(function (response) {
+  //     return response
+  //   })
 
-    // convert the csv file to json for easy convertion to excel file
-    var lines = csv_file.split('\n')
-    var json_file = []
-    var headers = lines[0].split(',')
-    for (var i = 1; i < lines.length - 1; i++) {
-      var obj = {}
-      var currentline = lines[i].split(',')
-      for (var j = 0; j < headers.length; j++) {
-        obj[headers[j]] = currentline[j]
-      }
-      json_file.push(obj)
-    }
+  //   // convert the csv file to json for easy convertion to excel file
+  //   var lines = csv_file.split('\n')
+  //   var json_file = []
+  //   var headers = lines[0].split(',')
+  //   for (var i = 1; i < lines.length - 1; i++) {
+  //     var obj = {}
+  //     var currentline = lines[i].split(',')
+  //     for (var j = 0; j < headers.length; j++) {
+  //       obj[headers[j]] = currentline[j]
+  //     }
+  //     json_file.push(obj)
+  //   }
 
-    // convert the json_file to excel file
-    const fileName = sysname + '_template.xlsx'
-    const ws = XLSX.utils.json_to_sheet(json_file)
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
-    document.getElementById('xlsx-template-link').onclick = function () {
-      XLSX.writeFile(wb, fileName)
-    }
-  }
+  //   // convert the json_file to excel file
+  //   const fileName = sysname + '_template.xlsx'
+  //   const ws = XLSX.utils.json_to_sheet(json_file)
+  //   const wb = XLSX.utils.book_new()
+  //   XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
+  //   document.getElementById('xlsx-template-link').onclick = function () {
+  //     XLSX.writeFile(wb, fileName)
+  //   }
+  // }
 
   /**
    * displayCustomisePopup displays the customise popup on click on the customise button and controls the functionality of the checkboxes
    * @param {string} sysname The sysname of the new version to be displayed
    */
 
-  displayCustomisePopup(sysname) {
-    // Toggle the display of customise popup
+  displayCustomisePopup(sysname: string) {
+    if (!this.model.map) return
 
+    // Toggle the display of customise popup
     d3.select('#map-customise').on('click', function () {
-      let element = document.getElementById('map-customise-popup')
+      let element = document.getElementById('map-customise-popup')!
       let style = window.getComputedStyle(element)
       let display = style.getPropertyValue('display')
       if (display == 'block') {
-        document.getElementById('map-customise-popup').style.display = 'none'
-        document.getElementById('map-customise').style.backgroundColor = '#d76126'
-        document.getElementById('map-customise').style.borderColor = '#d76126'
+        document.getElementById('map-customise-popup')!.style.display = 'none'
+        document.getElementById('map-customise')!.style.backgroundColor = '#d76126'
+        document.getElementById('map-customise')!.style.borderColor = '#d76126'
       } else if (display === 'none') {
-        document.getElementById('map-customise-popup').style.display = 'block'
-        document.getElementById('map-customise').style.backgroundColor = '#b75220'
-        document.getElementById('map-customise').style.borderColor = '#ab4e1f'
+        document.getElementById('map-customise-popup')!.style.display = 'block'
+        document.getElementById('map-customise')!.style.backgroundColor = '#b75220'
+        document.getElementById('map-customise')!.style.borderColor = '#ab4e1f'
       }
     })
 
     d3.select('#cartogram-customise').on('click', function () {
-      let element = document.getElementById('cartogram-customise-popup')
+      let element = document.getElementById('cartogram-customise-popup')!
       let style = window.getComputedStyle(element)
       let display = style.getPropertyValue('display')
       if (display == 'block') {
-        document.getElementById('cartogram-customise-popup').style.display = 'none'
-        document.getElementById('cartogram-customise').style.backgroundColor = '#d76126'
-        document.getElementById('cartogram-customise').style.borderColor = '#d76126'
+        document.getElementById('cartogram-customise-popup')!.style.display = 'none'
+        document.getElementById('cartogram-customise')!.style.backgroundColor = '#d76126'
+        document.getElementById('cartogram-customise')!.style.borderColor = '#d76126'
       } else if (display === 'none') {
-        document.getElementById('cartogram-customise-popup').style.display = 'block'
-        document.getElementById('cartogram-customise').style.backgroundColor = '#b75220'
-        document.getElementById('cartogram-customise').style.borderColor = '#ab4e1f'
+        document.getElementById('cartogram-customise-popup')!.style.display = 'block'
+        document.getElementById('cartogram-customise')!.style.backgroundColor = '#b75220'
+        document.getElementById('cartogram-customise')!.style.borderColor = '#ab4e1f'
       }
     })
 
@@ -143,14 +132,14 @@ export default class Cartogram {
           .ease(d3.easeCubic)
           .duration(500)
           .attr('stroke-opacity', 0.4)
-        document.getElementById('map-area').dataset.gridVisibility = 'on'
+        document.getElementById('map-area')!.dataset.gridVisibility = 'on'
       } else {
         d3.select('#map-area-grid')
           .transition()
           .ease(d3.easeCubic)
           .duration(500)
           .attr('stroke-opacity', 0)
-        document.getElementById('map-area').dataset.gridVisibility = 'off'
+        document.getElementById('map-area')!.dataset.gridVisibility = 'off'
       }
     })
 
@@ -161,14 +150,14 @@ export default class Cartogram {
           .ease(d3.easeCubic)
           .duration(500)
           .attr('stroke-opacity', 0.4)
-        document.getElementById('cartogram-area').dataset.gridVisibility = 'on'
+        document.getElementById('cartogram-area')!.dataset.gridVisibility = 'on'
       } else {
         d3.select('#cartogram-area-grid')
           .transition()
           .ease(d3.easeCubic)
           .duration(500)
           .attr('stroke-opacity', 0)
-        document.getElementById('cartogram-area').dataset.gridVisibility = 'off'
+        document.getElementById('cartogram-area')!.dataset.gridVisibility = 'off'
       }
     })
 
@@ -176,17 +165,17 @@ export default class Cartogram {
 
     d3.select('#legend-toggle-cartogram').on('change', () => {
       if (d3.select('#legend-toggle-cartogram').property('checked')) {
-        this.model.map.drawResizableLegend(sysname, 'cartogram-area-legend')
+        this.model.map!.drawResizableLegend(sysname, 'cartogram-area-legend')
       } else {
-        this.model.map.drawLegend(sysname, 'cartogram-area-legend')
+        this.model.map!.drawLegend(sysname, 'cartogram-area-legend')
       }
     })
 
     d3.select('#legend-toggle-map').on('change', () => {
       if (d3.select('#legend-toggle-map').property('checked')) {
-        this.model.map.drawResizableLegend('1-conventional', 'map-area-legend')
+        this.model.map!.drawResizableLegend('1-conventional', 'map-area-legend')
       } else {
-        this.model.map.drawLegend('1-conventional', 'map-area-legend')
+        this.model.map!.drawLegend('1-conventional', 'map-area-legend')
       }
     })
   }
@@ -300,8 +289,14 @@ export default class Cartogram {
    * @param {string} sharing_key The unique sharing key associated with this
    *                             cartogram, if any
    */
-  switchMap(sysname, hrname, mappack, cartogram = null, sharing_key = null) {
-    var map = new CartMap(hrname, mappack.config, this.config.scale)
+  switchMap(
+    sysname: string,
+    hrname: string,
+    mappack: Mappack,
+    cartogram: MapVersionData | null = null,
+    sharing_key: string | null = null
+  ) {
+    var map = new CartMap(hrname, mappack.config, this.scale)
 
     /* We check if the map is a world map by searching for the 'extent' key in mappack.original.
                We then pass a boolean to the MapVersionData constructor.
@@ -398,7 +393,7 @@ export default class Cartogram {
             information from colors.json to produce a color map where the IDs are plain region IDs, as required by
             CartMap.
             */
-    var colors = {}
+    var colors: { [key: string]: string } = {}
 
     Object.keys(map.regions).forEach(function (region_id) {
       colors[region_id] = mappack.colors['id_' + region_id]
@@ -418,12 +413,12 @@ export default class Cartogram {
 
     this.model.map = map
 
-    this.downloadTemplateFile(sysname)
+    // this.downloadTemplateFile(sysname)
     this.displayCustomisePopup(this.model.current_sysname)
 
-    let selectedLegendTypeMap = document.getElementById('map-area-legend').dataset.legendType
+    let selectedLegendTypeMap = document.getElementById('map-area-legend')!.dataset.legendType
     let selectedLegendTypeCartogram =
-      document.getElementById('cartogram-area-legend').dataset.legendType
+      document.getElementById('cartogram-area-legend')!.dataset.legendType
 
     if (selectedLegendTypeMap == 'static') {
       this.model.map.drawLegend('1-conventional', 'map-area-legend', null, true)
@@ -441,6 +436,6 @@ export default class Cartogram {
     this.model.map.drawGridLines('1-conventional', 'map-area')
     this.model.map.drawGridLines(this.model.current_sysname, 'cartogram-area')
 
-    document.getElementById('cartogram').style.display = 'block'
+    document.getElementById('cartogram')!.style.display = 'block'
   }
 }

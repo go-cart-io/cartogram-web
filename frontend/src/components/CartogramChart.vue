@@ -3,7 +3,12 @@ import * as d3 from 'd3'
 import tinycolor from 'tinycolor2'
 import { ref } from 'vue'
 import type { Region } from '@/lib/region'
+import type { ChartDataItem } from '@/lib/interface'
 import Tooltip from '@/components/Tooltip.vue'
+
+import { select as d3Select } from 'd3-selection'
+import { transition as d3Transition } from 'd3-transition'
+d3Select.prototype.transition = d3Transition
 
 const tooltipEl = ref<typeof Tooltip>()
 
@@ -17,7 +22,7 @@ function drawPieChartFromTooltip(
   const container = 'piechart-area'
   const containerElement = document.getElementById(container)
 
-  while (containerElement.firstChild) {
+  while (containerElement?.firstChild) {
     containerElement.removeChild(containerElement.firstChild)
   }
 
@@ -36,23 +41,21 @@ function drawPieChartFromTooltip(
   svg.append('g').attr('class', 'lines')
 
   const pie = d3
-    .pie()
+    .pie<ChartDataItem>()
     .sort(null)
     .value((d) => d.value)
 
   const arc = d3
-    .arc()
+    .arc<d3.PieArcDatum<ChartDataItem>>()
     .outerRadius(radius * 0.8)
     .innerRadius(0)
 
   const outerArc = d3
-    .arc()
+    .arc<d3.PieArcDatum<ChartDataItem>>()
     .innerRadius(radius * 0.9)
     .outerRadius(radius * 0.9)
 
   svg.attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')')
-
-  const key = (d) => d.data.label
 
   const dataWithOthers = Object.keys(regions)
     .map((region_id, _i, _a) => {
@@ -78,7 +81,7 @@ function drawPieChartFromTooltip(
   }
 
   const total = dataWithOthers.reduce((acc, datum) => acc + datum.value, 0)
-  document.getElementById('data-total').innerHTML =
+  document.getElementById('data-total')!.innerHTML =
     formatAsScientificNotation(total) + (tooltip.unit === '' ? '' : ' ' + tooltip.unit)
 
   const othersThreshold = total * 0.025
@@ -132,7 +135,8 @@ function drawPieChartFromTooltip(
     0
   )
 
-  let slice = svg.select('.slices').selectAll('path.slice').data(pie(data))
+  var interpolator: any
+  let slice = svg.select('.slices').selectAll<SVGPathElement, any>('path.slice').data(pie(data))
 
   slice = slice
     .enter()
@@ -140,9 +144,9 @@ function drawPieChartFromTooltip(
     .style('fill', (d) => d.data.color)
     .attr('class', 'slice')
     .on('mouseover', function (event, d) {
-      d3.select(this).style('fill', tinycolor(d.data.color).brighten(20))
-
-      tooltipEl.value.drawWithEntries(event, d.data.name, d.data.abbreviation, [
+      var color: string = tinycolor(d.data.color.toString()).brighten(20).toString()
+      d3.select(this).style('fill', color)
+      tooltipEl.value?.drawWithEntries(event, d.data.name, d.data.abbreviation, [
         {
           name: tooltip.label,
           value: d.data.value,
@@ -151,7 +155,7 @@ function drawPieChartFromTooltip(
       ])
     })
     .on('mousemove', function (event, d) {
-      tooltipEl.value.drawWithEntries(event, d.data.name, d.data.abbreviation, [
+      tooltipEl.value?.drawWithEntries(event, d.data.name, d.data.abbreviation, [
         {
           name: tooltip.label,
           value: d.data.value,
@@ -161,7 +165,7 @@ function drawPieChartFromTooltip(
     })
     .on('mouseout', function (event, d) {
       d3.select(this).style('fill', d.data.color)
-      tooltipEl.value.hide()
+      tooltipEl.value?.hide()
     })
     .merge(slice)
 
@@ -169,19 +173,22 @@ function drawPieChartFromTooltip(
     .transition()
     .duration(1000)
     .attrTween('d', (d) => {
-      this._current = this._current || d
-      const interpolate = d3.interpolate(this._current, d)
-      this._current = interpolate(0)
+      interpolator = interpolator || d
+      const interpolate = d3.interpolate(interpolator, d)
+      interpolator = interpolate(0)
       return function (t) {
-        return arc(interpolate(t))
+        return arc(interpolate(t)) as any
       }
     })
 
   slice.exit().remove()
 
-  const midAngle = (d) => d.startAngle + (d.endAngle - d.startAngle) / 2
+  const midAngle = (d: any) => d.startAngle + (d.endAngle - d.startAngle) / 2
 
-  let text = svg.select('.labels').selectAll('text').data(pie(data), key)
+  let text = svg
+    .select('.labels')
+    .selectAll<SVGTextElement, any>('text')
+    .data(pie(data), (d) => d.data.label)
 
   text = text
     .enter()
@@ -195,9 +202,9 @@ function drawPieChartFromTooltip(
     .transition()
     .duration(1000)
     .attrTween('transform', function (d) {
-      this._current = this._current || d
-      var interpolate = d3.interpolate(this._current, d)
-      this._current = interpolate(0)
+      interpolator = interpolator || d
+      var interpolate = d3.interpolate(interpolator, d)
+      interpolator = interpolate(0)
       return function (t) {
         var d2 = interpolate(t)
         var pos = outerArc.centroid(d2)
@@ -206,9 +213,9 @@ function drawPieChartFromTooltip(
       }
     })
     .styleTween('text-anchor', function (d) {
-      this._current = this._current || d
-      var interpolate = d3.interpolate(this._current, d)
-      this._current = interpolate(0)
+      interpolator = interpolator || d
+      var interpolate = d3.interpolate(interpolator, d)
+      interpolator = interpolate(0)
       return function (t) {
         var d2 = interpolate(t)
         return midAngle(d2) < Math.PI ? 'start' : 'end'
@@ -217,7 +224,10 @@ function drawPieChartFromTooltip(
 
   text.exit().remove()
 
-  let polyline = svg.select('.lines').selectAll('polyline').data(pie(data), key)
+  let polyline = svg
+    .select('.lines')
+    .selectAll<SVGPolylineElement, any>('polyline')
+    .data(pie(data), (d) => d.data.label)
 
   polyline
     .enter()
@@ -226,14 +236,14 @@ function drawPieChartFromTooltip(
     .transition()
     .duration(1000)
     .attrTween('points', function (d) {
-      this._current = this._current || d
-      var interpolate = d3.interpolateObject(this._current, d)
-      this._current = interpolate(0)
+      interpolator = interpolator || d
+      var interpolate = d3.interpolateObject(interpolator, d)
+      interpolator = interpolate(0)
       return function (t) {
         var d2 = interpolate(t)
         var pos = outerArc.centroid(d2)
         pos[0] = radius * 0.95 * (midAngle(d2) < Math.PI ? 1 : -1)
-        return [arc.centroid(d2), outerArc.centroid(d2), pos]
+        return [arc.centroid(d2), outerArc.centroid(d2), pos] as any
       }
     })
 

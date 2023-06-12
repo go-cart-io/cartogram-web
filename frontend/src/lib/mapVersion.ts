@@ -68,7 +68,7 @@ export class MapVersionData {
 
     switch (format) {
       case MapDataFormat.GOCARTJSON:
-        features.forEach(function (feature: any) {
+        features.forEach((feature: any) => {
           if (this.regions.hasOwnProperty(feature.id)) {
             this.regions[feature.id].polygons.push({
               id: feature.properties.polygon_id.toString(),
@@ -98,7 +98,7 @@ export class MapVersionData {
       case MapDataFormat.GEOJSON:
         var next_polygon_id = 1
 
-        features.forEach(function (feature: any) {
+        features.forEach((feature: any) => {
           switch (feature.geometry.type) {
             case 'Polygon':
               var polygon_coords
@@ -241,13 +241,19 @@ export class MapVersion {
   name: string
   extrema: Extrema
   dimension: { x: number; y: number }
-  labels: Labels = null
+  labels: Labels | null = null
   world: boolean = false
   legendData: {
-    gridData: { [key: string]: { width: number; scaleNiceNumber: number; gridPath: string } }
-    scalePowerOf10: number
-    unit: string
-    versionTotalValue: number
+    gridData: {
+      [key: string]: {
+        width: number | null
+        scaleNiceNumber: number | null
+        gridPath: string | null
+      }
+    }
+    scalePowerOf10: number | null
+    unit: string | null
+    versionTotalValue: number | null
   }
 
   /**
@@ -261,7 +267,7 @@ export class MapVersion {
     name: string,
     extrema: Extrema,
     dimension: { x: number; y: number },
-    labels: Labels = null,
+    labels: Labels | null = null,
     world: boolean = false
   ) {
     this.name = name

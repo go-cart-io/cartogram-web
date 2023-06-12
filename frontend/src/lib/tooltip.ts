@@ -10,10 +10,10 @@ export default class Tooltip {
    * @param content The new content of the tooltip
    */
   static draw(event: MouseEvent, content: string): void {
-    document.getElementById('tooltip').innerHTML = content
-    document.getElementById('tooltip').style.display = 'inline-block'
-    document.getElementById('tooltip').style.left = event.pageX - 50 + 'px'
-    document.getElementById('tooltip').style.top = event.pageY + 15 + 'px'
+    document.getElementById('tooltip')!.innerHTML = content
+    document.getElementById('tooltip')!.style.display = 'inline-block'
+    document.getElementById('tooltip')!.style.left = event.pageX - 50 + 'px'
+    document.getElementById('tooltip')!.style.top = event.pageY + 15 + 'px'
   }
 
   static drawWithEntries(
@@ -36,6 +36,6 @@ export default class Tooltip {
    * Hides the tooltip from view
    */
   static hide(): void {
-    document.getElementById('tooltip').style.display = 'none'
+    document.getElementById('tooltip')!.style.display = 'none'
   }
 }

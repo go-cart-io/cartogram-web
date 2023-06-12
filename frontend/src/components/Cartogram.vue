@@ -65,13 +65,13 @@ onMounted(async () => {
  * @returns {Promise}
  */
 async function getMapPack() {
-  mappack = await HTTP.get(
+  mappack = (await HTTP.get(
     '/static/cartdata/' + selectedHandler + '/mappack.json?v=' + CONFIG.version,
     null,
     function (e: any) {
       progressBarEl.value.setValue(Math.floor((e.loaded / e.total) * 100))
     }
-  )
+  )) as Mappack
 }
 
 async function switchMap() {
@@ -100,6 +100,8 @@ function confirmData(cartogramui_promise: Promise<any>) {
  * @param {string} unique_sharing_key The unique sharing key returned by CartogramUI
  */
 async function getGeneratedCartogram() {
+  if (!mappack) return
+
   var sysname = selectedHandler
   var areas_string = cartogramResponse.areas_string
   var unique_sharing_key = cartogramResponse.unique_sharing_key
@@ -141,7 +143,6 @@ async function getGeneratedCartogram() {
       function (response: any) {
         state.error = ''
         progressBarEl.value.setValue(100)
-        console.log(response)
         window.clearInterval(progressUpdater)
         resolve(response.cartogram_data)
       },
@@ -227,24 +228,24 @@ function clearEditing() {
             <button
               type="button"
               class="btn btn-outline-primary"
-              v-bind:class="{ active: state.selectedVersion === index }"
+              v-bind:class="{ active: state.selectedVersion === index.toString() }"
               v-if="cartogramUIEl"
               v-for="(version, index) in cartogramUIEl.getVersions()"
               v-on:click="
                 () => {
-                  state.selectedVersion = index
+                  state.selectedVersion = index.toString()
                   cartogramUIEl.switchVersion(state.selectedVersion)
                 }
               "
             >
               {{ version.name }}
-              <i class="fas fa-check" v-if="state.selectedVersion === index"></i>
+              <i class="fas fa-check" v-if="state.selectedVersion === index.toString()"></i>
             </button>
             <button v-else type="button" class="btn btn-primary disabled">loading...</button>
           </div>
 
           <!-- Menu -->
-          <div v-if="cartogramUIEl && mode !== 'embed'" class="d-flex flex-nowrap">
+          <div v-if="cartogramUIEl && mappack && mode !== 'embed'" class="d-flex flex-nowrap">
             <CartogramUploadBtn :sysname="selectedHandler" v-on:change="confirmData" />
             <CartogramEdit
               :grid_document="mappack.griddocument"
@@ -264,7 +265,10 @@ function clearEditing() {
       </div>
     </div>
   </nav>
-  <ProgressBar ref="progressBarEl" v-on:change="(isLoading) => (state.isLoading = isLoading)" />
+  <ProgressBar
+    ref="progressBarEl"
+    v-on:change="(isLoading: boolean) => (state.isLoading = isLoading)"
+  />
   <div v-if="!state.isLoading && state.isLoaded" class="container-fluid">
     <div id="error" v-if="state.error">
       <p style="font-weight: bold">

@@ -14,17 +14,17 @@ const state = reactive({
 function generateSVGDownloadLinks(area: string, geojson: any) {
   var svg_header = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'
 
-  let mapArea = document.getElementById(area).cloneNode(true)
+  let mapArea = document.getElementById(area)!.cloneNode(true) as HTMLElement
   let mapAreaSVG = mapArea.getElementsByTagName('svg')[0]
 
   // Add SVG xml namespace to SVG element, so that the file can be opened with any web browser.
   mapAreaSVG.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
 
   // Increase height of SVG to accommodate legend and total.
-  const mapHeight = parseFloat(mapAreaSVG.getAttribute('height'))
-  mapAreaSVG.setAttribute('height', mapHeight + 100)
+  const mapHeight = parseFloat(mapAreaSVG.getAttribute('height')!)
+  mapAreaSVG.setAttribute('height', (mapHeight + 100).toString())
 
-  let legendSVG = document.getElementById(area + '-legend').cloneNode(true)
+  let legendSVG = document.getElementById(area + '-legend')!.cloneNode(true) as HTMLElement
 
   // Iterate legend SVG's text elements and add font attribute.
   for (let i = 0; i < legendSVG.getElementsByTagName('text').length; i++) {
@@ -33,22 +33,23 @@ function generateSVGDownloadLinks(area: string, geojson: any) {
 
   // Iterate legend SVG's elements and append them to map SVG.
   for (let i = 0; i < legendSVG.children.length; i++) {
-    let newY = parseFloat(legendSVG.children[i].getAttribute('y')) + mapHeight
-    legendSVG.children[i].setAttribute('y', newY)
-    let newX = parseFloat(legendSVG.children[i].getAttribute('x')) + 20
-    legendSVG.children[i].setAttribute('x', newX)
+    let newY = parseFloat(legendSVG.children[i].getAttribute('y')!) + mapHeight
+    legendSVG.children[i].setAttribute('y', newY.toString())
+    let newX = parseFloat(legendSVG.children[i].getAttribute('x')!) + 20
+    legendSVG.children[i].setAttribute('x', newX.toString())
     mapAreaSVG.appendChild(legendSVG.children[i].cloneNode(true))
   }
 
   // document.getElementById('download-modal-svg-link').href = "data:image/svg+xml;base64," + window.btoa(svg_header + document.getElementById('map-area').innerHTML);
-  document.getElementById('download-modal-svg-link').href =
+  let svgLinkEl = document.getElementById('download-modal-svg-link')! as HTMLAnchorElement
+  svgLinkEl.href =
     'data:image/svg+xml;base64,' +
     window.btoa(svg_header + mapArea.innerHTML.replace(/×/g, '&#xD7;'))
-  document.getElementById('download-modal-svg-link').download = 'map.svg'
+  svgLinkEl.download = 'map.svg'
 
-  document.getElementById('download-modal-geojson-link').href =
-    'data:application/json;base64,' + window.btoa(geojson)
-  document.getElementById('download-modal-geojson-link').download = 'map.geojson'
+  let geoJsonLinkEl = document.getElementById('download-modal-geojson-link')! as HTMLAnchorElement
+  geoJsonLinkEl.href = 'data:application/json;base64,' + window.btoa(geojson)
+  geoJsonLinkEl.download = 'map.geojson'
 
   state.show = true
 }

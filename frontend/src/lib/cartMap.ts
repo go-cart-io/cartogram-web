@@ -88,7 +88,7 @@ export default class CartMap {
    */
   getLegendUnit(sysname: string): string {
     var unit = ''
-    Object.keys(this.regions).forEach(function (region_id) {
+    Object.keys(this.regions).forEach((region_id) => {
       unit = this.regions[region_id].getVersion(sysname).unit
     }, this)
     return unit
@@ -120,9 +120,9 @@ export default class CartMap {
     var area = 0
     var sum = 0
     const na_regions: Array<{ id: string; area: number }> = []
-    Object.keys(this.regions).forEach(function (region_id) {
+    Object.keys(this.regions).forEach((region_id) => {
       var areaValue = 0
-      this.regions[region_id].getVersion(sysname).polygons.forEach(function (polygon: Polygon) {
+      this.regions[region_id].getVersion(sysname).polygons.forEach((polygon: Polygon) => {
         const coordinates = polygon.coordinates
 
         areaValue += Math.abs(d3.polygonArea(coordinates))
@@ -134,7 +134,7 @@ export default class CartMap {
 
       const regionValue = this.regions[region_id].getVersion(sysname).value
 
-      if (regionValue !== 'NA') {
+      if (regionValue.toString() !== 'NA') {
         sum += regionValue
       } else {
         na_regions.push({ id: region_id, area: areaValue })
@@ -159,10 +159,10 @@ export default class CartMap {
    */
   getTotalValuesForVersion(sysname: string): number {
     var sum = 0
-    Object.keys(this.regions).forEach(function (region_id) {
+    Object.keys(this.regions).forEach((region_id) => {
       const regionValue = this.regions[region_id].getVersion(sysname).value
 
-      if (regionValue != 'NA') {
+      if (regionValue.toString() !== 'NA') {
         sum += regionValue
       }
     }, this)
@@ -177,7 +177,7 @@ export default class CartMap {
    */
   getTotalAreaForVersion(sysname: string): number {
     var area = 0
-    Object.keys(this.regions).forEach(function (region_id) {
+    Object.keys(this.regions).forEach((region_id) => {
       this.regions[region_id].getVersion(sysname).polygons.forEach(function (polygon: Polygon) {
         const coordinates = polygon.coordinates
 
@@ -310,7 +310,7 @@ export default class CartMap {
   drawLegend(
     sysname: string,
     legendSVGID: string,
-    old_sysname: string = null,
+    old_sysname: string | null = null,
     change_map: boolean = false
   ) {
     this.getLegendData(sysname)
@@ -346,12 +346,12 @@ export default class CartMap {
 
     // Retrive legend information
     const unit = this.versions[sysname].legendData.unit
-    const versionTotalValue = this.versions[sysname].legendData.versionTotalValue
-    const width = this.versions[sysname].legendData['gridData'][currentGridPath]['width']
+    const versionTotalValue = this.versions[sysname].legendData.versionTotalValue || 0
+    const width = this.versions[sysname].legendData['gridData'][currentGridPath]['width'] || 0
 
     const scaleNiceNumber =
-      this.versions[sysname].legendData['gridData'][currentGridPath]['scaleNiceNumber']
-    const scalePowerOf10 = this.versions[sysname].legendData.scalePowerOf10
+      this.versions[sysname].legendData['gridData'][currentGridPath]['scaleNiceNumber'] || 0
+    const scalePowerOf10 = this.versions[sysname].legendData.scalePowerOf10 || 0
 
     const legendSquare = legendSVG
       .append('rect')
@@ -519,10 +519,10 @@ export default class CartMap {
     // Accommodate enough space so that even the resizable legend also fits in; it keeps the customise, download, share
     // buttons on place
     let legendSVGHeight = width
-    Object.keys(this.versions).forEach(function (version_sysname) {
+    Object.keys(this.versions).forEach((version_sysname) => {
       legendSVGHeight = Math.max(
         legendSVGHeight,
-        this.versions[version_sysname].legendData.gridData.gridC.width
+        this.versions[version_sysname].legendData.gridData.gridC.width || 0
       )
     }, this)
 
@@ -533,7 +533,7 @@ export default class CartMap {
     this.verifyLegend(sysname, width, scaleNiceNumber * Math.pow(10, scalePowerOf10))
 
     // Update Selected Legend Type in SVG Data
-    document.getElementById(legendSVGID).dataset.legendType = 'static'
+    document.getElementById(legendSVGID)!.dataset.legendType = 'static'
   }
 
   /**
@@ -542,7 +542,7 @@ export default class CartMap {
    * @param {string} legendSVGID The html id used for legend SVG display
    * @param {string} old_sysname The previous sysname after map version switch. Optional.
    */
-  drawResizableLegend(sysname: string, legendSVGID: string, old_sysname: string = null) {
+  drawResizableLegend(sysname: string, legendSVGID: string, old_sysname: string | null = null) {
     this.getLegendData(sysname)
 
     const legendSVG = d3.select('#' + legendSVGID)
@@ -552,14 +552,14 @@ export default class CartMap {
 
     // Retrive legend information
     const unit = this.versions[sysname].legendData.unit
-    const versionTotalValue = this.versions[sysname].legendData.versionTotalValue
-    const scalePowerOf10 = this.versions[sysname].legendData.scalePowerOf10
-    const widthA = this.versions[sysname].legendData.gridData.gridA.width
-    const widthB = this.versions[sysname].legendData.gridData.gridB.width
-    const widthC = this.versions[sysname].legendData.gridData.gridC.width
-    const scaleNiceNumberA = this.versions[sysname].legendData.gridData.gridA.scaleNiceNumber
-    const scaleNiceNumberB = this.versions[sysname].legendData.gridData.gridB.scaleNiceNumber
-    const scaleNiceNumberC = this.versions[sysname].legendData.gridData.gridC.scaleNiceNumber
+    const versionTotalValue = this.versions[sysname].legendData.versionTotalValue || 0
+    const scalePowerOf10 = this.versions[sysname].legendData.scalePowerOf10 || 0
+    const widthA = this.versions[sysname].legendData.gridData.gridA.width || 0
+    const widthB = this.versions[sysname].legendData.gridData.gridB.width || 0
+    const widthC = this.versions[sysname].legendData.gridData.gridC.width || 0
+    const scaleNiceNumberA = this.versions[sysname].legendData.gridData.gridA.scaleNiceNumber || 0
+    const scaleNiceNumberB = this.versions[sysname].legendData.gridData.gridB.scaleNiceNumber || 0
+    const scaleNiceNumberC = this.versions[sysname].legendData.gridData.gridC.scaleNiceNumber || 0
     const gridA = this.versions[sysname].legendData.gridData.gridA.gridPath
     const gridB = this.versions[sysname].legendData.gridData.gridB.gridPath
     const gridC = this.versions[sysname].legendData.gridData.gridC.gridPath
@@ -730,7 +730,7 @@ export default class CartMap {
 
     const changeToC = () => {
       // Update currentGridPath in SVG Data
-      document.getElementById(legendSVGID).dataset.currentGridPath = 'gridC'
+      document.getElementById(legendSVGID)!.dataset.currentGridPath = 'gridC'
 
       d3.select('#' + legendSVGID + 'C').attr('fill', '#FFFFFF')
       d3.select('#' + legendSVGID + 'B').attr('fill', '#FFFFFF')
@@ -754,7 +754,7 @@ export default class CartMap {
 
     const changeToB = () => {
       // Update currentGridPath in SVG Data
-      document.getElementById(legendSVGID).dataset.currentGridPath = 'gridB'
+      document.getElementById(legendSVGID)!.dataset.currentGridPath = 'gridB'
 
       d3.select('#' + legendSVGID + 'C').attr('fill', '#EEEEEE')
       d3.select('#' + legendSVGID + 'B').attr('fill', '#FFFFFF')
@@ -778,7 +778,7 @@ export default class CartMap {
 
     const changeToA = () => {
       // Update currentGridPath in SVG Data
-      document.getElementById(legendSVGID).dataset.currentGridPath = 'gridA'
+      document.getElementById(legendSVGID)!.dataset.currentGridPath = 'gridA'
 
       d3.select('#' + legendSVGID + 'C').attr('fill', '#EEEEEE')
       d3.select('#' + legendSVGID + 'B').attr('fill', '#EEEEEE')
@@ -866,10 +866,10 @@ export default class CartMap {
     // Accommodate enough space so that even the resizable legend also fits in; it keeps the customise, download, share
     // buttons on place
     let legendSVGHeight = widthC
-    Object.keys(this.versions).forEach(function (version_sysname) {
+    Object.keys(this.versions).forEach((version_sysname) => {
       legendSVGHeight = Math.max(
         legendSVGHeight,
-        this.versions[version_sysname].legendData.gridData.gridC.width
+        this.versions[version_sysname].legendData.gridData.gridC.width || 0
       )
     }, this)
 
@@ -945,7 +945,7 @@ export default class CartMap {
     this.verifyLegend(sysname, widthA, scaleNiceNumberA * Math.pow(10, scalePowerOf10))
 
     // Update Selected Legend Type in SVG Data
-    document.getElementById(legendSVGID).dataset.legendType = 'resizable'
+    document.getElementById(legendSVGID)!.dataset.legendType = 'resizable'
   }
 
   /**
@@ -977,10 +977,11 @@ export default class CartMap {
    * @param {string} mapSVGID The map's SVG element's ID
    * @param {string} old_sysname The previous sysname after map version switch. Optional.
    */
-  drawGridLines(sysname: string, mapSVGID: string, old_sysname: string = null) {
-    const currentGridPath = document.getElementById(mapSVGID + '-legend').dataset.currentGridPath
+  drawGridLines(sysname: string, mapSVGID: string, old_sysname: string | null = null) {
+    const currentGridPath = document.getElementById(mapSVGID + '-legend')?.dataset.currentGridPath
+    if (!currentGridPath) return
     const gridPath = this.versions[sysname].legendData['gridData'][currentGridPath]['gridPath']
-    const gridVisibility = document.getElementById(mapSVGID).dataset.gridVisibility
+    const gridVisibility = document.getElementById(mapSVGID)!.dataset.gridVisibility
 
     const mapSVG = d3.select('#' + mapSVGID + '-svg')
     let gridSVGID = mapSVGID + '-grid'
@@ -1065,16 +1066,16 @@ export default class CartMap {
 
       // Calculate current sysname's GeoJSON area
       var version_total_area_geojson = 0
-      Object.keys(data.regions).forEach(function (region_id) {
+      Object.keys(data.regions).forEach((region_id) => {
         let region = data.regions[region_id]
 
         let version_area_value_geojson = 0
-        region.polygons.forEach(function (polygon: Polygon) {
+        region.polygons.forEach((polygon: any) => {
           const coordinates = polygon.coordinates
 
           version_area_value_geojson += Math.abs(d3.polygonArea(coordinates))
 
-          polygon.holes.forEach(function (hole) {
+          polygon.holes.forEach(function (hole: any) {
             version_area_value_geojson -= Math.abs(d3.polygonArea(hole))
           }, this)
         }, this)
@@ -1109,7 +1110,7 @@ export default class CartMap {
     this.max_width = Math.max(this.max_width, version_dimension.x)
     this.max_height = Math.max(this.max_height, version_dimension.y)
 
-    Object.keys(data.regions).forEach(function (region_id) {
+    Object.keys(data.regions).forEach((region_id) => {
       var region = data.regions[region_id]
 
       var polygons = region.polygons.map(
@@ -1169,7 +1170,7 @@ export default class CartMap {
 
       for (let i = 0; i < polygons.length; i++) {
         if (highlight) {
-          polygons[i].setAttribute('fill', tinycolor(color).brighten(20).toString())
+          polygons[i].setAttribute('fill', tinycolor(color.toString()).brighten(20).toString())
         } else {
           polygons[i].setAttribute('fill', color)
         }
@@ -1216,12 +1217,12 @@ export default class CartMap {
       size = [1, 1] // (C)
 
     // status of the pointer(s)
-    let pointerangle, // (A)
-      pointerposition, // (B)
-      pointerdistance // (C)
+    let pointerangle: number | boolean, // (A)
+      pointerposition: [number, number] | null, // (B)
+      pointerdistance: number | boolean // (C)
 
     // Empty the map container element
-    while (map_container.firstChild) {
+    while (map_container?.firstChild) {
       map_container.removeChild(map_container.firstChild)
     }
 
@@ -1234,11 +1235,11 @@ export default class CartMap {
       .on(
         'mousedown touchstart',
         (function (map) {
-          return function (event) {
+          return function (event: any) {
             event.preventDefault()
             const t = d3.pointers(event, map)
             pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
-            pointerposition = [d3.mean(t, (d) => d[0]), d3.mean(t, (d) => d[1])] // (B)
+            pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
             pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
 
             //map.style.cursor = 'grabbing' // (F)
@@ -1249,7 +1250,7 @@ export default class CartMap {
       .on(
         'mouseup touchend',
         (function (map) {
-          return function (event) {
+          return function (event: any) {
             pointerposition = null // signals mouse up for (D) and (E)
             // map.style.cursor = 'grab'
             // map.update(pointerangle)
@@ -1259,7 +1260,7 @@ export default class CartMap {
       .on(
         'mousemove touchmove',
         (function (map) {
-          return function (event) {
+          return function (event: any) {
             //map.update(event)
             if (!pointerposition) return // mousemove with the mouse up
 
@@ -1268,30 +1269,26 @@ export default class CartMap {
             // (A)
             position[0] -= pointerposition[0]
             position[1] -= pointerposition[1]
-            pointerposition = [d3.mean(t, (d) => d[0]), d3.mean(t, (d) => d[1])]
+            pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0]
             position[0] += pointerposition[0]
             position[1] += pointerposition[1]
 
-            console.log(t.length)
-            if (t.length === 4) {
-              size[0] = pointerdistance ? size[0] / pointerdistance : size[0]
-              size[1] = pointerdistance ? size[1] / pointerdistance : size[1]
-              pointerdistance = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
-              size[0] = pointerdistance ? size[0] * pointerdistance : size[0]
-              size[1] = pointerdistance ? size[1] * pointerdistance : size[1]
-            } else if (t.length > 1) {
+            if (t.length > 1) {
               // (B)
-              angle -= pointerangle
-              pointerangle = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
-              angle += pointerangle
+              if (pointerangle && typeof pointerangle === 'number') {
+                angle -= pointerangle
+                pointerangle = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
+                angle += pointerangle
+              }
               // (C)
-              size[0] = pointerdistance ? size[0] / pointerdistance : size[0]
-              size[1] = pointerdistance ? size[1] / pointerdistance : size[1]
-              pointerdistance = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
-              size[0] = pointerdistance ? size[0] * pointerdistance : size[0]
-              size[1] = pointerdistance ? size[1] * pointerdistance : size[1]
+              if (pointerdistance && typeof pointerdistance === 'number') {
+                size[0] /= pointerdistance
+                size[1] /= pointerdistance
+                pointerdistance = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
+                size[0] *= pointerdistance
+                size[1] *= pointerdistance
+              }
             }
-            console.log(size)
 
             // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
             canvas.attr(
@@ -1329,12 +1326,12 @@ export default class CartMap {
       path: string
       color: string
       elevated: boolean
-      value: string
+      value: number
     }> = []
 
     // First we collect the information for each polygon to make using D3 easier.
-    Object.keys(this.regions).forEach(function (region_id) {
-      this.regions[region_id].getVersion(sysname).polygons.forEach(function (polygon: Polygon) {
+    Object.keys(this.regions).forEach((region_id) => {
+      this.regions[region_id].getVersion(sysname).polygons.forEach((polygon: Polygon) => {
         if (!this.config.dont_draw.includes(polygon.id)) {
           polygons_to_draw.push({
             region_id: region_id,
@@ -1354,17 +1351,11 @@ export default class CartMap {
         return 1
       }
 
-      if (p1.elevated && p2.elevated) {
-        return 0
-      }
-
       if (!p1.elevated && p2.elevated) {
         return -1
       }
 
-      if (!p1.elevated && !p2.elevated) {
-        return 0
-      }
+      return 0
     })
 
     var group = canvas.selectAll().data(polygons_to_draw).enter().append('path')
@@ -1377,16 +1368,22 @@ export default class CartMap {
         */
       .attr(
         'class',
-        (d) => 'area' + ' path-' + element_id + '-' + d.region_id + (d.value === 'NA' ? '-na' : '')
+        (d) =>
+          'area' +
+          ' path-' +
+          element_id +
+          '-' +
+          d.region_id +
+          (d.value.toString() === 'NA' ? '-na' : '')
       )
       /* NA regions are filled with white */
-      .attr('fill', (d) => (d.value === 'NA' ? '#CCCCCC' : d.color))
+      .attr('fill', (d) => (d.value.toString() === 'NA' ? '#CCCCCC' : d.color))
       .attr('stroke', '#000')
       .attr('stroke-width', '0.5')
       .on(
         'mouseenter',
         (function (map, where_drawn) {
-          return function (event: MouseEvent, d: PolygonToDraw) {
+          return function (event: MouseEvent, d: any) {
             CartMap.highlightByID(where_drawn, d.region_id, d.color, true)
             map.drawTooltip(event, d.region_id)
           }
@@ -1395,7 +1392,7 @@ export default class CartMap {
       .on(
         'mousemove',
         (function (map) {
-          return function (event: MouseEvent, d: PolygonToDraw) {
+          return function (event: MouseEvent, d: any) {
             map.drawTooltip(event, d.region_id)
           }
         })(this)
@@ -1515,13 +1512,12 @@ export default class CartMap {
    * @param {string} element_id The ID of the element containing the map
    */
   switchVersion(current_sysname: string, new_sysname: string, element_id: string) {
-    Object.keys(this.regions).forEach(function (region_id) {
-      var region = this.regions[region_id]
+    Object.keys(this.regions).forEach((region_id) => {
+      var newRegionVersion = this.regions[region_id].versions[new_sysname]
 
-      this.regions[region_id].versions[current_sysname].polygons.forEach(function (
-        polygon: Polygon
-      ) {
-        // const targetPath = this.regions[region_id].versions[new_sysname].polygons.find(poly => poly.id == polygon.id).path;
+      this.regions[region_id].versions[current_sysname].polygons.forEach((polygon: Polygon) => {
+        const newPolygon = newRegionVersion.polygons.find((poly) => poly.id === polygon.id)
+        const targetPath = newPolygon?.path || polygon.path
         // console.log(targetPath);
 
         d3.select('#path-' + element_id + '-' + polygon.id)
@@ -1529,48 +1525,37 @@ export default class CartMap {
           .transition()
           .ease(d3.easeCubic)
           .duration(1000)
-          .attr(
-            'd',
-            this.regions[region_id].versions[new_sysname].polygons.find(
-              (poly: Polygon) => poly.id == polygon.id
-            ).path
-          )
-
+          .attr('d', targetPath)
         /* Change the color and ensure correct highlighting behavior after animation
                  is complete
               */
-        window.setTimeout(
-          function () {
-            if (this.regions[region_id].versions[new_sysname].value === 'NA') {
-              document
-                .getElementById('path-' + element_id + '-' + polygon.id)
-                .setAttribute('fill', '#cccccc')
-
-              document
-                .getElementById('path-' + element_id + '-' + polygon.id)
-                .classList.remove('path-' + element_id + '-' + region_id)
-              document
-                .getElementById('path-' + element_id + '-' + polygon.id)
-                .classList.add('path-' + element_id + '-' + region_id + '-na')
-            } else {
-              document
-                .getElementById('path-' + element_id + '-' + polygon.id)
-                .setAttribute('fill', this.colors[region_id])
-              document
-                .getElementById('path-' + element_id + '-' + polygon.id)
-                .classList.add('path-' + element_id + '-' + region_id)
-              document
-                .getElementById('path-' + element_id + '-' + polygon.id)
-                .classList.remove('path-' + element_id + '-' + region_id + '-na')
-            }
-          }.bind(this),
-          800
-        )
-      },
-      this)
+        window.setTimeout(() => {
+          if (newRegionVersion.value.toString() === 'NA') {
+            document
+              .getElementById('path-' + element_id + '-' + polygon.id)!
+              .setAttribute('fill', '#cccccc')
+            document
+              .getElementById('path-' + element_id + '-' + polygon.id)!
+              .classList.remove('path-' + element_id + '-' + region_id)
+            document
+              .getElementById('path-' + element_id + '-' + polygon.id)!
+              .classList.add('path-' + element_id + '-' + region_id + '-na')
+          } else {
+            document
+              .getElementById('path-' + element_id + '-' + polygon.id)!
+              .setAttribute('fill', this.colors[region_id])
+            document
+              .getElementById('path-' + element_id + '-' + polygon.id)!
+              .classList.add('path-' + element_id + '-' + region_id)
+            document
+              .getElementById('path-' + element_id + '-' + polygon.id)!
+              .classList.remove('path-' + element_id + '-' + region_id + '-na')
+          }
+        }, 800)
+      }, this)
     }, this)
 
-    let selectedLegendType = document.getElementById(element_id + '-legend').dataset.legendType
+    let selectedLegendType = document.getElementById(element_id + '-legend')!.dataset.legendType
 
     if (selectedLegendType == 'static') {
       this.drawLegend(new_sysname, element_id + '-legend', current_sysname)

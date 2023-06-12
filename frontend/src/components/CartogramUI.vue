@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import Cartogram from '../lib/cartogram.js'
+import Cartogram from '../lib/cartogram'
 
 import { MapVersionData, MapDataFormat, MapVersion } from '@/lib/mapVersion'
 import type { Region } from '@/lib/region'
@@ -36,13 +36,7 @@ const state = reactive({
   current_map: null
 })
 
-var cartogram = new Cartogram(
-  '/cartogram',
-  '/cartogramui',
-  '/static/cartdata',
-  '/getprogress',
-  'devel'
-)
+var cartogram = new Cartogram('/static/cartdata')
 
 const cartogramDownloadEl = ref()
 
@@ -98,21 +92,20 @@ function switchMap(
   sharing_key: string | null = null
 ) {
   cartogram.switchMap(sysname, hrname, mappack, mapVersionData, sharing_key)
-  state.versions = cartogram.model.map.versions
+  state.versions = cartogram.model.map?.versions || {}
 }
 
-function switchVersion(version) {
-  cartogram.model.map.switchVersion(state.current_sysname, version, 'cartogram-area')
+function switchVersion(version: string) {
+  cartogram.model.map?.switchVersion(state.current_sysname, version, 'cartogram-area')
   state.current_sysname = version
 }
 
 function getRegions(): { [key: string]: Region } {
-  // = mappack.original.features
-  return cartogram.model.map.regions
+  return cartogram.model.map?.regions || {}
 }
 
 function getVersions(): { [key: string]: MapVersion } {
-  return cartogram.model.map.versions
+  return cartogram.model.map?.versions || {}
 }
 
 defineExpose({
@@ -162,7 +155,7 @@ defineExpose({
                 v-on:click="
                   cartogramDownloadEl.generateSVGDownloadLinks(
                     'map-area',
-                    JSON.stringify(cartogram.model.map.getVersionGeoJSON('1-conventional'))
+                    JSON.stringify(cartogram.model.map?.getVersionGeoJSON('1-conventional'))
                   )
                 "
                 data-bs-toggle="modal"
@@ -230,7 +223,7 @@ defineExpose({
                 v-on:click="
                   cartogramDownloadEl.generateSVGDownloadLinks(
                     'cartogram-area',
-                    JSON.stringify(cartogram.model.map.getVersionGeoJSON(state.current_sysname))
+                    JSON.stringify(cartogram.model.map?.getVersionGeoJSON(state.current_sysname))
                   )
                 "
                 data-bs-toggle="modal"

@@ -20,7 +20,7 @@ async function processFile() {
   form_data.append('handler', props.sysname)
   if (!csvInput.value || !csvInput.value.files) return
 
-  var input_data_file = csvInput.value.files[0]
+  var input_data_file: any = csvInput.value.files[0]
   if (!input_data_file) return
 
   // if input file is xls/xlsx file
@@ -39,7 +39,7 @@ async function processFile() {
 <template>
   <button
     class="btn btn-primary ms-2"
-    v-on:click="csvInput.click()"
+    v-on:click="csvInput?.click()"
     id="upload-button"
     title="Upload data"
   >
