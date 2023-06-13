@@ -23,17 +23,17 @@ export default class CartMap {
   /**
    * The map colors. The keys are region IDs.
    */
-  colors: { [key: string]: string }
+  colors: { [key: string]: string } = {}
 
   /**
    * The map versions. The keys are version sysnames.
    */
-  versions: { [key: string]: MapVersion }
+  versions: { [key: string]: MapVersion } = {}
 
   /**
    * The map regions. The keys are region IDs.
    */
-  regions: { [key: string]: Region }
+  regions: { [key: string]: Region } = {}
 
   /**
    * The max width of the map across versions.
@@ -44,6 +44,12 @@ export default class CartMap {
    * The max height of the map across versions.
    */
   max_height = 0.0
+
+  // Transformation
+  angle = 0
+  position = [0, 0]
+  size = [1, 1]
+  stretch = [1, 1]
 
   /**
    * constructor creates a new instance of the Map class
@@ -57,9 +63,6 @@ export default class CartMap {
       elevate: config.elevate.map((id) => id.toString()),
       scale: scale
     }
-    this.colors = {}
-    this.versions = {}
-    this.regions = {}
   }
 
   getVersionGeoJSON(sysname: string) {
@@ -1211,11 +1214,6 @@ export default class CartMap {
     var version_width = this.versions[sysname].dimension.x
     var version_height = this.versions[sysname].dimension.y
 
-    // status of the square
-    let angle = 0, // (A)
-      position = [0, 0], // (B)
-      size = [1, 1] // (C)
-
     // status of the pointer(s)
     let pointerangle: number | boolean, // (A)
       pointerposition: [number, number] | null, // (B)
@@ -1231,83 +1229,70 @@ export default class CartMap {
       .append('svg')
       .attr('id', element_id + '-svg')
       .attr('viewBox', '0 0 ' + this.max_width + ' ' + this.max_height)
+      .append('g')
+
+    if (element_id === 'cartogram-area') {
       // https://observablehq.com/@d3/multitouch
-      .on(
-        'mousedown touchstart',
-        (function (map) {
-          return function (event: any) {
-            event.preventDefault()
-            const t = d3.pointers(event, map)
-            pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
-            pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
-            pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
-
-            //map.style.cursor = 'grabbing' // (F)
-            //map.update(pointerangle)
-          }
-        })(this)
-      )
-      .on(
-        'mouseup touchend',
-        (function (map) {
-          return function (event: any) {
-            pointerposition = null // signals mouse up for (D) and (E)
-            // map.style.cursor = 'grab'
-            // map.update(pointerangle)
-          }
-        })(this)
-      )
-      .on(
-        'mousemove touchmove',
-        (function (map) {
-          return function (event: any) {
-            //map.update(event)
-            if (!pointerposition) return // mousemove with the mouse up
-
-            const t = d3.pointers(event, map)
-
-            // (A)
-            position[0] -= pointerposition[0]
-            position[1] -= pointerposition[1]
-            pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0]
-            position[0] += pointerposition[0]
-            position[1] += pointerposition[1]
-
-            if (t.length > 1) {
-              // (B)
-              if (pointerangle && typeof pointerangle === 'number') {
-                angle -= pointerangle
-                pointerangle = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
-                angle += pointerangle
-              }
-              // (C)
-              if (pointerdistance && typeof pointerdistance === 'number') {
-                size[0] /= pointerdistance
-                size[1] /= pointerdistance
-                pointerdistance = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
-                size[0] *= pointerdistance
-                size[1] *= pointerdistance
-              }
+      canvas
+        .on(
+          'mousedown touchstart',
+          (function (map) {
+            return function (event: any) {
+              event.preventDefault()
+              const t = d3.pointers(event, map)
+              pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
+              pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
+              pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
+              //map.style.cursor = 'grabbing' // (F)
             }
+          })(this)
+        )
+        .on(
+          'mouseup touchend',
+          (function (map) {
+            return function (event: any) {
+              pointerposition = null // signals mouse up for (D) and (E)
+              // map.style.cursor = 'grab'
+            }
+          })(this)
+        )
+        .on(
+          'mousemove touchmove',
+          (function (map) {
+            return function (event: any) {
+              //map.update(event)
+              if (!pointerposition) return // mousemove with the mouse up
 
-            // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
-            canvas.attr(
-              'transform',
-              'translate(' +
-                position[0] +
-                ' ' +
-                position[1] +
-                ') scale(' +
-                size[0] +
-                ' ' +
-                size[1] +
-                ') rotate(' +
-                angle * (180 / Math.PI) +
-                ')'
-            )
-          }
-        })(this)
-      )
+              const t = d3.pointers(event, map)
+
+              // (A)
+              map.position[0] -= pointerposition[0]
+              map.position[1] -= pointerposition[1]
+              pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0]
+              map.position[0] += pointerposition[0]
+              map.position[1] += pointerposition[1]
+
+              if (t.length > 1) {
+                // (B)
+                if (pointerangle && typeof pointerangle === 'number') {
+                  map.angle -= pointerangle
+                  pointerangle = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
+                  map.angle += pointerangle
+                }
+                // (C)
+                if (pointerdistance && typeof pointerdistance === 'number') {
+                  map.size[0] /= pointerdistance
+                  map.size[1] /= pointerdistance
+                  pointerdistance = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
+                  map.size[0] *= pointerdistance
+                  map.size[1] *= pointerdistance
+                }
+              }
+
+              map.transformVersion()
+            }
+          })(this)
+        )
       // .on("wheel", function(event) {
       //   // (D) and (E), pointerposition also tracks mouse down/up
       //   if (pointerposition) {
@@ -1318,7 +1303,7 @@ export default class CartMap {
       //   this.update(event);
       //   event.preventDefault();
       // })
-      .append('g')
+    }
 
     var polygons_to_draw: Array<{
       region_id: string
@@ -1384,7 +1369,7 @@ export default class CartMap {
         'mouseenter',
         (function (map, where_drawn) {
           return function (event: MouseEvent, d: any) {
-            CartMap.highlightByID(where_drawn, d.region_id, d.color, true)
+            //CartMap.highlightByID(where_drawn, d.region_id, d.color, true)
             map.drawTooltip(event, d.region_id)
           }
         })(this, where_drawn)
@@ -1401,7 +1386,7 @@ export default class CartMap {
         'mouseleave',
         (function (map, where_drawn) {
           return function (d: PolygonToDraw) {
-            CartMap.highlightByID(where_drawn, d.region_id, d.color, false)
+            //CartMap.highlightByID(where_drawn, d.region_id, d.color, false)
             Tooltip.hide()
           }
         })(this, where_drawn)
@@ -1503,6 +1488,37 @@ export default class CartMap {
           .attr('stroke', '#000')
       }
     }
+  }
+
+  transformVersion() {
+    d3.select('#cartogram-area-svg g')
+      // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
+      .attr(
+        'transform',
+        'translate(' +
+          this.position[0] +
+          ' ' +
+          this.position[1] +
+          ') scale(' +
+          this.size[0] +
+          ' ' +
+          this.size[1] +
+          ') rotate(' +
+          this.angle * (180 / Math.PI) +
+          ') scale(' +
+          this.stretch[0] +
+          ' ' +
+          this.stretch[1] +
+          ')'
+      )
+  }
+
+  transformReset() {
+    this.angle = 0
+    this.position = [0, 0]
+    this.size = [1, 1]
+    this.stretch = [1, 1]
+    this.transformVersion()
   }
 
   /**

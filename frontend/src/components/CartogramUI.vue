@@ -211,6 +211,30 @@ defineExpose({
             />
           </div>
 
+          <div v-if="typeof cartogram.model.map !== 'undefined'">
+            <button
+              v-on:click="() => {cartogram.model.map!.stretch[0] += 0.1; cartogram.model.map!.transformVersion()}"
+            >
+              x+
+            </button>
+            <button
+              v-on:click="() => {cartogram.model.map!.stretch[0] -= 0.1; cartogram.model.map!.transformVersion()}"
+            >
+              x-
+            </button>
+            <button
+              v-on:click="() => {cartogram.model.map!.stretch[1] += 0.1; cartogram.model.map!.transformVersion()}"
+            >
+              y+
+            </button>
+            <button
+              v-on:click="() => {cartogram.model.map!.stretch[1] -= 0.1; cartogram.model.map!.transformVersion()}"
+            >
+              y-
+            </button>
+            <button v-on:click="() => {cartogram.model.map!.transformReset()}">reset</button>
+          </div>
+
           <div class="d-flex my-2">
             <p style="color: white; cursor: pointer" class="d-inline-block">
               <a class="btn btn-primary btn-customise" id="cartogram-customise">Customise</a>
