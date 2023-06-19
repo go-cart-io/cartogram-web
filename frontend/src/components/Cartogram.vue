@@ -169,11 +169,10 @@ function clearEditing() {
 </script>
 
 <template>
-  <nav class="navbar bg-light mb-2">
+  <nav class="navbar bg-light p-0">
     <div class="w-100 d-flex align-items-end">
-      <div class="p-2">
-        <img
-          v-if="mode === 'embed'"
+      <div class="p-2" v-if="mode === 'embed'">
+        <img          
           src="/static/img/gocart_final.svg"
           width="100"
           alt="go-cart.io logo"
@@ -181,7 +180,7 @@ function clearEditing() {
       </div>
 
       <div v-if="mode !== 'embed'" class="p-2" style="max-width: 30%">
-        <label for="handler">Map:</label>
+        <!--label for="handler">Map:</label-->
         <div class="d-flex">
           <select
             class="form-select"
@@ -204,7 +203,7 @@ function clearEditing() {
       </div>
 
       <div class="p-2">
-        <label for="versionSelection">Data:</label>
+        <!--label for="versionSelection">Data:</label-->
         <div class="d-flex">
           <!-- Version selection -->
           <select
@@ -261,6 +260,27 @@ function clearEditing() {
               <i class="far fa-edit"></i>
             </button>
           </div>
+
+          <div class="dropdown ms-2">
+            <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-cog"></i>
+            </button>
+            <div class="dropdown-menu p-2">
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="gridline-toggle-cartogram">
+                <label class="form-check-label" for="gridline-toggle-cartogram">
+                  Show Grid Lines
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="legend-toggle-cartogram">
+                <label class="form-check-label" for="legend-toggle-cartogram">
+                  Resizable Legend
+                </label>
+              </div>
+            </div>
+          </div>          
         </div>
       </div>
     </div>
@@ -269,7 +289,7 @@ function clearEditing() {
     ref="progressBarEl"
     v-on:change="(isLoading: boolean) => (state.isLoading = isLoading)"
   />
-  <div v-if="!state.isLoading && state.isLoaded" class="container-fluid">
+  <div v-if="!state.isLoading && state.isLoaded" class="d-flex flex-fill p-2">
     <div id="error" v-if="state.error">
       <p style="font-weight: bold">
         Error: <span style="font-weight: normal" id="error-message"></span>
@@ -286,23 +306,20 @@ function clearEditing() {
       </div>
     </div>
 
-    <div v-if="state.currentComponent === 'chart'">
-      <CartogramChart
-        ref="cartogramChartEl"
-        v-on:confirm="getGeneratedCartogram"
-        v-on:cancel="clearEditing"
-      />
-    </div>
-    <div v-else>
-      <CartogramUI
-        ref="cartogramUIEl"
-        v-bind:handler="selectedHandler"
-        v-bind:mappack="mappack"
-        v-bind:cartogram_data="cartogram_data"
-        v-bind:cartogramui_data="cartogramui_data"
-        v-bind:mode="props.mode"
-        v-bind:scale="props.scale"
-      />
-    </div>
+    <CartogramChart v-if="state.currentComponent === 'chart'"
+      ref="cartogramChartEl"
+      v-on:confirm="getGeneratedCartogram"
+      v-on:cancel="clearEditing"
+    />
+
+    <CartogramUI v-else
+      ref="cartogramUIEl"
+      v-bind:handler="selectedHandler"
+      v-bind:mappack="mappack"
+      v-bind:cartogram_data="cartogram_data"
+      v-bind:cartogramui_data="cartogramui_data"
+      v-bind:mode="props.mode"
+      v-bind:scale="props.scale"
+    />
   </div>
 </template>

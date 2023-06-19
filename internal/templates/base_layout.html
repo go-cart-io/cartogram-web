@@ -40,7 +40,7 @@
   <nav class="navbar navbar-expand-md bg-dark">
     <div class="container-fluid">
       <a class="navbar-brand" href="/">
-        <img src="{{ url_for('static', filename='img/gocart_final.svg') }}" width="100" alt="go-cart.io logo" />
+        <img src="{{ url_for('static', filename='img/gocart_final.svg') }}" width="75" alt="go-cart.io logo" />
       </a>
       <button class="navbar-toggler navbar-dark" type="button" data-bs-toggle="collapse"
         data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
@@ -75,14 +75,10 @@
 
   {% block content %}{% endblock %}
 
-  <footer class="container-fluid text-secondary">
-    <p>&copy; Michael T. Gastner<br />
-      <a href="http://michaelgastner.com/">michaelgastner.com</a><br />
-      Yale-NUS College, Division of Science <br />
-      16 College Avenue West, <br />
-      #01-220 Singapore 138527
-    </p>
-  </footer>
+  <div class="container-fluid text-secondary">
+    &copy; Michael T. Gastner 
+    <a href="http://michaelgastner.com/">michaelgastner.com</a>
+  </div>
 
   {% if tracking.action == "demand_consent" %}
 

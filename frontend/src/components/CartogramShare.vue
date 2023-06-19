@@ -48,7 +48,9 @@ defineExpose({
 
 <template>
   <!-- Button trigger modal -->
-  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#shareModal">Share</button>
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#shareModal">
+    <i class="fas fa-share-alt"></i>
+  </button>
 
   <!-- Modal -->
   <div
