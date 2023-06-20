@@ -116,9 +116,9 @@ defineExpose({
 })
 </script>
 
-<template>  
+<template>
   <div id="cartogram" class="d-flex flex-fill card-group">
-    <div class="card d-none d-sm-flex">      
+    <div class="card d-none d-sm-flex">
       <div class="d-flex flex-column card-body">
         <div id="map-area" class="flex-fill" data-grid-visibility="off"></div>
         <svg
@@ -132,7 +132,8 @@ defineExpose({
       <div class="card-footer">
         Equal-Area Map
         <span class="float-end">
-          <button v-if="mode !== 'embed'"
+          <button
+            v-if="mode !== 'embed'"
             class="btn btn-primary"
             id="map-download"
             v-on:click="
@@ -144,53 +145,56 @@ defineExpose({
             data-bs-toggle="modal"
             data-bs-target="#downloadModal"
           >
-          <i class="fas fa-download"></i>
+            <i class="fas fa-download"></i>
           </button>
         </span>
       </div>
     </div>
 
-    <div class="card" id="cartogram-container"> 
-      <div class="d-flex flex-column card-body">   
+    <div class="card" id="cartogram-container">
+      <div class="d-flex flex-column card-body">
         <div class="flex-fill">
-          <div v-if="typeof cartogram.model.map !== 'undefined'" class="z-3 position-relative float-end">
-              <button
-                v-on:click="() => {cartogram.model.map!.stretch[0] += 0.1; cartogram.model.map!.transformVersion()}"
-              >
-                x+
-              </button>
-              <button
-                v-on:click="() => {cartogram.model.map!.stretch[0] -= 0.1; cartogram.model.map!.transformVersion()}"
-              >
-                x-
-              </button>
-              <button
-                v-on:click="() => {cartogram.model.map!.stretch[1] += 0.1; cartogram.model.map!.transformVersion()}"
-              >
-                y+
-              </button>
-              <button
-                v-on:click="() => {cartogram.model.map!.stretch[1] -= 0.1; cartogram.model.map!.transformVersion()}"
-              >
-                y-
-              </button>
-              <button v-on:click="() => {cartogram.model.map!.transformReset()}">reset</button>
-            </div> 
-          <div id="cartogram-area" class="w-100 h-100" data-grid-visibility="off">          
+          <div
+            v-if="typeof cartogram.model.map !== 'undefined'"
+            class="z-3 position-relative float-end"
+          >
+            <button
+              v-on:click="() => {cartogram.model.map!.stretch[0] += 0.1; cartogram.model.map!.transformVersion()}"
+            >
+              x+
+            </button>
+            <button
+              v-on:click="() => {cartogram.model.map!.stretch[0] -= 0.1; cartogram.model.map!.transformVersion()}"
+            >
+              x-
+            </button>
+            <button
+              v-on:click="() => {cartogram.model.map!.stretch[1] += 0.1; cartogram.model.map!.transformVersion()}"
+            >
+              y+
+            </button>
+            <button
+              v-on:click="() => {cartogram.model.map!.stretch[1] -= 0.1; cartogram.model.map!.transformVersion()}"
+            >
+              y-
+            </button>
+            <button v-on:click="() => {cartogram.model.map!.transformReset()}">reset</button>
           </div>
+          <div id="cartogram-area" class="w-100 h-100" data-grid-visibility="off"></div>
         </div>
         <svg
           width="100%"
           id="cartogram-area-legend"
           data-legend-type="static"
           data-current-grid-path="gridA"
-        ></svg>         
+        ></svg>
       </div>
 
       <div class="card-footer">
         Cartogram
         <span class="float-end">
-          <button v-if="mode !== 'embed'"
+          <button
+            v-if="mode !== 'embed'"
             class="btn btn-primary me-2"
             id="cartogram-download"
             v-on:click="
@@ -204,23 +208,23 @@ defineExpose({
           >
             <i class="fas fa-download"></i>
           </button>
-          <CartogramShare v-if="mode !== 'embed'"
+          <CartogramShare
+            v-if="mode !== 'embed'"
             v-bind:sysname="props.handler"
-            v-bind:key="
-              props.cartogramui_data ? props.cartogramui_data.unique_sharing_key : null
-            "
+            v-bind:key="props.cartogramui_data ? props.cartogramui_data.unique_sharing_key : null"
           />
         </span>
       </div>
     </div>
 
     <p id="tooltip" style="display: none">&nbsp;</p>
-    <CartogramDownload ref="cartogramDownloadEl" />  
-  </div>  
+    <CartogramDownload ref="cartogramDownloadEl" />
+  </div>
 </template>
 
 <style>
-#map-area, #cartogram-area {  
+#map-area,
+#cartogram-area {
   position: relative;
 }
 
@@ -228,7 +232,7 @@ defineExpose({
 #cartogram-area-svg {
   position: absolute;
   width: 100%;
-  max-height: 100%;
+  height: 100%;
   min-height: 100px;
 }
 

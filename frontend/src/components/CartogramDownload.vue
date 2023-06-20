@@ -20,11 +20,12 @@ function generateSVGDownloadLinks(area: string, geojson: any) {
   // Add SVG xml namespace to SVG element, so that the file can be opened with any web browser.
   mapAreaSVG.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
 
-  // Increase height of SVG to accommodate legend and total.
-  const mapHeight = parseFloat(mapAreaSVG.getAttribute('height')!)
-  mapAreaSVG.setAttribute('height', (mapHeight + 100).toString())
-
   let legendSVG = document.getElementById(area + '-legend')!.cloneNode(true) as HTMLElement
+
+  // Increase height of SVG to accommodate legend and total.
+  const mapHeight = mapAreaSVG.viewBox.baseVal.height || 100
+  const legendHeight = legendSVG.clientHeight || 100
+  mapAreaSVG.viewBox.baseVal.height = mapHeight + legendHeight
 
   // Iterate legend SVG's text elements and add font attribute.
   for (let i = 0; i < legendSVG.getElementsByTagName('text').length; i++) {
@@ -46,6 +47,7 @@ function generateSVGDownloadLinks(area: string, geojson: any) {
     'data:image/svg+xml;base64,' +
     window.btoa(svg_header + mapArea.innerHTML.replace(/×/g, '&#xD7;'))
   svgLinkEl.download = 'map.svg'
+  console.log(svgLinkEl)
 
   let geoJsonLinkEl = document.getElementById('download-modal-geojson-link')! as HTMLAnchorElement
   geoJsonLinkEl.href = 'data:application/json;base64,' + window.btoa(geojson)
@@ -81,8 +83,8 @@ defineExpose({
         <div class="modal-body">
           <p class="lead text-center">Download</p>
           <p class="text-center mb-5">
-            <button id="download-modal-svg-link" class="btn btn-lg btn-primary mx-3">SVG</button>
-            <button id="download-modal-geojson-link" class="btn btn-lg btn-primary">GeoJSON</button>
+            <a id="download-modal-svg-link" class="btn btn-lg btn-primary mx-3">SVG</a>
+            <a id="download-modal-geojson-link" class="btn btn-lg btn-primary">GeoJSON</a>
           </p>
           <Citation />
         </div>
