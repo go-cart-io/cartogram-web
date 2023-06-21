@@ -42,140 +42,42 @@ export default class Cartogram {
   }
 
   /**
-   * downloadTemplateFile allows download of both CSV and Excel files
-   * @param {string} sysname The sysname of the new version to be displayed
-   */
-  // async downloadTemplateFile(sysname: string) {
-  //   if (!document.getElementById('csv-template-link')) return
-
-  //   let templateLinkEl = document.getElementById('csv-template-link')! as HTMLAnchorElement
-  //   templateLinkEl.href = this.cartogram_data_dir + '/' + sysname + '/template.csv'
-  //   templateLinkEl.download = sysname + '_template.csv'
-  //   var csv_file_promise = HTTP.get(
-  //     this.cartogram_data_dir + '/' + sysname + '/template.csv',
-  //     null,
-  //     null,
-  //     false
-  //   )
-  //   var csv_file = await csv_file_promise.then(function (response) {
-  //     return response
-  //   })
-
-  //   // convert the csv file to json for easy convertion to excel file
-  //   var lines = csv_file.split('\n')
-  //   var json_file = []
-  //   var headers = lines[0].split(',')
-  //   for (var i = 1; i < lines.length - 1; i++) {
-  //     var obj = {}
-  //     var currentline = lines[i].split(',')
-  //     for (var j = 0; j < headers.length; j++) {
-  //       obj[headers[j]] = currentline[j]
-  //     }
-  //     json_file.push(obj)
-  //   }
-
-  //   // convert the json_file to excel file
-  //   const fileName = sysname + '_template.xlsx'
-  //   const ws = XLSX.utils.json_to_sheet(json_file)
-  //   const wb = XLSX.utils.book_new()
-  //   XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
-  //   document.getElementById('xlsx-template-link').onclick = function () {
-  //     XLSX.writeFile(wb, fileName)
-  //   }
-  // }
-
-  /**
    * displayCustomisePopup displays the customise popup on click on the customise button and controls the functionality of the checkboxes
    * @param {string} sysname The sysname of the new version to be displayed
    */
 
-  displayCustomisePopup(sysname: string) {
+  addConfigListener(sysname: string) {
     if (!this.model.map) return
 
-    // Toggle the display of customise popup
-    d3.select('#map-customise').on('click', function () {
-      let element = document.getElementById('map-customise-popup')!
-      let style = window.getComputedStyle(element)
-      let display = style.getPropertyValue('display')
-      if (display == 'block') {
-        document.getElementById('map-customise-popup')!.style.display = 'none'
-        document.getElementById('map-customise')!.style.backgroundColor = '#d76126'
-        document.getElementById('map-customise')!.style.borderColor = '#d76126'
-      } else if (display === 'none') {
-        document.getElementById('map-customise-popup')!.style.display = 'block'
-        document.getElementById('map-customise')!.style.backgroundColor = '#b75220'
-        document.getElementById('map-customise')!.style.borderColor = '#ab4e1f'
-      }
-    })
-
-    d3.select('#cartogram-customise').on('click', function () {
-      let element = document.getElementById('cartogram-customise-popup')!
-      let style = window.getComputedStyle(element)
-      let display = style.getPropertyValue('display')
-      if (display == 'block') {
-        document.getElementById('cartogram-customise-popup')!.style.display = 'none'
-        document.getElementById('cartogram-customise')!.style.backgroundColor = '#d76126'
-        document.getElementById('cartogram-customise')!.style.borderColor = '#d76126'
-      } else if (display === 'none') {
-        document.getElementById('cartogram-customise-popup')!.style.display = 'block'
-        document.getElementById('cartogram-customise')!.style.backgroundColor = '#b75220'
-        document.getElementById('cartogram-customise')!.style.borderColor = '#ab4e1f'
-      }
-    })
-
     // Toggle the gridline visibility
-
-    d3.select('#gridline-toggle-map').on('change', function () {
-      if (d3.select('#gridline-toggle-map').property('checked')) {
-        d3.select('#map-area-grid')
+    d3.select('#gridline-toggle-cartogram').on('change', function () {
+      if (d3.select('#gridline-toggle-cartogram').property('checked')) {
+        d3.selectAll('#map-area-grid, #cartogram-area-grid')
           .transition()
           .ease(d3.easeCubic)
           .duration(500)
           .attr('stroke-opacity', 0.4)
         document.getElementById('map-area')!.dataset.gridVisibility = 'on'
+        document.getElementById('cartogram-area')!.dataset.gridVisibility = 'on'
       } else {
-        d3.select('#map-area-grid')
+        d3.selectAll('#map-area-grid, #cartogram-area-grid')
           .transition()
           .ease(d3.easeCubic)
           .duration(500)
           .attr('stroke-opacity', 0)
         document.getElementById('map-area')!.dataset.gridVisibility = 'off'
-      }
-    })
-
-    d3.select('#gridline-toggle-cartogram').on('change', function () {
-      if (d3.select('#gridline-toggle-cartogram').property('checked')) {
-        d3.select('#cartogram-area-grid')
-          .transition()
-          .ease(d3.easeCubic)
-          .duration(500)
-          .attr('stroke-opacity', 0.4)
-        document.getElementById('cartogram-area')!.dataset.gridVisibility = 'on'
-      } else {
-        d3.select('#cartogram-area-grid')
-          .transition()
-          .ease(d3.easeCubic)
-          .duration(500)
-          .attr('stroke-opacity', 0)
         document.getElementById('cartogram-area')!.dataset.gridVisibility = 'off'
       }
     })
 
     // Toggle legend between static and resizable
-
     d3.select('#legend-toggle-cartogram').on('change', () => {
       if (d3.select('#legend-toggle-cartogram').property('checked')) {
+        this.model.map!.drawResizableLegend('1-conventional', 'map-area-legend')
         this.model.map!.drawResizableLegend(sysname, 'cartogram-area-legend')
       } else {
-        this.model.map!.drawLegend(sysname, 'cartogram-area-legend')
-      }
-    })
-
-    d3.select('#legend-toggle-map').on('change', () => {
-      if (d3.select('#legend-toggle-map').property('checked')) {
-        this.model.map!.drawResizableLegend('1-conventional', 'map-area-legend')
-      } else {
         this.model.map!.drawLegend('1-conventional', 'map-area-legend')
+        this.model.map!.drawLegend(sysname, 'cartogram-area-legend')
       }
     })
   }
@@ -414,7 +316,7 @@ export default class Cartogram {
     this.model.map = map
 
     // this.downloadTemplateFile(sysname)
-    this.displayCustomisePopup(this.model.current_sysname)
+    this.addConfigListener(this.model.current_sysname)
 
     let selectedLegendTypeMap = document.getElementById('map-area-legend')!.dataset.legendType
     let selectedLegendTypeCartogram =

@@ -1231,79 +1231,77 @@ export default class CartMap {
       .attr('viewBox', '0 0 ' + this.max_width + ' ' + this.max_height)
       .append('g')
 
-    if (element_id === 'cartogram-area') {
-      // https://observablehq.com/@d3/multitouch
-      canvas
-        .on(
-          'mousedown touchstart',
-          (function (map) {
-            return function (event: any) {
-              event.preventDefault()
-              const t = d3.pointers(event, map)
-              pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
-              pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
-              pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
-              //map.style.cursor = 'grabbing' // (F)
-            }
-          })(this)
-        )
-        .on(
-          'mouseup touchend',
-          (function (map) {
-            return function (event: any) {
-              pointerposition = null // signals mouse up for (D) and (E)
-              // map.style.cursor = 'grab'
-            }
-          })(this)
-        )
-        .on(
-          'mousemove touchmove',
-          (function (map) {
-            return function (event: any) {
-              //map.update(event)
-              if (!pointerposition) return // mousemove with the mouse up
+    // https://observablehq.com/@d3/multitouch
+    canvas
+      .on(
+        'mousedown touchstart',
+        (function (map) {
+          return function (event: any) {
+            event.preventDefault()
+            const t = d3.pointers(event, map)
+            pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
+            pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
+            pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
+            //map.style.cursor = 'grabbing' // (F)
+          }
+        })(this)
+      )
+      .on(
+        'mouseup touchend',
+        (function (map) {
+          return function (event: any) {
+            pointerposition = null // signals mouse up for (D) and (E)
+            // map.style.cursor = 'grab'
+          }
+        })(this)
+      )
+      .on(
+        'mousemove touchmove',
+        (function (map) {
+          return function (event: any) {
+            //map.update(event)
+            if (!pointerposition) return // mousemove with the mouse up
 
-              const t = d3.pointers(event, map)
+            const t = d3.pointers(event, map)
 
-              // (A)
-              map.position[0] -= pointerposition[0]
-              map.position[1] -= pointerposition[1]
-              pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0]
-              map.position[0] += pointerposition[0]
-              map.position[1] += pointerposition[1]
+            // (A)
+            map.position[0] -= pointerposition[0]
+            map.position[1] -= pointerposition[1]
+            pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0]
+            map.position[0] += pointerposition[0]
+            map.position[1] += pointerposition[1]
 
-              if (t.length > 1) {
-                // (B)
-                if (pointerangle && typeof pointerangle === 'number') {
-                  map.angle -= pointerangle
-                  pointerangle = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
-                  map.angle += pointerangle
-                }
-                // (C)
-                if (pointerdistance && typeof pointerdistance === 'number') {
-                  map.size[0] /= pointerdistance
-                  map.size[1] /= pointerdistance
-                  pointerdistance = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
-                  map.size[0] *= pointerdistance
-                  map.size[1] *= pointerdistance
-                }
+            if (t.length > 1) {
+              // (B)
+              if (pointerangle && typeof pointerangle === 'number') {
+                map.angle -= pointerangle
+                pointerangle = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
+                map.angle += pointerangle
               }
-
-              map.transformVersion()
+              // (C)
+              if (pointerdistance && typeof pointerdistance === 'number') {
+                map.size[0] /= pointerdistance
+                map.size[1] /= pointerdistance
+                pointerdistance = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
+                map.size[0] *= pointerdistance
+                map.size[1] *= pointerdistance
+              }
             }
-          })(this)
-        )
-      // .on("wheel", function(event) {
-      //   // (D) and (E), pointerposition also tracks mouse down/up
-      //   if (pointerposition) {
-      //     angle += event.wheelDelta / 1000;
-      //   } else {
-      //     size *= 1 + event.wheelDelta / 1000;
-      //   }
-      //   this.update(event);
-      //   event.preventDefault();
-      // })
-    }
+
+            map.transformVersion()
+          }
+        })(this)
+      )
+    // .on("wheel", function(event) {
+    //   // (D) and (E), pointerposition also tracks mouse down/up
+    //   if (pointerposition) {
+    //     angle += event.wheelDelta / 1000;
+    //   } else {
+    //     size *= 1 + event.wheelDelta / 1000;
+    //   }
+    //   this.update(event);
+    //   event.preventDefault();
+    // })
 
     var polygons_to_draw: Array<{
       region_id: string
@@ -1491,7 +1489,7 @@ export default class CartMap {
   }
 
   transformVersion() {
-    d3.select('#cartogram-area-svg g')
+    d3.selectAll('#map-area-svg g, #cartogram-area-svg g')
       // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
       .attr(
         'transform',
