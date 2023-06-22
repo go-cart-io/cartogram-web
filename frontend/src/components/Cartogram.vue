@@ -26,6 +26,8 @@ const state = reactive({
   currentComponent: 'map',
   isLoading: true,
   isLoaded: false,
+  isGridVisible: false,
+  isLegendResizable: false,
   error: '',
   selectedVersion: '2-population'
 })
@@ -172,11 +174,7 @@ function clearEditing() {
   <nav class="navbar bg-light p-0">
     <div class="w-100 d-flex align-items-end">
       <div class="p-2" v-if="mode === 'embed'">
-        <img          
-          src="/static/img/gocart_final.svg"
-          width="100"
-          alt="go-cart.io logo"
-        />
+        <img src="/static/img/gocart_final.svg" width="100" alt="go-cart.io logo" />
       </div>
 
       <div v-if="mode !== 'embed'" class="p-2" style="max-width: 30%">
@@ -262,25 +260,40 @@ function clearEditing() {
           </div>
 
           <div class="dropdown ms-2">
-            <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <button
+              class="btn btn-primary dropdown-toggle"
+              type="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
               <i class="fas fa-cog"></i>
             </button>
             <div class="dropdown-menu p-2">
               <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="gridline-toggle-cartogram">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  id="gridline-toggle-cartogram"
+                  v-model="state.isGridVisible"
+                />
                 <label class="form-check-label" for="gridline-toggle-cartogram">
                   Show Grid Lines
                 </label>
               </div>
 
               <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="legend-toggle-cartogram">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  id="legend-toggle-cartogram"
+                  v-model="state.isLegendResizable"
+                />
                 <label class="form-check-label" for="legend-toggle-cartogram">
                   Resizable Legend
                 </label>
               </div>
             </div>
-          </div>          
+          </div>
         </div>
       </div>
     </div>
@@ -306,13 +319,15 @@ function clearEditing() {
       </div>
     </div>
 
-    <CartogramChart v-if="state.currentComponent === 'chart'"
+    <CartogramChart
+      v-if="state.currentComponent === 'chart'"
       ref="cartogramChartEl"
       v-on:confirm="getGeneratedCartogram"
       v-on:cancel="clearEditing"
     />
 
-    <CartogramUI v-else
+    <CartogramUI
+      v-else
       ref="cartogramUIEl"
       v-bind:handler="selectedHandler"
       v-bind:mappack="mappack"
@@ -320,6 +335,8 @@ function clearEditing() {
       v-bind:cartogramui_data="cartogramui_data"
       v-bind:mode="props.mode"
       v-bind:scale="props.scale"
+      v-bind:isGridVisible="state.isGridVisible"
+      v-bind:isLegendResizable="state.isLegendResizable"
     />
   </div>
 </template>

@@ -5,12 +5,9 @@
  */
 
 import * as d3 from 'd3'
-// import * as XLSX from 'xlsx/xlsx.mjs'
 
-import HTTP from './http.js'
 import { MapVersionData, MapDataFormat } from './mapVersion.js'
 import CartMap from './cartMap.js'
-import * as util from './util.js'
 import type { Mappack } from './interface.js'
 
 /**
@@ -41,46 +38,6 @@ export default class Cartogram {
     this.scale = scale
   }
 
-  /**
-   * displayCustomisePopup displays the customise popup on click on the customise button and controls the functionality of the checkboxes
-   * @param {string} sysname The sysname of the new version to be displayed
-   */
-
-  addConfigListener(sysname: string) {
-    if (!this.model.map) return
-
-    // Toggle the gridline visibility
-    d3.select('#gridline-toggle-cartogram').on('change', function () {
-      if (d3.select('#gridline-toggle-cartogram').property('checked')) {
-        d3.selectAll('#map-area-grid, #cartogram-area-grid')
-          .transition()
-          .ease(d3.easeCubic)
-          .duration(500)
-          .attr('stroke-opacity', 0.4)
-        document.getElementById('map-area')!.dataset.gridVisibility = 'on'
-        document.getElementById('cartogram-area')!.dataset.gridVisibility = 'on'
-      } else {
-        d3.selectAll('#map-area-grid, #cartogram-area-grid')
-          .transition()
-          .ease(d3.easeCubic)
-          .duration(500)
-          .attr('stroke-opacity', 0)
-        document.getElementById('map-area')!.dataset.gridVisibility = 'off'
-        document.getElementById('cartogram-area')!.dataset.gridVisibility = 'off'
-      }
-    })
-
-    // Toggle legend between static and resizable
-    d3.select('#legend-toggle-cartogram').on('change', () => {
-      if (d3.select('#legend-toggle-cartogram').property('checked')) {
-        this.model.map!.drawResizableLegend('1-conventional', 'map-area-legend')
-        this.model.map!.drawResizableLegend(sysname, 'cartogram-area-legend')
-      } else {
-        this.model.map!.drawLegend('1-conventional', 'map-area-legend')
-        this.model.map!.drawLegend(sysname, 'cartogram-area-legend')
-      }
-    })
-  }
   /**
    * requestAndDrawCartogram generates and displays a cartogram with a user-provided dataset. Always returns false to
    * prevent form submission.
@@ -314,30 +271,5 @@ export default class Cartogram {
     }
 
     this.model.map = map
-
-    // this.downloadTemplateFile(sysname)
-    this.addConfigListener(this.model.current_sysname)
-
-    let selectedLegendTypeMap = document.getElementById('map-area-legend')!.dataset.legendType
-    let selectedLegendTypeCartogram =
-      document.getElementById('cartogram-area-legend')!.dataset.legendType
-
-    if (selectedLegendTypeMap == 'static') {
-      this.model.map.drawLegend('1-conventional', 'map-area-legend', null, true)
-    } else {
-      this.model.map.drawResizableLegend('1-conventional', 'map-area-legend')
-    }
-
-    if (selectedLegendTypeCartogram == 'static') {
-      this.model.map.drawLegend(this.model.current_sysname, 'cartogram-area-legend', null, true)
-    } else {
-      this.model.map.drawResizableLegend(this.model.current_sysname, 'cartogram-area-legend')
-    }
-
-    // The following line draws the conventional legend when the page first loads.
-    this.model.map.drawGridLines('1-conventional', 'map-area')
-    this.model.map.drawGridLines(this.model.current_sysname, 'cartogram-area')
-
-    document.getElementById('cartogram')!.style.display = 'block'
   }
 }

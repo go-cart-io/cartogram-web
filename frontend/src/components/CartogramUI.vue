@@ -5,6 +5,7 @@ import Cartogram from '../lib/cartogram'
 import { MapVersionData, MapDataFormat, MapVersion } from '@/lib/mapVersion'
 import type { Region } from '@/lib/region'
 import type CartMap from '@/lib/cartMap'
+import CartogramLegend from './CartogramLegend.vue'
 import CartogramDownload from './CartogramDownload.vue'
 import CartogramShare from './CartogramShare.vue'
 
@@ -16,6 +17,8 @@ const props = withDefaults(
     mappack: any
     mode?: string | null
     scale?: number | null
+    isGridVisible?: boolean
+    isLegendResizable?: boolean
   }>(),
   {
     handler: 'usa',
@@ -24,20 +27,14 @@ const props = withDefaults(
   }
 )
 
-interface state {
-  versions: { [key: string]: MapVersion }
-  current_sysname: string
-  current_map: CartMap | null
-}
-
 const state = reactive({
-  versions: {},
-  current_sysname: '2-population',
-  current_map: null
+  current_sysname: '2-population' as string
 })
 
 var cartogram = new Cartogram('/static/cartdata')
 
+const mapLegendEl = ref()
+const cartogramLegendEl = ref()
 const cartogramDownloadEl = ref()
 
 onMounted(() => {
@@ -92,7 +89,20 @@ function switchMap(
   sharing_key: string | null = null
 ) {
   cartogram.switchMap(sysname, hrname, mappack, mapVersionData, sharing_key)
-  state.versions = cartogram.model.map?.versions || {}
+  mapLegendEl.value.update(
+    cartogram.model.map,
+    '1-conventional',
+    'map-area-legend',
+    cartogram.model.map?.max_width,
+    cartogram.model.map?.max_height
+  )
+  cartogramLegendEl.value.update(
+    cartogram.model.map,
+    cartogram.model.current_sysname,
+    'cartogram-area-legend',
+    cartogram.model.map?.max_width,
+    cartogram.model.map?.max_height
+  )
 }
 
 function switchVersion(version: string) {
@@ -121,12 +131,12 @@ defineExpose({
     <div class="card d-none d-sm-flex">
       <div class="d-flex flex-column card-body">
         <div id="map-area" class="flex-fill" data-grid-visibility="off"></div>
-        <svg
-          width="100%"
-          id="map-area-legend"
-          data-legend-type="static"
-          data-current-grid-path="gridA"
-        ></svg>
+        <CartogramLegend
+          ref="mapLegendEl"
+          mapID="map-area"
+          v-bind:isGridVisible="props.isGridVisible"
+          v-bind:isLegendResizable="props.isLegendResizable"
+        />
       </div>
 
       <div class="card-footer">
@@ -182,12 +192,12 @@ defineExpose({
           </div>
           <div id="cartogram-area" class="w-100 h-100" data-grid-visibility="off"></div>
         </div>
-        <svg
-          width="100%"
-          id="cartogram-area-legend"
-          data-legend-type="static"
-          data-current-grid-path="gridA"
-        ></svg>
+        <CartogramLegend
+          ref="cartogramLegendEl"
+          mapID="cartogram-area"
+          v-bind:isGridVisible="props.isGridVisible"
+          v-bind:isLegendResizable="props.isLegendResizable"
+        />
       </div>
 
       <div class="card-footer">
