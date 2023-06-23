@@ -130,7 +130,15 @@ defineExpose({
   <div id="cartogram" class="d-flex flex-fill card-group">
     <div class="card d-none d-sm-flex">
       <div class="d-flex flex-column card-body">
-        <div id="map-area" class="flex-fill" data-grid-visibility="off"></div>
+        <svg id="map-area" class="flex-fill" data-grid-visibility="off">
+          <defs>
+            <pattern id="map-area-grid" patternUnits="userSpaceOnUse">
+              <path fill="none" stroke="#5A5A5A" stroke-width="2" stroke-opacity="0.4"></path>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#map-area-grid)"></rect>
+          <svg id="map-area-svg"></svg>
+        </svg>
         <CartogramLegend
           ref="mapLegendEl"
           mapID="map-area"
@@ -164,10 +172,7 @@ defineExpose({
     <div class="card" id="cartogram-container">
       <div class="d-flex flex-column card-body">
         <div class="flex-fill">
-          <div
-            v-if="typeof cartogram.model.map !== 'undefined'"
-            class="z-3 position-relative float-end"
-          >
+          <div v-if="typeof cartogram.model.map !== 'undefined'" class="z-3 position-absolute">
             <button
               v-on:click="() => {cartogram.model.map!.stretch[0] += 0.1; cartogram.model.map!.transformVersion()}"
             >
@@ -190,7 +195,15 @@ defineExpose({
             </button>
             <button v-on:click="() => {cartogram.model.map!.transformReset()}">reset</button>
           </div>
-          <div id="cartogram-area" class="w-100 h-100" data-grid-visibility="off"></div>
+          <svg id="cartogram-area" class="w-100 h-100" data-grid-visibility="off">
+            <defs>
+              <pattern id="cartogram-area-grid" patternUnits="userSpaceOnUse">
+                <path fill="none" stroke="#5A5A5A" stroke-width="2" stroke-opacity="0.4"></path>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#cartogram-area-grid)"></rect>
+            <svg id="cartogram-area-svg"></svg>
+          </svg>
         </div>
         <CartogramLegend
           ref="cartogramLegendEl"
@@ -244,6 +257,7 @@ defineExpose({
   width: 100%;
   height: 100%;
   min-height: 100px;
+  mix-blend-mode: multiply;
 }
 
 #map-area-svg g,

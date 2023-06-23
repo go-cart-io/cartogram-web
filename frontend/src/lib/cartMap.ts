@@ -352,7 +352,7 @@ export default class CartMap {
    * @param {Array<string>} where_drawn The elements of the IDs where versions of this map are and will be drawn (including the current element_id). Used for parallel highlighting
    */
   drawVersion(sysname: string, element_id: string, where_drawn: Array<string>) {
-    var map_container = document.getElementById(element_id)
+    var map_container = document.getElementById(element_id + '-svg')
     var version = this.versions[sysname]
     var version_width = this.versions[sysname].dimension.x
     var version_height = this.versions[sysname].dimension.y
@@ -368,9 +368,7 @@ export default class CartMap {
     }
 
     var canvas = d3
-      .select('#' + element_id)
-      .append('svg')
-      .attr('id', element_id + '-svg')
+      .select('#' + element_id + '-svg')
       .attr('viewBox', '0 0 ' + this.max_width + ' ' + this.max_height)
       .append('g')
 

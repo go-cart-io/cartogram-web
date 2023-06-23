@@ -8,6 +8,8 @@ var legendSVGID: string
 var version: MapVersion
 var versionArea: number
 var versionTotalValue: number
+const locale =
+  navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language
 
 const props = withDefaults(
   defineProps<{
@@ -33,19 +35,12 @@ const state = reactive({
 watch(
   () => props.isGridVisible,
   (type, prevType) => {
-    if (props.isGridVisible) {
-      d3.selectAll('#map-area-grid, #cartogram-area-grid')
-        .transition()
-        .ease(d3.easeCubic)
-        .duration(500)
-        .attr('stroke-opacity', 0.4)
-    } else {
-      d3.selectAll('#map-area-grid, #cartogram-area-grid')
-        .transition()
-        .ease(d3.easeCubic)
-        .duration(500)
-        .attr('stroke-opacity', 0)
-    }
+    let opacity = props.isGridVisible ? 0.4 : 0
+    d3.selectAll('#map-area-grid path, #cartogram-area-grid path')
+      .transition()
+      .ease(d3.easeCubic)
+      .duration(500)
+      .attr('stroke-opacity', opacity)
   }
 )
 
@@ -153,7 +148,7 @@ function drawLegend(old_sysname: string | null = null, change_map: boolean = fal
 
   const totalScalePowerOfTen = Math.floor(Math.log10(versionTotalValue))
   const totalNiceNumber = versionTotalValue / Math.pow(10, totalScalePowerOfTen)
-  state.legendTotal = formatLegendText(totalNiceNumber, totalScalePowerOfTen, 3)
+  state.legendTotal = formatLegendText(totalNiceNumber, totalScalePowerOfTen)
 
   // Verify if legend is accurate
   //verifyLegend(sysname, width, scaleNiceNumber * Math.pow(10, scalePowerOf10))
@@ -178,9 +173,6 @@ function drawResizableLegend(old_sysname: string | null = null) {
   const scaleNiceNumberA = version.legendData.gridData.gridA.scaleNiceNumber || 0
   const scaleNiceNumberB = version.legendData.gridData.gridB.scaleNiceNumber || 0
   const scaleNiceNumberC = version.legendData.gridData.gridC.scaleNiceNumber || 0
-  const gridA = version.legendData.gridData.gridA.gridPath
-  const gridB = version.legendData.gridData.gridB.gridPath
-  const gridC = version.legendData.gridData.gridC.gridPath
   // We get currently selected grid path (i.e. whether "gridA", "gridB", or "gridC") and type of legend
   // Get legend width data of previous version/ previous static legend
   let transitionWidthA
@@ -260,7 +252,7 @@ function drawResizableLegend(old_sysname: string | null = null) {
 
   const totalScalePowerOfTen = Math.floor(Math.log10(versionTotalValue))
   const totalNiceNumber = versionTotalValue / Math.pow(10, totalScalePowerOfTen)
-  state.legendTotal = formatLegendText(totalNiceNumber, totalScalePowerOfTen, 3)
+  state.legendTotal = formatLegendText(totalNiceNumber, totalScalePowerOfTen)
 
   // Event for when a different legend size is selected.
   const changeToC = () => {
@@ -269,12 +261,8 @@ function drawResizableLegend(old_sysname: string | null = null) {
     d3.select('#' + legendSVGID + 'C').attr('fill', '#FFFFFF')
     d3.select('#' + legendSVGID + 'B').attr('fill', '#FFFFFF')
     d3.select('#' + legendSVGID + 'A').attr('fill', '#FFFFFF')
-    state.legendUnit = formatLegendText(scaleNiceNumberC, scalePowerOf10, 0, true)
-
-    d3.select('#' + props.mapID + '-grid')
-      .transition()
-      .duration(1000)
-      .attr('d', gridC)
+    state.legendUnit = formatLegendText(scaleNiceNumberC, scalePowerOf10, true)
+    updateGridLines(widthC)
   }
   const changeToB = () => {
     // Update currentGridPath in SVG Data
@@ -282,12 +270,8 @@ function drawResizableLegend(old_sysname: string | null = null) {
     d3.select('#' + legendSVGID + 'C').attr('fill', '#EEEEEE')
     d3.select('#' + legendSVGID + 'B').attr('fill', '#FFFFFF')
     d3.select('#' + legendSVGID + 'A').attr('fill', '#FFFFFF')
-    state.legendUnit = formatLegendText(scaleNiceNumberB, scalePowerOf10, 0, true)
-
-    d3.select('#' + props.mapID + '-grid')
-      .transition()
-      .duration(1000)
-      .attr('d', gridB)
+    state.legendUnit = formatLegendText(scaleNiceNumberB, scalePowerOf10, true)
+    updateGridLines(widthB)
   }
   const changeToA = () => {
     // Update currentGridPath in SVG Data
@@ -295,12 +279,8 @@ function drawResizableLegend(old_sysname: string | null = null) {
     d3.select('#' + legendSVGID + 'C').attr('fill', '#EEEEEE')
     d3.select('#' + legendSVGID + 'B').attr('fill', '#EEEEEE')
     d3.select('#' + legendSVGID + 'A').attr('fill', '#FFFFFF')
-    state.legendUnit = formatLegendText(scaleNiceNumberA, scalePowerOf10, 0, true)
-
-    d3.select('#' + props.mapID + '-grid')
-      .transition()
-      .duration(1000)
-      .attr('d', gridA)
+    state.legendUnit = formatLegendText(scaleNiceNumberA, scalePowerOf10, true)
+    updateGridLines(widthA)
   }
 
   //Update colors of the legend
@@ -426,9 +406,6 @@ function getLegendData(sysname: string) {
   widthA *= Math.sqrt((scaleNiceNumberA * Math.pow(10, scalePowerOf10)) / valuePerSquare)
   widthB *= Math.sqrt((scaleNiceNumberB * Math.pow(10, scalePowerOf10)) / valuePerSquare)
   widthC *= Math.sqrt((scaleNiceNumberC * Math.pow(10, scalePowerOf10)) / valuePerSquare)
-  const gridPathA = getGridPath(widthA, state.mapWidth, state.mapHeight)
-  const gridPathB = getGridPath(widthB, state.mapWidth, state.mapHeight)
-  const gridPathC = getGridPath(widthC, state.mapWidth, state.mapHeight)
   // Store legend Information
   version.legendData.gridData.gridA.width = widthA
   version.legendData.gridData.gridB.width = widthB
@@ -436,55 +413,22 @@ function getLegendData(sysname: string) {
   version.legendData.gridData.gridA.scaleNiceNumber = scaleNiceNumberA
   version.legendData.gridData.gridB.scaleNiceNumber = scaleNiceNumberB
   version.legendData.gridData.gridC.scaleNiceNumber = scaleNiceNumberC
-  version.legendData.gridData.gridA.gridPath = gridPathA
-  version.legendData.gridData.gridB.gridPath = gridPathB
-  version.legendData.gridData.gridC.gridPath = gridPathC
   version.legendData.scalePowerOf10 = scalePowerOf10
   version.legendData.unit = state.unit
   version.legendData.versionTotalValue = versionTotalValue
 }
 
-function formatLegendText(
-  value: number,
-  scalePowerOf10: number,
-  precision: number = 0,
-  showMultiplier = false
-) {
-  let unitNumber = 0
-  let magnitute = ''
-  let multiplier = ''
-
-  const largeNumberNames: { [key: number]: string } = { 6: 'million', 9: 'billion' }
-  if (scalePowerOf10 > -4 && scalePowerOf10 < 12) {
-    if (scalePowerOf10 in largeNumberNames) {
-      unitNumber = value
-      magnitute = largeNumberNames[scalePowerOf10]
-    } else if (scalePowerOf10 > 9) {
-      unitNumber = value * Math.pow(10, scalePowerOf10 - 9)
-      magnitute = 'billion'
-    } else if (scalePowerOf10 > 6) {
-      unitNumber = value * Math.pow(10, scalePowerOf10 - 6)
-      magnitute = 'million'
-    } else {
-      unitNumber = value * Math.pow(10, scalePowerOf10)
-      magnitute = ''
-    }
-
-    multiplier = Math.pow(10, scalePowerOf10).toLocaleString()
-  } else {
-    // If scalePowerOf10 is too extreme, we use scientific notation
-    unitNumber = value
-    magnitute = ' &#xD7; 10<sup>' + scalePowerOf10 + '</sup>'
-  }
+function formatLegendText(value: number, scalePowerOf10: number, showMultiplier = false) {
+  let originalValue = value * Math.pow(10, scalePowerOf10)
+  const formatter = Intl.NumberFormat(locale, {
+    notation: 'compact',
+    compactDisplay: 'short'
+  })
 
   let formated = ''
-  if (showMultiplier) formated += ' &#xd7; ' + multiplier + ' = '
-
-  if (precision > 0) formated += unitNumber.toPrecision(precision) + ' '
-  else formated += unitNumber.toLocaleString() + ' '
-
-  formated += magnitute + ' '
-  formated += state.unit
+  if (showMultiplier)
+    formated += ' &#xd7; ' + formatter.format(Math.pow(10, scalePowerOf10)) + ' = '
+  formated += formatter.format(originalValue) + ' ' + state.unit
 
   return formated
 }
@@ -511,58 +455,23 @@ function verifyLegend(sysname: string, squareWidth: number, valuePerSquare: numb
   // }
 }
 
-/**
- * getGridPath generates an SVG path for grid lines
- * @param {number} gridWidth
- * @param {number} width
- * @param {number} height
- */
-function getGridPath(gridWidth: number, width: number, height: number) {
-  let gridPath = ''
-
-  // Vertical lines
-  for (let i = 0; i < 30; i++) {
-    gridPath += 'M' + (20 + gridWidth * i) + ' -30 L' + (20 + gridWidth * i) + ' ' + height + ' '
-  }
-
-  // Horizontal Lines
-  for (let j = 1; j <= 30; j++) {
-    gridPath +=
-      'M0 ' + (height - gridWidth * j) + ' L' + width + ' ' + (height - gridWidth * j) + ' '
-  }
-
-  return gridPath
-}
-
 function drawGridLines() {
-  const gridPath = version.legendData['gridData'][state.currentGridPath]['gridPath']
-
-  const mapSVG = d3.select('#' + props.mapID + '-svg')
-  let gridSVGID = props.mapID + '-grid'
-  mapSVG.selectAll('#' + gridSVGID).remove() // Remove existing grid
-
+  const gridWidth = version.legendData['gridData'][state.currentGridPath]['width']
   let stroke_opacity = props.isGridVisible ? 0.4 : 0
 
-  // The previous grid path from which we want to transition from
-  let transitionGridPath = null
+  d3.select('#' + props.mapID + '-grid')
+    .attr('width', gridWidth)
+    .attr('height', gridWidth)
 
-  // if (old_sysname != null) {
-  //   transitionGridPath =
-  //     this.versions[old_sysname].legendData['gridData'][state.currentGridPath]['gridPath']
-  // }
-
-  mapSVG
-    .append('path')
-    .attr('id', gridSVGID)
+  d3.select('#' + props.mapID + '-grid path')
     .attr('stroke-opacity', stroke_opacity)
-    .attr('d', transitionGridPath)
-    .transition()
-    .ease(d3.easeCubic)
-    .duration(1000)
-    .attr('d', gridPath)
-    .attr('fill', 'none')
-    .attr('stroke', '#5A5A5A')
-    .attr('stroke-width', '2px')
+    .attr('d', 'M ' + gridWidth + ' 0 L 0 0 0 ' + gridWidth)
+}
+
+function updateGridLines(gridWidth: number) {
+  const gridPattern = d3.select('#' + props.mapID + '-grid')
+  gridPattern.transition().duration(1000).attr('width', gridWidth).attr('height', gridWidth)
+  gridPattern.select('path').attr('d', 'M ' + gridWidth * 2 + ' 0 L 0 0 0 ' + gridWidth * 2) // *2 for pretty transition when resize grid
 }
 </script>
 

@@ -248,7 +248,6 @@ export class MapVersion {
       [key: string]: {
         width: number | null
         scaleNiceNumber: number | null
-        gridPath: string | null
       }
     }
     scalePowerOf10: number | null
@@ -278,9 +277,9 @@ export class MapVersion {
     // legendData stores legend and gridline information of the map version.
     this.legendData = {
       gridData: {
-        gridA: { width: null, scaleNiceNumber: null, gridPath: null },
-        gridB: { width: null, scaleNiceNumber: null, gridPath: null },
-        gridC: { width: null, scaleNiceNumber: null, gridPath: null }
+        gridA: { width: null, scaleNiceNumber: null },
+        gridB: { width: null, scaleNiceNumber: null },
+        gridC: { width: null, scaleNiceNumber: null }
       },
       scalePowerOf10: null,
       unit: null,
