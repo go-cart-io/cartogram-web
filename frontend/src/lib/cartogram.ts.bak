@@ -6,7 +6,7 @@
 
 import * as d3 from 'd3'
 
-import { MapVersionData, MapDataFormat } from './mapVersion.js'
+import { MapVersionData, MapDataFormat, MapVersion } from './mapVersion.js'
 import CartMap from './cartMap.js'
 import type { Mappack } from './interface.js'
 
@@ -156,102 +156,25 @@ export default class Cartogram {
     sharing_key: string | null = null
   ) {
     var map = new CartMap(hrname, mappack.config, this.scale)
-
-    /* We check if the map is a world map by searching for the 'extent' key in mappack.original.
-               We then pass a boolean to the MapVersionData constructor.
-             */
-    let world = false
-    if ('extent' in mappack.original) {
-      world = mappack.original.extent === 'world'
-    }
-
-    /* We need to find out the map format. If the extrema is located in the bbox property, then we have
-               GeoJSON. Otherwise, we have the old JSON format.
-            */
-
-    if (mappack.original.hasOwnProperty('bbox')) {
-      var extrema = {
-        min_x: mappack.original.bbox[0],
-        min_y: mappack.original.bbox[1],
-        max_x: mappack.original.bbox[2],
-        max_y: mappack.original.bbox[3]
-      }
-
-      map.addVersion(
-        '1-conventional',
-        new MapVersionData(
-          mappack.original.features,
-          extrema,
-          mappack.original.tooltip,
-          mappack.abbreviations,
-          mappack.labels,
-          MapDataFormat.GEOJSON,
-          world
-        ),
-        '1-conventional'
-      )
-    } else {
-      map.addVersion(
-        '1-conventional',
-        new MapVersionData(
-          mappack.original.features,
-          mappack.original.extrema,
-          mappack.original.tooltip,
-          mappack.abbreviations,
-          mappack.labels,
-          MapDataFormat.GOCARTJSON,
-          world
-        ),
-        '1-conventional'
-      )
-    }
-
-    if (mappack.population.hasOwnProperty('bbox')) {
-      var extrema = {
-        min_x: mappack.population.bbox[0],
-        min_y: mappack.population.bbox[1],
-        max_x: mappack.population.bbox[2],
-        max_y: mappack.population.bbox[3]
-      }
-
-      map.addVersion(
-        '2-population',
-        new MapVersionData(
-          mappack.population.features,
-          extrema,
-          mappack.population.tooltip,
-          null,
-          null,
-          MapDataFormat.GEOJSON,
-          world
-        ),
-        '1-conventional'
-      )
-    } else {
-      map.addVersion(
-        '2-population',
-        new MapVersionData(
-          mappack.population.features,
-          mappack.population.extrema,
-          mappack.population.tooltip,
-          null,
-          null,
-          MapDataFormat.GOCARTJSON,
-          world
-        ),
-        '1-conventional'
-      )
-    }
-
+    map.addVersion(
+      '1-conventional',
+      MapVersionData.mapVersionDataFromMappack(mappack, mappack.original),
+      '1-conventional'
+    )
+    map.addVersion(
+      '2-population',
+      MapVersionData.mapVersionDataFromMappack(mappack, mappack.original),
+      '1-conventional'
+    )
     if (cartogram !== null) {
       map.addVersion('3-cartogram', cartogram, '1-conventional')
     }
 
     /*
-            The keys in the colors.json file are prefixed with id_. We iterate through the regions and extract the color
-            information from colors.json to produce a color map where the IDs are plain region IDs, as required by
-            CartMap.
-            */
+      The keys in the colors.json file are prefixed with id_. We iterate through the regions and extract the color
+      information from colors.json to produce a color map where the IDs are plain region IDs, as required by
+      CartMap.
+      */
     var colors: { [key: string]: string } = {}
 
     Object.keys(map.regions).forEach(function (region_id) {

@@ -10,6 +10,7 @@ import CartogramEdit from './CartogramEdit.vue'
 import ProgressBar from './ProgressBar.vue'
 import type { Mappack } from '@/lib/interface'
 import { Region } from '@/lib/region'
+import type { MapVersion } from '@/lib/mapVersion'
 
 const CONFIG = { version: 'devel' }
 
@@ -26,10 +27,11 @@ const state = reactive({
   currentComponent: 'map',
   isLoading: true,
   isLoaded: false,
-  isGridVisible: false,
+  isGridVisible: true,
   isLegendResizable: false,
   error: '',
-  selectedVersion: '2-population'
+  selectedVersion: '2-population',
+  versions: {} as { [key: string]: any }
 })
 
 // Form values
@@ -44,7 +46,6 @@ var cartogram_data: any = null
 var cartogramui_data: any = null
 var mappack: Mappack | null = null
 var regions: { [key: string]: Region } | null = null
-var sharing_key: string | null = null
 
 onMounted(async () => {
   cartogram_data = props.cartogram_data
@@ -53,6 +54,7 @@ onMounted(async () => {
   state.isLoaded = true // to prevent rendering map without mappack
   await nextTick()
   regions = cartogramUIEl.value.getRegions()
+  state.versions = cartogramUIEl.value.getVersions()
 })
 
 /**
@@ -78,8 +80,10 @@ async function getMapPack() {
 
 async function switchMap() {
   await getMapPack()
-  cartogramUIEl.value.switchMap(selectedHandler, '', mappack)
+  cartogramUIEl.value.switchMap(mappack)
   regions = cartogramUIEl.value.getRegions()
+  state.versions = cartogramUIEl.value.getVersions()
+  state.selectedVersion = '2-population'
 }
 
 function confirmData(cartogramui_promise: Promise<any>) {
@@ -108,7 +112,6 @@ async function getGeneratedCartogram() {
   var areas_string = cartogramResponse.areas_string
   var unique_sharing_key = cartogramResponse.unique_sharing_key
   mappack.colors = cartogramResponse.color_data
-  sharing_key = unique_sharing_key
 
   var res = await new Promise(function (resolve, reject) {
     var req_body = HTTP.serializePostVariables({
@@ -162,6 +165,7 @@ async function getGeneratedCartogram() {
   state.selectedVersion = '3-cartogram'
   await nextTick()
   cartogramResponse = null
+  state.versions = cartogramUIEl.value.getVersions()
 }
 
 function clearEditing() {
@@ -205,6 +209,7 @@ function clearEditing() {
         <div class="d-flex">
           <!-- Version selection -->
           <select
+            v-if="cartogramUIEl"
             style="cursor: pointer"
             class="form-select d-sm-block d-md-none"
             :disabled="!cartogramUIEl"
@@ -214,20 +219,24 @@ function clearEditing() {
           >
             <option
               v-if="cartogramUIEl"
-              v-for="(version, index) in cartogramUIEl.getVersions()"
+              v-for="(version, index) in state.versions"
               v-bind:value="index"
             >
               {{ version.name }}
             </option>
           </select>
 
-          <div class="btn-group d-none d-md-flex" role="group" aria-label="Data">
+          <div
+            v-if="cartogramUIEl"
+            class="btn-group d-none d-md-flex"
+            role="group"
+            aria-label="Data"
+          >
             <button
+              v-for="(version, index) in state.versions"
               type="button"
               class="btn btn-outline-primary"
               v-bind:class="{ active: state.selectedVersion === index.toString() }"
-              v-if="cartogramUIEl"
-              v-for="(version, index) in cartogramUIEl.getVersions()"
               v-on:click="
                 () => {
                   state.selectedVersion = index.toString()
@@ -238,7 +247,6 @@ function clearEditing() {
               {{ version.name }}
               <i class="fas fa-check" v-if="state.selectedVersion === index.toString()"></i>
             </button>
-            <button v-else type="button" class="btn btn-primary disabled">loading...</button>
           </div>
 
           <!-- Menu -->
@@ -265,6 +273,7 @@ function clearEditing() {
               type="button"
               data-bs-toggle="dropdown"
               aria-expanded="false"
+              title="Customization"
             >
               <i class="fas fa-cog"></i>
             </button>
@@ -276,9 +285,7 @@ function clearEditing() {
                   id="gridline-toggle-cartogram"
                   v-model="state.isGridVisible"
                 />
-                <label class="form-check-label" for="gridline-toggle-cartogram">
-                  Show Grid Lines
-                </label>
+                <label class="form-check-label" for="gridline-toggle-cartogram">Grid Lines</label>
               </div>
 
               <div class="form-check">

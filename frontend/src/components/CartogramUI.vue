@@ -1,22 +1,27 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import Cartogram from '../lib/cartogram'
 
 import { MapVersionData, MapDataFormat, MapVersion } from '@/lib/mapVersion'
 import type { Region } from '@/lib/region'
-import type CartMap from '@/lib/cartMap'
+import CartMap from '@/lib/cartMap'
 import CartogramLegend from './CartogramLegend.vue'
 import CartogramDownload from './CartogramDownload.vue'
 import CartogramShare from './CartogramShare.vue'
+import type { Mappack } from '@/lib/interface'
+
+var map: CartMap
+const mapLegendEl = ref()
+const cartogramLegendEl = ref()
+const cartogramDownloadEl = ref()
 
 const props = withDefaults(
   defineProps<{
     handler?: string
     cartogram_data?: any
     cartogramui_data?: any
-    mappack: any
+    mappack: Mappack | null
     mode?: string | null
-    scale?: number | null
+    scale?: number
     isGridVisible?: boolean
     isLegendResizable?: boolean
   }>(),
@@ -28,94 +33,76 @@ const props = withDefaults(
 )
 
 const state = reactive({
-  current_sysname: '2-population' as string
+  current_sysname: '2-population' as string,
+  isLoading: true
 })
 
-var cartogram = new Cartogram('/static/cartdata')
-
-const mapLegendEl = ref()
-const cartogramLegendEl = ref()
-const cartogramDownloadEl = ref()
-
 onMounted(() => {
+  if (!props.mappack) return
+  console.log(props.mappack)
   if (!props.cartogram_data) {
-    switchMap(props.handler, '', props.mappack)
+    switchMap(props.mappack)
   } else {
-    var extrema
-    var format
-    var world = false
-    if (props.cartogram_data.hasOwnProperty('bbox')) {
-      extrema = {
-        min_x: props.cartogram_data.bbox[0],
-        min_y: props.cartogram_data.bbox[1],
-        max_x: props.cartogram_data.bbox[2],
-        max_y: props.cartogram_data.bbox[3]
-      }
-
-      // We check if the generated cartogram is a world map by detecting the extent key
-      if ('extent' in props.cartogram_data) {
-        world = props.cartogram_data.extent === 'world'
-      }
-      format = MapDataFormat.GEOJSON
-    } else {
-      extrema = props.cartogram_data.extrema
-      format = MapDataFormat.GOCARTJSON
-    }
-
-    var mapVersionData = new MapVersionData(
-      props.cartogram_data.features,
-      extrema,
-      props.cartogramui_data.tooltip,
-      null,
-      null,
-      format,
-      world
-    )
-    switchMap(
-      props.handler,
-      '',
+    props.cartogram_data.tooltip = props.cartogramui_data.tooltip
+    var mapVersionData = MapVersionData.mapVersionDataFromMappack(
       props.mappack,
-      mapVersionData,
-      props.cartogramui_data.unique_sharing_key
+      props.cartogram_data
     )
+    switchMap(props.mappack, mapVersionData)
   }
 })
 
-function switchMap(
-  sysname: string,
-  hrname: string = '',
-  mappack: any,
-  mapVersionData: MapVersionData | null = null,
-  sharing_key: string | null = null
-) {
-  cartogram.switchMap(sysname, hrname, mappack, mapVersionData, sharing_key)
-  mapLegendEl.value.update(
-    cartogram.model.map,
+function switchMap(mappack: Mappack, mapVersionData: MapVersionData | null = null) {
+  state.isLoading = true
+  map = new CartMap(props.handler, mappack.config, props.scale)
+  map.addVersion(
     '1-conventional',
-    'map-area-legend',
-    cartogram.model.map?.max_width,
-    cartogram.model.map?.max_height
+    MapVersionData.mapVersionDataFromMappack(mappack, mappack.original),
+    '1-conventional'
   )
-  cartogramLegendEl.value.update(
-    cartogram.model.map,
-    cartogram.model.current_sysname,
-    'cartogram-area-legend',
-    cartogram.model.map?.max_width,
-    cartogram.model.map?.max_height
+  map.addVersion(
+    '2-population',
+    MapVersionData.mapVersionDataFromMappack(null, mappack.population),
+    '1-conventional'
   )
+  if (mapVersionData !== null) {
+    map.addVersion('3-cartogram', mapVersionData, '1-conventional')
+  }
+
+  /*
+    The keys in the colors.json file are prefixed with id_. We iterate through the regions and extract the color
+    information from colors.json to produce a color map where the IDs are plain region IDs, as required by
+    CartMap.
+    */
+  var colors: { [key: string]: string } = {}
+  Object.keys(map.regions).forEach(function (region_id) {
+    colors[region_id] = mappack.colors['id_' + region_id]
+  })
+  map.colors = colors
+
+  map.drawVersion('1-conventional', 'map-area', ['map-area', 'cartogram-area'])
+
+  if (mapVersionData !== null) {
+    map.drawVersion('3-cartogram', 'cartogram-area', ['map-area', 'cartogram-area'])
+    state.current_sysname = '3-cartogram'
+  } else {
+    map.drawVersion('2-population', 'cartogram-area', ['map-area', 'cartogram-area'])
+    state.current_sysname = '2-population'
+  }
+  state.isLoading = false
 }
 
 function switchVersion(version: string) {
-  cartogram.model.map?.switchVersion(state.current_sysname, version, 'cartogram-area')
+  map?.switchVersion(state.current_sysname, version, 'cartogram-area')
   state.current_sysname = version
 }
 
 function getRegions(): { [key: string]: Region } {
-  return cartogram.model.map?.regions || {}
+  return map?.regions || {}
 }
 
 function getVersions(): { [key: string]: MapVersion } {
-  return cartogram.model.map?.versions || {}
+  return map?.versions || {}
 }
 
 defineExpose({
@@ -140,10 +127,16 @@ defineExpose({
           <svg id="map-area-svg"></svg>
         </svg>
         <CartogramLegend
+          v-if="!state.isLoading"
           ref="mapLegendEl"
           mapID="map-area"
           v-bind:isGridVisible="props.isGridVisible"
           v-bind:isLegendResizable="props.isLegendResizable"
+          v-bind:map="map"
+          sysname="1-conventional"
+          legendID="map-area-legend"
+          v-bind:mapWidth="map?.max_width"
+          v-bind:mapHeight="map?.max_height"
         />
       </div>
 
@@ -157,7 +150,7 @@ defineExpose({
             v-on:click="
               cartogramDownloadEl.generateSVGDownloadLinks(
                 'map-area',
-                JSON.stringify(cartogram.model.map?.getVersionGeoJSON('1-conventional'))
+                JSON.stringify(map?.getVersionGeoJSON('1-conventional'))
               )
             "
             data-bs-toggle="modal"
@@ -172,28 +165,12 @@ defineExpose({
     <div class="card" id="cartogram-container">
       <div class="d-flex flex-column card-body">
         <div class="flex-fill">
-          <div v-if="typeof cartogram.model.map !== 'undefined'" class="z-3 position-absolute">
-            <button
-              v-on:click="() => {cartogram.model.map!.stretch[0] += 0.1; cartogram.model.map!.transformVersion()}"
-            >
-              x+
-            </button>
-            <button
-              v-on:click="() => {cartogram.model.map!.stretch[0] -= 0.1; cartogram.model.map!.transformVersion()}"
-            >
-              x-
-            </button>
-            <button
-              v-on:click="() => {cartogram.model.map!.stretch[1] += 0.1; cartogram.model.map!.transformVersion()}"
-            >
-              y+
-            </button>
-            <button
-              v-on:click="() => {cartogram.model.map!.stretch[1] -= 0.1; cartogram.model.map!.transformVersion()}"
-            >
-              y-
-            </button>
-            <button v-on:click="() => {cartogram.model.map!.transformReset()}">reset</button>
+          <div v-if="typeof map !== 'undefined'" class="z-3 position-absolute">
+            <button v-on:click="() => {map!.stretch[0] += 0.1; map!.transformVersion()}">x+</button>
+            <button v-on:click="() => {map!.stretch[0] -= 0.1; map!.transformVersion()}">x-</button>
+            <button v-on:click="() => {map!.stretch[1] += 0.1; map!.transformVersion()}">y+</button>
+            <button v-on:click="() => {map!.stretch[1] -= 0.1; map!.transformVersion()}">y-</button>
+            <button v-on:click="() => {map!.transformReset()}">reset</button>
           </div>
           <svg id="cartogram-area" class="w-100 h-100" data-grid-visibility="off">
             <defs>
@@ -206,10 +183,16 @@ defineExpose({
           </svg>
         </div>
         <CartogramLegend
+          v-if="!state.isLoading"
           ref="cartogramLegendEl"
           mapID="cartogram-area"
           v-bind:isGridVisible="props.isGridVisible"
           v-bind:isLegendResizable="props.isLegendResizable"
+          v-bind:map="map"
+          v-bind:sysname="state.current_sysname"
+          legendID="cartogram-area-legend"
+          v-bind:mapWidth="map?.max_width"
+          v-bind:mapHeight="map?.max_height"
         />
       </div>
 
@@ -223,7 +206,7 @@ defineExpose({
             v-on:click="
               cartogramDownloadEl.generateSVGDownloadLinks(
                 'cartogram-area',
-                JSON.stringify(cartogram.model.map?.getVersionGeoJSON(state.current_sysname))
+                JSON.stringify(map?.getVersionGeoJSON(state.current_sysname))
               )
             "
             data-bs-toggle="modal"
@@ -234,7 +217,9 @@ defineExpose({
           <CartogramShare
             v-if="mode !== 'embed'"
             v-bind:sysname="props.handler"
-            v-bind:key="props.cartogramui_data ? props.cartogramui_data.unique_sharing_key : null"
+            v-bind:sharing_key="
+              props.cartogramui_data ? props.cartogramui_data.unique_sharing_key : null
+            "
           />
         </span>
       </div>

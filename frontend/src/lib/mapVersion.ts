@@ -1,5 +1,5 @@
 import GallPetersProjection from './projection'
-import type { Extrema, Labels } from './interface'
+import type { Extrema, Labels, Mappack } from './interface'
 
 /**
  * An enum of the supported map data formats.
@@ -231,6 +231,42 @@ export class MapVersionData {
         max_y: projection.transformLatitude(90)
       }
     } else this.extrema = extrema
+  }
+
+  static mapVersionDataFromMappack(mappack: Mappack | null, mappackItem: any): MapVersionData {
+    let extrema
+    let format
+    let world = false
+
+    // We check if the map is a world map by searching for the 'extent' key in mappack.original.
+    // We then pass a boolean to the MapVersionData constructor.
+    if ('extent' in mappackItem) {
+      world = mappackItem.extent === 'world'
+    }
+
+    // We need to find out the map format. If the extrema is located in the bbox property, then we have GeoJSON. Otherwise, we have the old JSON format.
+    if (mappackItem.hasOwnProperty('bbox')) {
+      extrema = {
+        min_x: mappackItem.bbox[0],
+        min_y: mappackItem.bbox[1],
+        max_x: mappackItem.bbox[2],
+        max_y: mappackItem.bbox[3]
+      }
+      format = MapDataFormat.GEOJSON
+    } else {
+      extrema = mappackItem.extrema
+      format = MapDataFormat.GOCARTJSON
+    }
+
+    return new MapVersionData(
+      mappackItem.features,
+      extrema,
+      mappackItem.tooltip,
+      mappack?.abbreviations,
+      mappack?.labels,
+      format,
+      world
+    )
   }
 }
 

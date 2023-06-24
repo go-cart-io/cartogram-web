@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import * as util from '../lib/util'
 import Citation from './Citation.vue'
 
 const props = defineProps<{
-  key?: string | null
+  sharing_key?: string | null
   sysname?: string | null
 }>()
 
@@ -13,7 +13,8 @@ const state = reactive({
 })
 
 const socialURL = computed(() => {
-  if (props.key) return location.protocol + '//' + location.host + '/cart/' + props.key
+  if (props.sharing_key)
+    return location.protocol + '//' + location.host + '/cart/' + props.sharing_key
 
   return location.protocol + '//' + location.host + '/cartogram/' + props.sysname
 })
@@ -24,8 +25,8 @@ const socialURLEncoded = computed(() => {
 
 const embedHTML = computed(() => {
   let embedURL
-  if (props.key) {
-    embedURL = location.protocol + '//' + window.location.host + '/embed/cart/' + props.key
+  if (props.sharing_key) {
+    embedURL = location.protocol + '//' + window.location.host + '/embed/cart/' + props.sharing_key
   } else {
     embedURL = location.protocol + '//' + window.location.host + '/embed/map/' + props.sysname
   }

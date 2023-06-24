@@ -4,8 +4,7 @@ export interface Mappack {
   config: MapConfig
   griddocument: any
   labels: Labels
-  original: any // land area map
-  population: any
+  [key: string]: any // map
 }
 
 /**

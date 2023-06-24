@@ -47,7 +47,6 @@ function generateSVGDownloadLinks(area: string, geojson: any) {
     'data:image/svg+xml;base64,' +
     window.btoa(svg_header + mapArea.innerHTML.replace(/×/g, '&#xD7;'))
   svgLinkEl.download = 'map.svg'
-  console.log(svgLinkEl)
 
   let geoJsonLinkEl = document.getElementById('download-modal-geojson-link')! as HTMLAnchorElement
   geoJsonLinkEl.href = 'data:application/json;base64,' + window.btoa(geojson)

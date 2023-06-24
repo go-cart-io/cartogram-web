@@ -539,6 +539,7 @@ export default class CartMap {
         })(this)
       )
 
+    console.log(version)
     if (version.labels !== null) {
       /* First draw the text */
 

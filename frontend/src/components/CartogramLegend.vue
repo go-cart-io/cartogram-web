@@ -16,6 +16,11 @@ const props = withDefaults(
     mapID: string
     isGridVisible?: boolean
     isLegendResizable?: boolean
+    map: CartMap
+    sysname: string
+    legendID: string
+    mapWidth: number
+    mapHeight: number
   }>(),
   {
     isGridVisible: false,
@@ -55,8 +60,15 @@ watch(
   }
 )
 
-defineExpose({
-  update
+watch(
+  () => props.sysname,
+  (type, prevType) => {
+    update(props.map, props.sysname, props.legendID, props.mapWidth, props.mapHeight)
+  }
+)
+
+onMounted(() => {
+  update(props.map, props.sysname, props.legendID, props.mapWidth, props.mapHeight)
 })
 
 /**
@@ -72,6 +84,7 @@ function update(
   mapWidth: number,
   mapHeight: number
 ) {
+  if (!map) return
   state.mapWidth = mapWidth
   state.mapHeight = mapHeight
   state.unit = Object.values(map.regions)[0].getVersion(sysname).unit
@@ -456,22 +469,18 @@ function verifyLegend(sysname: string, squareWidth: number, valuePerSquare: numb
 }
 
 function drawGridLines() {
-  const gridWidth = version.legendData['gridData'][state.currentGridPath]['width']
-  let stroke_opacity = props.isGridVisible ? 0.4 : 0
-
-  d3.select('#' + props.mapID + '-grid')
-    .attr('width', gridWidth)
-    .attr('height', gridWidth)
-
-  d3.select('#' + props.mapID + '-grid path')
-    .attr('stroke-opacity', stroke_opacity)
-    .attr('d', 'M ' + gridWidth + ' 0 L 0 0 0 ' + gridWidth)
+  const gridWidth = version.legendData['gridData'][state.currentGridPath]['width'] || 20
+  updateGridLines(gridWidth)
 }
 
 function updateGridLines(gridWidth: number) {
+  let stroke_opacity = props.isGridVisible ? 0.4 : 0
   const gridPattern = d3.select('#' + props.mapID + '-grid')
   gridPattern.transition().duration(1000).attr('width', gridWidth).attr('height', gridWidth)
-  gridPattern.select('path').attr('d', 'M ' + gridWidth * 2 + ' 0 L 0 0 0 ' + gridWidth * 2) // *2 for pretty transition when resize grid
+  gridPattern
+    .select('path')
+    .attr('stroke-opacity', stroke_opacity)
+    .attr('d', 'M ' + gridWidth * 2 + ' 0 L 0 0 0 ' + gridWidth * 2) // *2 for pretty transition when resize grid
 }
 </script>
 
