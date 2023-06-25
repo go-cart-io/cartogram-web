@@ -128,13 +128,19 @@ function updateCartogram() {
           <b-table :items="state.items" :fields="state.fields">
             <template v-for="(field, index) in state.fields" v-slot:[`head(${field.key})`]="data">
               <span v-if="!field.headerEditable">{{ data.label }}</span>
-              <b-form-input v-else type="text" v-model="field.label"></b-form-input>
+              <b-form-input
+                v-else
+                type="text"
+                v-bind:id="'input-h-' + field.key"
+                v-model="field.label"
+              ></b-form-input>
             </template>
 
             <template v-for="(field, index) in state.fields" v-slot:[`cell(${field.key})`]="data">
               <span v-if="!field.editable">{{ data.value }}</span>
               <b-form-input
                 v-else
+                v-bind:id="'input-' + data.index + '-' + field.key"
                 v-model="state.items[data.index][field.key]"
                 :type="field.type"
               ></b-form-input>

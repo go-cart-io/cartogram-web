@@ -155,6 +155,7 @@ defineExpose({
             "
             data-bs-toggle="modal"
             data-bs-target="#downloadModal"
+            title="Download map"
           >
             <i class="fas fa-download"></i>
           </button>
@@ -211,6 +212,7 @@ defineExpose({
             "
             data-bs-toggle="modal"
             data-bs-target="#downloadModal"
+            title="Download cartogram"
           >
             <i class="fas fa-download"></i>
           </button>

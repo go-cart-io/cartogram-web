@@ -49,7 +49,12 @@ defineExpose({
 
 <template>
   <!-- Button trigger modal -->
-  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#shareModal">
+  <button
+    class="btn btn-primary"
+    data-bs-toggle="modal"
+    data-bs-target="#shareModal"
+    title="Share cartogram"
+  >
     <i class="fas fa-share-alt"></i>
   </button>
 
