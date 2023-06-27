@@ -167,10 +167,10 @@ defineExpose({
       <div class="d-flex flex-column card-body">
         <div class="flex-fill">
           <div v-if="typeof map !== 'undefined'" class="z-3 position-absolute">
-            <button v-on:click="() => {map!.stretch[0] += 0.1; map!.transformVersion()}">x+</button>
-            <button v-on:click="() => {map!.stretch[0] -= 0.1; map!.transformVersion()}">x-</button>
-            <button v-on:click="() => {map!.stretch[1] += 0.1; map!.transformVersion()}">y+</button>
-            <button v-on:click="() => {map!.stretch[1] -= 0.1; map!.transformVersion()}">y-</button>
+            <button v-on:click="() => {map!.scaleVersion(1.1, 1)}">x+</button>
+            <button v-on:click="() => {map!.scaleVersion(0.9, 1)}">x-</button>
+            <button v-on:click="() => {map!.scaleVersion(1, 1.1)}">y+</button>
+            <button v-on:click="() => {map!.scaleVersion(1, 0.9)}">y-</button>
             <button v-on:click="() => {map!.transformReset()}">reset</button>
           </div>
           <svg id="cartogram-area" class="w-100 h-100" data-grid-visibility="off">

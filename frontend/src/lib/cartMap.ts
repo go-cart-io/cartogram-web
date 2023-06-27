@@ -7,6 +7,8 @@ import { Polygon, Region, RegionVersion } from './region'
 import { MapVersion, MapVersionData } from './mapVersion'
 import GallPetersProjection from './projection'
 import type { MapConfig, PolygonToDraw } from './interface'
+import * as util from '../lib/util'
+
 /**
  * CartMap contains map data for a conventional map or cartogram. One map can contain several versions. In a map version,
  * the map geography is used to represent a different dataset (e.g. land area in a conventional map version, or GDP or
@@ -46,10 +48,7 @@ export default class CartMap {
   max_height = 0.0
 
   // Transformation
-  angle = 0
-  position = [0, 0]
-  size = [1, 1]
-  stretch = [1, 1]
+  affineMatrix = util.getOriginalMatrix()
 
   /**
    * constructor creates a new instance of the Map class
@@ -359,7 +358,7 @@ export default class CartMap {
 
     // status of the pointer(s)
     let pointerangle: number | boolean, // (A)
-      pointerposition: [number, number] | null, // (B)
+      pointerposition: number[] | null, // (B)
       pointerdistance: number | boolean // (C)
 
     // Empty the map container element
@@ -466,12 +465,12 @@ export default class CartMap {
         'mousedown touchstart',
         (function (map) {
           return function (event: any) {
-            event.preventDefault()
             const t = d3.pointers(event, map)
             pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
             pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
             pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
             d3.select(this).style('cursor', 'grabbing') // (F)
+            event.preventDefault()
           }
         })(this)
       )
@@ -481,6 +480,7 @@ export default class CartMap {
           return function (event: any) {
             pointerposition = null // signals mouse up for (D) and (E)
             d3.select(this).style('cursor', 'grab') // (F)
+            event.preventDefault()
           }
         })(this)
       )
@@ -492,32 +492,41 @@ export default class CartMap {
             if (!pointerposition) return // mousemove with the mouse up
 
             const t = d3.pointers(event, map)
+            var matrix = util.getOriginalMatrix()
+            var angle = 0
+            var position = [0, 0]
+            var size = [1, 1]
 
-            // (A)
-            map.position[0] -= pointerposition[0]
-            map.position[1] -= pointerposition[1]
-            pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0]
-            map.position[0] += pointerposition[0]
-            map.position[1] += pointerposition[1]
-
+            // Order should be rotate, scale, translate
+            // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
             if (t.length > 1) {
-              // (B)
+              // (B) rotate
               if (pointerangle && typeof pointerangle === 'number') {
-                map.angle -= pointerangle
-                pointerangle = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
-                map.angle += pointerangle
+                var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
+                angle = pointerangle2 - pointerangle
+                pointerangle = pointerangle2
+                matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
               }
-              // (C)
+              // (C) scale
               if (pointerdistance && typeof pointerdistance === 'number') {
-                map.size[0] /= pointerdistance
-                map.size[1] /= pointerdistance
-                pointerdistance = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
-                map.size[0] *= pointerdistance
-                map.size[1] *= pointerdistance
+                var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
+                size[0] = pointerdistance2 / pointerdistance
+                size[1] = pointerdistance2 / pointerdistance
+                pointerdistance = pointerdistance2
+
+                if (size[0] !== 0 && size[1] !== 0)
+                  matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(size[0], size[1]))
               }
             }
 
-            map.transformVersion()
+            // (A) translate
+            var pointerposition2 = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0]
+            position[0] = pointerposition2[0] - pointerposition[0]
+            position[1] = pointerposition2[1] - pointerposition[1]
+            pointerposition = pointerposition2
+            matrix = util.multiplyMatrix(matrix, util.getTranslateMatrix(position[0], position[1]))
+
+            map.transformVersion(matrix, map.affineMatrix)
             event.preventDefault()
           }
         })(this)
@@ -527,19 +536,19 @@ export default class CartMap {
         (function (map) {
           return function (event: any) {
             // (D) and (E), pointerposition also tracks mouse down/up
+            var matrix: Array<Array<number>> = []
             if (pointerposition) {
-              map.angle += event.wheelDelta / 1000
+              matrix = util.getRotateMatrix(event.wheelDelta / 1000)
             } else {
-              map.size[0] *= 1 + event.wheelDelta / 1000
-              map.size[1] *= 1 + event.wheelDelta / 1000
+              var scale = 1 + event.wheelDelta / 1000
+              matrix = util.getScaleMatrix(scale, scale)
             }
-            map.transformVersion()
+            map.transformVersion(matrix, map.affineMatrix)
             event.preventDefault()
           }
         })(this)
       )
 
-    console.log(version)
     if (version.labels !== null) {
       /* First draw the text */
 
@@ -638,35 +647,34 @@ export default class CartMap {
     }
   }
 
-  transformVersion() {
-    d3.selectAll('#map-area-svg g, #cartogram-area-svg g')
-      // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
-      .attr(
-        'transform',
-        'translate(' +
-          this.position[0] +
-          ' ' +
-          this.position[1] +
-          ') scale(' +
-          this.size[0] +
-          ' ' +
-          this.size[1] +
-          ') rotate(' +
-          this.angle * (180 / Math.PI) +
-          ') scale(' +
-          this.stretch[0] +
-          ' ' +
-          this.stretch[1] +
-          ')'
-      )
+  scaleVersion(x: number, y: number) {
+    this.transformVersion(util.getScaleMatrix(x, y), this.affineMatrix)
+  }
+
+  transformVersion(matrix1: Array<Array<number>>, matrix2: Array<Array<number>>) {
+    this.affineMatrix = util.multiplyMatrix(matrix1, matrix2)
+
+    d3.selectAll('#map-area-svg g, #cartogram-area-svg g').attr(
+      'transform',
+      'matrix(' +
+        this.affineMatrix[0][0] +
+        ' ' +
+        this.affineMatrix[1][0] +
+        ' ' +
+        this.affineMatrix[0][1] +
+        ' ' +
+        this.affineMatrix[1][1] +
+        ' ' +
+        this.affineMatrix[0][2] +
+        ' ' +
+        this.affineMatrix[1][2] +
+        ')'
+    )
   }
 
   transformReset() {
-    this.angle = 0
-    this.position = [0, 0]
-    this.size = [1, 1]
-    this.stretch = [1, 1]
-    this.transformVersion()
+    this.affineMatrix = util.getOriginalMatrix()
+    this.transformVersion(this.affineMatrix, this.affineMatrix)
   }
 
   /**

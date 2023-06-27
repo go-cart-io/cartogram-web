@@ -347,3 +347,9 @@ function clearEditing() {
     />
   </div>
 </template>
+
+<style>
+* {
+  touch-action: manipulation;
+}
+</style>
