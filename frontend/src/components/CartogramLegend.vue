@@ -10,6 +10,7 @@ var versionArea: number
 var versionTotalValue: number
 const locale =
   navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language
+var defaultOpacity = 0.3
 
 const props = withDefaults(
   defineProps<{
@@ -40,7 +41,7 @@ const state = reactive({
 watch(
   () => props.isGridVisible,
   (type, prevType) => {
-    let opacity = props.isGridVisible ? 0.4 : 0
+    let opacity = props.isGridVisible ? defaultOpacity : 0
     d3.selectAll('#map-area-grid path, #cartogram-area-grid path')
       .transition()
       .ease(d3.easeCubic)
@@ -350,7 +351,7 @@ function drawResizableLegend(old_sysname: string | null = null) {
   b_label.transition().ease(d3.easeCubic).delay(200).duration(800).attr('opacity', 1)
   a_label.transition().ease(d3.easeCubic).delay(200).duration(800).attr('opacity', 1)
   // Verify if legend is accurate
-  //verifyLegend(sysname, widthA, scaleNiceNumberA * Math.pow(10, scalePowerOf10))
+  //verifyLegend(sysname, wi* Math.pow(10, scalePowerOf10))
 }
 
 /**
@@ -359,6 +360,7 @@ function drawResizableLegend(old_sysname: string | null = null) {
  * @returns {number[]} The total polygon area of the specified map version
  */
 function getVersionPolygonScale(sysname: string): [number, number] {
+  console.log(version)
   const version_width = version.extrema.max_x - version.extrema.min_x
   const version_height = version.extrema.max_y - version.extrema.min_y
 
@@ -441,7 +443,7 @@ function formatLegendText(value: number, scalePowerOf10: number, showMultiplier 
   let formated = ''
   if (showMultiplier)
     formated += ' &#xd7; ' + formatter.format(Math.pow(10, scalePowerOf10)) + ' = '
-  formated += formatter.format(originalValue) + ' ' + state.unit
+  formated += formatter.format(originalValue)
 
   return formated
 }
@@ -474,7 +476,7 @@ function drawGridLines() {
 }
 
 function updateGridLines(gridWidth: number) {
-  let stroke_opacity = props.isGridVisible ? 0.4 : 0
+  let stroke_opacity = props.isGridVisible ? defaultOpacity : 0
   const gridPattern = d3.select('#' + props.mapID + '-grid')
   gridPattern.transition().duration(1000).attr('width', gridWidth).attr('height', gridWidth)
   gridPattern
@@ -485,8 +487,22 @@ function updateGridLines(gridWidth: number) {
 </script>
 
 <template>
-  <svg v-bind:id="props.mapID + '-legend'" width="100%"></svg>
-  <div>
-    <span v-html="state.legendUnit"></span> / <span v-html="state.legendTotal"></span> in total
+  <svg width="100%" height="100%" v-bind:id="props.mapID + '-grid-area'">
+    <defs>
+      <pattern v-bind:id="props.mapID + '-grid'" patternUnits="userSpaceOnUse">
+        <path fill="none" stroke="#5A5A5A" stroke-width="2" stroke-opacity="0.4"></path>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" v-bind:fill="'url(#' + props.mapID + '-grid)'"></rect>
+  </svg>
+
+  <div class="position-absolute top-0 z-3 d-flex">
+    <div><svg v-bind:id="props.mapID + '-legend'"></svg></div>
+    <div v-bind:id="props.mapID + '-legend-num'" class="flex-fill p-1">
+      <span v-html="state.legendUnit"></span>, Total: <span v-html="state.legendTotal"></span>
+      {{ state.unit }}
+    </div>
   </div>
 </template>
+
+<style scoped></style>

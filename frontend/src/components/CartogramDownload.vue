@@ -14,38 +14,31 @@ const state = reactive({
 function generateSVGDownloadLinks(area: string, geojson: any) {
   var svg_header = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'
 
-  let mapArea = document.getElementById(area)!.cloneNode(true) as HTMLElement
-  let mapAreaSVG = mapArea.getElementsByTagName('svg')[0]
+  let mapAreaSVG = document.getElementById(area + '-svg')!.cloneNode(true) as SVGSVGElement
 
   // Add SVG xml namespace to SVG element, so that the file can be opened with any web browser.
   mapAreaSVG.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
 
   let legendSVG = document.getElementById(area + '-legend')!.cloneNode(true) as HTMLElement
+  mapAreaSVG.appendChild(legendSVG)
 
-  // Increase height of SVG to accommodate legend and total.
-  const mapHeight = mapAreaSVG.viewBox.baseVal.height || 100
-  const legendHeight = legendSVG.clientHeight || 100
-  mapAreaSVG.viewBox.baseVal.height = mapHeight + legendHeight
+  let legendNumber = document.getElementById(area + '-legend-num')!.textContent || ''
+  let legendNumberSVG = document.createElement('text')
+  let legendNumberX = 2 + parseFloat(legendSVG.getAttribute('width')!)
+  legendNumberSVG.innerHTML = legendNumber
+  legendNumberSVG.setAttribute('font-family', 'sans-serif')
+  legendNumberSVG.setAttribute('font-size', '12px')
+  legendNumberSVG.setAttribute('x', legendNumberX.toString())
+  legendNumberSVG.setAttribute('y', '20')
+  mapAreaSVG.appendChild(legendNumberSVG)
 
-  // Iterate legend SVG's text elements and add font attribute.
-  for (let i = 0; i < legendSVG.getElementsByTagName('text').length; i++) {
-    legendSVG.getElementsByTagName('text')[i].setAttribute('font-family', 'sans-serif')
-  }
-
-  // Iterate legend SVG's elements and append them to map SVG.
-  for (let i = 0; i < legendSVG.children.length; i++) {
-    let newY = parseFloat(legendSVG.children[i].getAttribute('y')!) + mapHeight
-    legendSVG.children[i].setAttribute('y', newY.toString())
-    let newX = parseFloat(legendSVG.children[i].getAttribute('x')!) + 20
-    legendSVG.children[i].setAttribute('x', newX.toString())
-    mapAreaSVG.appendChild(legendSVG.children[i].cloneNode(true))
-  }
+  mapAreaSVG.appendChild(document.getElementById(area + '-grid-area')!.cloneNode(true))
 
   // document.getElementById('download-modal-svg-link').href = "data:image/svg+xml;base64," + window.btoa(svg_header + document.getElementById('map-area').innerHTML);
   let svgLinkEl = document.getElementById('download-modal-svg-link')! as HTMLAnchorElement
   svgLinkEl.href =
     'data:image/svg+xml;base64,' +
-    window.btoa(svg_header + mapArea.innerHTML.replace(/×/g, '&#xD7;'))
+    window.btoa(svg_header + mapAreaSVG.outerHTML.replace(/×/g, '&#xD7;'))
   svgLinkEl.download = 'map.svg'
 
   let geoJsonLinkEl = document.getElementById('download-modal-geojson-link')! as HTMLAnchorElement

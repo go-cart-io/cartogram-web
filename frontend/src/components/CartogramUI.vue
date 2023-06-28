@@ -115,29 +115,23 @@ defineExpose({
 
 <template>
   <div id="cartogram" class="d-flex flex-fill card-group">
-    <div class="card d-none d-sm-flex">
+    <div class="card d-none d-sm-flex w-100">
       <div class="d-flex flex-column card-body">
-        <svg id="map-area" class="flex-fill" data-grid-visibility="off">
-          <defs>
-            <pattern id="map-area-grid" patternUnits="userSpaceOnUse">
-              <path fill="none" stroke="#5A5A5A" stroke-width="2" stroke-opacity="0.4"></path>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#map-area-grid)"></rect>
+        <div id="map-area" class="flex-fill" data-grid-visibility="off">
           <svg id="map-area-svg"></svg>
-        </svg>
-        <CartogramLegend
-          v-if="!state.isLoading"
-          ref="mapLegendEl"
-          mapID="map-area"
-          v-bind:isGridVisible="props.isGridVisible"
-          v-bind:isLegendResizable="props.isLegendResizable"
-          v-bind:map="map"
-          sysname="1-conventional"
-          legendID="map-area-legend"
-          v-bind:mapWidth="map?.max_width"
-          v-bind:mapHeight="map?.max_height"
-        />
+          <CartogramLegend
+            v-if="!state.isLoading"
+            ref="mapLegendEl"
+            mapID="map-area"
+            v-bind:isGridVisible="props.isGridVisible"
+            v-bind:isLegendResizable="props.isLegendResizable"
+            v-bind:map="map"
+            sysname="1-conventional"
+            legendID="map-area-legend"
+            v-bind:mapWidth="map?.max_width"
+            v-bind:mapHeight="map?.max_height"
+          />
+        </div>
       </div>
 
       <div class="card-footer">
@@ -163,38 +157,37 @@ defineExpose({
       </div>
     </div>
 
-    <div class="card" id="cartogram-container">
+    <div class="card w-100" id="cartogram-container">
       <div class="d-flex flex-column card-body">
         <div class="flex-fill">
-          <div v-if="typeof map !== 'undefined'" class="z-3 position-absolute">
-            <button v-on:click="() => {map!.scaleVersion(1.1, 1)}">x+</button>
-            <button v-on:click="() => {map!.scaleVersion(0.9, 1)}">x-</button>
-            <button v-on:click="() => {map!.scaleVersion(1, 1.1)}">y+</button>
-            <button v-on:click="() => {map!.scaleVersion(1, 0.9)}">y-</button>
-            <button v-on:click="() => {map!.transformReset()}">reset</button>
-          </div>
-          <svg id="cartogram-area" class="w-100 h-100" data-grid-visibility="off">
-            <defs>
-              <pattern id="cartogram-area-grid" patternUnits="userSpaceOnUse">
-                <path fill="none" stroke="#5A5A5A" stroke-width="2" stroke-opacity="0.4"></path>
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#cartogram-area-grid)"></rect>
+          <div id="cartogram-area" class="w-100 h-100" data-grid-visibility="off">
             <svg id="cartogram-area-svg"></svg>
-          </svg>
+            <CartogramLegend
+              v-if="!state.isLoading"
+              ref="cartogramLegendEl"
+              mapID="cartogram-area"
+              v-bind:isGridVisible="props.isGridVisible"
+              v-bind:isLegendResizable="props.isLegendResizable"
+              v-bind:map="map"
+              v-bind:sysname="state.current_sysname"
+              legendID="cartogram-area-legend"
+              v-bind:mapWidth="map?.max_width"
+              v-bind:mapHeight="map?.max_height"
+            />
+            <div v-if="typeof map !== 'undefined'" class="z-3 position-absolute bottom-0 start-0">
+              <button v-on:click="() => {map!.scaleVersion(1.1, 1)}">x+</button>
+              <button v-on:click="() => {map!.scaleVersion(0.9, 1)}">x-</button>
+              <button v-on:click="() => {map!.scaleVersion(1, 1.1)}">y+</button>
+              <button v-on:click="() => {map!.scaleVersion(1, 0.9)}">y-</button>
+              <button v-on:click="() => {map!.transformReset()}">reset</button>
+            </div>
+            <img
+              class="position-absolute bottom-0 end-0 z-3"
+              src="/static/img/by.svg"
+              alt="cc-by"
+            />
+          </div>
         </div>
-        <CartogramLegend
-          v-if="!state.isLoading"
-          ref="cartogramLegendEl"
-          mapID="cartogram-area"
-          v-bind:isGridVisible="props.isGridVisible"
-          v-bind:isLegendResizable="props.isLegendResizable"
-          v-bind:map="map"
-          v-bind:sysname="state.current_sysname"
-          legendID="cartogram-area-legend"
-          v-bind:mapWidth="map?.max_width"
-          v-bind:mapHeight="map?.max_height"
-        />
       </div>
 
       <div class="card-footer">

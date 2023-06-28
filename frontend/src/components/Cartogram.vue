@@ -277,7 +277,7 @@ function clearEditing() {
             >
               <i class="fas fa-cog"></i>
             </button>
-            <div class="dropdown-menu p-2">
+            <div class="dropdown-menu dropdown-menu-end p-2">
               <div class="form-check">
                 <input
                   type="checkbox"
