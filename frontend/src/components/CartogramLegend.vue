@@ -360,7 +360,6 @@ function drawResizableLegend(old_sysname: string | null = null) {
  * @returns {number[]} The total polygon area of the specified map version
  */
 function getVersionPolygonScale(sysname: string): [number, number] {
-  console.log(version)
   const version_width = version.extrema.max_x - version.extrema.min_x
   const version_height = version.extrema.max_y - version.extrema.min_y
 

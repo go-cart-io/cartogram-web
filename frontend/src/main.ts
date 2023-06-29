@@ -13,8 +13,7 @@ if (document.getElementById('cartogram-app')) {
     cartogram_handlers,
     cartogram_data,
     cartogramui_data,
-    mode,
-    scale
+    mode
   })
   app.use(BootstrapVue3) // Make BootstrapVue available throughout your project
   // app.config.compilerOptions.delimiters = ['[[', ']]']

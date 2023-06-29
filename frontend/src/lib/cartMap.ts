@@ -55,12 +55,11 @@ export default class CartMap {
    * @param {string} name The name of the map or cartogram
    * @param {MapConfig} config The configuration of the map or cartogram
    */
-  constructor(name: string, config: MapConfig, scale: number = 1.3) {
+  constructor(name: string, config: MapConfig) {
     this.name = name
     this.config = {
       dont_draw: config.dont_draw.map((id) => id.toString()),
-      elevate: config.elevate.map((id) => id.toString()),
-      scale: scale
+      elevate: config.elevate.map((id) => id.toString())
     }
   }
 
@@ -125,43 +124,6 @@ export default class CartMap {
   }
 
   /**
-   * getTotalValuesForVersion returns the sum of all region values for the specified map version.
-   * @param {string} sysname The sysname of the map version
-   * @returns {number} The total value of the specified map version
-   */
-  getTotalValuesForVersion(sysname: string): number {
-    var sum = 0
-    Object.keys(this.regions).forEach((region_id) => {
-      const regionValue = this.regions[region_id].getVersion(sysname).value
-
-      if (regionValue.toString() !== 'NA') {
-        sum += regionValue
-      }
-    }, this)
-
-    return sum
-  }
-
-  /**
-   * The following returns the sum of all region polygon area values for the specified map version.
-   * @param {string} sysname The sysname of the map version
-   * @returns {number} The total value of the specified map version
-   */
-  getTotalAreaForVersion(sysname: string): number {
-    var area = 0
-    Object.keys(this.regions).forEach((region_id) => {
-      this.regions[region_id].getVersion(sysname).polygons.forEach(function (polygon: Polygon) {
-        const coordinates = polygon.coordinates
-
-        const areaValue = d3.polygonArea(coordinates)
-
-        area += areaValue
-      })
-    }, this)
-    return area
-  }
-
-  /**
    * addVersion adds a new version to the map. If a version with the specified sysname already exists, it will be overwritten.
    * @param {string} sysname A unique system identifier for the version
    * @param {MapVersionData} data Data for the new map version.
@@ -178,21 +140,19 @@ export default class CartMap {
     var scale_factors: { [key: string]: { x: number; y: number } } = {}
     var version_dimension: { x: number; y: number }
 
-    const CANVAS_MAX_HEIGHT = 350
-    const CANVAS_MAX_WIDTH = 350
-
-    var version_height = CANVAS_MAX_HEIGHT
-    var version_width = CANVAS_MAX_WIDTH
+    const MAX_SIZE = 350
+    var version_height = MAX_SIZE
+    var version_width = MAX_SIZE
 
     const version_width_geojson = data.extrema.max_x - data.extrema.min_x
     const version_height_geojson = data.extrema.max_y - data.extrema.min_y
 
     if (version_width_geojson >= version_height_geojson) {
       let ratio_height_by_width = version_height_geojson / version_width_geojson
-      version_height = CANVAS_MAX_WIDTH * ratio_height_by_width
+      version_height = MAX_SIZE * ratio_height_by_width
     } else {
       let ratio_width_by_height = version_width_geojson / version_height_geojson
-      version_width = CANVAS_MAX_HEIGHT * ratio_width_by_height
+      version_width = MAX_SIZE * ratio_width_by_height
     }
 
     if (this.versions.hasOwnProperty(base_sysname)) {
@@ -203,8 +163,8 @@ export default class CartMap {
         this.versions[base_sysname].extrema.max_x - this.versions[base_sysname].extrema.min_x
       const base_version_height_geojson =
         this.versions[base_sysname].extrema.max_y - this.versions[base_sysname].extrema.min_y
-      const base_version_width = this.versions[base_sysname].dimension.x / this.config.scale
-      const base_version_height = this.versions[base_sysname].dimension.y / this.config.scale
+      const base_version_width = this.versions[base_sysname].dimension.x
+      const base_version_height = this.versions[base_sysname].dimension.y
       const area_factor =
         (base_version_height_geojson / base_version_height) *
         (base_version_width_geojson / base_version_width)
@@ -244,13 +204,13 @@ export default class CartMap {
     }
 
     scale_factors[sysname] = {
-      x: (version_width * this.config.scale) / version_width_geojson,
-      y: (version_height * this.config.scale) / version_height_geojson
+      x: version_width / version_width_geojson,
+      y: version_height / version_height_geojson
     }
 
     version_dimension = {
-      x: version_width * this.config.scale,
-      y: version_height * this.config.scale
+      x: version_width,
+      y: version_height
     }
 
     this.max_width = Math.max(this.max_width, version_dimension.x)
@@ -293,6 +253,9 @@ export default class CartMap {
       data.labels,
       data.world
     )
+
+    console.log(this.regions)
+    console.log(this.versions)
   }
 
   /**

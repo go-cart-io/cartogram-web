@@ -21,14 +21,12 @@ const props = withDefaults(
     cartogramui_data?: any
     mappack: Mappack | null
     mode?: string | null
-    scale?: number
     isGridVisible?: boolean
     isLegendResizable?: boolean
   }>(),
   {
     handler: 'usa',
-    mode: 'full',
-    scale: 1.3
+    mode: 'full'
   }
 )
 
@@ -54,7 +52,7 @@ onMounted(() => {
 
 function switchMap(mappack: Mappack, mapVersionData: MapVersionData | null = null) {
   state.isLoading = true
-  map = new CartMap(props.handler, mappack.config, props.scale)
+  map = new CartMap(props.handler, mappack.config)
   map.addVersion(
     '1-conventional',
     MapVersionData.mapVersionDataFromMappack(mappack, mappack.original),
