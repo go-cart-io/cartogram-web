@@ -87,13 +87,14 @@ export default class CartMap {
    * @param {string} sysname The sysname of the map version
    * @returns {number[]} The total value and area of the specified map version
    */
-  getTotalAreasAndValuesForVersion(sysname: string): [number, number] {
+  getTotalAreasAndValuesForVersion(regions: { [key: string]: any }): [number, number] {
     var area = 0
     var sum = 0
     const na_regions: Array<{ id: string; area: number }> = []
-    Object.keys(this.regions).forEach((region_id) => {
+    Object.keys(regions).forEach((region_id) => {
+      let region = regions[region_id]
       var areaValue = 0
-      this.regions[region_id].getVersion(sysname).polygons.forEach((polygon: Polygon) => {
+      region.polygons.forEach((polygon: Polygon) => {
         const coordinates = polygon.coordinates
 
         areaValue += Math.abs(d3.polygonArea(coordinates))
@@ -103,14 +104,12 @@ export default class CartMap {
         }, this)
       }, this)
 
-      const regionValue = this.regions[region_id].getVersion(sysname).value
-
+      const regionValue = region.value
       if (regionValue.toString() !== 'NA') {
         sum += regionValue
       } else {
         na_regions.push({ id: region_id, area: areaValue })
       }
-
       area += areaValue
     }, this)
 
@@ -155,52 +154,27 @@ export default class CartMap {
       version_width = MAX_SIZE * ratio_width_by_height
     }
 
+    var [version_total_area_geojson, version_value] = this.getTotalAreasAndValuesForVersion(
+      data.regions
+    )
+    var version_area =
+      version_total_area_geojson /
+      ((version_width_geojson / version_width) * (version_height_geojson / version_height))
+
+    // Get the base version's area to equalise current sysname's area
     if (this.versions.hasOwnProperty(base_sysname)) {
-      // Calculate the base version's area to equalise current sysname's area
-      // make sure the map area and cartogram area is similar
-      const base_version_geojson_area = this.getTotalAreasAndValuesForVersion(base_sysname)[0]
-      const base_version_width_geojson =
-        this.versions[base_sysname].extrema.max_x - this.versions[base_sysname].extrema.min_x
-      const base_version_height_geojson =
-        this.versions[base_sysname].extrema.max_y - this.versions[base_sysname].extrema.min_y
-      const base_version_width = this.versions[base_sysname].dimension.x
-      const base_version_height = this.versions[base_sysname].dimension.y
-      const area_factor =
-        (base_version_height_geojson / base_version_height) *
-        (base_version_width_geojson / base_version_width)
-      const base_version_area = base_version_geojson_area / area_factor
-
-      // Calculate current sysname's GeoJSON area
-      var version_total_area_geojson = 0
-      Object.keys(data.regions).forEach((region_id) => {
-        let region = data.regions[region_id]
-
-        let version_area_value_geojson = 0
-        region.polygons.forEach((polygon: any) => {
-          const coordinates = polygon.coordinates
-
-          version_area_value_geojson += Math.abs(d3.polygonArea(coordinates))
-
-          polygon.holes.forEach(function (hole: any) {
-            version_area_value_geojson -= Math.abs(d3.polygonArea(hole))
-          }, this)
-        }, this)
-        version_total_area_geojson += version_area_value_geojson
-      }, this)
-
-      var version_area =
-        version_total_area_geojson /
-        ((version_width_geojson / version_width) * (version_height_geojson / version_height))
+      const base_version_area = this.versions[base_sysname].legendData.versionOriginalArea || 0
       const equalization_factor = base_version_area / version_area
 
       //Update the version_width and version_height with new equalised values
       version_width = version_width * Math.sqrt(equalization_factor)
       version_height = version_height * Math.sqrt(equalization_factor)
+      version_area = base_version_area
 
       // Diagnostic check to see if areas are equal
-      // version_area =  version_total_area_geojson/((version_width_geojson/ version_width) * (version_height_geojson/version_height));
-      // console.log( sysname, " Area: ", version_area)
-      // console.log( base_sysname, ":", base_version_area)
+      // var test_version_area = version_total_area_geojson / ((version_width_geojson / version_width) * (version_height_geojson / version_height))
+      // console.log(sysname, ' Area: ', test_version_area)
+      // console.log(base_sysname, ':', base_version_area)
     }
 
     scale_factors[sysname] = {
@@ -253,6 +227,8 @@ export default class CartMap {
       data.labels,
       data.world
     )
+    this.versions[sysname].legendData.versionOriginalArea = version_area
+    this.versions[sysname].legendData.versionTotalValue = version_value
 
     console.log(this.regions)
     console.log(this.versions)

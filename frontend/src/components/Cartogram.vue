@@ -20,7 +20,6 @@ const props = defineProps<{
   cartogram_data: any
   cartogramui_data: any
   mode: string | null
-  scale: number
 }>()
 
 const state = reactive({
@@ -341,7 +340,6 @@ function clearEditing() {
       v-bind:cartogram_data="cartogram_data"
       v-bind:cartogramui_data="cartogramui_data"
       v-bind:mode="props.mode"
-      v-bind:scale="props.scale"
       v-bind:isGridVisible="state.isGridVisible"
       v-bind:isLegendResizable="state.isLegendResizable"
     />

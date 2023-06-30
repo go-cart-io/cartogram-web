@@ -125,9 +125,6 @@ defineExpose({
             v-bind:isLegendResizable="props.isLegendResizable"
             v-bind:map="map"
             sysname="1-conventional"
-            legendID="map-area-legend"
-            v-bind:mapWidth="map?.max_width"
-            v-bind:mapHeight="map?.max_height"
           />
         </div>
       </div>
@@ -168,9 +165,6 @@ defineExpose({
               v-bind:isLegendResizable="props.isLegendResizable"
               v-bind:map="map"
               v-bind:sysname="state.current_sysname"
-              legendID="cartogram-area-legend"
-              v-bind:mapWidth="map?.max_width"
-              v-bind:mapHeight="map?.max_height"
             />
             <div v-if="typeof map !== 'undefined'" class="z-3 position-absolute bottom-0 start-0">
               <button v-on:click="() => {map!.scaleVersion(1.1, 1)}">x+</button>

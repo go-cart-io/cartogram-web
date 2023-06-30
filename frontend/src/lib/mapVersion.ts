@@ -280,15 +280,8 @@ export class MapVersion {
   labels: Labels | null = null
   world: boolean = false
   legendData: {
-    gridData: {
-      [key: string]: {
-        width: number | null
-        scaleNiceNumber: number | null
-      }
-    }
-    scalePowerOf10: number | null
-    unit: string | null
     versionTotalValue: number | null
+    versionOriginalArea: number | null
   }
 
   /**
@@ -312,14 +305,8 @@ export class MapVersion {
     this.world = world
     // legendData stores legend and gridline information of the map version.
     this.legendData = {
-      gridData: {
-        gridA: { width: null, scaleNiceNumber: null },
-        gridB: { width: null, scaleNiceNumber: null },
-        gridC: { width: null, scaleNiceNumber: null }
-      },
-      scalePowerOf10: null,
-      unit: null,
-      versionTotalValue: null
+      versionTotalValue: null,
+      versionOriginalArea: null
     }
   }
 }
