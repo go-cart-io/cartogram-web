@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import * as d3 from 'd3'
 import { ref, reactive, onMounted } from 'vue'
 
 import { MapVersionData, MapDataFormat, MapVersion } from '@/lib/mapVersion'
@@ -8,8 +9,13 @@ import CartogramLegend from './CartogramLegend.vue'
 import CartogramDownload from './CartogramDownload.vue'
 import CartogramShare from './CartogramShare.vue'
 import type { Mappack } from '@/lib/interface'
+import * as util from '../lib/util'
 
 var map: CartMap
+var pointerangle: number | boolean, // (A)
+  pointerposition: number[] | null, // (B)
+  pointerdistance: number | boolean // (C)
+
 const mapLegendEl = ref()
 const cartogramLegendEl = ref()
 const cartogramDownloadEl = ref()
@@ -32,7 +38,9 @@ const props = withDefaults(
 
 const state = reactive({
   current_sysname: '2-population' as string,
-  isLoading: true
+  isLoading: true,
+  cursor: 'grab' as string,
+  affineMatrix: util.getOriginalMatrix()
 })
 
 onMounted(() => {
@@ -103,6 +111,111 @@ function getVersions(): { [key: string]: MapVersion } {
   return map?.versions || {}
 }
 
+// https://observablehq.com/@d3/multitouch
+function onTouchstart(event: any, id: string) {
+  console.log(event)
+  const t = d3.pointers(event, d3.select(id))
+  pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
+  pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
+  pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
+  state.cursor = 'grabbing' // (F)
+  event.preventDefault()
+}
+
+function onTouchend(event: any) {
+  pointerposition = null // signals mouse up for (D) and (E)
+  state.cursor = 'grab'
+  event.preventDefault()
+}
+
+function onTouchmove(event: any, id: string) {
+  if (!pointerposition) return // mousemove with the mouse up
+
+  //const t = [event.clientX, event.clientY]
+  const t = d3.pointers(event, d3.select(id))
+  var matrix = util.getOriginalMatrix()
+  var angle = 0
+  var position = [0, 0]
+  var size = [1, 1]
+
+  // Order should be rotate, scale, translate
+  // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
+  if (t.length > 1) {
+    // (B) rotate
+    if (pointerangle && typeof pointerangle === 'number') {
+      var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
+      angle = pointerangle2 - pointerangle
+      pointerangle = pointerangle2
+      matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
+    }
+    // (C) scale
+    if (pointerdistance && typeof pointerdistance === 'number') {
+      var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
+      size[0] = pointerdistance2 / pointerdistance
+      size[1] = pointerdistance2 / pointerdistance
+      pointerdistance = pointerdistance2
+
+      if (size[0] !== 0 && size[1] !== 0)
+        matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(size[0], size[1]))
+    }
+  }
+
+  // (A) translate
+  var pointerposition2 = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0]
+  position[0] = pointerposition2[0] - pointerposition[0]
+  position[1] = pointerposition2[1] - pointerposition[1]
+  pointerposition = pointerposition2
+  matrix = util.multiplyMatrix(matrix, util.getTranslateMatrix(position[0], position[1]))
+
+  transformVersion(matrix, state.affineMatrix)
+  console.log(t)
+  console.log(matrix)
+  event.preventDefault()
+}
+
+function onWheel(event: any) {
+  // (D) and (E), pointerposition also tracks mouse down/up
+  var matrix: Array<Array<number>> = []
+  if (pointerposition) {
+    matrix = util.getRotateMatrix(event.wheelDelta / 1000)
+  } else {
+    var scale = 1 + event.wheelDelta / 1000
+    matrix = util.getScaleMatrix(scale, scale)
+  }
+  transformVersion(matrix, state.affineMatrix)
+  event.preventDefault()
+}
+
+function scaleVersion(x: number, y: number) {
+  transformVersion(util.getScaleMatrix(x, y), state.affineMatrix)
+}
+
+function transformVersion(matrix1: Array<Array<number>>, matrix2: Array<Array<number>>) {
+  state.affineMatrix = util.multiplyMatrix(matrix1, matrix2)
+
+  d3.selectAll('#cartogram-area-svg g').attr(
+    'transform',
+    'matrix(' +
+      state.affineMatrix[0][0] +
+      ' ' +
+      state.affineMatrix[1][0] +
+      ' ' +
+      state.affineMatrix[0][1] +
+      ' ' +
+      state.affineMatrix[1][1] +
+      ' ' +
+      state.affineMatrix[0][2] +
+      ' ' +
+      state.affineMatrix[1][2] +
+      ')'
+  )
+}
+
+function transformReset() {
+  state.affineMatrix = util.getOriginalMatrix()
+  transformVersion(state.affineMatrix, state.affineMatrix)
+}
+
 defineExpose({
   switchMap,
   switchVersion,
@@ -152,11 +265,21 @@ defineExpose({
       </div>
     </div>
 
-    <div class="card w-100" id="cartogram-container">
+    <div class="card w-100">
       <div class="d-flex flex-column card-body">
         <div class="flex-fill">
           <div id="cartogram-area" class="w-100 h-100" data-grid-visibility="off">
-            <svg id="cartogram-area-svg"></svg>
+            <svg
+              id="cartogram-area-svg"
+              v-bind:style="{ cursor: state.cursor }"
+              v-on:mousedown="onTouchstart($event, 'cartogram-area-svg')"
+              v-on:touchstart="onTouchstart($event, 'cartogram-area-svg')"
+              v-on:mousemove="onTouchmove($event, 'cartogram-area-svg')"
+              v-on:touchmove="onTouchmove($event, 'cartogram-area-svg')"
+              v-on:mouseup="onTouchend"
+              v-on:touchend="onTouchend"
+              v-on:wheel="onWheel"
+            ></svg>
             <CartogramLegend
               v-if="!state.isLoading"
               ref="cartogramLegendEl"
@@ -166,12 +289,20 @@ defineExpose({
               v-bind:map="map"
               v-bind:sysname="state.current_sysname"
             />
-            <div v-if="typeof map !== 'undefined'" class="z-3 position-absolute bottom-0 start-0">
-              <button v-on:click="() => {map!.scaleVersion(1.1, 1)}">x+</button>
-              <button v-on:click="() => {map!.scaleVersion(0.9, 1)}">x-</button>
-              <button v-on:click="() => {map!.scaleVersion(1, 1.1)}">y+</button>
-              <button v-on:click="() => {map!.scaleVersion(1, 0.9)}">y-</button>
-              <button v-on:click="() => {map!.transformReset()}">reset</button>
+            <div class="z-3 position-absolute bottom-0 start-0">
+              <button v-on:click="scaleVersion(1.1, 1)">x+</button>
+              <button v-on:click="scaleVersion(0.9, 1)">x-</button>
+              <button v-on:click="scaleVersion(1, 1.1)">y+</button>
+              <button v-on:click="scaleVersion(1, 0.9)">y-</button>
+              <button
+                v-on:click="
+                  () => {
+                    transformReset()
+                  }
+                "
+              >
+                reset
+              </button>
             </div>
             <img
               class="position-absolute bottom-0 end-0 z-3"

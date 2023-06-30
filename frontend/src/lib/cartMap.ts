@@ -47,9 +47,6 @@ export default class CartMap {
    */
   max_height = 0.0
 
-  // Transformation
-  affineMatrix = util.getOriginalMatrix()
-
   /**
    * constructor creates a new instance of the Map class
    * @param {string} name The name of the map or cartogram
@@ -292,11 +289,6 @@ export default class CartMap {
     var version_width = this.versions[sysname].dimension.x
     var version_height = this.versions[sysname].dimension.y
 
-    // status of the pointer(s)
-    let pointerangle: number | boolean, // (A)
-      pointerposition: number[] | null, // (B)
-      pointerdistance: number | boolean // (C)
-
     // Empty the map container element
     while (map_container?.firstChild) {
       map_container.removeChild(map_container.firstChild)
@@ -394,102 +386,6 @@ export default class CartMap {
         })(this, where_drawn)
       )
 
-    // https://observablehq.com/@d3/multitouch
-    if (element_id === 'cartogram-area') {
-      d3.select('#' + element_id + '-svg')
-        .style('cursor', 'grab')
-        .on(
-          'mousedown touchstart',
-          (function (map) {
-            return function (event: any) {
-              const t = d3.pointers(event, map)
-              pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
-              pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
-              pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
-              d3.select(this).style('cursor', 'grabbing') // (F)
-              //event.preventDefault()
-            }
-          })(this)
-        )
-        .on(
-          'mouseup touchend',
-          (function (map) {
-            return function (event: any) {
-              pointerposition = null // signals mouse up for (D) and (E)
-              d3.select(this).style('cursor', 'grab') // (F)
-              //event.preventDefault()
-            }
-          })(this)
-        )
-        .on(
-          'mousemove touchmove',
-          (function (map) {
-            return function (event: any) {
-              //map.update(event)
-              if (!pointerposition) return // mousemove with the mouse up
-
-              const t = d3.pointers(event, map)
-              var matrix = util.getOriginalMatrix()
-              var angle = 0
-              var position = [0, 0]
-              var size = [1, 1]
-
-              // Order should be rotate, scale, translate
-              // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
-              if (t.length > 1) {
-                // (B) rotate
-                if (pointerangle && typeof pointerangle === 'number') {
-                  var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
-                  angle = pointerangle2 - pointerangle
-                  pointerangle = pointerangle2
-                  matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
-                }
-                // (C) scale
-                if (pointerdistance && typeof pointerdistance === 'number') {
-                  var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
-                  size[0] = pointerdistance2 / pointerdistance
-                  size[1] = pointerdistance2 / pointerdistance
-                  pointerdistance = pointerdistance2
-
-                  if (size[0] !== 0 && size[1] !== 0)
-                    matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(size[0], size[1]))
-                }
-              }
-
-              // (A) translate
-              var pointerposition2 = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0]
-              position[0] = pointerposition2[0] - pointerposition[0]
-              position[1] = pointerposition2[1] - pointerposition[1]
-              pointerposition = pointerposition2
-              matrix = util.multiplyMatrix(
-                matrix,
-                util.getTranslateMatrix(position[0], position[1])
-              )
-
-              map.transformVersion(matrix, map.affineMatrix)
-              event.preventDefault()
-            }
-          })(this)
-        )
-        .on(
-          'wheel',
-          (function (map) {
-            return function (event: any) {
-              // (D) and (E), pointerposition also tracks mouse down/up
-              var matrix: Array<Array<number>> = []
-              if (pointerposition) {
-                matrix = util.getRotateMatrix(event.wheelDelta / 1000)
-              } else {
-                var scale = 1 + event.wheelDelta / 1000
-                matrix = util.getScaleMatrix(scale, scale)
-              }
-              map.transformVersion(matrix, map.affineMatrix)
-              event.preventDefault()
-            }
-          })(this)
-        )
-    }
-
     if (version.labels !== null) {
       /* First draw the text */
 
@@ -586,36 +482,6 @@ export default class CartMap {
           .attr('stroke', '#000')
       }
     }
-  }
-
-  scaleVersion(x: number, y: number) {
-    this.transformVersion(util.getScaleMatrix(x, y), this.affineMatrix)
-  }
-
-  transformVersion(matrix1: Array<Array<number>>, matrix2: Array<Array<number>>) {
-    this.affineMatrix = util.multiplyMatrix(matrix1, matrix2)
-
-    d3.selectAll('#cartogram-area-svg g').attr(
-      'transform',
-      'matrix(' +
-        this.affineMatrix[0][0] +
-        ' ' +
-        this.affineMatrix[1][0] +
-        ' ' +
-        this.affineMatrix[0][1] +
-        ' ' +
-        this.affineMatrix[1][1] +
-        ' ' +
-        this.affineMatrix[0][2] +
-        ' ' +
-        this.affineMatrix[1][2] +
-        ')'
-    )
-  }
-
-  transformReset() {
-    this.affineMatrix = util.getOriginalMatrix()
-    this.transformVersion(this.affineMatrix, this.affineMatrix)
   }
 
   /**
