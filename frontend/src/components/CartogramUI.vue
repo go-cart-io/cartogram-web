@@ -37,9 +37,10 @@ const props = withDefaults(
 )
 
 const state = reactive({
-  current_sysname: '2-population' as string,
+  current_sysname: '2-population',
   isLoading: true,
-  cursor: 'grab' as string,
+  cursor: 'grab',
+  isLockRatio: true,
   affineMatrix: util.getOriginalMatrix(),
   affineScale: [1, 1] // Keep track of scale for scaling grind easily
 })
@@ -119,13 +120,13 @@ function onTouchstart(event: any, id: string) {
   pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
   pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
   state.cursor = 'grabbing' // (F)
-  event.preventDefault()
+  if (event.cancelable) event.preventDefault()
 }
 
 function onTouchend(event: any) {
   pointerposition = null // signals mouse up for (D) and (E)
   state.cursor = 'grab'
-  event.preventDefault()
+  if (event.cancelable) event.preventDefault()
 }
 
 function onTouchmove(event: any, id: string) {
@@ -141,24 +142,46 @@ function onTouchmove(event: any, id: string) {
   // Order should be rotate, scale, translate
   // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
   if (t.length > 1) {
-    // (B) rotate
-    if (pointerangle && typeof pointerangle === 'number') {
+    if (state.isLockRatio) {
+      // (B) rotate
+      if (pointerangle && typeof pointerangle === 'number') {
+        var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
+        angle = pointerangle2 - pointerangle
+        pointerangle = pointerangle2
+        matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
+      }
+      // (C) scale
+      if (pointerdistance && typeof pointerdistance === 'number') {
+        var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
+        scale[0] = pointerdistance2 / pointerdistance
+        scale[1] = pointerdistance2 / pointerdistance
+        state.affineScale[0] *= scale[0]
+        state.affineScale[1] *= scale[1]
+        pointerdistance = pointerdistance2
+
+        if (scale[0] !== 0 && scale[1] !== 0)
+          matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], scale[1]))
+      }
+    } else if (pointerangle && typeof pointerangle === 'number') {
+      // (B) rotate
       var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
       angle = pointerangle2 - pointerangle
       pointerangle = pointerangle2
       matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
-    }
-    // (C) scale
-    if (pointerdistance && typeof pointerdistance === 'number') {
-      var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
-      scale[0] = pointerdistance2 / pointerdistance
-      scale[1] = pointerdistance2 / pointerdistance
-      state.affineScale[0] *= scale[0]
-      state.affineScale[1] *= scale[1]
-      pointerdistance = pointerdistance2
 
-      if (scale[0] !== 0 && scale[1] !== 0)
-        matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], scale[1]))
+      // (C) scale
+      if (pointerdistance && typeof pointerdistance === 'number') {
+        var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
+        scale[0] = pointerdistance2 / pointerdistance
+        state.affineScale[0] *= scale[0]
+        pointerdistance = pointerdistance2
+
+        if (scale[0] !== 0) {
+          matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(pointerangle))
+          matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], 1))
+          matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(-pointerangle))
+        }
+      }
     }
   }
 
@@ -170,7 +193,7 @@ function onTouchmove(event: any, id: string) {
   matrix = util.multiplyMatrix(matrix, util.getTranslateMatrix(position[0], position[1]))
 
   transformVersion(matrix, state.affineMatrix)
-  event.preventDefault()
+  if (event.cancelable) event.preventDefault()
 }
 
 function onWheel(event: any) {
@@ -185,7 +208,7 @@ function onWheel(event: any) {
     state.affineScale[1] *= scale
   }
   transformVersion(matrix, state.affineMatrix)
-  event.preventDefault()
+  if (event.cancelable) event.preventDefault()
 }
 
 function scaleVersion(x: number, y: number) {
@@ -295,13 +318,6 @@ defineExpose({
               v-bind:sysname="state.current_sysname"
               v-bind:affineScale="state.affineScale"
             />
-            <div class="z-3 position-absolute bottom-0 start-0">
-              <button v-on:click="scaleVersion(1.1, 1)">x+</button>
-              <button v-on:click="scaleVersion(0.9, 1)">x-</button>
-              <button v-on:click="scaleVersion(1, 1.1)">y+</button>
-              <button v-on:click="scaleVersion(1, 0.9)">y-</button>
-              <button v-on:click="transformReset()">reset</button>
-            </div>
             <img
               class="position-absolute bottom-0 end-0 z-3"
               src="/static/img/by.svg"
@@ -313,10 +329,10 @@ defineExpose({
 
       <div class="card-footer">
         Cartogram
-        <span class="float-end">
+
+        <span class="float-end" v-if="mode !== 'embed'">
           <button
-            v-if="mode !== 'embed'"
-            class="btn btn-primary me-2"
+            class="btn btn-primary m-1"
             id="cartogram-download"
             v-on:click="
               cartogramDownloadEl.generateSVGDownloadLinks(
@@ -331,13 +347,23 @@ defineExpose({
             <i class="fas fa-download"></i>
           </button>
           <CartogramShare
-            v-if="mode !== 'embed'"
             v-bind:sysname="props.handler"
             v-bind:sharing_key="
               props.cartogramui_data ? props.cartogramui_data.unique_sharing_key : null
             "
           />
         </span>
+
+        <button class="float-end btn btn-primary m-1" v-on:click="transformReset()" title="Reset">
+          <i class="fas fa-undo"></i>
+        </button>
+        <button
+          class="float-end btn btn-primary m-1"
+          v-on:click="state.isLockRatio = !state.isLockRatio"
+        >
+          <i v-if="state.isLockRatio" class="fas fa-lock"></i>
+          <i v-else class="fas fa-unlock"></i>
+        </button>
       </div>
     </div>
 
