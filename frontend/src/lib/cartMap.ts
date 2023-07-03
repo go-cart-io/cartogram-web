@@ -359,6 +359,7 @@ export default class CartMap {
       .attr('fill', (d) => (d.value.toString() === 'NA' ? '#CCCCCC' : d.color))
       .attr('stroke', '#000')
       .attr('stroke-width', '0.5')
+      .attr('vector-effect', 'non-scaling-stroke')
       .on(
         'mouseenter',
         (function (map, where_drawn) {

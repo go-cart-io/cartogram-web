@@ -14,14 +14,16 @@ var defaultOpacity = 0.3
 const props = withDefaults(
   defineProps<{
     mapID: string
-    isGridVisible?: boolean
-    isLegendResizable?: boolean
     map: CartMap
     sysname: string
+    affineScale?: any
+    isGridVisible?: boolean
+    isLegendResizable?: boolean
   }>(),
   {
     isGridVisible: false,
-    isLegendResizable: false
+    isLegendResizable: false,
+    affineScale: [1, 1]
   }
 )
 
@@ -32,8 +34,8 @@ const state = reactive({
   legendUnit: '' as string,
   legendTotal: '' as string,
 
-  currentGridIndex: 0 as number,
-  gridDataKeys: [0],
+  currentGridIndex: 1 as number,
+  gridDataKeys: [1],
   gridData: {} as {
     [key: number]: {
       width: number
@@ -58,6 +60,14 @@ watch(
   }
 )
 
+watch(
+  () => props.affineScale,
+  (type, prevType) => {
+    formatLegendValue()
+  },
+  { deep: true }
+)
+
 onMounted(() => {
   const resizeObserver = new ResizeObserver(function () {
     const actual_size = document.getElementById(props.mapID + '-svg')!.getBoundingClientRect()
@@ -66,7 +76,6 @@ onMounted(() => {
     state.actualHeight =
       actual_size.height || document.getElementById(props.mapID + '-svg')!.offsetHeight
 
-    console.log('resize ' + state.actualWidth)
     update()
   })
   resizeObserver.observe(document.getElementById(props.mapID + '-svg')!)
@@ -74,7 +83,6 @@ onMounted(() => {
 
 async function update() {
   if (!props.map) return
-  console.log('update legend')
   state.unit = Object.values(props.map.regions)[0].getVersion(props.sysname).unit
   versionArea = props.map.versions[props.sysname].legendData.versionOriginalArea || 0
   versionTotalValue = props.map.versions[props.sysname].legendData.versionTotalValue || 0
@@ -182,7 +190,7 @@ function getLegendData() {
  * @param {string} old_sysname The previous sysname after map version switch. Optional.
  * @param {boolean} change_map True if the map is displayed for the first egendData['time or the map is changed. Optional.
  */
-function drawLegend(old_sysname: string | null = null, change_map: boolean = false) {
+function drawLegend() {
   // Retrive legend information
   const width = state.gridData[state.currentGridIndex]['width'] || 0
   const scaleNiceNumber = state.gridData[state.currentGridIndex]['scaleNiceNumber'] || 0
@@ -196,8 +204,9 @@ function drawLegend(old_sysname: string | null = null, change_map: boolean = fal
     .select('#' + props.mapID + '-legend' + state.currentGridIndex + ' rect')
     .attr('width', width)
     .attr('height', width)
+    .attr('fill', '#EEEEEE')
 
-  state.legendUnit = formatLegendText(scaleNiceNumber, scalePowerOf10)
+  formatLegendValue()
 
   const totalScalePowerOfTen = Math.floor(Math.log10(versionTotalValue))
   const totalNiceNumber = versionTotalValue / Math.pow(10, totalScalePowerOfTen)
@@ -212,7 +221,7 @@ function drawLegend(old_sysname: string | null = null, change_map: boolean = fal
  * @param {string} sysname The sysname of the map version
  * @param {string} old_sysname The previous sysname after map version switch. Optional.
  */
-function drawResizableLegend(old_sysname: string | null = null) {
+function drawResizableLegend() {
   const legendSVG = d3
     .select('#' + props.mapID + '-legend')
     .attr('width', state.gridData[numGridOptions].width + 2)
@@ -225,11 +234,7 @@ function drawResizableLegend(old_sysname: string | null = null) {
       if (i <= key) d3.select('#' + props.mapID + '-legend' + i + ' rect').attr('fill', '#EEEEEE')
       else d3.select('#' + props.mapID + '-legend' + i + ' rect').attr('fill', '#D6D6D6')
     }
-    state.legendUnit = formatLegendText(
-      state.gridData[key].scaleNiceNumber,
-      state.scalePowerOf10,
-      true
-    )
+    formatLegendValue()
     updateGridLines(state.gridData[key].width)
   }
 
@@ -238,12 +243,6 @@ function drawResizableLegend(old_sysname: string | null = null) {
     d3.select('#' + props.mapID + '-legend' + i + ' rect')
       .attr('width', state.gridData[i]['width'])
       .attr('height', state.gridData[i]['width'])
-      .on('click', () => changeTo(i))
-
-    d3.select('#' + props.mapID + '-legend' + i + ' text')
-      .attr('x', state.gridData[i]['width'] - 10)
-      .attr('y', state.gridData[i]['width'] - 1)
-      .text(state.gridData[i]['scaleNiceNumber'].toString())
       .on('click', () => changeTo(i))
   }
   changeTo(state.currentGridIndex)
@@ -256,7 +255,15 @@ function drawResizableLegend(old_sysname: string | null = null) {
   //verifyLegend(sysname, wi* Math.pow(10, scalePowerOf10))
 }
 
-function formatLegendText(value: number, scalePowerOf10: number, showMultiplier = false) {
+function formatLegendValue() {
+  let value = state.gridData[state.currentGridIndex].scaleNiceNumber
+  console.log(props.affineScale)
+  value = value / (props.affineScale[0] * props.affineScale[1])
+
+  state.legendUnit = formatLegendText(value, state.scalePowerOf10, props.isLegendResizable)
+}
+
+function formatLegendText(value: number, scalePowerOf10: number) {
   let originalValue = value * Math.pow(10, scalePowerOf10)
   const formatter = Intl.NumberFormat(locale, {
     notation: 'compact',
@@ -264,8 +271,6 @@ function formatLegendText(value: number, scalePowerOf10: number, showMultiplier 
   })
 
   let formated = ''
-  if (showMultiplier)
-    formated += ' &#xd7; ' + formatter.format(Math.pow(10, scalePowerOf10)) + ' = '
   formated += formatter.format(originalValue)
 
   return formated
@@ -328,7 +333,6 @@ function updateGridLines(gridWidth: number) {
     <svg v-bind:id="props.mapID + '-legend'" style="cursor: pointer">
       <g v-for="key in state.gridDataKeys" v-bind:id="props.mapID + '-legend' + key">
         <rect x="1" y="1" fill="#EEEEEE" stroke="#AAAAAA" stroke-width="2px"></rect>
-        <text v-if="props.isLegendResizable" font-size="8">10</text>
       </g>
     </svg>
     <div v-bind:id="props.mapID + '-legend-num'" class="flex-fill p-1">

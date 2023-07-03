@@ -40,7 +40,8 @@ const state = reactive({
   current_sysname: '2-population' as string,
   isLoading: true,
   cursor: 'grab' as string,
-  affineMatrix: util.getOriginalMatrix()
+  affineMatrix: util.getOriginalMatrix(),
+  affineScale: [1, 1] // Keep track of scale for scaling grind easily
 })
 
 onMounted(() => {
@@ -113,7 +114,6 @@ function getVersions(): { [key: string]: MapVersion } {
 
 // https://observablehq.com/@d3/multitouch
 function onTouchstart(event: any, id: string) {
-  console.log(event)
   const t = d3.pointers(event, d3.select(id))
   pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
   pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
@@ -136,7 +136,7 @@ function onTouchmove(event: any, id: string) {
   var matrix = util.getOriginalMatrix()
   var angle = 0
   var position = [0, 0]
-  var size = [1, 1]
+  var scale = [1, 1]
 
   // Order should be rotate, scale, translate
   // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
@@ -151,12 +151,14 @@ function onTouchmove(event: any, id: string) {
     // (C) scale
     if (pointerdistance && typeof pointerdistance === 'number') {
       var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
-      size[0] = pointerdistance2 / pointerdistance
-      size[1] = pointerdistance2 / pointerdistance
+      scale[0] = pointerdistance2 / pointerdistance
+      scale[1] = pointerdistance2 / pointerdistance
+      state.affineScale[0] *= scale[0]
+      state.affineScale[1] *= scale[1]
       pointerdistance = pointerdistance2
 
-      if (size[0] !== 0 && size[1] !== 0)
-        matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(size[0], size[1]))
+      if (scale[0] !== 0 && scale[1] !== 0)
+        matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], scale[1]))
     }
   }
 
@@ -168,8 +170,6 @@ function onTouchmove(event: any, id: string) {
   matrix = util.multiplyMatrix(matrix, util.getTranslateMatrix(position[0], position[1]))
 
   transformVersion(matrix, state.affineMatrix)
-  console.log(t)
-  console.log(matrix)
   event.preventDefault()
 }
 
@@ -181,12 +181,16 @@ function onWheel(event: any) {
   } else {
     var scale = 1 + event.wheelDelta / 1000
     matrix = util.getScaleMatrix(scale, scale)
+    state.affineScale[0] *= scale
+    state.affineScale[1] *= scale
   }
   transformVersion(matrix, state.affineMatrix)
   event.preventDefault()
 }
 
 function scaleVersion(x: number, y: number) {
+  state.affineScale[0] *= x
+  state.affineScale[1] *= y
   transformVersion(util.getScaleMatrix(x, y), state.affineMatrix)
 }
 
@@ -213,6 +217,7 @@ function transformVersion(matrix1: Array<Array<number>>, matrix2: Array<Array<nu
 
 function transformReset() {
   state.affineMatrix = util.getOriginalMatrix()
+  state.affineScale = [1, 1]
   transformVersion(state.affineMatrix, state.affineMatrix)
 }
 
@@ -288,21 +293,14 @@ defineExpose({
               v-bind:isLegendResizable="props.isLegendResizable"
               v-bind:map="map"
               v-bind:sysname="state.current_sysname"
+              v-bind:affineScale="state.affineScale"
             />
             <div class="z-3 position-absolute bottom-0 start-0">
               <button v-on:click="scaleVersion(1.1, 1)">x+</button>
               <button v-on:click="scaleVersion(0.9, 1)">x-</button>
               <button v-on:click="scaleVersion(1, 1.1)">y+</button>
               <button v-on:click="scaleVersion(1, 0.9)">y-</button>
-              <button
-                v-on:click="
-                  () => {
-                    transformReset()
-                  }
-                "
-              >
-                reset
-              </button>
+              <button v-on:click="transformReset()">reset</button>
             </div>
             <img
               class="position-absolute bottom-0 end-0 z-3"
