@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import * as d3 from 'd3'
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
 
 import { MapVersionData, MapDataFormat, MapVersion } from '@/lib/mapVersion'
 import type { Region } from '@/lib/region'
@@ -203,18 +203,22 @@ function onWheel(event: any) {
     matrix = util.getRotateMatrix(event.wheelDelta / 1000)
   } else {
     var scale = 1 + event.wheelDelta / 1000
-    matrix = util.getScaleMatrix(scale, scale)
-    state.affineScale[0] *= scale
-    state.affineScale[1] *= scale
+    var scales
+
+    if (event.altKey) {
+      scales = [scale, 1]
+    } else if (event.shiftKey) {
+      scales = [1, scale]
+    } else {
+      scales = [scale, scale]
+    }
+
+    state.affineScale[0] *= scales[0]
+    state.affineScale[1] *= scales[1]
+    matrix = util.getScaleMatrix(scales[0], scales[1])
   }
   transformVersion(matrix, state.affineMatrix)
   if (event.cancelable) event.preventDefault()
-}
-
-function scaleVersion(x: number, y: number) {
-  state.affineScale[0] *= x
-  state.affineScale[1] *= y
-  transformVersion(util.getScaleMatrix(x, y), state.affineMatrix)
 }
 
 function transformVersion(matrix1: Array<Array<number>>, matrix2: Array<Array<number>>) {
@@ -242,6 +246,18 @@ function transformReset() {
   state.affineMatrix = util.getOriginalMatrix()
   state.affineScale = [1, 1]
   transformVersion(state.affineMatrix, state.affineMatrix)
+}
+
+function snapToBetterNumber() {
+  let value = cartogramLegendEl.value.getCurrentScale()
+  let [scaleNiceNumber, scalePowerOf10] = util.findNearestNiceNumber(value)
+  let targetValue = scaleNiceNumber * Math.pow(10, scalePowerOf10)
+  let adjustedScale = Math.sqrt(targetValue / value)
+
+  state.affineScale[0] /= adjustedScale
+  state.affineScale[1] /= adjustedScale
+  var matrix = util.getScaleMatrix(adjustedScale, adjustedScale)
+  transformVersion(matrix, state.affineMatrix)
 }
 
 defineExpose({
@@ -360,9 +376,17 @@ defineExpose({
         <button
           class="float-end btn btn-primary m-1"
           v-on:click="state.isLockRatio = !state.isLockRatio"
+          v-bind:title="state.isLockRatio ? 'Switch to free transform' : 'Switch to lock ratio'"
         >
           <i v-if="state.isLockRatio" class="fas fa-lock"></i>
           <i v-else class="fas fa-unlock"></i>
+        </button>
+        <button
+          class="float-end btn btn-primary m-1"
+          v-on:click="snapToBetterNumber()"
+          title="Snap grid to nice number"
+        >
+          <i class="fas fa-expand"></i>
         </button>
       </div>
     </div>

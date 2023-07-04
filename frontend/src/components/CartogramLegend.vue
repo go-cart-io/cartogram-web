@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type CartMap from '@/lib/cartMap'
-import type { MapVersion } from '@/lib/mapVersion'
 import * as d3 from 'd3'
 import { nextTick, onMounted, reactive, watch } from 'vue'
+import type CartMap from '@/lib/cartMap'
+import * as util from '../lib/util'
 
 var numGridOptions = 2
 var versionArea: number
@@ -68,6 +68,10 @@ watch(
   { deep: true }
 )
 
+defineExpose({
+  getCurrentScale
+})
+
 onMounted(() => {
   const resizeObserver = new ResizeObserver(function () {
     const actual_size = document.getElementById(props.mapID + '-svg')!.getBoundingClientRect()
@@ -92,7 +96,7 @@ async function update() {
   if (props.isLegendResizable) {
     drawResizableLegend()
   } else {
-    drawLegend(null, true)
+    drawLegend()
   }
 
   drawGridLines()
@@ -134,20 +138,9 @@ function getLegendData() {
   }
   let width = [baseWidth, baseWidth, baseWidth] as Array<number>
 
-  // Declare and assign variables for valuePerSquare's power of 10 and "nice number".
-  let scalePowerOf10 = Math.floor(Math.log10(valuePerSquare))
-  let scaleNiceNumber = [99, 99, 99]
+  let [scaleNiceNumber0, scalePowerOf10] = util.findNearestNiceNumber(valuePerSquare)
+  let scaleNiceNumber = [scaleNiceNumber0] as Array<number>
 
-  // We find the "nice number" that is closest to valuePerSquare's
-  const valueFirstNumber = valuePerSquare / Math.pow(10, scalePowerOf10)
-  let valueDiff = Math.abs(valueFirstNumber - scaleNiceNumber[0])
-  const niceNumbers = [1, 2, 5, 10]
-  niceNumbers.forEach(function (n) {
-    if (Math.abs(valueFirstNumber - n) < valueDiff) {
-      valueDiff = Math.abs(valueFirstNumber - n)
-      scaleNiceNumber[0] = n
-    }
-  })
   if (scaleNiceNumber[0] == 1) {
     scaleNiceNumber[1] = 2
     scaleNiceNumber[2] = 5
@@ -170,7 +163,10 @@ function getLegendData() {
   // Store legend Information
   if (props.isLegendResizable) {
     for (let i = 0; i <= numGridOptions; i++) {
-      state.gridData[i] = { width: width[i], scaleNiceNumber: scaleNiceNumber[i] }
+      state.gridData[i] = {
+        width: width[i],
+        scaleNiceNumber: scaleNiceNumber[i]
+      }
     }
     state.gridDataKeys = [2, 1, 0]
   } else {
@@ -183,6 +179,13 @@ function getLegendData() {
   }
   state.scalePowerOf10 = scalePowerOf10
   state.versionTotalValue = versionTotalValue
+}
+
+function getCurrentScale() {
+  return (
+    state.gridData[state.currentGridIndex].scaleNiceNumber /
+    (props.affineScale[0] * props.affineScale[1])
+  )
 }
 
 /**
@@ -211,9 +214,6 @@ function drawLegend() {
   const totalScalePowerOfTen = Math.floor(Math.log10(versionTotalValue))
   const totalNiceNumber = versionTotalValue / Math.pow(10, totalScalePowerOfTen)
   state.legendTotal = formatLegendText(totalNiceNumber, totalScalePowerOfTen)
-
-  // Verify if legend is accurate
-  //verifyLegend(sysname, width, scaleNiceNumber * Math.pow(10, scalePowerOf10))
 }
 
 /**
@@ -250,17 +250,13 @@ function drawResizableLegend() {
   const totalScalePowerOfTen = Math.floor(Math.log10(versionTotalValue))
   const totalNiceNumber = versionTotalValue / Math.pow(10, totalScalePowerOfTen)
   state.legendTotal = formatLegendText(totalNiceNumber, totalScalePowerOfTen)
-
-  // Verify if legend is accurate
-  //verifyLegend(sysname, wi* Math.pow(10, scalePowerOf10))
 }
 
 function formatLegendValue() {
   let value = state.gridData[state.currentGridIndex].scaleNiceNumber
-  console.log(props.affineScale)
   value = value / (props.affineScale[0] * props.affineScale[1])
 
-  state.legendUnit = formatLegendText(value, state.scalePowerOf10, props.isLegendResizable)
+  state.legendUnit = formatLegendText(value, state.scalePowerOf10)
 }
 
 function formatLegendText(value: number, scalePowerOf10: number) {
@@ -274,28 +270,6 @@ function formatLegendText(value: number, scalePowerOf10: number) {
   formated += formatter.format(originalValue)
 
   return formated
-}
-
-/**
- * Determines if the computed legend area and value is correct
- * @param sysname
- * @param width
- * @param value
- */
-function verifyLegend(sysname: string, squareWidth: number, valuePerSquare: number) {
-  const [scaleX, scaleY] = getVersionPolygonScale()
-  // const tolerance = 0.001
-  // const legendTotalValue =
-  //   (valuePerSquare * (versionArea * scaleX * scaleY)) / (squareWidth * squareWidth)
-  // if (!(Math.abs(versionTotalValue - legendTotalValue) < tolerance)) {
-  //   console.warn(
-  //     `The legend value (${valuePerSquare}) and width (${squareWidth}px) for ${sysname} is not correct. Calculating the total value from the legend yields ${legendTotalValue}, but it should be ${versionTotalValue}`
-  //   )
-  // } else {
-  //   console.log(
-  //     `The legend value (${valuePerSquare}) and width (${squareWidth}px) for ${sysname} is correct (calculated total value=${legendTotalValue}, actual total value=${versionTotalValue})`
-  //   )
-  // }
 }
 
 function drawGridLines() {
