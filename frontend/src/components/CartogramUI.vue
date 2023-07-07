@@ -252,10 +252,10 @@ function snapToBetterNumber() {
   let value = cartogramLegendEl.value.getCurrentScale()
   let [scaleNiceNumber, scalePowerOf10] = util.findNearestNiceNumber(value)
   let targetValue = scaleNiceNumber * Math.pow(10, scalePowerOf10)
-  let adjustedScale = Math.sqrt(targetValue / value)
+  let adjustedScale = Math.sqrt(value / targetValue)
 
-  state.affineScale[0] /= adjustedScale
-  state.affineScale[1] /= adjustedScale
+  state.affineScale[0] *= adjustedScale
+  state.affineScale[1] *= adjustedScale
   var matrix = util.getScaleMatrix(adjustedScale, adjustedScale)
   transformVersion(matrix, state.affineMatrix)
 }

@@ -61,6 +61,14 @@ watch(
 )
 
 watch(
+  () => props.map.name,
+  (type, prevType) => {
+    update()
+  },
+  { deep: true }
+)
+
+watch(
   () => props.affineScale,
   (type, prevType) => {
     formatLegendValue()
@@ -74,11 +82,10 @@ defineExpose({
 
 onMounted(() => {
   const resizeObserver = new ResizeObserver(function () {
-    const actual_size = document.getElementById(props.mapID + '-svg')!.getBoundingClientRect()
-    state.actualWidth =
-      actual_size.width || document.getElementById(props.mapID + '-svg')!.offsetWidth
-    state.actualHeight =
-      actual_size.height || document.getElementById(props.mapID + '-svg')!.offsetHeight
+    const element = document.getElementById(props.mapID + '-svg')! as HTMLElement
+    const actual_size = element.getBoundingClientRect()
+    state.actualWidth = actual_size.width || element.offsetWidth
+    state.actualHeight = actual_size.height || element.offsetHeight
 
     update()
   })
@@ -107,17 +114,14 @@ async function update() {
  * @param {string} sysname The sysname of the map version
  * @returns {number[]} The total polygon area of the specified map version
  */
-function getVersionPolygonScale(): [number, number] {
+function getVersionPolygonScale(): number {
   var scale_x: number, scale_y: number
-  if (state.actualWidth === 0 || state.actualHeight === 0) return [1, 1]
+  if (state.actualWidth === 0 || state.actualHeight === 0) return 1
 
-  if (props.map.max_width > props.map.max_height) {
-    scale_x = scale_y = state.actualWidth / props.map.max_width
-  } else {
-    scale_x = scale_y = state.actualHeight / props.map.max_height
-  }
+  scale_x = state.actualWidth / props.map.max_width
+  scale_y = state.actualHeight / props.map.max_height
 
-  return [scale_x, scale_y]
+  return Math.min(scale_x, scale_y) // viewBox maintains the ratio, thus scale using min factor
 }
 
 /**
@@ -125,11 +129,10 @@ function getVersionPolygonScale(): [number, number] {
  */
 function getLegendData() {
   // Obtain the scaling factors, area and total value for this map version.
-  const [scaleX, scaleY] = getVersionPolygonScale()
-  const valuePerPixel = versionTotalValue / (versionArea * scaleX * scaleY)
+  const scale = getVersionPolygonScale()
+  const valuePerPixel = versionTotalValue / (versionArea * scale * scale)
   // Each square to be in the whereabouts of 1% of versionTotalValue.
   let valuePerSquare = versionTotalValue / 100
-
   let baseWidth = Math.sqrt(valuePerSquare / valuePerPixel)
   // If width is too small, we increment the percentage.
   while (baseWidth < 20) {
