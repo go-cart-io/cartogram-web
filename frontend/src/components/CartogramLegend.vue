@@ -77,7 +77,8 @@ watch(
 )
 
 defineExpose({
-  getCurrentScale
+  getCurrentScale,
+  updateGridIndex
 })
 
 onMounted(() => {
@@ -105,6 +106,10 @@ async function update() {
   } else {
     drawLegend()
   }
+  changeTo(state.currentGridIndex)
+  const totalScalePowerOfTen = Math.floor(Math.log10(versionTotalValue))
+  const totalNiceNumber = versionTotalValue / Math.pow(10, totalScalePowerOfTen)
+  state.legendTotal = formatLegendText(totalNiceNumber, totalScalePowerOfTen)
 
   drawGridLines()
 }
@@ -164,20 +169,16 @@ function getLegendData() {
   }
 
   // Store legend Information
-  if (props.isLegendResizable) {
-    for (let i = 0; i <= numGridOptions; i++) {
-      state.gridData[i] = {
-        width: width[i],
-        scaleNiceNumber: scaleNiceNumber[i]
-      }
+  for (let i = 0; i <= numGridOptions; i++) {
+    state.gridData[i] = {
+      width: width[i],
+      scaleNiceNumber: scaleNiceNumber[i]
     }
+  }
+
+  if (props.isLegendResizable) {
     state.gridDataKeys = [2, 1, 0]
   } else {
-    state.gridData = {}
-    state.gridData[state.currentGridIndex] = {
-      width: width[state.currentGridIndex],
-      scaleNiceNumber: scaleNiceNumber[state.currentGridIndex]
-    }
     state.gridDataKeys = [state.currentGridIndex]
   }
   state.scalePowerOf10 = scalePowerOf10
@@ -211,12 +212,6 @@ function drawLegend() {
     .attr('width', width)
     .attr('height', width)
     .attr('fill', '#EEEEEE')
-
-  formatLegendValue()
-
-  const totalScalePowerOfTen = Math.floor(Math.log10(versionTotalValue))
-  const totalNiceNumber = versionTotalValue / Math.pow(10, totalScalePowerOfTen)
-  state.legendTotal = formatLegendText(totalNiceNumber, totalScalePowerOfTen)
 }
 
 /**
@@ -230,17 +225,6 @@ function drawResizableLegend() {
     .attr('width', state.gridData[numGridOptions].width + 2)
     .attr('height', state.gridData[numGridOptions].width + 2)
 
-  // Event for when a different legend size is selected.
-  const changeTo = (key: number) => {
-    state.currentGridIndex = key
-    for (let i = 0; i <= numGridOptions; i++) {
-      if (i <= key) d3.select('#' + props.mapID + '-legend' + i + ' rect').attr('fill', '#EEEEEE')
-      else d3.select('#' + props.mapID + '-legend' + i + ' rect').attr('fill', '#D6D6D6')
-    }
-    formatLegendValue()
-    updateGridLines(state.gridData[key].width)
-  }
-
   // Adjust width of square according to chosen nice number and add transition to Legends
   for (let i = 0; i <= numGridOptions; i++) {
     d3.select('#' + props.mapID + '-legend' + i + ' rect')
@@ -248,11 +232,16 @@ function drawResizableLegend() {
       .attr('height', state.gridData[i]['width'])
       .on('click', () => changeTo(i))
   }
-  changeTo(state.currentGridIndex)
+}
 
-  const totalScalePowerOfTen = Math.floor(Math.log10(versionTotalValue))
-  const totalNiceNumber = versionTotalValue / Math.pow(10, totalScalePowerOfTen)
-  state.legendTotal = formatLegendText(totalNiceNumber, totalScalePowerOfTen)
+function changeTo(key: number) {
+  state.currentGridIndex = key
+  for (let i = 0; i <= numGridOptions; i++) {
+    if (i <= key) d3.select('#' + props.mapID + '-legend' + i + ' rect').attr('fill', '#EEEEEE')
+    else d3.select('#' + props.mapID + '-legend' + i + ' rect').attr('fill', '#D6D6D6')
+  }
+  formatLegendValue()
+  updateGridLines(state.gridData[key].width)
 }
 
 function formatLegendValue() {
@@ -288,6 +277,13 @@ function updateGridLines(gridWidth: number) {
     .select('path')
     .attr('stroke-opacity', stroke_opacity)
     .attr('d', 'M ' + gridWidth * 5 + ' 0 L 0 0 0 ' + gridWidth * 5) // *5 for pretty transition when resize grid
+}
+
+function updateGridIndex(change: number) {
+  var newIndex = state.currentGridIndex + change
+  if (newIndex < 0 || newIndex > numGridOptions) return
+  state.currentGridIndex = newIndex
+  changeTo(newIndex)
 }
 </script>
 

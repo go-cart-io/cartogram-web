@@ -171,6 +171,11 @@ function clearEditing() {
   state.currentComponent = 'map'
   cartogramResponse = null
 }
+
+function updateGrid(change: number) {
+  cartogramUIEl.value.mapLegendEl.updateGridIndex(change)
+  cartogramUIEl.value.cartogramLegendEl.updateGridIndex(change)
+}
 </script>
 
 <template>
@@ -276,27 +281,43 @@ function clearEditing() {
             >
               <i class="fas fa-cog"></i>
             </button>
-            <div class="dropdown-menu dropdown-menu-end p-2">
-              <div class="form-check">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  id="gridline-toggle-cartogram"
-                  v-model="state.isGridVisible"
-                />
-                <label class="form-check-label" for="gridline-toggle-cartogram">Grid Lines</label>
+            <div class="dropdown-menu dropdown-menu-end p-2 container" style="width: 220px">
+              <div class="row">
+                <div class="col-auto">
+                  <label class="form-check-label" for="gridline-toggle-cartogram">Grid Lines</label>
+                </div>
+                <div class="col text-end">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="gridline-toggle-cartogram"
+                    v-model="state.isGridVisible"
+                  />
+                </div>
               </div>
 
-              <div class="form-check">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  id="legend-toggle-cartogram"
-                  v-model="state.isLegendResizable"
-                />
-                <label class="form-check-label" for="legend-toggle-cartogram">
-                  Resizable Legend
-                </label>
+              <div class="row">
+                <div class="col-auto">
+                  <label class="form-check-label" for="legend-toggle-cartogram">
+                    Resizable Legend
+                  </label>
+                </div>
+                <div class="col text-end">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="legend-toggle-cartogram"
+                    v-model="state.isLegendResizable"
+                  />
+                </div>
+              </div>
+
+              <div v-if="state.isLegendResizable" class="row">
+                <div class="col-auto">Grid Size</div>
+                <div class="col text-end">
+                  <button class="btn btn-primary m-2" v-on:click="updateGrid(-1)">-</button>
+                  <button class="btn btn-primary" v-on:click="updateGrid(1)">+</button>
+                </div>
               </div>
             </div>
           </div>

@@ -264,7 +264,9 @@ defineExpose({
   switchMap,
   switchVersion,
   getRegions,
-  getVersions
+  getVersions,
+  mapLegendEl,
+  cartogramLegendEl
 })
 </script>
 
