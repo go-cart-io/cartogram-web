@@ -229,6 +229,7 @@ export default class CartMap {
 
     console.log(this.regions)
     console.log(this.versions)
+    //scale_x
   }
 
   /**
@@ -465,12 +466,19 @@ export default class CartMap {
         var text = canvas.selectAll('text').data(labels.labels).enter().append('text')
 
         var textLabels = text
-          .attr('x', (d) => d.x * scale_x)
-          .attr('y', (d) => d.y * scale_y)
           .attr('font-family', 'sans-serif')
           .attr('font-size', '7.5px')
           .attr('fill', '#000')
           .text((d) => d.text)
+
+        if (labels.skipSVG) {
+          textLabels
+            .attr('x', (d) => scale_x * (-1 * version.extrema.min_x + d.x))
+            .attr('y', (d) => scale_y * (version.extrema.max_y - d.y))
+            .attr('text-anchor', 'middle')
+        } else {
+          textLabels.attr('x', (d) => d.x * scale_x).attr('y', (d) => d.y * scale_y)
+        }
 
         var lines = canvas.selectAll('line').data(labels.lines).enter().append('line')
 

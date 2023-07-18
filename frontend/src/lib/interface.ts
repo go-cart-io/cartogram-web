@@ -49,6 +49,7 @@ export interface Extrema {
 export interface Labels {
   scale_x: number
   scale_y: number
+  skipSVG: boolean | null
   labels: Array<{ x: number; y: number; text: string }>
   lines: Array<{ x1: number; y1: number; x2: number; y2: number }>
 }
