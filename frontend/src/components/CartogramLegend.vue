@@ -42,6 +42,8 @@ const state = reactive({
       scaleNiceNumber: number
     }
   },
+  isDragingHandle: false as boolean,
+  handlePosition: 0 as number,
   scalePowerOf10: 1 as number,
   versionTotalValue: 1 as number
 })
@@ -203,10 +205,6 @@ function drawLegend() {
   const scaleNiceNumber = state.gridData[state.currentGridIndex]['scaleNiceNumber'] || 0
   const scalePowerOf10 = state.scalePowerOf10 || 0
 
-  const legendSVG = d3
-    .select('#' + props.mapID + '-legend')
-    .attr('width', width! + 2)
-    .attr('height', width! + 2)
   const legendSquare = d3
     .select('#' + props.mapID + '-legend' + state.currentGridIndex + ' rect')
     .attr('width', width)
@@ -220,11 +218,6 @@ function drawLegend() {
  * @param {string} old_sysname The previous sysname after map version switch. Optional.
  */
 function drawResizableLegend() {
-  const legendSVG = d3
-    .select('#' + props.mapID + '-legend')
-    .attr('width', state.gridData[numGridOptions].width + 2)
-    .attr('height', state.gridData[numGridOptions].width + 2)
-
   // Adjust width of square according to chosen nice number and add transition to Legends
   for (let i = 0; i <= numGridOptions; i++) {
     d3.select('#' + props.mapID + '-legend' + i + ' rect')
@@ -242,6 +235,24 @@ function changeTo(key: number) {
   }
   formatLegendValue()
   updateGridLines(state.gridData[key].width)
+}
+
+function handleMove(event: any) {
+  if (state.isDragingHandle) state.handlePosition = event.offsetX
+}
+
+function resizeGrid(event: any) {
+  var key = 0
+  var minDiff = Number.MAX_VALUE
+  for (let i = 0; i <= numGridOptions; i++) {
+    var diff = Math.abs(state.handlePosition - state.gridData[i]['width'])
+    if (diff < minDiff) {
+      minDiff = diff
+      key = i
+    }
+  }
+  changeTo(key)
+  state.isDragingHandle = false
 }
 
 function formatLegendValue() {
@@ -277,6 +288,8 @@ function updateGridLines(gridWidth: number) {
     .select('path')
     .attr('stroke-opacity', stroke_opacity)
     .attr('d', 'M ' + gridWidth * 5 + ' 0 L 0 0 0 ' + gridWidth * 5) // *5 for pretty transition when resize grid
+
+  state.handlePosition = gridWidth
 }
 
 function updateGridIndex(change: number) {
@@ -303,15 +316,74 @@ function updateGridIndex(change: number) {
   </svg>
 
   <div class="position-absolute top-0 z-3 d-flex">
-    <svg v-bind:id="props.mapID + '-legend'" style="cursor: pointer">
+    <svg
+      v-if="state.gridData[numGridOptions]"
+      v-bind:id="props.mapID + '-legend'"
+      style="cursor: pointer"
+      v-bind:width="
+        props.isLegendResizable
+          ? state.gridData[numGridOptions].width + 2
+          : state.gridData[state.currentGridIndex].width + 2
+      "
+      v-bind:height="
+        props.isLegendResizable
+          ? state.gridData[numGridOptions].width + 2
+          : state.gridData[state.currentGridIndex].width + 2
+      "
+    >
       <g v-for="key in state.gridDataKeys" v-bind:id="props.mapID + '-legend' + key">
         <rect x="1" y="1" fill="#EEEEEE" stroke="#AAAAAA" stroke-width="2px"></rect>
       </g>
     </svg>
+    <!--svg
+      v-if="state.gridData[numGridOptions]"
+      v-bind:id="props.mapID + '-legend'"
+      v-bind:width="state.gridData[numGridOptions].width + 15"
+      height="30px"
+      style="cursor: pointer"
+      stroke="#AAAAAA"
+      stroke-width="2px"
+      v-on:pointerdown="state.isDragingHandle = true"
+      v-on:pointermove="handleMove"
+      v-on:pointerup="resizeGrid"
+      v-on:pointerleave="resizeGrid"
+    >
+      <line x1="0" y1="15" v-bind:x2="state.gridData[numGridOptions].width" y2="15"></line>
+      <line
+        v-for="grid in state.gridData"
+        v-bind:x1="grid.width"
+        y1="10"
+        v-bind:x2="grid.width"
+        y2="20"
+      ></line>
+      <line x1="1" y1="10" x2="1" y2="20" stroke="#000000"></line>
+      <line
+        x1="0"
+        y1="15"
+        v-bind:x2="state.gridData[state.currentGridIndex].width"
+        y2="15"
+        stroke="#000000"
+      ></line>
+      <circle id="handle" r="5" v-bind:cx="state.handlePosition" cy="15" stroke-width="0px" />
+    </svg-->
     <div v-bind:id="props.mapID + '-legend-num'" class="flex-fill p-1">
       <span v-html="state.legendUnit"></span>, Total: <span v-html="state.legendTotal"></span>
       {{ state.unit }}
     </div>
+  </div>
+
+  <div class="position-absolute bottom-0 z-3 d-flex">
+    <label v-bind:for="props.mapID + '-grid-range'" class="form-label">GridSize:</label>
+    <input
+      type="range"
+      class="form-range"
+      v-bind:id="props.mapID + '-grid-range'"
+      min="0"
+      v-bind:max="numGridOptions"
+      step="1"
+      v-model="state.currentGridIndex"
+      v-on:change="changeTo(state.currentGridIndex)"
+    />
   </div>
 </template>
 
