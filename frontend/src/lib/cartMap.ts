@@ -234,20 +234,15 @@ export default class CartMap {
    * @param {string} color The original color of the region
    * @param {boolean} highlight Whether to highlight or unhighlight the region
    */
-  static highlightByID(
-    where_drawn: Array<string>,
-    region_id: string,
-    color: string,
-    highlight: boolean
-  ) {
+  static highlightByID(where_drawn: Array<string>, region_id: string, highlight: boolean) {
     where_drawn.forEach(function (element_id) {
       var polygons = document.getElementsByClassName('path-' + element_id + '-' + region_id)
 
       for (let i = 0; i < polygons.length; i++) {
         if (highlight) {
-          polygons[i].setAttribute('fill', tinycolor(color.toString()).brighten(20).toString())
+          polygons[i].setAttribute('stroke-width', '2')
         } else {
-          polygons[i].setAttribute('fill', color)
+          polygons[i].setAttribute('stroke-width', '0.5')
         }
       }
     })
@@ -282,7 +277,6 @@ export default class CartMap {
    */
   drawVersion(sysname: string, element_id: string, where_drawn: Array<string>) {
     var map_container = document.getElementById(element_id + '-svg')
-    console.log(map_container)
     var version = this.versions[sysname]
     var version_width = this.versions[sysname].dimension.x
     var version_height = this.versions[sysname].dimension.y
@@ -362,7 +356,7 @@ export default class CartMap {
         'mouseenter',
         (function (map, where_drawn) {
           return function (event: MouseEvent, d: any) {
-            //CartMap.highlightByID(where_drawn, d.region_id, d.color, true)
+            CartMap.highlightByID(where_drawn, d.region_id, true)
             map.drawTooltip(event, d.region_id)
           }
         })(this, where_drawn)
@@ -378,8 +372,8 @@ export default class CartMap {
       .on(
         'mouseleave',
         (function (map, where_drawn) {
-          return function (d: PolygonToDraw) {
-            //CartMap.highlightByID(where_drawn, d.region_id, d.color, false)
+          return function (event: MouseEvent, d: any) {
+            CartMap.highlightByID(where_drawn, d.region_id, false)
             Tooltip.hide()
           }
         })(this, where_drawn)
