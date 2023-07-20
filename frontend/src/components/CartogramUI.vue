@@ -15,6 +15,7 @@ var map: CartMap
 var pointerangle: number | boolean, // (A)
   pointerposition: number[] | null, // (B)
   pointerdistance: number | boolean // (C)
+var supportsTouch = 'ontouchstart' in window || navigator.maxTouchPoints
 
 const mapLegendEl = ref()
 const cartogramLegendEl = ref()
@@ -287,8 +288,9 @@ defineExpose({
         </CartogramLegend>
       </div>
 
-      <div class="card-footer">
-        <div class="position-absolute end-0">
+      <div class="card-footer d-flex justify-content-between">
+        <div class="text-nowrap overflow-hidden">Equal-Area Map</div>
+        <div class="text-nowrap">
           <button
             v-if="mode !== 'embed'"
             class="btn btn-primary mx-1"
@@ -306,7 +308,6 @@ defineExpose({
             <i class="fas fa-download"></i>
           </button>
         </div>
-        Equal-Area Map
       </div>
     </div>
 
@@ -337,9 +338,11 @@ defineExpose({
         </CartogramLegend>
       </div>
 
-      <div class="card-footer">
-        <div class="position-absolute end-0">
+      <div class="card-footer d-flex justify-content-between">
+        <div class="d-none d-sm-block text-nowrap overflow-hidden">Cartogram</div>
+        <div class="text-nowrap">
           <button
+            v-if="supportsTouch"
             class="btn btn-primary mx-1"
             v-on:click="state.isLockRatio = !state.isLockRatio"
             v-bind:title="state.isLockRatio ? 'Switch to free transform' : 'Switch to lock ratio'"
@@ -383,7 +386,6 @@ defineExpose({
             />
           </span>
         </div>
-        Cartogram
       </div>
     </div>
 
