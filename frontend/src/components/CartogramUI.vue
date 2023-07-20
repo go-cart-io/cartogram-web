@@ -288,11 +288,10 @@ defineExpose({
       </div>
 
       <div class="card-footer">
-        Equal-Area Map
-        <span class="float-end">
+        <div class="position-absolute end-0">
           <button
             v-if="mode !== 'embed'"
-            class="btn btn-primary"
+            class="btn btn-primary mx-1"
             id="map-download"
             v-on:click="
               cartogramDownloadEl.generateSVGDownloadLinks(
@@ -306,7 +305,8 @@ defineExpose({
           >
             <i class="fas fa-download"></i>
           </button>
-        </span>
+        </div>
+        Equal-Area Map
       </div>
     </div>
 
@@ -338,50 +338,52 @@ defineExpose({
       </div>
 
       <div class="card-footer">
-        Cartogram
-
-        <span class="float-end" v-if="mode !== 'embed'">
+        <div class="position-absolute end-0">
           <button
-            class="btn btn-primary m-1"
-            id="cartogram-download"
-            v-on:click="
-              cartogramDownloadEl.generateSVGDownloadLinks(
-                'cartogram-area',
-                JSON.stringify(map?.getVersionGeoJSON(state.current_sysname))
-              )
-            "
-            data-bs-toggle="modal"
-            data-bs-target="#downloadModal"
-            title="Download cartogram"
+            class="btn btn-primary mx-1"
+            v-on:click="state.isLockRatio = !state.isLockRatio"
+            v-bind:title="state.isLockRatio ? 'Switch to free transform' : 'Switch to lock ratio'"
           >
-            <i class="fas fa-download"></i>
+            <i v-if="state.isLockRatio" class="fas fa-lock"></i>
+            <i v-else class="fas fa-unlock"></i>
           </button>
-          <CartogramShare
-            v-bind:sysname="props.handler"
-            v-bind:sharing_key="
-              props.cartogramui_data ? props.cartogramui_data.unique_sharing_key : null
-            "
-          />
-        </span>
+          <button
+            class="btn btn-primary mx-1"
+            v-on:click="snapToBetterNumber()"
+            title="Snap grid to nice number"
+          >
+            <i class="fas fa-expand"></i>
+          </button>
+          <button class="btn btn-primary mx-1" v-on:click="transformReset()" title="Reset">
+            <i class="fas fa-undo"></i>
+          </button>
 
-        <button class="float-end btn btn-primary m-1" v-on:click="transformReset()" title="Reset">
-          <i class="fas fa-undo"></i>
-        </button>
-        <button
-          class="float-end btn btn-primary m-1"
-          v-on:click="state.isLockRatio = !state.isLockRatio"
-          v-bind:title="state.isLockRatio ? 'Switch to free transform' : 'Switch to lock ratio'"
-        >
-          <i v-if="state.isLockRatio" class="fas fa-lock"></i>
-          <i v-else class="fas fa-unlock"></i>
-        </button>
-        <button
-          class="float-end btn btn-primary m-1"
-          v-on:click="snapToBetterNumber()"
-          title="Snap grid to nice number"
-        >
-          <i class="fas fa-expand"></i>
-        </button>
+          <span v-if="mode !== 'embed'">
+            <div class="vr"></div>
+            <button
+              class="btn btn-primary mx-1"
+              id="cartogram-download"
+              v-on:click="
+                cartogramDownloadEl.generateSVGDownloadLinks(
+                  'cartogram-area',
+                  JSON.stringify(map?.getVersionGeoJSON(state.current_sysname))
+                )
+              "
+              data-bs-toggle="modal"
+              data-bs-target="#downloadModal"
+              title="Download cartogram"
+            >
+              <i class="fas fa-download"></i>
+            </button>
+            <CartogramShare
+              v-bind:sysname="props.handler"
+              v-bind:sharing_key="
+                props.cartogramui_data ? props.cartogramui_data.unique_sharing_key : null
+              "
+            />
+          </span>
+        </div>
+        Cartogram
       </div>
     </div>
 

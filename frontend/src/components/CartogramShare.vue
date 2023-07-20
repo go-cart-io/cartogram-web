@@ -50,7 +50,7 @@ defineExpose({
 <template>
   <!-- Button trigger modal -->
   <button
-    class="btn btn-primary"
+    class="btn btn-primary mx-1"
     data-bs-toggle="modal"
     data-bs-target="#shareModal"
     title="Share cartogram"

@@ -257,7 +257,7 @@ function updateGridIndex(change: number) {
 </script>
 
 <template>
-  <div class="d-flex">
+  <div class="d-flex position-absolute z-3">
     <!--svg
       v-if="state.gridData[numGridOptions]"
       v-bind:id="props.mapID + '-legend'"
