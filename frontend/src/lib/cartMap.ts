@@ -226,10 +226,6 @@ export default class CartMap {
     )
     this.versions[sysname].legendData.versionOriginalArea = version_area
     this.versions[sysname].legendData.versionTotalValue = version_value
-
-    console.log(this.regions)
-    console.log(this.versions)
-    //scale_x
   }
 
   /**
@@ -286,6 +282,7 @@ export default class CartMap {
    */
   drawVersion(sysname: string, element_id: string, where_drawn: Array<string>) {
     var map_container = document.getElementById(element_id + '-svg')
+    console.log(map_container)
     var version = this.versions[sysname]
     var version_width = this.versions[sysname].dimension.x
     var version_height = this.versions[sysname].dimension.y

@@ -30,6 +30,7 @@ export function addClipboard(button_id: string, message: string) {
   }, 2000)
 }
 
+export const NICE_NUMBERS = [1, 2, 5, 10, 20, 50]
 export function findNearestNiceNumber(value: number): [number, number] {
   let scaleNiceNumber = 99
   let scalePowerOf10 = Math.floor(Math.log10(value))
@@ -37,8 +38,7 @@ export function findNearestNiceNumber(value: number): [number, number] {
   // We find the "nice number" that is closest to valuePerSquare's
   const valueFirstNumber = value / Math.pow(10, scalePowerOf10)
   let valueDiff = Math.abs(valueFirstNumber - scaleNiceNumber)
-  const niceNumbers = [1, 2, 5, 10]
-  niceNumbers.forEach(function (n) {
+  NICE_NUMBERS.forEach(function (n) {
     if (Math.abs(valueFirstNumber - n) < valueDiff) {
       valueDiff = Math.abs(valueFirstNumber - n)
       scaleNiceNumber = n

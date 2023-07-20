@@ -4,7 +4,7 @@ import { nextTick, onMounted, reactive, watch } from 'vue'
 import type CartMap from '@/lib/cartMap'
 import * as util from '../lib/util'
 
-var numGridOptions = 2
+var numGridOptions = 3
 var versionArea: number
 var versionTotalValue: number
 const locale =
@@ -86,6 +86,7 @@ defineExpose({
 onMounted(() => {
   const resizeObserver = new ResizeObserver(function () {
     const element = document.getElementById(props.mapID + '-svg')! as HTMLElement
+    if (!element) return
     const actual_size = element.getBoundingClientRect()
     state.actualWidth = actual_size.width || element.offsetWidth
     state.actualHeight = actual_size.height || element.offsetHeight
@@ -103,11 +104,6 @@ async function update() {
 
   getLegendData()
   await nextTick()
-  if (props.isLegendResizable) {
-    drawResizableLegend()
-  } else {
-    drawLegend()
-  }
   changeTo(state.currentGridIndex)
   const totalScalePowerOfTen = Math.floor(Math.log10(versionTotalValue))
   const totalNiceNumber = versionTotalValue / Math.pow(10, totalScalePowerOfTen)
@@ -146,28 +142,20 @@ function getLegendData() {
     valuePerSquare *= 2
     baseWidth = Math.sqrt(valuePerSquare / valuePerPixel)
   }
-  let width = [baseWidth, baseWidth, baseWidth] as Array<number>
-
+  let width = [] as Array<number>
   let [scaleNiceNumber0, scalePowerOf10] = util.findNearestNiceNumber(valuePerSquare)
-  let scaleNiceNumber = [scaleNiceNumber0] as Array<number>
-
-  if (scaleNiceNumber[0] == 1) {
-    scaleNiceNumber[1] = 2
-    scaleNiceNumber[2] = 5
-  } else if (scaleNiceNumber[0] == 2) {
-    scaleNiceNumber[1] = 5
-    scaleNiceNumber[2] = 10
-  } else if (scaleNiceNumber[0] == 5) {
-    scaleNiceNumber[1] = 10
-    scaleNiceNumber[2] = 20
-  } else {
-    scaleNiceNumber[0] = 1
-    scaleNiceNumber[1] = 2
-    scaleNiceNumber[2] = 5
-    scalePowerOf10 += 1
+  let niceIndex = util.NICE_NUMBERS.indexOf(scaleNiceNumber0)
+  let beginIndex = niceIndex === 0 ? niceIndex : niceIndex - 1
+  let endIndex = beginIndex + numGridOptions + 1
+  while (endIndex >= util.NICE_NUMBERS.length && beginIndex > 0) {
+    endIndex--
+    beginIndex--
   }
+  let scaleNiceNumber = util.NICE_NUMBERS.slice(beginIndex, endIndex)
+
   for (let i = 0; i <= numGridOptions; i++) {
-    width[i] *= Math.sqrt((scaleNiceNumber[i] * Math.pow(10, scalePowerOf10)) / valuePerSquare)
+    width[i] =
+      baseWidth * Math.sqrt((scaleNiceNumber[i] * Math.pow(10, scalePowerOf10)) / valuePerSquare)
   }
 
   // Store legend Information
@@ -179,7 +167,7 @@ function getLegendData() {
   }
 
   if (props.isLegendResizable) {
-    state.gridDataKeys = [2, 1, 0]
+    state.gridDataKeys = [3, 2, 1, 0]
   } else {
     state.gridDataKeys = [state.currentGridIndex]
   }
@@ -194,41 +182,10 @@ function getCurrentScale() {
   )
 }
 
-/**
- * The following draws the static legend for each map
- * @param {string} old_sysname The previous sysname after map version switch. Optional.
- * @param {boolean} change_map True if the map is displayed for the first egendData['time or the map is changed. Optional.
- */
-function drawLegend() {
-  // Retrive legend information
-  const width = state.gridData[state.currentGridIndex]['width'] || 0
-  const scaleNiceNumber = state.gridData[state.currentGridIndex]['scaleNiceNumber'] || 0
-  const scalePowerOf10 = state.scalePowerOf10 || 0
-
-  const legendSquare = d3
-    .select('#' + props.mapID + '-legend' + state.currentGridIndex + ' rect')
-    .attr('width', width)
-    .attr('height', width)
-    .attr('fill', '#EEEEEE')
-}
-
-/**
- * The following draws the resizable legend for each map
- * @param {string} sysname The sysname of the map version
- * @param {string} old_sysname The previous sysname after map version switch. Optional.
- */
-function drawResizableLegend() {
-  // Adjust width of square according to chosen nice number and add transition to Legends
-  for (let i = 0; i <= numGridOptions; i++) {
-    d3.select('#' + props.mapID + '-legend' + i + ' rect')
-      .attr('width', state.gridData[i]['width'])
-      .attr('height', state.gridData[i]['width'])
-      .on('click', () => changeTo(i))
-  }
-}
-
 function changeTo(key: number) {
   state.currentGridIndex = key
+  if (!props.isLegendResizable) state.gridDataKeys = [state.currentGridIndex]
+
   for (let i = 0; i <= numGridOptions; i++) {
     if (i <= key) d3.select('#' + props.mapID + '-legend' + i + ' rect').attr('fill', '#EEEEEE')
     else d3.select('#' + props.mapID + '-legend' + i + ' rect').attr('fill', '#D6D6D6')
@@ -295,28 +252,13 @@ function updateGridLines(gridWidth: number) {
 function updateGridIndex(change: number) {
   var newIndex = state.currentGridIndex + change
   if (newIndex < 0 || newIndex > numGridOptions) return
-  state.currentGridIndex = newIndex
   changeTo(newIndex)
 }
 </script>
 
 <template>
-  <svg width="100%" height="100%" v-bind:id="props.mapID + '-grid-area'">
-    <defs>
-      <pattern v-bind:id="props.mapID + '-grid'" patternUnits="userSpaceOnUse">
-        <path fill="none" stroke="#5A5A5A" stroke-width="2" stroke-opacity="0.3"></path>
-      </pattern>
-    </defs>
-    <rect
-      v-if="props.isGridVisible"
-      width="100%"
-      height="100%"
-      v-bind:fill="'url(#' + props.mapID + '-grid)'"
-    ></rect>
-  </svg>
-
-  <div class="position-absolute top-0 z-3 d-flex">
-    <svg
+  <div class="d-flex">
+    <!--svg
       v-if="state.gridData[numGridOptions]"
       v-bind:id="props.mapID + '-legend'"
       style="cursor: pointer"
@@ -332,10 +274,19 @@ function updateGridIndex(change: number) {
       "
     >
       <g v-for="key in state.gridDataKeys" v-bind:id="props.mapID + '-legend' + key">
-        <rect x="1" y="1" fill="#EEEEEE" stroke="#AAAAAA" stroke-width="2px"></rect>
+        <rect
+          x="1"
+          y="1"
+          fill="#EEEEEE"
+          stroke="#AAAAAA"
+          stroke-width="2px"
+          v-bind:width="state.gridData[key].width"
+          v-bind:height="state.gridData[key].width"
+          v-on:click="changeTo(key)"
+        ></rect>
       </g>
-    </svg>
-    <!--svg
+    </svg-->
+    <svg
       v-if="state.gridData[numGridOptions]"
       v-bind:id="props.mapID + '-legend'"
       v-bind:width="state.gridData[numGridOptions].width + 15"
@@ -365,18 +316,35 @@ function updateGridIndex(change: number) {
         stroke="#000000"
       ></line>
       <circle id="handle" r="5" v-bind:cx="state.handlePosition" cy="15" stroke-width="0px" />
-    </svg-->
+    </svg>
     <div v-bind:id="props.mapID + '-legend-num'" class="flex-fill p-1">
       <span v-html="state.legendUnit"></span>, Total: <span v-html="state.legendTotal"></span>
       {{ state.unit }}
     </div>
   </div>
 
-  <div class="position-absolute bottom-0 z-3 d-flex">
+  <div v-bind:id="props.mapID" class="flex-fill" data-grid-visibility="off">
+    <slot></slot>
+    <svg width="100%" height="100%" v-bind:id="props.mapID + '-grid-area'">
+      <defs>
+        <pattern v-bind:id="props.mapID + '-grid'" patternUnits="userSpaceOnUse">
+          <path fill="none" stroke="#5A5A5A" stroke-width="2" stroke-opacity="0.3"></path>
+        </pattern>
+      </defs>
+      <rect
+        v-if="props.isGridVisible"
+        width="100%"
+        height="100%"
+        v-bind:fill="'url(#' + props.mapID + '-grid)'"
+      ></rect>
+    </svg>
+  </div>
+
+  <div class="d-flex">
     <label v-bind:for="props.mapID + '-grid-range'" class="form-label">GridSize:</label>
     <input
       type="range"
-      class="form-range"
+      class="form-range ps-2"
       v-bind:id="props.mapID + '-grid-range'"
       min="0"
       v-bind:max="numGridOptions"

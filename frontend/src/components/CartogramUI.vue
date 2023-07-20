@@ -47,7 +47,7 @@ const state = reactive({
 
 onMounted(() => {
   if (!props.mappack) return
-  console.log(props.mappack)
+
   if (!props.cartogram_data) {
     switchMap(props.mappack)
   } else {
@@ -60,7 +60,7 @@ onMounted(() => {
   }
 })
 
-function switchMap(mappack: Mappack, mapVersionData: MapVersionData | null = null) {
+async function switchMap(mappack: Mappack, mapVersionData: MapVersionData | null = null) {
   state.isLoading = true
   map = new CartMap(props.handler, mappack.config)
   map.addVersion(
@@ -87,9 +87,10 @@ function switchMap(mappack: Mappack, mapVersionData: MapVersionData | null = nul
     colors[region_id] = mappack.colors['id_' + region_id]
   })
   map.colors = colors
+  state.isLoading = false
 
+  await nextTick()
   map.drawVersion('1-conventional', 'map-area', ['map-area', 'cartogram-area'])
-
   if (mapVersionData !== null) {
     map.drawVersion('3-cartogram', 'cartogram-area', ['map-area', 'cartogram-area'])
     state.current_sysname = '3-cartogram'
@@ -97,7 +98,6 @@ function switchMap(mappack: Mappack, mapVersionData: MapVersionData | null = nul
     map.drawVersion('2-population', 'cartogram-area', ['map-area', 'cartogram-area'])
     state.current_sysname = '2-population'
   }
-  state.isLoading = false
 }
 
 function switchVersion(version: string) {
@@ -274,18 +274,17 @@ defineExpose({
   <div id="cartogram" class="d-flex flex-fill card-group">
     <div class="card d-none d-sm-flex w-100">
       <div class="d-flex flex-column card-body">
-        <div id="map-area" class="flex-fill" data-grid-visibility="off">
+        <CartogramLegend
+          v-if="!state.isLoading"
+          ref="mapLegendEl"
+          mapID="map-area"
+          v-bind:isGridVisible="props.isGridVisible"
+          v-bind:isLegendResizable="props.isLegendResizable"
+          v-bind:map="map"
+          sysname="1-conventional"
+        >
           <svg id="map-area-svg"></svg>
-          <CartogramLegend
-            v-if="!state.isLoading"
-            ref="mapLegendEl"
-            mapID="map-area"
-            v-bind:isGridVisible="props.isGridVisible"
-            v-bind:isLegendResizable="props.isLegendResizable"
-            v-bind:map="map"
-            sysname="1-conventional"
-          />
-        </div>
+        </CartogramLegend>
       </div>
 
       <div class="card-footer">
@@ -313,36 +312,29 @@ defineExpose({
 
     <div class="card w-100">
       <div class="d-flex flex-column card-body">
-        <div class="flex-fill">
-          <div id="cartogram-area" class="w-100 h-100" data-grid-visibility="off">
-            <svg
-              id="cartogram-area-svg"
-              v-bind:style="{ cursor: state.cursor }"
-              v-on:mousedown="onTouchstart($event, 'cartogram-area-svg')"
-              v-on:touchstart="onTouchstart($event, 'cartogram-area-svg')"
-              v-on:mousemove="onTouchmove($event, 'cartogram-area-svg')"
-              v-on:touchmove="onTouchmove($event, 'cartogram-area-svg')"
-              v-on:mouseup="onTouchend"
-              v-on:touchend="onTouchend"
-              v-on:wheel="onWheel"
-            ></svg>
-            <CartogramLegend
-              v-if="!state.isLoading"
-              ref="cartogramLegendEl"
-              mapID="cartogram-area"
-              v-bind:isGridVisible="props.isGridVisible"
-              v-bind:isLegendResizable="props.isLegendResizable"
-              v-bind:map="map"
-              v-bind:sysname="state.current_sysname"
-              v-bind:affineScale="state.affineScale"
-            />
-            <img
-              class="position-absolute bottom-0 end-0 z-3"
-              src="/static/img/by.svg"
-              alt="cc-by"
-            />
-          </div>
-        </div>
+        <CartogramLegend
+          v-if="!state.isLoading"
+          ref="cartogramLegendEl"
+          mapID="cartogram-area"
+          v-bind:isGridVisible="props.isGridVisible"
+          v-bind:isLegendResizable="props.isLegendResizable"
+          v-bind:map="map"
+          v-bind:sysname="state.current_sysname"
+          v-bind:affineScale="state.affineScale"
+        >
+          <svg
+            id="cartogram-area-svg"
+            v-bind:style="{ cursor: state.cursor }"
+            v-on:mousedown="onTouchstart($event, 'cartogram-area-svg')"
+            v-on:touchstart="onTouchstart($event, 'cartogram-area-svg')"
+            v-on:mousemove="onTouchmove($event, 'cartogram-area-svg')"
+            v-on:touchmove="onTouchmove($event, 'cartogram-area-svg')"
+            v-on:mouseup="onTouchend"
+            v-on:touchend="onTouchend"
+            v-on:wheel="onWheel"
+          ></svg>
+          <img class="position-absolute bottom-0 end-0 z-3" src="/static/img/by.svg" alt="cc-by" />
+        </CartogramLegend>
       </div>
 
       <div class="card-footer">
