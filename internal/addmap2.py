@@ -56,7 +56,7 @@ def init(map_name):
             print('End the process.')
             return
 
-    user_friendly_name = "test2" #input("Enter a user friendly name for this map: ")
+    user_friendly_name = input("Enter a user friendly name for this map: ")
 
     print()
     print("Now I need to know where the .json and .csv files for this map are located. These files should be located in the CARTOGRAM_DATA_DIR directory. You should supply me with a path relative to CARTOGRAM_DATA_DIR.")
