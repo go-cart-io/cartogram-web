@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted, nextTick } from 'vue'
+import { Toast } from 'bootstrap'
 
 import HTTP from '../lib/http'
-import * as util from '../lib/util'
 import CartogramUI from './CartogramUI.vue'
 import CartogramUploadBtn from './CartogramUploadBtn.vue'
 import CartogramChart from './CartogramChart.vue'
@@ -10,7 +10,6 @@ import CartogramEdit from './CartogramEdit.vue'
 import ProgressBar from './ProgressBar.vue'
 import type { Mappack } from '@/lib/interface'
 import { Region } from '@/lib/region'
-import type { MapVersion } from '@/lib/mapVersion'
 
 const CONFIG = { version: 'devel' }
 
@@ -29,6 +28,7 @@ const state = reactive({
   isGridVisible: true,
   isLegendResizable: false,
   error: '',
+  extendError: '',
   selectedVersion: '2-population',
   versions: {} as { [key: string]: any }
 })
@@ -86,15 +86,26 @@ async function switchMap() {
 }
 
 function confirmData(cartogramui_promise: Promise<any>) {
-  // TODO: show error if any
-  cartogramui_promise.then(async function (response: any) {
-    cartogramResponse = response
-    if (response.error == 'none') {
-      state.currentComponent = 'chart'
-      await nextTick()
-      cartogramChartEl.value.drawPieChartFromTooltip(regions, response.tooltip, response.color_data)
-    }
-  })
+  cartogramui_promise
+    .then(async function (response: any) {
+      cartogramResponse = response
+      if (response.error == 'none') {
+        state.currentComponent = 'chart'
+        await nextTick()
+        cartogramChartEl.value.drawPieChartFromTooltip(
+          regions,
+          response.tooltip,
+          response.color_data
+        )
+      } else {
+        state.error = response.error
+        Toast.getOrCreateInstance(document.getElementById('errorToast')!).show()
+      }
+    })
+    .catch(function (error: any) {
+      state.error = error
+      Toast.getOrCreateInstance(document.getElementById('errorToast')!).show()
+    })
 }
 
 /**
@@ -119,8 +130,6 @@ async function getGeneratedCartogram() {
       unique_sharing_key: unique_sharing_key
     })
 
-    state.error = ''
-
     var progressUpdater = window.setInterval(
       (function (key) {
         return function () {
@@ -133,7 +142,7 @@ async function getGeneratedCartogram() {
 
               let percentage = Math.floor(progress.progress * 100)
               progressBarEl.value.setValue(percentage)
-              state.error = progress.stderr
+              // state.error += progress.stderr
             }
           )
         }
@@ -145,7 +154,6 @@ async function getGeneratedCartogram() {
       'Content-type': 'application/x-www-form-urlencoded'
     }).then(
       function (response: any) {
-        state.error = ''
         progressBarEl.value.setValue(100)
         window.clearInterval(progressUpdater)
         resolve(response.cartogram_data)
@@ -155,6 +163,12 @@ async function getGeneratedCartogram() {
         reject(Error('There was an error retrieving the cartogram from the server.'))
       }
     )
+  }).catch(function (error: any) {
+    state.currentComponent = 'map'
+    state.error = error
+    cartogramResponse = null
+    Toast.getOrCreateInstance(document.getElementById('errorToast')!).show()
+    return
   })
 
   cartogram_data = res
@@ -330,22 +344,6 @@ function updateGrid(change: number) {
     v-on:change="(isLoading: boolean) => (state.isLoading = isLoading)"
   />
   <div v-if="!state.isLoading && state.isLoaded" class="d-flex flex-fill p-2">
-    <div id="error" v-if="state.error">
-      <p style="font-weight: bold">
-        Error: <span style="font-weight: normal" id="error-message"></span>
-      </p>
-      <p>To continue, please refresh this page.</p>
-
-      <div id="error-extended" style="display: none">
-        <p>
-          <b>Additional Information: </b> When reporting this error, please include the information
-          below.
-        </p>
-
-        <pre id="error-extended-content"></pre>
-      </div>
-    </div>
-
     <CartogramChart
       v-if="state.currentComponent === 'chart'"
       ref="cartogramChartEl"
@@ -364,6 +362,25 @@ function updateGrid(change: number) {
       v-bind:isGridVisible="state.isGridVisible"
       v-bind:isLegendResizable="state.isLegendResizable"
     />
+  </div>
+
+  <div
+    id="errorToast"
+    class="toast toast position-absolute end-0 bottom-0 m-3 text-bg-danger"
+    role="alert"
+    aria-live="assertive"
+    aria-atomic="true"
+    data-bs-autohide="false"
+  >
+    <div class="d-flex">
+      <div class="toast-body">{{ state.error }}</div>
+      <button
+        type="button"
+        class="btn-close me-2 m-auto"
+        data-bs-dismiss="toast"
+        aria-label="Close"
+      ></button>
+    </div>
   </div>
 </template>
 

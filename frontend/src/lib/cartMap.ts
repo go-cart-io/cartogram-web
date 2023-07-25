@@ -7,7 +7,6 @@ import { Polygon, Region, RegionVersion } from './region'
 import { MapVersion, MapVersionData } from './mapVersion'
 import GallPetersProjection from './projection'
 import type { MapConfig, PolygonToDraw } from './interface'
-import * as util from '../lib/util'
 
 /**
  * CartMap contains map data for a conventional map or cartogram. One map can contain several versions. In a map version,
