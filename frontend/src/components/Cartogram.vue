@@ -8,8 +8,9 @@ import CartogramUploadBtn from './CartogramUploadBtn.vue'
 import CartogramChart from './CartogramChart.vue'
 import CartogramEdit from './CartogramEdit.vue'
 import ProgressBar from './ProgressBar.vue'
-import type { Mappack } from '@/lib/interface'
-import { Region } from '@/lib/region'
+import type { Mappack } from '../lib/interface'
+import { Region } from '../lib/region'
+import shareState from '../lib/state'
 
 const CONFIG = { version: 'devel' }
 
@@ -27,9 +28,9 @@ const state = reactive({
   isLoaded: false,
   isGridVisible: true,
   isLegendResizable: false,
+  isPlaying: false,
   error: '',
   extendError: '',
-  selectedVersion: '2-population',
   versions: {} as { [key: string]: any }
 })
 
@@ -82,7 +83,20 @@ async function switchMap() {
   cartogramUIEl.value.switchMap(mappack)
   regions = cartogramUIEl.value.getRegions()
   state.versions = cartogramUIEl.value.getVersions()
-  state.selectedVersion = '2-population'
+}
+
+function playVersions() {
+  state.isPlaying = true
+  let keys = Object.keys(state.versions)
+  let i = 0
+  cartogramUIEl.value.switchVersion(keys[i++])
+  let interval = setInterval(function () {
+    cartogramUIEl.value.switchVersion(keys[i++])
+    if (i >= keys.length) {
+      clearInterval(interval)
+      state.isPlaying = false
+    }
+  }, 1000)
 }
 
 function confirmData(cartogramui_promise: Promise<any>) {
@@ -175,7 +189,7 @@ async function getGeneratedCartogram() {
   cartogramui_data = cartogramResponse
 
   state.currentComponent = 'map'
-  state.selectedVersion = '3-cartogram'
+  shareState.current_sysname = '3-cartogram'
   await nextTick()
   cartogramResponse = null
   state.versions = cartogramUIEl.value.getVersions()
@@ -194,7 +208,7 @@ function updateGrid(change: number) {
 
 <template>
   <nav class="navbar bg-light p-0">
-    <div class="w-100 d-flex align-items-end">
+    <div class="w-100 mw-100 d-flex align-items-end">
       <div class="p-2" v-if="mode === 'embed'">
         <img src="/static/img/gocart_final.svg" width="100" alt="go-cart.io logo" />
       </div>
@@ -222,116 +236,96 @@ function updateGrid(change: number) {
         </div>
       </div>
 
-      <div class="p-2">
-        <!--label for="versionSelection">Data:</label-->
-        <div class="d-flex">
-          <!-- Version selection -->
-          <select
-            v-if="cartogramUIEl"
-            style="cursor: pointer"
-            class="form-select d-sm-block d-md-none"
-            :disabled="!cartogramUIEl"
-            id="versionSelection"
-            v-model="state.selectedVersion"
-            v-on:change="cartogramUIEl.switchVersion(state.selectedVersion)"
+      <div
+        v-if="cartogramUIEl"
+        class="btn-group d-flex flex-shrink-1 p-2"
+        style="min-width: 40px"
+        role="group"
+        aria-label="Data"
+      >
+        <button
+          class="btn btn-primary"
+          v-on:click="playVersions()"
+          v-bind:disabled="state.isPlaying"
+        >
+          <i class="fas fa-play"></i>
+        </button>
+        <button
+          v-for="(version, index) in state.versions"
+          type="button"
+          class="btn btn-outline-primary version"
+          v-bind:class="{ active: shareState.current_sysname === index.toString() }"
+          v-on:click="cartogramUIEl.switchVersion(index.toString())"
+        >
+          {{ version.name }}
+        </button>
+      </div>
+
+      <!-- Menu -->
+      <div class="py-2 d-flex flex-nowrap">
+        <span v-if="cartogramUIEl && mappack && mode !== 'embed'" class="text-nowrap">
+          <CartogramUploadBtn :sysname="selectedHandler" v-on:change="confirmData" />
+          <CartogramEdit
+            :grid_document="mappack.griddocument"
+            :sysname="selectedHandler"
+            v-on:change="confirmData"
+          />
+        </span>
+        <span v-else-if="mode !== 'embed'" class="text-nowrap">
+          <button type="button" class="btn btn-primary disabled me-2" title="Upload data">
+            <i class="fas fa-file-upload"></i>
+          </button>
+          <button type="button" class="btn btn-primary disabled me-2" title="Edit data">
+            <i class="far fa-edit"></i>
+          </button>
+        </span>
+
+        <div class="dropdown me-2">
+          <button
+            class="btn btn-primary dropdown-toggle"
+            type="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            title="Customization"
           >
-            <option
-              v-if="cartogramUIEl"
-              v-for="(version, index) in state.versions"
-              v-bind:value="index"
-            >
-              {{ version.name }}
-            </option>
-          </select>
-
-          <div
-            v-if="cartogramUIEl"
-            class="btn-group d-none d-md-flex"
-            role="group"
-            aria-label="Data"
-          >
-            <button
-              v-for="(version, index) in state.versions"
-              type="button"
-              class="btn btn-outline-primary"
-              v-bind:class="{ active: state.selectedVersion === index.toString() }"
-              v-on:click="
-                () => {
-                  state.selectedVersion = index.toString()
-                  cartogramUIEl.switchVersion(state.selectedVersion)
-                }
-              "
-            >
-              {{ version.name }}
-              <i class="fas fa-check" v-if="state.selectedVersion === index.toString()"></i>
-            </button>
-          </div>
-
-          <!-- Menu -->
-          <div v-if="cartogramUIEl && mappack && mode !== 'embed'" class="d-flex flex-nowrap">
-            <CartogramUploadBtn :sysname="selectedHandler" v-on:change="confirmData" />
-            <CartogramEdit
-              :grid_document="mappack.griddocument"
-              :sysname="selectedHandler"
-              v-on:change="confirmData"
-            />
-          </div>
-          <div v-else-if="mode !== 'embed'" class="d-flex flex-nowrap">
-            <button type="button" class="btn btn-primary disabled ms-2" title="Upload data">
-              <i class="fas fa-file-upload"></i>
-            </button>
-            <button type="button" class="btn btn-primary disabled ms-2" title="Edit data">
-              <i class="far fa-edit"></i>
-            </button>
-          </div>
-
-          <div class="dropdown ms-2">
-            <button
-              class="btn btn-primary dropdown-toggle"
-              type="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-              title="Customization"
-            >
-              <i class="fas fa-cog"></i>
-            </button>
-            <div class="dropdown-menu dropdown-menu-end p-2 container" style="width: 220px">
-              <div class="row">
-                <div class="col-auto">
-                  <label class="form-check-label" for="gridline-toggle-cartogram">Grid Lines</label>
-                </div>
-                <div class="col text-end">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    id="gridline-toggle-cartogram"
-                    v-model="state.isGridVisible"
-                  />
-                </div>
+            <i class="fas fa-cog"></i>
+          </button>
+          <div class="dropdown-menu dropdown-menu-end p-2 container" style="width: 220px">
+            <div class="row">
+              <div class="col-auto">
+                <label class="form-check-label" for="gridline-toggle-cartogram">Grid Lines</label>
               </div>
-
-              <div class="row">
-                <div class="col-auto">
-                  <label class="form-check-label" for="legend-toggle-cartogram">
-                    Resizable Legend
-                  </label>
-                </div>
-                <div class="col text-end">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    id="legend-toggle-cartogram"
-                    v-model="state.isLegendResizable"
-                  />
-                </div>
+              <div class="col text-end">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  id="gridline-toggle-cartogram"
+                  v-model="state.isGridVisible"
+                />
               </div>
+            </div>
 
-              <div v-if="state.isLegendResizable" class="row">
-                <div class="col-auto">Grid Size</div>
-                <div class="col text-end">
-                  <button class="btn btn-primary m-2" v-on:click="updateGrid(-1)">-</button>
-                  <button class="btn btn-primary" v-on:click="updateGrid(1)">+</button>
-                </div>
+            <div class="row">
+              <div class="col-auto">
+                <label class="form-check-label" for="legend-toggle-cartogram">
+                  Resizable Legend
+                </label>
+              </div>
+              <div class="col text-end">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  id="legend-toggle-cartogram"
+                  v-model="state.isLegendResizable"
+                />
+              </div>
+            </div>
+
+            <div v-if="state.isLegendResizable" class="row">
+              <div class="col-auto">Grid Size</div>
+              <div class="col text-end">
+                <button class="btn btn-primary m-2" v-on:click="updateGrid(-1)">-</button>
+                <button class="btn btn-primary" v-on:click="updateGrid(1)">+</button>
               </div>
             </div>
           </div>
@@ -387,5 +381,13 @@ function updateGrid(change: number) {
 <style>
 * {
   touch-action: manipulation;
+}
+button.version {
+  min-width: 0;
+  padding: 1px;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

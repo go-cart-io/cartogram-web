@@ -8,8 +8,9 @@ import CartMap from '@/lib/cartMap'
 import CartogramLegend from './CartogramLegend.vue'
 import CartogramDownload from './CartogramDownload.vue'
 import CartogramShare from './CartogramShare.vue'
-import type { Mappack } from '@/lib/interface'
+import type { Mappack } from '../lib/interface'
 import * as util from '../lib/util'
+import shareState from '../lib/state'
 
 var map: CartMap
 var pointerangle: number | boolean, // (A)
@@ -38,7 +39,6 @@ const props = withDefaults(
 )
 
 const state = reactive({
-  current_sysname: '2-population',
   isLoading: true,
   cursor: 'grab',
   isLockRatio: true,
@@ -53,10 +53,7 @@ onMounted(() => {
     switchMap(props.mappack)
   } else {
     props.cartogram_data.tooltip = props.cartogramui_data.tooltip
-    var mapVersionData = MapVersionData.mapVersionDataFromMappack(
-      props.mappack,
-      props.cartogram_data
-    )
+    var mapVersionData = MapVersionData.mapVersionDataFromMappack(null, props.cartogram_data)
     switchMap(props.mappack, mapVersionData)
   }
 })
@@ -74,8 +71,11 @@ async function switchMap(mappack: Mappack, mapVersionData: MapVersionData | null
     MapVersionData.mapVersionDataFromMappack(null, mappack.population),
     '1-conventional'
   )
+
+  shareState.current_sysname = '2-population'
   if (mapVersionData !== null) {
     map.addVersion('3-cartogram', mapVersionData, '1-conventional')
+    shareState.current_sysname = '3-cartogram'
   }
 
   /*
@@ -94,16 +94,15 @@ async function switchMap(mappack: Mappack, mapVersionData: MapVersionData | null
   map.drawVersion('1-conventional', 'map-area', ['map-area', 'cartogram-area'])
   if (mapVersionData !== null) {
     map.drawVersion('3-cartogram', 'cartogram-area', ['map-area', 'cartogram-area'])
-    state.current_sysname = '3-cartogram'
   } else {
     map.drawVersion('2-population', 'cartogram-area', ['map-area', 'cartogram-area'])
-    state.current_sysname = '2-population'
   }
 }
 
 function switchVersion(version: string) {
-  map?.switchVersion(state.current_sysname, version, 'cartogram-area')
-  state.current_sysname = version
+  if (!version) return
+  map?.switchVersion(shareState.current_sysname, version, 'cartogram-area')
+  shareState.current_sysname = version
 }
 
 function getRegions(): { [key: string]: Region } {
@@ -320,7 +319,7 @@ defineExpose({
           v-bind:isGridVisible="props.isGridVisible"
           v-bind:isLegendResizable="props.isLegendResizable"
           v-bind:map="map"
-          v-bind:sysname="state.current_sysname"
+          v-bind:sysname="shareState.current_sysname"
           v-bind:affineScale="state.affineScale"
         >
           <svg
@@ -369,7 +368,7 @@ defineExpose({
               v-on:click="
                 cartogramDownloadEl.generateSVGDownloadLinks(
                   'cartogram-area',
-                  JSON.stringify(map?.getVersionGeoJSON(state.current_sysname))
+                  JSON.stringify(map?.getVersionGeoJSON(shareState.current_sysname))
                 )
               "
               data-bs-toggle="modal"
