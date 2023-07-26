@@ -16,7 +16,7 @@ const emit = defineEmits<{
   (e: 'change', cartogramui_promise: Promise<any>): void
 }>()
 
-onMounted(() => {
+function generateTable() {
   let row, col: number
 
   state.fields = []
@@ -56,7 +56,7 @@ onMounted(() => {
       }
     }
   }
-})
+}
 
 function updateCartogram() {
   var mime_boundary = HTTP.generateMIMEBoundary()
@@ -103,10 +103,11 @@ function updateCartogram() {
 <template>
   <!-- Button trigger modal -->
   <button
-    class="btn btn-primary ms-2"
+    class="btn btn-primary me-2"
     data-bs-toggle="modal"
     data-bs-target="#editModal"
     title="Edit data"
+    v-on:click="generateTable()"
   >
     <i class="far fa-edit"></i>
   </button>

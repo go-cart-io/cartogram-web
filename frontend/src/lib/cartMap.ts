@@ -1,4 +1,3 @@
-import tinycolor from 'tinycolor2'
 import * as d3 from 'd3'
 
 import Tooltip from './tooltip'
@@ -6,7 +5,8 @@ import SVG from './svg'
 import { Polygon, Region, RegionVersion } from './region'
 import { MapVersion, MapVersionData } from './mapVersion'
 import GallPetersProjection from './projection'
-import type { MapConfig, PolygonToDraw } from './interface'
+import type { MapConfig } from './interface'
+import { interpolatePath } from 'd3-interpolate-path'
 
 /**
  * CartMap contains map data for a conventional map or cartogram. One map can contain several versions. In a map version,
@@ -498,11 +498,12 @@ export default class CartMap {
         const targetPath = newPolygon?.path || polygon.path
 
         d3.select('#path-' + element_id + '-' + polygon.id)
-          .attr('d', polygon.path)
           .transition()
-          .ease(d3.easeCubic)
           .duration(1000)
-          .attr('d', targetPath)
+          .attrTween('d', function (d) {
+            return interpolatePath(polygon.path, targetPath)
+          })
+
         /* Change the color and ensure correct highlighting behavior after animation
                  is complete
               */
