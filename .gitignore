@@ -2,9 +2,13 @@
 **/__pycache__
 .idea/
 *.DS_Store
+envsettings.sh
 data/*.csv
 internal/*landarea.csv
 internal/*population.csv
 internal/*.svg
 internal/assets/node_modules
 internal/static/dist
+internal/static/cartdata/test*
+.Rproj.user
+.Rhistory

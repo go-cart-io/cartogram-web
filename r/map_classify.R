@@ -1,3 +1,7 @@
+# A script to calculate and visualize elongation ratio and convexity of each region, 
+# to be criteria of data in our experiment
+######################################################
+
 setwd("D:\\Code\\cartogram-docker\\cartogram-web\\r")
 
 input <- "../internal/static/cartdata/test3/population.json"
@@ -43,12 +47,13 @@ calculate_elongation <- function(region) {
   s_area <- st_area(region)
   area <- coo_area(points)
   chull_area <- coo_area(coo_chull(points))
-  return (c(elongation, s_area, area, chull_area))
+  convexity <- coo_convexity(points)
+  return (c(elongation, s_area, area, chull_area, convexity))
 }
 
 elongation_list <- lapply(st_geometry(data_sf), calculate_elongation)
 elongation_df <- do.call(rbind.data.frame, elongation_list)
-colnames(elongation_df) <- c("elongation", "s_area", "area", "chull_area")
+colnames(elongation_df) <- c("elongation", "s_area", "area", "chull_area", "convexity")
 data_sf <- cbind(data_sf, elongation_df)
 data_sf$is_elongate <- data_sf$elongation > elongation_threshold
 data_sf$area_ratio <- data_sf$area / data_sf$chull_area

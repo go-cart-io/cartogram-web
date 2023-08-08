@@ -1,19 +1,21 @@
-setwd("D:\\Code\\cartogram-docker\\cartogram-web\\r")
+# A script to randomly select middle output area, then create template and data file to be used with addmap2.py
+######################################################
 
-#input filename
-#e.g., https://data.london.gov.uk/dataset/statistical-gis-boundary-files-london
-input <- "OA_2011_London_gen_MHW.shp"
-#output filename, should include seed number so you can regenerate the data
-output <- "../data/test6_s2"
+setwd("D:\\Code\\cartogram-docker\\cartogram-web\\r")
+seed <- 6
+input <- "raw_data/OA_2011_London_gen_MHW.shp" #e.g., https://data.london.gov.uk/dataset/statistical-gis-boundary-files-london
+output <- "../data/test"
+output <- paste0(output, seed)
 
 is_random <- TRUE
 
-name_property <- "ABR"
+name_property <- "OA11CD"
 abbr_property <- "ABR"
 population_power <- 4
-set.seed(2)
 
 ######################################################
+set.seed(seed)
+
 library(sf)
 oa <- st_read(input)
 
@@ -75,7 +77,7 @@ if (name_property == abbr_property) {
 } else {
   msoa_sf$name <- msoa_sf[[name_property]]
 }
-msoa_selected_fields <- msoa_sf %>% select('geometry', 'id', 'cartogram_id', 'name')
+msoa_selected_fields <- msoa_sf %>% select('geometry', 'id', 'cartogram_id', 'name', 'ABR')
 outfile <- paste0(output, ".geojson")
 st_write(msoa_selected_fields, outfile, append=FALSE, delete_dsn=TRUE, driver="GeoJSON", fid_column_name="id")
 

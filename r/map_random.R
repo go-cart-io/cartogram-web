@@ -1,3 +1,7 @@
+# A script to randomly select middle output area
+# Adapted from Yau Yen Ching code
+######################################################
+
 library(sf)
 library(purrr)
 library(dplyr)
