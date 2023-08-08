@@ -272,7 +272,7 @@ function updateGridIndex(change: number) {
     <svg
       v-if="state.gridData[numGridOptions]"
       v-bind:id="props.mapID + '-legend'"
-      style="cursor: pointer"
+      style="cursor: pointer; opacity: 0.5"
       v-bind:width="
         props.isLegendResizable
           ? state.gridData[numGridOptions].width + 2

@@ -189,7 +189,7 @@ async function getGeneratedCartogram() {
   cartogramui_data = cartogramResponse
 
   state.currentComponent = 'map'
-  shareState.current_sysname = '3-cartogram'
+  shareState.current_sysname = '99-cartogram'
   await nextTick()
   cartogramResponse = null
   state.versions = cartogramUIEl.value.getVersions()

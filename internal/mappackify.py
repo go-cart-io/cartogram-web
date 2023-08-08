@@ -1,7 +1,7 @@
 import sys
 import json
 
-def mappackify(map_name):
+def mappackify(map_name, name_array = ['original', 'population']):
 
     mappack = {}
 
@@ -25,13 +25,9 @@ def mappackify(map_name):
 
         mappack['labels'] = json.load(labels_json)
 
-    with open("static/cartdata/{}/original.json".format(map_name), "r") as original_json:
-
-        mappack['original'] = json.load(original_json)
-
-    with open("static/cartdata/{}/population.json".format(map_name), "r") as population_json:
-
-        mappack['population'] = json.load(population_json)
+    for data_name in name_array:
+        with open("static/cartdata/{}/{}.json".format(map_name, data_name), "r") as data_json:
+            mappack[data_name] = json.load(data_json)
     
     with open("static/cartdata/{}/mappack.json".format(map_name), "w") as mappack_file:
 

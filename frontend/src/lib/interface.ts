@@ -17,6 +17,7 @@ export interface Mappack {
 export interface MapConfig {
   dont_draw: Array<any>
   elevate: Array<any>
+  data_names?: Array<string>
 }
 
 export interface PolygonToDraw {

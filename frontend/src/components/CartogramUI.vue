@@ -61,22 +61,27 @@ onMounted(() => {
 async function switchMap(mappack: Mappack, mapVersionData: MapVersionData | null = null) {
   state.isLoading = true
   map = new CartMap(props.handler, mappack.config)
+  let data_names = mappack.config.data_names || ['original', 'population']
+  let current_sysname = '0-base'
   map.addVersion(
-    '1-conventional',
-    MapVersionData.mapVersionDataFromMappack(mappack, mappack.original),
-    '1-conventional'
+    '0-base',
+    MapVersionData.mapVersionDataFromMappack(mappack, mappack[data_names[0]]),
+    '0-base'
   )
-  map.addVersion(
-    '2-population',
-    MapVersionData.mapVersionDataFromMappack(null, mappack.population),
-    '1-conventional'
-  )
-
-  shareState.current_sysname = '2-population'
-  if (mapVersionData !== null) {
-    map.addVersion('3-cartogram', mapVersionData, '1-conventional')
-    shareState.current_sysname = '3-cartogram'
+  for (let i = 1; i < data_names.length; i++) {
+    current_sysname = i.toString() + '-' + data_names[i]
+    map.addVersion(
+      current_sysname,
+      MapVersionData.mapVersionDataFromMappack(null, mappack[data_names[i]]),
+      '0-base'
+    )
   }
+
+  if (mapVersionData !== null) {
+    map.addVersion('99-cartogram', mapVersionData, '0-base')
+    current_sysname = '99-cartogram'
+  }
+  shareState.current_sysname = current_sysname
 
   /*
     The keys in the colors.json file are prefixed with id_. We iterate through the regions and extract the color
@@ -91,12 +96,8 @@ async function switchMap(mappack: Mappack, mapVersionData: MapVersionData | null
   state.isLoading = false
 
   await nextTick()
-  map.drawVersion('1-conventional', 'map-area', ['map-area', 'cartogram-area'])
-  if (mapVersionData !== null) {
-    map.drawVersion('3-cartogram', 'cartogram-area', ['map-area', 'cartogram-area'])
-  } else {
-    map.drawVersion('2-population', 'cartogram-area', ['map-area', 'cartogram-area'])
-  }
+  map.drawVersion('0-base', 'map-area', ['map-area', 'cartogram-area'])
+  map.drawVersion(shareState.current_sysname, 'cartogram-area', ['map-area', 'cartogram-area'])
 }
 
 function switchVersion(version: string) {
@@ -281,7 +282,7 @@ defineExpose({
           v-bind:isGridVisible="props.isGridVisible"
           v-bind:isLegendResizable="props.isLegendResizable"
           v-bind:map="map"
-          sysname="1-conventional"
+          sysname="0-base"
         >
           <svg id="map-area-svg"></svg>
         </CartogramLegend>
@@ -297,7 +298,7 @@ defineExpose({
             v-on:click="
               cartogramDownloadEl.generateSVGDownloadLinks(
                 'map-area',
-                JSON.stringify(map?.getVersionGeoJSON('1-conventional'))
+                JSON.stringify(map?.getVersionGeoJSON('0-base'))
               )
             "
             data-bs-toggle="modal"
