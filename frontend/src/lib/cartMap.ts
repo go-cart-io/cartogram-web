@@ -1,5 +1,4 @@
 import * as d3 from 'd3'
-
 import Tooltip from './tooltip'
 import SVG from './svg'
 import { Polygon, Region, RegionVersion } from './region'
@@ -189,20 +188,19 @@ export default class CartMap {
     Object.keys(data.regions).forEach((region_id) => {
       var region = data.regions[region_id]
 
-      var polygons = region.polygons.map(
-        (polygon) =>
-          new Polygon(
-            polygon.id,
-            SVG.lineFunction(
-              (d: [number, number]) => scale_factors[sysname].x * (-1 * data.extrema.min_x + d[0]),
-              (d: [number, number]) => scale_factors[sysname].y * (data.extrema.max_y - d[1]),
-              polygon.coordinates,
-              polygon.holes
-            ),
-            polygon.coordinates,
-            polygon.holes
-          )
-      )
+      var polygons = region.polygons.map((polygon) => {
+        var scaleX = (d: [number, number]) =>
+          scale_factors[sysname].x * (-1 * data.extrema.min_x + d[0])
+        var scaleY = (d: [number, number]) => scale_factors[sysname].y * (data.extrema.max_y - d[1])
+
+        return new Polygon(
+          polygon.id,
+          SVG.lineFunction(scaleX, scaleY, polygon.coordinates, polygon.holes),
+          polygon.coordinates,
+          polygon.holes,
+          polygon.representPt ? [scaleX(polygon.representPt), scaleY(polygon.representPt)] : null
+        )
+      })
 
       // Create the region if it doesn't exist.
       // This should only happen when adding the first map version.
@@ -294,6 +292,8 @@ export default class CartMap {
       region_id: string
       polygon_id: string
       path: string
+      representPt: [number, number] | null
+      abbreviation: string
       color: string
       elevated: boolean
       value: number
@@ -307,6 +307,8 @@ export default class CartMap {
             region_id: region_id,
             polygon_id: polygon.id,
             path: polygon.path,
+            representPt: polygon.representPt,
+            abbreviation: this.regions[region_id].abbreviation,
             color: this.colors[region_id],
             elevated: this.config.elevate.includes(polygon.id),
             value: this.regions[region_id].getVersion(sysname).value
@@ -328,9 +330,10 @@ export default class CartMap {
       return 0
     })
 
-    var group = canvas.selectAll().data(polygons_to_draw).enter().append('path')
+    var group = canvas.selectAll().data(polygons_to_draw).enter()
 
-    var areas = group
+    group
+      .append('path')
       .attr('d', (d) => d.path)
       .attr('id', (d) => 'path-' + element_id + '-' + d.polygon_id)
       /* Giving NA regions a different class prevents them from being highlighted, preserving
@@ -339,12 +342,7 @@ export default class CartMap {
       .attr(
         'class',
         (d) =>
-          'area' +
-          ' path-' +
-          element_id +
-          '-' +
-          d.region_id +
-          (d.value.toString() === 'NA' ? '-na' : '')
+          'area path-' + element_id + '-' + d.region_id + (d.value.toString() === 'NA' ? '-na' : '')
       )
       /* NA regions are filled with white */
       .attr('fill', (d) => (d.value.toString() === 'NA' ? '#CCCCCC' : d.color))
@@ -378,9 +376,26 @@ export default class CartMap {
         })(this, where_drawn)
       )
 
-    if (version.labels !== null) {
+    if (version.labels == null) {
+      canvas
+        .selectAll()
+        .data(
+          polygons_to_draw.filter(function (d) {
+            return d.representPt !== null
+          })
+        )
+        .enter()
+        .append('text')
+        .attr('id', (d) => 'label-' + element_id + '-' + d.polygon_id)
+        .attr('x', (d) => (d.representPt ? d.representPt[0] : 0))
+        .attr('y', (d) => (d.representPt ? d.representPt[1] : 0))
+        .attr('font-family', 'sans-serif')
+        .attr('font-size', '7.5px')
+        .attr('fill', '#000')
+        .attr('text-anchor', 'middle')
+        .text((d) => d.abbreviation)
+    } else {
       /* First draw the text */
-
       var labels = version.labels
 
       /*
@@ -495,7 +510,15 @@ export default class CartMap {
 
       this.regions[region_id].versions[current_sysname].polygons.forEach((polygon: Polygon) => {
         const newPolygon = newRegionVersion.polygons.find((poly) => poly.id === polygon.id)
+        if (!newPolygon) return
         const targetPath = newPolygon?.path || polygon.path
+
+        // d3.select('#path-' + element_id + '-' + polygon.id)
+        //   .attr('d', polygon.path)
+        //   .transition()
+        //   .ease(d3.easeCubic)
+        //   .duration(1000)
+        //   .attr('d', targetPath)
 
         d3.select('#path-' + element_id + '-' + polygon.id)
           .transition()
@@ -503,6 +526,15 @@ export default class CartMap {
           .attrTween('d', function (d) {
             return interpolatePath(polygon.path, targetPath)
           })
+        //.attr('d', targetPath)
+
+        if (newPolygon.representPt) {
+          d3.select('#label-' + element_id + '-' + polygon.id)
+            .transition()
+            .duration(1000)
+            .attr('x', newPolygon.representPt[0])
+            .attr('y', newPolygon.representPt[1])
+        }
 
         /* Change the color and ensure correct highlighting behavior after animation
                  is complete

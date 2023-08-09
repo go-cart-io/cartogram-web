@@ -13,6 +13,7 @@ import settings
 import awslambda
 import threading
 import queue
+from shapely.geometry import shape
 
 
 def get_random_string(length):
@@ -114,7 +115,7 @@ def init(map_name):
     write_abbr(map_name, regions)
     write_colors(map_name, regions)
     write_template(map_name, regions, region_identifier, name_array[0])
-    write_labels(map_name, regions)
+    #write_labels(map_name, regions)
     write_grid(map_name, user_friendly_name, regions, region_identifier, name_array[0])
 
     print()
@@ -224,10 +225,10 @@ def write_template(map_name, regions, region_identifier, base_region_name):
 def write_labels(map_name, regions,):
     print("Writing static/cartdata/{}/labels.json...".format(map_name))
     with open("static/cartdata/{}/labels.json".format(map_name), "w") as labels_json_file:
-            labels_json_file.write('{"scale_x": 1, "scale_y": 1, "skipSVG": true, "labels": [')
-            labels_json_file.write(",\n".join(list(map(
-                lambda region: '{{"text": "{}", "x": {}, "y": {}}}'.format(region["abbreviation"], region["labelX"], region["labelY"]), regions))))
-            labels_json_file.write('\n], "lines": []}')
+        labels_json_file.write('{"scale_x": 1, "scale_y": 1, "skipSVG": true, "labels": [')
+        labels_json_file.write(",\n".join(list(map(
+            lambda region: '{{"text": "{}", "x": {}, "y": {}}}'.format(region["abbreviation"], region["labelX"], region["labelY"]), regions))))
+        labels_json_file.write('\n], "lines": []}')
 
 def write_grid(map_name, user_friendly_name, regions, region_identifier, base_region_name):
     print("Writing static/cartdata/{}/griddocument.json...".format(map_name))
@@ -371,6 +372,11 @@ def write_cartogram(map_gen_path, map_name, regions, data_name, data_unit):
             "value": row[data_name]
         }
         cartogram_json['tooltip']['data'][id_key] = tooltip_data
+
+    for feature in cartogram_json["features"]:
+        geom = shape(feature["geometry"])
+        point = geom.representative_point()
+        feature['properties']['repPt'] = [point.x, point.y]
 
     print()
     print("I will now finish up writing the map data files.")

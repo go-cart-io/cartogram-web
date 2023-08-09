@@ -4,6 +4,7 @@
 *.DS_Store
 envsettings.sh
 data/*.csv
+data/test*
 internal/*landarea.csv
 internal/*population.csv
 internal/*.svg

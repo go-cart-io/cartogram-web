@@ -6,6 +6,7 @@ export class Polygon {
   path: string
   coordinates: Array<[number, number]>
   holes: Array<Array<[number, number]>>
+  representPt: [number, number] | null
 
   /**
    * constructor creates a new instance of the Polygon class
@@ -18,12 +19,14 @@ export class Polygon {
     id: string,
     path: string,
     coordinates: Array<[number, number]>,
-    holes: Array<Array<[number, number]>> = []
+    holes: Array<Array<[number, number]>> = [],
+    representPt: [number, number] | null
   ) {
     this.id = id
     this.path = path
     this.coordinates = coordinates
     this.holes = holes
+    this.representPt = representPt
   }
 
   toGeoJSONCoordinates(): Array<Array<[number, number]>> {
@@ -86,7 +89,7 @@ export class Region {
    */
   constructor(name: string, abbreviation: string) {
     this.name = name
-    this.abbreviation = abbreviation
+    this.abbreviation = abbreviation ? abbreviation : name
 
     /**
      * The versions of the region

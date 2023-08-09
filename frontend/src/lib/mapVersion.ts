@@ -22,6 +22,7 @@ export class MapVersionData {
         id: string
         coordinates: Array<[number, number]>
         holes: Array<Array<[number, number]>>
+        representPt: [number, number] | null
       }>
       name: string
       value: number
@@ -73,7 +74,8 @@ export class MapVersionData {
             this.regions[feature.id].polygons.push({
               id: feature.properties.polygon_id.toString(),
               coordinates: feature.coordinates,
-              holes: feature.hasOwnProperty('holes') ? feature.holes : []
+              holes: feature.hasOwnProperty('holes') ? feature.holes : [],
+              representPt: feature.properties.repPt ? feature.properties.repPt : null
             })
           } else {
             this.regions[feature.id] = {
@@ -81,7 +83,8 @@ export class MapVersionData {
                 {
                   id: feature.properties.polygon_id.toString(),
                   coordinates: feature.coordinates,
-                  holes: feature.hasOwnProperty('holes') ? feature.holes : []
+                  holes: feature.hasOwnProperty('holes') ? feature.holes : [],
+                  representPt: feature.properties.repPt ? feature.properties.repPt : null
                 }
               ],
               name: tooltip.data['id_' + feature.id]['name'],
@@ -143,7 +146,8 @@ export class MapVersionData {
                   {
                     id: polygon_id,
                     coordinates: polygon_coords,
-                    holes: polygon_holes
+                    holes: polygon_holes,
+                    representPt: feature.properties.repPt ? feature.properties.repPt : null
                   }
                 ],
                 name: tooltip.data['id_' + feature.properties.cartogram_id]['name'],
@@ -195,7 +199,8 @@ export class MapVersionData {
                 polygons.push({
                   id: polygon_id,
                   coordinates: polygon_coords,
-                  holes: polygon_holes
+                  holes: polygon_holes,
+                  representPt: feature.properties.repPt ? feature.properties.repPt : null
                 })
               }, this)
 
