@@ -29,8 +29,6 @@ const props = withDefaults(
     cartogramui_data?: any
     mappack: Mappack | null
     mode?: string | null
-    isGridVisible?: boolean
-    isLegendResizable?: boolean
   }>(),
   {
     handler: 'usa',
@@ -279,8 +277,6 @@ defineExpose({
           v-if="!state.isLoading"
           ref="mapLegendEl"
           mapID="map-area"
-          v-bind:isGridVisible="props.isGridVisible"
-          v-bind:isLegendResizable="props.isLegendResizable"
           v-bind:map="map"
           sysname="0-base"
         >
@@ -317,8 +313,6 @@ defineExpose({
           v-if="!state.isLoading"
           ref="cartogramLegendEl"
           mapID="cartogram-area"
-          v-bind:isGridVisible="props.isGridVisible"
-          v-bind:isLegendResizable="props.isLegendResizable"
           v-bind:map="map"
           v-bind:sysname="shareState.current_sysname"
           v-bind:affineScale="state.affineScale"

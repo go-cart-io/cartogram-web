@@ -26,8 +26,6 @@ const state = reactive({
   currentComponent: 'map',
   isLoading: true,
   isLoaded: false,
-  isGridVisible: true,
-  isLegendResizable: false,
   isPlaying: false,
   error: '',
   extendError: '',
@@ -300,32 +298,8 @@ function updateGrid(change: number) {
                   type="checkbox"
                   class="form-check-input"
                   id="gridline-toggle-cartogram"
-                  v-model="state.isGridVisible"
+                  v-model="shareState.options.showGrid"
                 />
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-auto">
-                <label class="form-check-label" for="legend-toggle-cartogram">
-                  Resizable Legend
-                </label>
-              </div>
-              <div class="col text-end">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  id="legend-toggle-cartogram"
-                  v-model="state.isLegendResizable"
-                />
-              </div>
-            </div>
-
-            <div v-if="state.isLegendResizable" class="row">
-              <div class="col-auto">Grid Size</div>
-              <div class="col text-end">
-                <button class="btn btn-primary m-2" v-on:click="updateGrid(-1)">-</button>
-                <button class="btn btn-primary" v-on:click="updateGrid(1)">+</button>
               </div>
             </div>
           </div>
@@ -353,8 +327,6 @@ function updateGrid(change: number) {
       v-bind:cartogram_data="cartogram_data"
       v-bind:cartogramui_data="cartogramui_data"
       v-bind:mode="props.mode"
-      v-bind:isGridVisible="state.isGridVisible"
-      v-bind:isLegendResizable="state.isLegendResizable"
     />
   </div>
 

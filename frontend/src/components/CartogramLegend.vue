@@ -3,6 +3,7 @@ import * as d3 from 'd3'
 import { nextTick, onMounted, reactive, watch } from 'vue'
 import type CartMap from '@/lib/cartMap'
 import * as util from '../lib/util'
+import shareState from '../lib/state'
 
 var numGridOptions = 3
 var versionArea: number
@@ -17,12 +18,8 @@ const props = withDefaults(
     map: CartMap
     sysname: string
     affineScale?: any
-    isGridVisible?: boolean
-    isLegendResizable?: boolean
   }>(),
   {
-    isGridVisible: false,
-    isLegendResizable: false,
     affineScale: [1, 1]
   }
 )
@@ -48,12 +45,12 @@ const state = reactive({
   versionTotalValue: 1 as number
 })
 
-watch(
-  () => props.isLegendResizable,
-  (type, prevType) => {
-    update()
-  }
-)
+// watch(
+//   () => props.isLegendResizable,
+//   (type, prevType) => {
+//     update()
+//   }
+// )
 
 watch(
   () => props.sysname,
@@ -167,11 +164,11 @@ function getLegendData() {
     }
   }
 
-  if (props.isLegendResizable) {
-    state.gridDataKeys = [3, 2, 1, 0]
-  } else {
-    state.gridDataKeys = [state.currentGridIndex]
-  }
+  // if (props.isLegendResizable) {
+  //   state.gridDataKeys = [3, 2, 1, 0]
+  // } else {
+  state.gridDataKeys = [state.currentGridIndex]
+  // }
   state.scalePowerOf10 = scalePowerOf10
   state.versionTotalValue = versionTotalValue
 }
@@ -185,10 +182,10 @@ function getCurrentScale() {
 
 async function changeTo(key: number) {
   state.currentGridIndex = key
-  if (!props.isLegendResizable) {
-    state.gridDataKeys = [state.currentGridIndex]
-    await nextTick()
-  }
+  // if (!props.isLegendResizable) {
+  state.gridDataKeys = [state.currentGridIndex]
+  await nextTick()
+  // }
 
   for (let i = 0; i <= numGridOptions; i++) {
     if (i <= key) {
@@ -249,7 +246,7 @@ function drawGridLines() {
 
 function updateGridLines(gridWidth: number) {
   if (isNaN(gridWidth)) return
-  let stroke_opacity = props.isGridVisible ? defaultOpacity : 0
+  let stroke_opacity = shareState.options.showGrid ? defaultOpacity : 0
   const gridPattern = d3.select('#' + props.mapID + '-grid')
   gridPattern.attr('width', gridWidth).attr('height', gridWidth)
   gridPattern
@@ -273,16 +270,8 @@ function updateGridIndex(change: number) {
       v-if="state.gridData[numGridOptions]"
       v-bind:id="props.mapID + '-legend'"
       style="cursor: pointer; opacity: 0.5"
-      v-bind:width="
-        props.isLegendResizable
-          ? state.gridData[numGridOptions].width + 2
-          : state.gridData[state.currentGridIndex].width + 2
-      "
-      v-bind:height="
-        props.isLegendResizable
-          ? state.gridData[numGridOptions].width + 2
-          : state.gridData[state.currentGridIndex].width + 2
-      "
+      v-bind:width="state.gridData[state.currentGridIndex].width + 2"
+      v-bind:height="state.gridData[state.currentGridIndex].width + 2"
     >
       <g
         v-for="key in state.gridDataKeys"
@@ -338,7 +327,7 @@ function updateGridIndex(change: number) {
         </pattern>
       </defs>
       <rect
-        v-if="props.isGridVisible"
+        v-if="shareState.options.showGrid"
         width="100%"
         height="100%"
         v-bind:fill="'url(#' + props.mapID + '-grid)'"
