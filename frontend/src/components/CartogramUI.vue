@@ -46,6 +46,7 @@ const state = reactive({
 
 onMounted(() => {
   if (!props.mappack) return
+  //TODO: check windows size for default shareState.options.showBase
 
   if (!props.cartogram_data) {
     switchMap(props.mappack)
@@ -114,6 +115,13 @@ function getVersions(): { [key: string]: MapVersion } {
 
 // https://observablehq.com/@d3/multitouch
 function onTouchstart(event: any, id: string) {
+  if (
+    !shareState.options.zoomable &&
+    !shareState.options.rotatable &&
+    !shareState.options.stretchable
+  )
+    return
+
   const t = d3.pointers(event, d3.select(id))
   pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
   pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
@@ -143,14 +151,14 @@ function onTouchmove(event: any, id: string) {
   if (t.length > 1) {
     if (state.isLockRatio) {
       // (B) rotate
-      if (pointerangle && typeof pointerangle === 'number') {
+      if (shareState.options.rotatable && pointerangle && typeof pointerangle === 'number') {
         var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
         angle = pointerangle2 - pointerangle
         pointerangle = pointerangle2
         matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
       }
       // (C) scale
-      if (pointerdistance && typeof pointerdistance === 'number') {
+      if (shareState.options.zoomable && pointerdistance && typeof pointerdistance === 'number') {
         var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
         scale[0] = pointerdistance2 / pointerdistance
         scale[1] = pointerdistance2 / pointerdistance
@@ -161,7 +169,7 @@ function onTouchmove(event: any, id: string) {
         if (scale[0] !== 0 && scale[1] !== 0)
           matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], scale[1]))
       }
-    } else if (pointerangle && typeof pointerangle === 'number') {
+    } else if (shareState.options.stretchable && pointerangle && typeof pointerangle === 'number') {
       // (B) rotate
       var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
       angle = pointerangle2 - pointerangle
@@ -271,7 +279,7 @@ defineExpose({
 
 <template>
   <div id="cartogram" class="d-flex flex-fill card-group">
-    <div class="card d-none d-sm-flex w-100">
+    <div class="card w-100" v-bind:class="[shareState.options.showBase ? 'd-flex' : 'd-none']">
       <div class="d-flex flex-column card-body">
         <CartogramLegend
           v-if="!state.isLoading"

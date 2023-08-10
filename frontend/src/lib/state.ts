@@ -4,6 +4,9 @@ export default reactive({
   current_sysname: '0-base',
   options: {
     showGrid: true,
-    showBase: false
+    showBase: false,
+    zoomable: true,
+    rotatable: true,
+    stretchable: true
   }
 })

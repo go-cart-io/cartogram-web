@@ -291,14 +291,69 @@ function updateGrid(change: number) {
           <div class="dropdown-menu dropdown-menu-end p-2 container" style="width: 220px">
             <div class="row">
               <div class="col-auto">
-                <label class="form-check-label" for="gridline-toggle-cartogram">Grid Lines</label>
+                <label class="form-check-label" for="gridline-toggle-cartogram"
+                  >Show grid lines</label
+                >
               </div>
               <div class="col text-end">
                 <input
                   type="checkbox"
                   class="form-check-input"
-                  id="gridline-toggle-cartogram"
                   v-model="shareState.options.showGrid"
+                />
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-auto">
+                <label class="form-check-label" for="gridline-toggle-cartogram"
+                  >Show base map</label
+                >
+              </div>
+              <div class="col text-end">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  v-model="shareState.options.showBase"
+                />
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-auto">
+                <label class="form-check-label" for="gridline-toggle-cartogram">Zoomable</label>
+              </div>
+              <div class="col text-end">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  v-model="shareState.options.zoomable"
+                />
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-auto">
+                <label class="form-check-label" for="gridline-toggle-cartogram">Rotatable</label>
+              </div>
+              <div class="col text-end">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  v-model="shareState.options.rotatable"
+                />
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-auto">
+                <label class="form-check-label" for="gridline-toggle-cartogram">Stretchable</label>
+              </div>
+              <div class="col text-end">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  v-model="shareState.options.stretchable"
                 />
               </div>
             </div>
