@@ -56,6 +56,7 @@ export default class CartMap {
       dont_draw: config.dont_draw.map((id) => id.toString()),
       elevate: config.elevate.map((id) => id.toString())
     }
+    if (config.label_size) this.config.label_size = config.label_size
   }
 
   getVersionGeoJSON(sysname: string) {
@@ -376,7 +377,11 @@ export default class CartMap {
         })(this, where_drawn)
       )
 
+    canvas.attr('font-size', '7px')
     if (version.labels == null) {
+      if (this.config.label_size) canvas.attr('font-size', this.config.label_size)
+      canvas.attr('text-anchor', 'middle')
+
       canvas
         .selectAll()
         .data(
@@ -389,10 +394,6 @@ export default class CartMap {
         .attr('id', (d) => 'label-' + element_id + '-' + d.polygon_id)
         .attr('x', (d) => (d.representPt ? d.representPt[0] : 0))
         .attr('y', (d) => (d.representPt ? d.representPt[1] : 0))
-        .attr('font-family', 'sans-serif')
-        .attr('font-size', '7.5px')
-        .attr('fill', '#000')
-        .attr('text-anchor', 'middle')
         .text((d) => d.abbreviation)
     } else {
       /* First draw the text */
@@ -446,9 +447,6 @@ export default class CartMap {
         var textLabels = text
           .attr('x', (d) => xPipeline(d.x) * scaleX)
           .attr('y', (d) => yPipeLine(d.y) * scaleY)
-          .attr('font-family', 'sans-serif')
-          .attr('font-size', '9.5px')
-          .attr('fill', '#000')
           .text((d) => d.text)
 
         var lines = canvas.selectAll('line').data(labels.lines).enter().append('line')
@@ -458,11 +456,8 @@ export default class CartMap {
           .attr('x2', (d) => xPipeline(d.x2) * scaleX)
           .attr('y1', (d) => yPipeLine(d.y1) * scaleY)
           .attr('y2', (d) => yPipeLine(d.y2) * scaleY)
-          .attr('stroke-width', 1)
-          .attr('stroke', '#000')
       } else {
         // Label transformation for non-World Maps.
-
         var scale_x =
           version_width / ((version.extrema.max_x - version.extrema.min_x) * labels.scale_x)
         var scale_y =
@@ -471,19 +466,9 @@ export default class CartMap {
         var text = canvas.selectAll('text').data(labels.labels).enter().append('text')
 
         var textLabels = text
-          .attr('font-family', 'sans-serif')
-          .attr('font-size', '7.5px')
-          .attr('fill', '#000')
           .text((d) => d.text)
-
-        if (labels.skipSVG) {
-          textLabels
-            .attr('x', (d) => scale_x * (-1 * version.extrema.min_x + d.x))
-            .attr('y', (d) => scale_y * (version.extrema.max_y - d.y))
-            .attr('text-anchor', 'middle')
-        } else {
-          textLabels.attr('x', (d) => d.x * scale_x).attr('y', (d) => d.y * scale_y)
-        }
+          .attr('x', (d) => d.x * scale_x)
+          .attr('y', (d) => d.y * scale_y)
 
         var lines = canvas.selectAll('line').data(labels.lines).enter().append('line')
 
@@ -492,8 +477,6 @@ export default class CartMap {
           .attr('x2', (d) => d.x2 * scale_x)
           .attr('y1', (d) => d.y1 * scale_y)
           .attr('y2', (d) => d.y2 * scale_y)
-          .attr('stroke-width', 1)
-          .attr('stroke', '#000')
       }
     }
   }
@@ -526,7 +509,6 @@ export default class CartMap {
           .attrTween('d', function (d) {
             return interpolatePath(polygon.path, targetPath)
           })
-        //.attr('d', targetPath)
 
         if (newPolygon.representPt) {
           d3.select('#label-' + element_id + '-' + polygon.id)

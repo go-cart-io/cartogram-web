@@ -133,6 +133,7 @@ function onTouchstart(event: any, id: string) {
 function onTouchend(event: any) {
   pointerposition = null // signals mouse up for (D) and (E)
   state.cursor = 'grab'
+  snapToBetterNumber()
   if (event.cancelable) event.preventDefault()
 }
 
@@ -206,7 +207,7 @@ function onTouchmove(event: any, id: string) {
 function onWheel(event: any) {
   // (D) and (E), pointerposition also tracks mouse down/up
   var matrix: Array<Array<number>> = []
-  if (pointerposition) {
+  if (event.ctrlKey) {
     matrix = util.getRotateMatrix(event.wheelDelta / 1000)
   } else {
     var scale = 1 + event.wheelDelta / 1000
@@ -352,13 +353,6 @@ defineExpose({
             <i v-if="state.isLockRatio" class="fas fa-lock"></i>
             <i v-else class="fas fa-unlock"></i>
           </button>
-          <button
-            class="btn btn-primary mx-1"
-            v-on:click="snapToBetterNumber()"
-            title="Snap grid to nice number"
-          >
-            <i class="fas fa-expand"></i>
-          </button>
           <button class="btn btn-primary mx-1" v-on:click="transformReset()" title="Reset">
             <i class="fas fa-undo"></i>
           </button>
@@ -415,6 +409,19 @@ defineExpose({
 #cartogram-area-svg g {
   transform-box: fill-box;
   transform-origin: center;
+}
+
+#map-area-svg text,
+#cartogram-area-svg text {
+  font-family: sans-serif;
+  fill: #000;
+  alignment-baseline: middle;
+}
+
+#map-area-svg line,
+#cartogram-area-svg line {
+  stroke: #000;
+  stroke-width: 1;
 }
 </style>
 

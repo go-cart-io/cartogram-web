@@ -18,6 +18,7 @@ export interface MapConfig {
   dont_draw: Array<any>
   elevate: Array<any>
   data_names?: Array<string>
+  label_size?: string
 }
 
 export interface PolygonToDraw {
