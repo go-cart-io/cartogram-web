@@ -53,6 +53,14 @@ onMounted(async () => {
   await nextTick()
   regions = cartogramUIEl.value.getRegions()
   state.versions = cartogramUIEl.value.getVersions()
+
+  let urlParams = new URLSearchParams(window.location.search)
+  if (urlParams.get('zoom') === '0') shareState.options.zoomable = false
+  else shareState.options.zoomable = true
+  if (urlParams.get('rotate') === '0') shareState.options.rotatable = false
+  else shareState.options.rotatable = true
+  if (urlParams.get('stretch') === '0') shareState.options.stretchable = false
+  else shareState.options.stretchable = true
 })
 
 /**
@@ -197,11 +205,6 @@ function clearEditing() {
   state.currentComponent = 'map'
   cartogramResponse = null
 }
-
-function updateGrid(change: number) {
-  cartogramUIEl.value.mapLegendEl.updateGridIndex(change)
-  cartogramUIEl.value.cartogramLegendEl.updateGridIndex(change)
-}
 </script>
 
 <template>
@@ -256,6 +259,13 @@ function updateGrid(change: number) {
           v-on:click="cartogramUIEl.switchVersion(index.toString())"
         >
           {{ version.name }}
+          <i
+            class="fas fa-check"
+            v-if="
+              Object.keys(state.versions).length === 2 &&
+              shareState.current_sysname === index.toString()
+            "
+          ></i>
         </button>
       </div>
 
