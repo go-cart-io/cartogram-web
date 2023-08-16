@@ -15,7 +15,6 @@
     "bootstrap": "^5.2.3",
     "bootstrap-vue-3": "^0.5.1",
     "d3": "^7.8.4",
-    "d3-interpolate-path": "^2.3.0",
     "tinycolor2": "^1.6.0",
     "vue": "^3.3.2",
     "xlsx": "^0.18.5"
@@ -25,7 +24,6 @@
     "@tsconfig/node18": "^2.0.1",
     "@types/bootstrap": "^5.2.6",
     "@types/d3": "^7.4.0",
-    "@types/d3-interpolate-path": "^2.0.0",
     "@types/tinycolor2": "^1.4.3",
     "@vitejs/plugin-vue": "^4.2.3",
     "@vue/tsconfig": "^0.4.0",

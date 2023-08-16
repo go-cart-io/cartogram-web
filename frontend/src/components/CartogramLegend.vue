@@ -248,11 +248,16 @@ function updateGridLines(gridWidth: number) {
   if (isNaN(gridWidth)) return
   let stroke_opacity = shareState.options.showGrid ? defaultOpacity : 0
   const gridPattern = d3.select('#' + props.mapID + '-grid')
-  gridPattern.attr('width', gridWidth).attr('height', gridWidth)
   gridPattern
     .select('path')
     .attr('stroke-opacity', stroke_opacity)
     .attr('d', 'M ' + gridWidth * 5 + ' 0 L 0 0 0 ' + gridWidth * 5) // *5 for pretty transition when resize grid
+  gridPattern
+    .transition()
+    .ease(d3.easeCubic)
+    .duration(1000)
+    .attr('width', gridWidth)
+    .attr('height', gridWidth)
 
   state.handlePosition = gridWidth
 }

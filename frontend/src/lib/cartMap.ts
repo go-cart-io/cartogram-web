@@ -5,7 +5,6 @@ import { Polygon, Region, RegionVersion } from './region'
 import { MapVersion, MapVersionData } from './mapVersion'
 import GallPetersProjection from './projection'
 import type { MapConfig } from './interface'
-import { interpolatePath } from 'd3-interpolate-path'
 
 /**
  * CartMap contains map data for a conventional map or cartogram. One map can contain several versions. In a map version,
@@ -496,19 +495,19 @@ export default class CartMap {
         if (!newPolygon) return
         const targetPath = newPolygon?.path || polygon.path
 
-        // d3.select('#path-' + element_id + '-' + polygon.id)
-        //   .attr('d', polygon.path)
-        //   .transition()
-        //   .ease(d3.easeCubic)
-        //   .duration(1000)
-        //   .attr('d', targetPath)
-
         d3.select('#path-' + element_id + '-' + polygon.id)
+          .attr('d', polygon.path)
           .transition()
+          .ease(d3.easeCubic)
           .duration(1000)
-          .attrTween('d', function (d) {
-            return interpolatePath(polygon.path, targetPath)
-          })
+          .attr('d', targetPath)
+
+        // d3.select('#path-' + element_id + '-' + polygon.id)
+        //   .transition()
+        //   .duration(1000)
+        //   .attrTween('d', function (d) {
+        //     return interpolatePath(polygon.path, targetPath)
+        //   })
 
         if (newPolygon.representPt) {
           d3.select('#label-' + element_id + '-' + polygon.id)
