@@ -88,8 +88,7 @@ def init(map_name):
         os.mkdir("static/cartdata/{}".format(map_name))
 
     region_identifier = input("What are the regions of this map called (e.g. State, Province) (Region)? ") or "Region"
-    dataset_names = input("What is the name of datasets. Note that only letter with no space is allowed and "
-                          "it should match collumn name is .csv file. Use comma to separate each dataset (Area,Population)? ") or "Area,Population"
+    dataset_names = input("What is the name of datasets. Note that only letter with no space is allowed and it should match collumn name is .csv file. Use comma to separate each dataset (Area,Population)? ") or "Area,Population"
     name_array = dataset_names.split(",")
     unit_names = input("What is unit of each dataset, in order (km.sq.,people)? ") or "km.sq.,people"
     unit_array = unit_names.split(",")    
@@ -122,11 +121,15 @@ def init(map_name):
     print("I will now generate the map and cartogram. This may take a moment.")
     print()
 
-    for i in range(len(name_array)):
-        if (name_array[i] == "Area"):
-            write_area(map_gen_path, map_name, regions, name_array[i], unit_array[i])
-        else:
-            write_cartogram(map_gen_path, map_name, regions, name_array[i], unit_array[i])
+    map_gen_file_path = "{}/{}".format(os.environ["CARTOGRAM_DATA_DIR"], map_gen_path)
+    if (name_array[0] == "Area"):
+        write_area(map_gen_file_path, map_name, regions, name_array[0], unit_array[0])
+    else:        
+        write_cartogram(map_gen_file_path, map_name, regions, name_array[0], unit_array[0], 'ts')
+
+    map_gen_file_path = "static/cartdata/{}/{}.json".format(map_name, name_array[0])
+    for i in range(len(name_array))[1:]:
+        write_cartogram(map_gen_file_path, map_name, regions, name_array[i], unit_array[i])
 
     print("Generating map pack in static/cartdata/{}/mappack.json...".format(map_name))
     mappackify.mappackify(map_name, name_array)    
@@ -245,9 +248,9 @@ def write_grid(map_name, user_friendly_name, regions, region_identifier, base_re
 
         json.dump(grid_document, griddocument_json_file)
 
-def write_area(map_gen_path, map_name, regions, data_name, data_unit):
+def write_area(map_gen_file_path, map_name, regions, data_name, data_unit):
     print("Generating conventional map...")
-    with open("{}/{}".format(os.environ["CARTOGRAM_DATA_DIR"], map_gen_path), "r") as map_gen_file:
+    with open(map_gen_file_path, "r") as map_gen_file:
         original_json = json.load(map_gen_file)
         original_json['tooltip'] = {
             "label": data_name,
@@ -267,13 +270,11 @@ def write_area(map_gen_path, map_name, regions, data_name, data_unit):
     with open("static/cartdata/{}/{}.json".format(map_name, data_name), "w") as original_json_file:
             json.dump(original_json, original_json_file)
 
-def write_cartogram(map_gen_path, map_name, regions, data_name, data_unit):
+def write_cartogram(map_gen_file_path, map_name, regions, data_name, data_unit, flags=''):
     print(("Generating {} map...").format(data_name))
     print("Making request to AWS Lambda function at {}.".format(settings.CARTOGRAM_LAMBDA_URL))
     cartogram_data = 'name,Data,Color\n' + ("\n".join(list(map(
-        lambda region: '{},{},{}'.format(region["name"], region[data_name], region["color"]), regions))))  
-
-    map_gen_file_path = "{}/{}".format(os.environ["CARTOGRAM_DATA_DIR"], map_gen_path)
+        lambda region: '{},{},{}'.format(region["name"], region[data_name], region["color"]), regions))))      
 
     def serverless_generate():
 
@@ -285,8 +286,7 @@ def write_cartogram(map_gen_path, map_name, regions, data_name, data_unit):
         def downloader_worker():
             lambda_result = awslambda.generate_cartogram(cartogram_data,
                                                         map_gen_file_path, settings.CARTOGRAM_LAMBDA_URL,
-                                                        settings.CARTOGRAM_LAMDA_API_KEY, unique_key)
-            print(lambda_result)
+                                                        settings.CARTOGRAM_LAMDA_API_KEY, unique_key, flags)
             cartogram_gen_output = lambda_result['stdout']
 
             q.put(cartogram_gen_output)
@@ -340,7 +340,7 @@ def write_cartogram(map_gen_path, map_name, regions, data_name, data_unit):
 
         gen_output_lines = []
 
-        for source, line in cartwrap.generate_cartogram(cartogram_data, map_gen_file_path, os.environ["CARTOGRAM_EXE"]):
+        for source, line in cartwrap.generate_cartogram(cartogram_data, map_gen_file_path, os.environ["CARTOGRAM_EXE"], False, flags):
 
             if source == "stdout":
                 gen_output_lines.append(line.decode().strip())
