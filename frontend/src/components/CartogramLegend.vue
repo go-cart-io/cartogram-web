@@ -80,6 +80,8 @@ defineExpose({
   updateGridIndex
 })
 
+const emit = defineEmits(['gridChanged'])
+
 onMounted(() => {
   const resizeObserver = new ResizeObserver(function () {
     const element = document.getElementById(props.mapID + '-svg')! as HTMLElement
@@ -217,6 +219,7 @@ function resizeGrid(event: any) {
     }
   }
   changeTo(key)
+  emit('gridChanged')
 }
 
 function formatLegendValue() {
@@ -252,12 +255,18 @@ function updateGridLines(gridWidth: number) {
     .select('path')
     .attr('stroke-opacity', stroke_opacity)
     .attr('d', 'M ' + gridWidth * 5 + ' 0 L 0 0 0 ' + gridWidth * 5) // *5 for pretty transition when resize grid
-  gridPattern
-    .transition()
-    .ease(d3.easeCubic)
-    .duration(1000)
-    .attr('width', gridWidth)
-    .attr('height', gridWidth)
+
+  if (gridPattern.attr('width')) {
+    // To prevent transition from 0
+    gridPattern
+      .transition()
+      .ease(d3.easeCubic)
+      .duration(1000)
+      .attr('width', gridWidth)
+      .attr('height', gridWidth)
+  } else {
+    gridPattern.attr('width', gridWidth).attr('height', gridWidth)
+  }
 
   state.handlePosition = gridWidth
 }

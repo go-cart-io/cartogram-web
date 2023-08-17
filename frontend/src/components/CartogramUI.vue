@@ -325,6 +325,7 @@ defineExpose({
           v-bind:map="map"
           v-bind:sysname="shareState.current_sysname"
           v-bind:affineScale="state.affineScale"
+          v-on:gridChanged="snapToBetterNumber"
         >
           <svg
             id="cartogram-area-svg"
