@@ -3,7 +3,7 @@
 
 setwd("D:\\Code\\cartogram-docker\\cartogram-web\\r")
 
-template_input <- "../data/test6.csv"
+template_input <- "../data/test22.csv"
 yearly_input <- "raw_data/Output_Area_Pop_est_SUM.csv"
 population_power <- 4
 
@@ -18,10 +18,10 @@ for (colname in 2016:2020) {
   ori_colname <- paste0('mid_', colname) 
   new_colname <- paste0('', colname) 
   mean_col <- mean(df[[ori_colname]])
-  df[new_colname] <- (df[ori_colname] / mean_col) ^ population_power
+  df[new_colname] <- round(((df[ori_colname] / mean_col) ^ population_power) * 1000)
 }
 
-df <- subset(df, select = -c(Area,Population,mid_2016,mid_2017,mid_2018,mid_2019,mid_2020))
+df <- subset(df, select = -c(Population,mid_2016,mid_2017,mid_2018,mid_2019,mid_2020))
 
 write.csv(template_df, paste0(template_input, '.bak'), row.names=FALSE)
 write.csv(df, template_input, row.names=FALSE)
