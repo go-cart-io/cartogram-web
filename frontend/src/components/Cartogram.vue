@@ -209,7 +209,7 @@ function clearEditing() {
 
 <template>
   <nav class="navbar bg-light p-0">
-    <div class="w-100 mw-100 d-flex align-items-end">
+    <div class="w-100 mw-100 d-flex align-items-start">
       <div class="p-2" v-if="mode === 'embed'">
         <img src="/static/img/gocart_final.svg" width="100" alt="go-cart.io logo" />
       </div>
@@ -244,13 +244,13 @@ function clearEditing() {
         role="group"
         aria-label="Data"
       >
-        <button
+        <!--button
           class="btn btn-primary"
           v-on:click="playVersions()"
           v-bind:disabled="state.isPlaying"
         >
           <i class="fas fa-play"></i>
-        </button>
+        </button-->
         <button
           v-for="(version, index) in state.versions"
           type="button"
@@ -369,6 +369,10 @@ function clearEditing() {
             </div>
           </div>
         </div>
+
+        You can pan {{ shareState.options.zoomable ? ', zoom' : '' }}
+        {{ shareState.options.rotatable ? ', rotate' : '' }}
+        {{ shareState.options.stretchable ? ', stretch' : '' }}
       </div>
     </div>
   </nav>
@@ -421,7 +425,7 @@ function clearEditing() {
 }
 button.version {
   min-width: 0;
-  padding: 1px;
+  padding: 0.4rem 1px;
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
