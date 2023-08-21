@@ -2,21 +2,25 @@
 import * as d3 from 'd3'
 import { ref, reactive, onMounted, nextTick } from 'vue'
 
-import { MapVersionData, MapDataFormat, MapVersion } from '@/lib/mapVersion'
-import type { Region } from '@/lib/region'
-import CartMap from '@/lib/cartMap'
+import { MapVersionData, MapVersion } from '../lib/mapVersion'
+import TouchInfo from '../lib/touchInfo'
+import shareState from '../lib/state'
+import * as util from '../lib/util'
+import type { Mappack } from '../lib/interface'
+import type { Region } from '../lib/region'
+import CartMap from '../lib/cartMap'
 import CartogramLegend from './CartogramLegend.vue'
 import CartogramDownload from './CartogramDownload.vue'
 import CartogramShare from './CartogramShare.vue'
-import type { Mappack } from '../lib/interface'
-import * as util from '../lib/util'
-import shareState from '../lib/state'
 
 var map: CartMap
+var touchInfo = new TouchInfo()
 var pointerangle: number | boolean, // (A)
   pointerposition: number[] | null, // (B)
   pointerdistance: number | boolean // (C)
-var supportsTouch = 'ontouchstart' in window || navigator.maxTouchPoints
+var lastTouch = 0 as number
+const DELAY_THRESHOLD = 300
+const SUPPORT_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints
 
 const mapLegendEl = ref()
 const cartogramLegendEl = ref()
@@ -40,8 +44,9 @@ const state = reactive({
   isLoading: true,
   cursor: 'grab',
   isLockRatio: true,
+  stretchDirection: 'x',
   affineMatrix: util.getOriginalMatrix(),
-  affineScale: [1, 1] // Keep track of scale for scaling grind easily
+  affineScale: [1, 1] // Keep track of scale for scaling grid easily
 })
 
 onMounted(() => {
@@ -122,26 +127,34 @@ function onTouchstart(event: any, id: string) {
   )
     return
 
-  const t = d3.pointers(event, d3.select(id))
-  pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
-  pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
-  pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
-  state.cursor = 'grabbing' // (F)
+  touchInfo.set(event)
+  var now = new Date().getTime();
+  var timesince = now - lastTouch;
+  if(touchInfo.length === 1 && (timesince < DELAY_THRESHOLD) && (timesince > 0)){ // Double tap
+    transformReset()
+  }else{
+    const t = touchInfo.getPoints()
+    pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
+    pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
+    pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
+  }
+
+  lastTouch = new Date().getTime()
   if (event.cancelable) event.preventDefault()
 }
 
 function onTouchend(event: any) {
-  pointerposition = null // signals mouse up for (D) and (E)
-  state.cursor = 'grab'
+  pointerposition = null // signals mouse up
+  touchInfo.clear(event)
   snapToBetterNumber()
   if (event.cancelable) event.preventDefault()
 }
 
 function onTouchmove(event: any, id: string) {
-  if (!pointerposition) return // mousemove with the mouse up
+  touchInfo.update(event)
+  if (touchInfo.length < 1 || touchInfo.length > 3 || !pointerposition) return  
 
-  //const t = [event.clientX, event.clientY]
-  const t = d3.pointers(event, d3.select(id))
+  const t = touchInfo.getPoints()
   var matrix = util.getOriginalMatrix()
   var angle = 0
   var position = [0, 0]
@@ -149,47 +162,45 @@ function onTouchmove(event: any, id: string) {
 
   // Order should be rotate, scale, translate
   // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
-  if (t.length > 1) {
-    if (state.isLockRatio) {
-      // (B) rotate
-      if (shareState.options.rotatable && pointerangle && typeof pointerangle === 'number') {
-        var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
-        angle = pointerangle2 - pointerangle
-        pointerangle = pointerangle2
-        matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
-      }
-      // (C) scale
-      if (shareState.options.zoomable && pointerdistance && typeof pointerdistance === 'number') {
-        var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
-        scale[0] = pointerdistance2 / pointerdistance
-        scale[1] = pointerdistance2 / pointerdistance
-        state.affineScale[0] *= scale[0]
-        state.affineScale[1] *= scale[1]
-        pointerdistance = pointerdistance2
+  if (shareState.options.stretchable && (touchInfo.length === 3 || (touchInfo.length === 2 && !state.isLockRatio))) { 
+    // rotate
+    var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
+    if (pointerangle && typeof pointerangle === 'number') angle = pointerangle2 - pointerangle
+    else angle = 0
+    pointerangle = pointerangle2
+    matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
 
-        if (scale[0] !== 0 && scale[1] !== 0)
-          matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], scale[1]))
-      }
-    } else if (shareState.options.stretchable && pointerangle && typeof pointerangle === 'number') {
-      // (B) rotate
+    // stretch    
+    var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
+    if (pointerdistance && typeof pointerdistance === 'number') scale[0] = pointerdistance2 / pointerdistance
+    else scale[0] = 0
+    state.affineScale[0] *= scale[0]
+    pointerdistance = pointerdistance2
+
+    if (scale[0] !== 0) {
+      matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(pointerangle))
+      matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], 1))
+      matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(-pointerangle))
+    }
+  } else if (t.length > 1) {
+    // (B) rotate
+    if (shareState.options.rotatable && pointerangle && typeof pointerangle === 'number') {
       var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
       angle = pointerangle2 - pointerangle
       pointerangle = pointerangle2
       matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
+    }
+    // (C) scale
+    if (shareState.options.zoomable && pointerdistance && typeof pointerdistance === 'number') {
+      var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
+      scale[0] = pointerdistance2 / pointerdistance
+      scale[1] = pointerdistance2 / pointerdistance
+      state.affineScale[0] *= scale[0]
+      state.affineScale[1] *= scale[1]
+      pointerdistance = pointerdistance2
 
-      // (C) scale
-      if (pointerdistance && typeof pointerdistance === 'number') {
-        var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
-        scale[0] = pointerdistance2 / pointerdistance
-        state.affineScale[0] *= scale[0]
-        pointerdistance = pointerdistance2
-
-        if (scale[0] !== 0) {
-          matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(pointerangle))
-          matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], 1))
-          matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(-pointerangle))
-        }
-      }
+      if (scale[0] !== 0 && scale[1] !== 0)
+        matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], scale[1]))
     }
   }
 
@@ -205,20 +216,19 @@ function onTouchmove(event: any, id: string) {
 }
 
 function onWheel(event: any) {
-  // (D) and (E), pointerposition also tracks mouse down/up
   var matrix: Array<Array<number>> = []
-  if (event.ctrlKey) {
+  if (event.shiftKey) {
     matrix = util.getRotateMatrix(event.wheelDelta / 1000)
   } else {
     var scale = 1 + event.wheelDelta / 1000
     var scales
 
-    if (event.altKey) {
-      scales = [scale, 1]
-    } else if (event.shiftKey) {
-      scales = [1, scale]
-    } else {
+    if (state.isLockRatio) {
       scales = [scale, scale]
+    } else if (state.stretchDirection === 'x') {
+      scales = [scale, 1]
+    } else {
+      scales = [1, scale]
     }
 
     state.affineScale[0] *= scales[0]
@@ -227,6 +237,19 @@ function onWheel(event: any) {
   }
   transformVersion(matrix, state.affineMatrix)
   if (event.cancelable) event.preventDefault()
+}
+
+function switchMode() {
+  if (SUPPORT_TOUCH) {
+   state.isLockRatio = !state.isLockRatio
+  } else if (state.isLockRatio) {
+    state.stretchDirection = 'x'
+    state.isLockRatio = false
+  } else if (state.stretchDirection === 'x') {
+    state.stretchDirection = 'y'
+  } else {
+    state.isLockRatio = true
+  }
 }
 
 function transformVersion(matrix1: Array<Array<number>>, matrix2: Array<Array<number>>) {
@@ -340,26 +363,27 @@ defineExpose({
           ></svg>
           <img class="position-absolute bottom-0 end-0 z-3" src="/static/img/by.svg" alt="cc-by" />
         </CartogramLegend>
+        <div class="position-absolute end-0" style="width: 2.5rem">
+          <button            
+            class="btn btn-primary w-100 my-1"
+            v-on:click="switchMode()"
+            v-bind:title="state.isLockRatio ? 'Switch to free transform' : 'Switch to lock ratio'"
+          >
+            <i v-if="state.isLockRatio" class="fas fa-lock"></i>
+            <i v-else-if="SUPPORT_TOUCH" class="fas fa-unlock"></i>
+            <i v-else-if="state.stretchDirection === 'x'" class="fas fa-arrows-alt-h"></i>
+            <i v-else class="fas fa-arrows-alt-v"></i>
+          </button>
+          <button class="btn btn-primary w-100 my-1" v-on:click="transformReset()" title="Reset">
+            <i class="fas fa-crosshairs"></i>
+          </button>
+        </div>
       </div>
 
       <div class="card-footer d-flex justify-content-between">
         <div class="d-none d-sm-block text-nowrap overflow-hidden">Cartogram</div>
         <div class="text-nowrap">
-          <button
-            v-if="supportsTouch"
-            class="btn btn-primary mx-1"
-            v-on:click="state.isLockRatio = !state.isLockRatio"
-            v-bind:title="state.isLockRatio ? 'Switch to free transform' : 'Switch to lock ratio'"
-          >
-            <i v-if="state.isLockRatio" class="fas fa-lock"></i>
-            <i v-else class="fas fa-unlock"></i>
-          </button>
-          <button class="btn btn-primary mx-1" v-on:click="transformReset()" title="Reset">
-            <i class="fas fa-undo"></i>
-          </button>
-
           <span v-if="mode !== 'embed'">
-            <div class="vr"></div>
             <button
               class="btn btn-primary mx-1"
               id="cartogram-download"

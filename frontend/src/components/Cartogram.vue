@@ -420,9 +420,6 @@ function clearEditing() {
 </template>
 
 <style>
-* {
-  touch-action: manipulation;
-}
 button.version {
   min-width: 0;
   padding: 0.4rem 1px;
