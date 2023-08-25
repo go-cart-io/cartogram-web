@@ -5,6 +5,7 @@ import { ref, reactive, onMounted, nextTick } from 'vue'
 import { MapVersionData, MapVersion } from '../lib/mapVersion'
 import TouchInfo from '../lib/touchInfo'
 import shareState from '../lib/state'
+import tracker from '../lib/tracker'
 import * as util from '../lib/util'
 import type { Mappack } from '../lib/interface'
 import type { Region } from '../lib/region'
@@ -18,7 +19,8 @@ var touchInfo = new TouchInfo()
 var pointerangle: number | boolean, // (A)
   pointerposition: number[] | null, // (B)
   pointerdistance: number | boolean // (C)
-var lastTouch = 0 as number
+var lastTouch = 0
+var lastMove = 0, timePan = 0, timeScale = 0, timeRotate = 0, timeStretch = 0
 const DELAY_THRESHOLD = 300
 const SUPPORT_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints
 
@@ -108,6 +110,7 @@ function switchVersion(version: string) {
   if (!version) return
   map?.switchVersion(shareState.current_sysname, version, 'cartogram-area')
   shareState.current_sysname = version
+  tracker.push('switch_data', version)
 }
 
 function getRegions(): { [key: string]: Region } {
@@ -130,23 +133,42 @@ function onTouchstart(event: any, id: string) {
   touchInfo.set(event)
   var now = new Date().getTime();
   var timesince = now - lastTouch;
-  if(touchInfo.length === 1 && (timesince < DELAY_THRESHOLD) && (timesince > 0)){ // Double tap
+  if (touchInfo.length === 1 && (timesince < DELAY_THRESHOLD) && (timesince > 0)) { // Double tap
     transformReset()
-  }else{
+    tracker.push('reset', 'double-tap')
+  } else {
     const t = touchInfo.getPoints()
     pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
     pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
     pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
+    if (touchInfo.length === 3) state.isLockRatio = false
   }
 
   lastTouch = new Date().getTime()
+  lastMove = lastTouch
   if (event.cancelable) event.preventDefault()
 }
 
 function onTouchend(event: any) {
   pointerposition = null // signals mouse up
+  var timesince = new Date().getTime() - lastTouch;
+  if (touchInfo.length === 3 && event.touches.length === 2 && timesince > DELAY_THRESHOLD) 
+    state.isLockRatio = true
+
   touchInfo.clear(event)
   snapToBetterNumber()
+  if (touchInfo.length === 0) {
+    tracker.push('pan', timePan)
+    tracker.push('scale', timeScale)
+    tracker.push('rotate', timeRotate)
+    tracker.push('stretch', timeStretch)
+
+    timePan = 0
+    timeScale = 0
+    timeRotate = 0
+    timeStretch = 0
+  }
+
   if (event.cancelable) event.preventDefault()
 }
 
@@ -159,6 +181,7 @@ function onTouchmove(event: any, id: string) {
   var angle = 0
   var position = [0, 0]
   var scale = [1, 1]
+  var now = new Date().getTime()
 
   // Order should be rotate, scale, translate
   // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
@@ -169,6 +192,7 @@ function onTouchmove(event: any, id: string) {
     else angle = 0
     pointerangle = pointerangle2
     matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
+    timeRotate += now - lastMove
 
     // stretch    
     var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
@@ -176,12 +200,12 @@ function onTouchmove(event: any, id: string) {
     else scale[0] = 0
     state.affineScale[0] *= scale[0]
     pointerdistance = pointerdistance2
-
     if (scale[0] !== 0) {
       matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(pointerangle))
       matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], 1))
       matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(-pointerangle))
     }
+    timeStretch += now - lastMove
   } else if (t.length > 1) {
     // (B) rotate
     if (shareState.options.rotatable && pointerangle && typeof pointerangle === 'number') {
@@ -189,6 +213,7 @@ function onTouchmove(event: any, id: string) {
       angle = pointerangle2 - pointerangle
       pointerangle = pointerangle2
       matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
+      timeRotate += now - lastMove
     }
     // (C) scale
     if (shareState.options.zoomable && pointerdistance && typeof pointerdistance === 'number') {
@@ -198,9 +223,9 @@ function onTouchmove(event: any, id: string) {
       state.affineScale[0] *= scale[0]
       state.affineScale[1] *= scale[1]
       pointerdistance = pointerdistance2
-
       if (scale[0] !== 0 && scale[1] !== 0)
         matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], scale[1]))
+      timeScale += now - lastMove
     }
   }
 
@@ -210,9 +235,12 @@ function onTouchmove(event: any, id: string) {
   position[1] = pointerposition2[1] - pointerposition[1]
   pointerposition = pointerposition2
   matrix = util.multiplyMatrix(matrix, util.getTranslateMatrix(position[0], position[1]))
+  timePan += now - lastMove
 
   transformVersion(matrix, state.affineMatrix)
   if (event.cancelable) event.preventDefault()
+
+  lastMove = new Date().getTime()
 }
 
 function onWheel(event: any) {
@@ -240,6 +268,7 @@ function onWheel(event: any) {
 }
 
 function switchMode() {
+  tracker.push('switch_mode', 'button')
   if (SUPPORT_TOUCH) {
    state.isLockRatio = !state.isLockRatio
   } else if (state.isLockRatio) {
@@ -374,7 +403,9 @@ defineExpose({
             <i v-else-if="state.stretchDirection === 'x'" class="fas fa-arrows-alt-h"></i>
             <i v-else class="fas fa-arrows-alt-v"></i>
           </button>
-          <button class="btn btn-primary w-100 my-1" v-on:click="transformReset()" title="Reset">
+          <button class="btn btn-primary w-100 my-1" 
+            v-on:click="() => {transformReset(); tracker.push('reset', 'button')}" 
+            title="Reset">
             <i class="fas fa-crosshairs"></i>
           </button>
         </div>

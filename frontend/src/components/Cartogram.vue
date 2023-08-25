@@ -11,6 +11,7 @@ import ProgressBar from './ProgressBar.vue'
 import type { Mappack } from '../lib/interface'
 import { Region } from '../lib/region'
 import shareState from '../lib/state'
+import tracker from '../lib/tracker'
 
 const CONFIG = { version: 'devel' }
 
@@ -46,6 +47,10 @@ var mappack: Mappack | null = null
 var regions: { [key: string]: Region } | null = null
 
 onMounted(async () => {
+  let urlParams = new URLSearchParams(window.location.search)
+  tracker.start()
+  tracker.setUserID(urlParams.get('pid'))  
+
   cartogram_data = props.cartogram_data
   cartogramui_data = props.cartogramui_data
   await getMapPack()
@@ -53,14 +58,15 @@ onMounted(async () => {
   await nextTick()
   regions = cartogramUIEl.value.getRegions()
   state.versions = cartogramUIEl.value.getVersions()
-
-  let urlParams = new URLSearchParams(window.location.search)
+  
   if (urlParams.get('zoom') === '0') shareState.options.zoomable = false
   else shareState.options.zoomable = true
   if (urlParams.get('rotate') === '0') shareState.options.rotatable = false
   else shareState.options.rotatable = true
   if (urlParams.get('stretch') === '0') shareState.options.stretchable = false
   else shareState.options.stretchable = true
+  tracker.setMeta('features', 
+    shareState.options.zoomable + ' ' + shareState.options.rotatable + ' ' + shareState.options.stretchable)
 })
 
 /**
@@ -74,7 +80,7 @@ onMounted(async () => {
  * @param {string} sysname The sysname of the map
  * @returns {Promise}
  */
-async function getMapPack() {
+async function getMapPack() {  
   mappack = (await HTTP.get(
     '/static/cartdata/' + selectedHandler + '/mappack.json?v=' + CONFIG.version,
     null,
@@ -82,6 +88,7 @@ async function getMapPack() {
       progressBarEl.value.setValue(Math.floor((e.loaded / e.total) * 100))
     }
   )) as Mappack
+  tracker.push('map_loaded', selectedHandler)
 }
 
 async function switchMap() {
