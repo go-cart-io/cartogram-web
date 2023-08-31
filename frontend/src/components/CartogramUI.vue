@@ -20,7 +20,11 @@ var pointerangle: number | boolean, // (A)
   pointerposition: number[] | null, // (B)
   pointerdistance: number | boolean // (C)
 var lastTouch = 0
-var lastMove = 0, timePan = 0, timeScale = 0, timeRotate = 0, timeStretch = 0
+var lastMove = 0,
+  timePan = 0,
+  timeScale = 0,
+  timeRotate = 0,
+  timeStretch = 0
 const DELAY_THRESHOLD = 300
 const SUPPORT_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints
 
@@ -46,6 +50,7 @@ const state = reactive({
   isLoading: true,
   cursor: 'grab',
   isLockRatio: true,
+  touchLenght: 0,
   stretchDirection: 'x',
   affineMatrix: util.getOriginalMatrix(),
   affineScale: [1, 1] // Keep track of scale for scaling grid easily
@@ -131,9 +136,11 @@ function onTouchstart(event: any, id: string) {
     return
 
   touchInfo.set(event)
-  var now = new Date().getTime();
-  var timesince = now - lastTouch;
-  if (touchInfo.length === 1 && (timesince < DELAY_THRESHOLD) && (timesince > 0)) { // Double tap
+  state.touchLenght = touchInfo.length
+  var now = new Date().getTime()
+  var timesince = now - lastTouch
+  if (touchInfo.length === 1 && timesince < DELAY_THRESHOLD && timesince > 0) {
+    // Double tap
     transformReset()
     tracker.push('reset', 'double-tap')
   } else {
@@ -141,7 +148,6 @@ function onTouchstart(event: any, id: string) {
     pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
     pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
     pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
-    if (touchInfo.length === 3) state.isLockRatio = false
   }
 
   lastTouch = new Date().getTime()
@@ -150,12 +156,10 @@ function onTouchstart(event: any, id: string) {
 }
 
 function onTouchend(event: any) {
-  pointerposition = null // signals mouse up
-  var timesince = new Date().getTime() - lastTouch;
-  if (touchInfo.length === 3 && event.touches.length === 2 && timesince > DELAY_THRESHOLD) 
-    state.isLockRatio = true
-
   touchInfo.clear(event)
+  state.touchLenght = touchInfo.length
+  if (touchInfo.length < 1) pointerposition = null // signals mouse up
+
   snapToBetterNumber()
   if (touchInfo.length === 0) {
     tracker.push('pan', timePan)
@@ -174,7 +178,7 @@ function onTouchend(event: any) {
 
 function onTouchmove(event: any, id: string) {
   touchInfo.update(event)
-  if (touchInfo.length < 1 || touchInfo.length > 3 || !pointerposition) return  
+  if (touchInfo.length < 1 || touchInfo.length > 3 || !pointerposition) return
 
   const t = touchInfo.getPoints()
   var matrix = util.getOriginalMatrix()
@@ -185,7 +189,10 @@ function onTouchmove(event: any, id: string) {
 
   // Order should be rotate, scale, translate
   // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
-  if (shareState.options.stretchable && (touchInfo.length === 3 || (touchInfo.length === 2 && !state.isLockRatio))) { 
+  if (
+    shareState.options.stretchable &&
+    (touchInfo.length === 3 || (touchInfo.length === 2 && !state.isLockRatio))
+  ) {
     // rotate
     var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
     if (pointerangle && typeof pointerangle === 'number') angle = pointerangle2 - pointerangle
@@ -194,9 +201,10 @@ function onTouchmove(event: any, id: string) {
     matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
     timeRotate += now - lastMove
 
-    // stretch    
+    // stretch
     var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
-    if (pointerdistance && typeof pointerdistance === 'number') scale[0] = pointerdistance2 / pointerdistance
+    if (pointerdistance && typeof pointerdistance === 'number')
+      scale[0] = pointerdistance2 / pointerdistance
     else scale[0] = 0
     state.affineScale[0] *= scale[0]
     pointerdistance = pointerdistance2
@@ -270,7 +278,7 @@ function onWheel(event: any) {
 function switchMode() {
   tracker.push('switch_mode', 'button')
   if (SUPPORT_TOUCH) {
-   state.isLockRatio = !state.isLockRatio
+    state.isLockRatio = !state.isLockRatio
   } else if (state.isLockRatio) {
     state.stretchDirection = 'x'
     state.isLockRatio = false
@@ -393,19 +401,27 @@ defineExpose({
           <img class="position-absolute bottom-0 end-0 z-3" src="/static/img/by.svg" alt="cc-by" />
         </CartogramLegend>
         <div class="position-absolute end-0" style="width: 2.5rem">
-          <button            
+          <button
             class="btn btn-primary w-100 my-1"
             v-on:click="switchMode()"
             v-bind:title="state.isLockRatio ? 'Switch to free transform' : 'Switch to lock ratio'"
           >
-            <i v-if="state.isLockRatio" class="fas fa-lock"></i>
+            <i v-if="state.touchLenght === 3" class="fas fa-unlock"></i>
+            <i v-else-if="state.isLockRatio" class="fas fa-lock"></i>
             <i v-else-if="SUPPORT_TOUCH" class="fas fa-unlock"></i>
             <i v-else-if="state.stretchDirection === 'x'" class="fas fa-arrows-alt-h"></i>
             <i v-else class="fas fa-arrows-alt-v"></i>
           </button>
-          <button class="btn btn-primary w-100 my-1" 
-            v-on:click="() => {transformReset(); tracker.push('reset', 'button')}" 
-            title="Reset">
+          <button
+            class="btn btn-primary w-100 my-1"
+            v-on:click="
+              () => {
+                transformReset()
+                tracker.push('reset', 'button')
+              }
+            "
+            title="Reset"
+          >
             <i class="fas fa-crosshairs"></i>
           </button>
         </div>

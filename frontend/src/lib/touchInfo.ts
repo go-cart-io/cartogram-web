@@ -1,7 +1,7 @@
 export default class TouchInfo {
-  touches = {} as {[key: string]: any}
+  touches = {} as { [key: string]: any }
   length = 0
-  thumbIndex = 0
+  thumbIndex = -1
 
   set(event: TouchEvent | MouseEvent): void {
     if (event instanceof TouchEvent) this.setTouches(event.touches)
@@ -15,20 +15,54 @@ export default class TouchInfo {
 
   setTouches(touchlist: TouchList): void {
     this.updateTouches(touchlist)
-    if (touchlist.length > 0) this.thumbIndex = touchlist[0].identifier
-    if (touchlist.length < 3) return   
 
-    let d01 = Math.hypot(touchlist[1].pageY - touchlist[0].pageY, touchlist[1].pageX - touchlist[0].pageX)
-    let d12 = Math.hypot(touchlist[2].pageY - touchlist[1].pageY, touchlist[2].pageX - touchlist[1].pageX)
-    let d20 = Math.hypot(touchlist[0].pageY - touchlist[2].pageY, touchlist[0].pageX - touchlist[2].pageX)
+    switch (touchlist.length) {
+      case 0:
+        this.thumbIndex = -1
+        return
 
-    // Assume two smallest distance is index and middle finger
-    if (d01 <= d12 && d01 <= d20) // d01 is the smallest
-      this.thumbIndex = touchlist[2].identifier
-    else if (d01 > d12 && d12 <= d20) // d12 is the smallest
-      this.thumbIndex = touchlist[0].identifier
-    else // d20 is the smallest
-      this.thumbIndex = touchlist[1].identifier
+      case 1:
+        this.thumbIndex = touchlist[0].identifier
+        return
+
+      case 2:
+        if (
+          this.thumbIndex === touchlist[0].identifier ||
+          this.thumbIndex === touchlist[1].identifier
+        ) {
+          return // same thumb
+        }
+        this.thumbIndex = touchlist[0].identifier
+        return
+
+      case 3:
+        let d01 = Math.hypot(
+          touchlist[1].pageY - touchlist[0].pageY,
+          touchlist[1].pageX - touchlist[0].pageX
+        )
+        let d12 = Math.hypot(
+          touchlist[2].pageY - touchlist[1].pageY,
+          touchlist[2].pageX - touchlist[1].pageX
+        )
+        let d20 = Math.hypot(
+          touchlist[0].pageY - touchlist[2].pageY,
+          touchlist[0].pageX - touchlist[2].pageX
+        )
+
+        // Assume two smallest distance is index and middle finger
+        if (d01 <= d12 && d01 <= d20)
+          // d01 is the smallest
+          this.thumbIndex = touchlist[2].identifier
+        else if (d01 > d12 && d12 <= d20)
+          // d12 is the smallest
+          this.thumbIndex = touchlist[0].identifier
+        // d20 is the smallest
+        else this.thumbIndex = touchlist[1].identifier
+        return
+
+      default:
+        return
+    }
   }
 
   update(event: TouchEvent | MouseEvent): void {
@@ -37,7 +71,7 @@ export default class TouchInfo {
   }
 
   updatePointer(event: MouseEvent) {
-    this.touches = {0: event}
+    this.touches = { 0: event }
     this.length = 1
   }
 
@@ -71,12 +105,13 @@ export default class TouchInfo {
   }
 
   getOthers(): [number, number] {
-    let x = 0, y = 0
+    let x = 0,
+      y = 0
     for (const identifier in this.touches) {
       if (identifier === this.thumbIndex.toString()) continue
       x += this.touches[identifier].pageX
       y += this.touches[identifier].pageY
     }
-    return [x/(this.length - 1), y/(this.length - 1)]
+    return [x / (this.length - 1), y / (this.length - 1)]
   }
 }
