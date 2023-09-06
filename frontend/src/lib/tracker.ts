@@ -1,27 +1,34 @@
 //import Tracker from '@openreplay/tracker';
 
-var trackerInstance = (function() {
+var trackerInstance = (function () {
   // const tracker = new Tracker({
-  //   projectKey: "",  
+  //   projectKey: "",
   //   __DISABLE_SECURE_MODE: true
   // });
+  var mapId = ''
+  var userId = ''
 
   return {
-    start: function () {
+    start() {
       //tracker.start()
     },
-    setUserID: function (user: string | null) {
-      if (!user) return
-      console.log('User: ' + user)
+    setUserID(value: string | null) {
+      if (!value) return
+      userId = value
+      console.log('User: ' + value)
     },
-    setMeta: function (meta: string, value: any) {
-      console.log(Date.now() + ' - ' + meta + ' - ' + value)
+    setMap(value: string) {
+      mapId = value.replace('test', '')
+      console.log(Date.now() + ',' + userId + ',' + mapId + ',map_loaded')
     },
-    push: function (type: string, payload: any) {
+    setMeta(meta: string, value: any) {
+      console.log(Date.now() + ',' + userId + ',' + mapId + ',' + meta + ',' + value)
+    },
+    push(type: string, payload: any) {
       //tracker.event(type, payload)
-      console.log(Date.now() + ' - ' + type + ' - ' + payload)
+      console.log(Date.now() + ',' + userId + ',' + mapId + ',' + type + ',' + payload)
     }
-  };
-})();
+  }
+})()
 
 export default trackerInstance
