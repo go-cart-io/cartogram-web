@@ -9,7 +9,6 @@ internal/*landarea.csv
 internal/*population.csv
 internal/*.svg
 internal/assets/node_modules
-internal/static/dist
 internal/static/cartdata/test*
 .Rproj.user
 .Rhistory
