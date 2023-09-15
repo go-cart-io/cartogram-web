@@ -222,7 +222,7 @@ function resizeGrid(event: any) {
   changeTo(key)
   emit('gridChanged')
 
-  tracker.push('grid_changed', Math.round(state.gridData[key]['width']) + ' (' + key + ')');
+  tracker.push('grid_changed', Math.round(state.gridData[key]['width']) + ' (' + key + ')')
 }
 
 function formatLegendValue() {
@@ -282,58 +282,60 @@ function updateGridIndex(change: number) {
 </script>
 
 <template>
-  <div class="d-flex position-absolute z-1">
-    <svg
-      v-if="state.gridData[numGridOptions]"
-      v-bind:id="props.mapID + '-legend'"
-      style="cursor: pointer; opacity: 0.5"
-      v-bind:width="state.gridData[state.currentGridIndex].width + 2"
-      v-bind:height="state.gridData[state.currentGridIndex].width + 2"
-    >
-      <g
-        v-for="key in state.gridDataKeys"
-        v-bind:id="props.mapID + '-legend' + key"
-        stroke-width="2px"
-        fill="#EEEEEE"
+  <div>
+    <div class="d-flex position-absolute z-1">
+      <svg
+        v-if="state.gridData[numGridOptions]"
+        v-bind:id="props.mapID + '-slider'"
+        v-bind:width="state.gridData[numGridOptions].width + 15"
+        height="30px"
+        style="cursor: pointer; top: -15px"
         stroke="#AAAAAA"
+        stroke-width="2px"
+        v-on:pointerup="resizeGrid"
+        v-on:touchmove="handleMove"
+        v-on:touchend="resizeGrid"
+        class="d-flex position-absolute z-2"
       >
-        <rect
-          x="1"
-          y="1"
-          v-bind:width="state.gridData[key].width"
-          v-bind:height="state.gridData[key].width"
-        ></rect>
-      </g>
-    </svg>
-    <div v-bind:id="props.mapID + '-legend-num'" class="flex-fill p-1">
-      <span v-html="state.legendUnit"></span>, Total: <span v-html="state.legendTotal"></span>
-      {{ state.unit }}
+        <line x1="0" y1="15" v-bind:x2="state.gridData[numGridOptions].width" y2="15"></line>
+        <line
+          v-for="grid in state.gridData"
+          v-bind:x1="grid.width"
+          y1="10"
+          v-bind:x2="grid.width"
+          y2="20"
+        ></line>
+        <circle id="handle" r="5" v-bind:cx="state.handlePosition" cy="15" stroke-width="0px" />
+      </svg>
+      <svg
+        v-if="state.gridData[numGridOptions]"
+        v-bind:id="props.mapID + '-legend'"
+        style="cursor: pointer; opacity: 0.5"
+        v-bind:width="state.gridData[state.currentGridIndex].width + 2"
+        v-bind:height="state.gridData[state.currentGridIndex].width + 2"
+      >
+        <g
+          v-for="key in state.gridDataKeys"
+          v-bind:id="props.mapID + '-legend' + key"
+          stroke-width="2px"
+          fill="#EEEEEE"
+          stroke="#AAAAAA"
+        >
+          <rect
+            x="1"
+            y="1"
+            v-bind:width="state.gridData[key].width"
+            v-bind:height="state.gridData[key].width"
+          ></rect>
+        </g>
+      </svg>
+      <div v-bind:id="props.mapID + '-legend-num'" class="flex-fill p-1">
+        <span v-html="state.legendUnit"></span>
+        {{ state.unit }}
+        <div>Total: <span v-html="state.legendTotal"></span></div>
+      </div>
     </div>
   </div>
-
-  <svg
-    v-if="state.gridData[numGridOptions]"
-    v-bind:id="props.mapID + '-slider'"
-    v-bind:width="state.gridData[numGridOptions].width + 15"
-    height="30px"
-    style="cursor: pointer; top: 2px; left: 17px"
-    stroke="#AAAAAA"
-    stroke-width="2px"
-    v-on:pointerup="resizeGrid"
-    v-on:touchmove="handleMove"
-    v-on:touchend="resizeGrid"
-    class="d-flex position-absolute z-2"
-  >
-    <line x1="0" y1="15" v-bind:x2="state.gridData[numGridOptions].width" y2="15"></line>
-    <line
-      v-for="grid in state.gridData"
-      v-bind:x1="grid.width"
-      y1="10"
-      v-bind:x2="grid.width"
-      y2="20"
-    ></line>
-    <circle id="handle" r="5" v-bind:cx="state.handlePosition" cy="15" stroke-width="0px" />
-  </svg>
 
   <div v-bind:id="props.mapID" class="flex-fill" data-grid-visibility="off">
     <slot></slot>
