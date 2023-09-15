@@ -437,6 +437,13 @@ if len(sys.argv) < 3:
 
 if sys.argv[1] == "init":
     init(sys.argv[2])
+elif sys.argv[1] == "batch":
+    ids = sys.argv[2].split(":")
+    for x in range(int(ids[0]), int(ids[1]) + 1):
+        try:
+            init("test" + str(x))
+        except Exception as e:
+            print(e)
 elif sys.argv[1] == "cleanup":
     cleanup(sys.argv[2])
 else:
