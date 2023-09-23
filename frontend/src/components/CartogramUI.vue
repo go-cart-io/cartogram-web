@@ -23,7 +23,9 @@ var lastTouch = 0
 var timePan = 0,
   timeScale = 0,
   timeRotate = 0,
-  timeStretch = 0
+  timeStretch = 0,
+  totalPan = [0, 0],
+  totalRotate = 0  
 const DELAY_THRESHOLD = 300
 const SUPPORT_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints
 
@@ -155,14 +157,19 @@ function onTouchend(event: any) {
   snapToBetterNumber()
   if (touchInfo.length === 0) {
     pointerposition = null // signals mouse up
-    tracker.push('pan', timePan)
-    tracker.push('scale', timeScale)
-    tracker.push('rotate', timeRotate)
-    tracker.push('stretch', timeStretch)
-    tracker.push(
-      'scale_value',
-      state.affineScale[0].toFixed(2) + ':' + state.affineScale[1].toFixed(2)
-    )
+
+    if (timePan || timeScale || timeRotate || timeStretch) {
+      tracker.push('pan', timePan)
+      tracker.push('scale', timeScale)
+      tracker.push('rotate', timeRotate)
+      tracker.push('stretch', timeStretch)
+      tracker.push('pan_value', totalPan[0].toFixed(2) + ':' + totalPan[1].toFixed(2))
+      tracker.push('rotate_value', totalRotate.toFixed(2))
+      tracker.push(
+        'scale_value',
+        state.affineScale[0].toFixed(2) + ':' + state.affineScale[1].toFixed(2)
+      )
+    }
 
     timePan = 0
     timeScale = 0
@@ -202,6 +209,7 @@ function onTouchmove(event: any, id: string) {
     pointerangle = pointerangle2
     matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
     timeRotate += now - state.lastMove
+    totalRotate += angle
 
     // stretch
     var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
@@ -224,6 +232,7 @@ function onTouchmove(event: any, id: string) {
       pointerangle = pointerangle2
       matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
       timeRotate += now - state.lastMove
+      totalRotate += angle
     }
     // (C) scale
     if (shareState.options.zoomable && pointerdistance && typeof pointerdistance === 'number') {
@@ -235,7 +244,7 @@ function onTouchmove(event: any, id: string) {
       pointerdistance = pointerdistance2
       if (scale[0] !== 0 && scale[1] !== 0)
         matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], scale[1]))
-      timeScale += now - state.lastMove
+      timeScale += now - state.lastMove      
     }
   }
 
@@ -246,6 +255,8 @@ function onTouchmove(event: any, id: string) {
   pointerposition = pointerposition2
   matrix = util.multiplyMatrix(matrix, util.getTranslateMatrix(position[0], position[1]))
   timePan += now - state.lastMove
+  totalPan[0] += position[0]
+  totalPan[1] += position[1]
 
   transformVersion(matrix, state.affineMatrix)
   if (event.cancelable) event.preventDefault()
@@ -315,6 +326,8 @@ function transformVersion(matrix1: Array<Array<number>>, matrix2: Array<Array<nu
 function transformReset() {
   state.affineMatrix = util.getOriginalMatrix()
   state.affineScale = [1, 1]
+  totalPan = [0, 0]
+  totalRotate = 0
   transformVersion(state.affineMatrix, state.affineMatrix)
 }
 
@@ -364,7 +377,7 @@ defineExpose({
           v-bind:map="map"
           sysname="0-base"
         >
-          <svg id="map-area-svg"></svg>
+          <svg id="map-area-svg" class="vis-area"></svg>
         </CartogramLegend>
       </div>
 
@@ -404,6 +417,7 @@ defineExpose({
         >
           <svg
             id="cartogram-area-svg"
+            class="vis-area"
             v-bind:style="{ cursor: state.cursor }"
             v-on:mousedown="onTouchstart($event, 'cartogram-area-svg')"
             v-on:touchstart="onTouchstart($event, 'cartogram-area-svg')"
@@ -483,8 +497,7 @@ defineExpose({
   position: relative;
 }
 
-#map-area-svg,
-#cartogram-area-svg {
+.vis-area {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -492,21 +505,18 @@ defineExpose({
   mix-blend-mode: multiply;
 }
 
-#map-area-svg g,
-#cartogram-area-svg g {
+.vis-area g {
   transform-box: fill-box;
   transform-origin: center;
 }
 
-#map-area-svg text,
-#cartogram-area-svg text {
+.vis-area text {
   font-family: sans-serif;
   fill: #000;
   alignment-baseline: middle;
 }
 
-#map-area-svg line,
-#cartogram-area-svg line {
+.vis-area line {
   stroke: #000;
   stroke-width: 1;
 }
