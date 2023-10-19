@@ -15,6 +15,19 @@ import tracker from '../lib/tracker'
 import config from '../lib/config'
 
 const CONFIG = { version: 'devel' }
+var detectTasks = [
+  'test4',
+  'test6',
+  'test58',
+  'test34',
+  'test117',
+  'test130',
+  'test138',
+  'test18',
+  'test21',
+  'test105',
+  'test64'
+]
 
 const props = defineProps<{
   defaultHandler: string
@@ -276,6 +289,7 @@ function clearEditing() {
           type="button"
           class="btn btn-outline-primary version"
           v-bind:class="{ active: shareState.current_sysname === index.toString() }"
+          v-bind:disabled="detectTasks.indexOf(selectedHandler) < 0 && version.name === '2016'"
           v-on:click="cartogramUIEl.switchVersion(index.toString())"
         >
           {{ version.name }}
@@ -308,7 +322,7 @@ function clearEditing() {
           </button>
         </span>
 
-        <div class="dropdown me-2">
+        <!-- <div class="dropdown me-2">
           <button
             class="btn btn-primary dropdown-toggle"
             type="button"
@@ -388,7 +402,7 @@ function clearEditing() {
               </div>
             </div>
           </div>
-        </div>
+        </div> -->
 
         You can pan {{ shareState.options.zoomable ? ', zoom' : '' }}
         {{ shareState.options.rotatable ? ', rotate' : '' }}
