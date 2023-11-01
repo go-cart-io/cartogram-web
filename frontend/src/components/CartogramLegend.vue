@@ -4,7 +4,6 @@ import { nextTick, onMounted, reactive, watch } from 'vue'
 import type CartMap from '@/lib/cartMap'
 import * as util from '../lib/util'
 import shareState from '../lib/state'
-import tracker from '../lib/tracker'
 
 var numGridOptions = 3
 var versionArea: number
@@ -221,8 +220,6 @@ function resizeGrid(event: any) {
   }
   changeTo(key)
   emit('gridChanged')
-
-  tracker.push('grid_changed', Math.round(state.gridData[key]['width']) + ' (' + key + ')')
 }
 
 function formatLegendValue() {

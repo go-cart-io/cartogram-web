@@ -11,7 +11,6 @@ import ProgressBar from './ProgressBar.vue'
 import type { Mappack } from '../lib/interface'
 import { Region } from '../lib/region'
 import shareState from '../lib/state'
-import tracker from '../lib/tracker'
 import config from '../lib/config'
 
 const CONFIG = { version: 'devel' }
@@ -50,9 +49,6 @@ let urlParams: URLSearchParams
 
 onMounted(async () => {
   urlParams = new URLSearchParams(window.location.search)
-  tracker.start()
-  tracker.setUserID(urlParams.get('pid'))
-
   cartogram_data = props.cartogram_data
   cartogramui_data = props.cartogramui_data
   await getMapPack()
@@ -67,14 +63,6 @@ onMounted(async () => {
   else shareState.options.rotatable = true
   if (urlParams.get('stretch') === '0') shareState.options.stretchable = false
   else shareState.options.stretchable = true
-  tracker.setMeta(
-    'features_set',
-    shareState.options.zoomable +
-      ':' +
-      shareState.options.rotatable +
-      ':' +
-      shareState.options.stretchable
-  )
 })
 
 /**
@@ -97,7 +85,6 @@ async function getMapPack() {
     }
   )) as Mappack
 
-  tracker.setMap(selectedHandler)
   if (urlParams.get('pid')) {
     ;[shareState.options.zoomable, shareState.options.rotatable, shareState.options.stretchable] =
       config(urlParams.get('pid')!, selectedHandler)
@@ -389,10 +376,6 @@ function clearEditing() {
             </div>
           </div>
         </div>
-
-        You can pan {{ shareState.options.zoomable ? ', zoom' : '' }}
-        {{ shareState.options.rotatable ? ', rotate' : '' }}
-        {{ shareState.options.stretchable ? ', stretch' : '' }}
       </div>
     </div>
   </nav>

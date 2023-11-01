@@ -5,7 +5,6 @@ import { ref, reactive, onMounted, nextTick } from 'vue'
 import { MapVersionData, MapVersion } from '../lib/mapVersion'
 import TouchInfo from '../lib/touchInfo'
 import shareState from '../lib/state'
-import tracker from '../lib/tracker'
 import * as util from '../lib/util'
 import type { Mappack } from '../lib/interface'
 import type { Region } from '../lib/region'
@@ -20,12 +19,6 @@ var pointerangle: number | boolean, // (A)
   pointerposition: number[] | null, // (B)
   pointerdistance: number | boolean // (C)
 var lastTouch = 0
-var timePan = 0,
-  timeScale = 0,
-  timeRotate = 0,
-  timeStretch = 0,
-  totalPan = [0, 0],
-  totalRotate = 0  
 const DELAY_THRESHOLD = 300
 const SUPPORT_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints
 
@@ -117,7 +110,6 @@ function switchVersion(version: string) {
   if (!version) return
   map?.switchVersion(shareState.current_sysname, version, 'cartogram-area')
   shareState.current_sysname = version
-  tracker.push('switch_data', version + '-')
 }
 
 function getRegions(): { [key: string]: Region } {
@@ -137,7 +129,6 @@ function onTouchstart(event: any, id: string) {
   if (touchInfo.length === 1 && timesince < DELAY_THRESHOLD && timesince > 0) {
     // Double tap
     transformReset()
-    tracker.push('reset', 'double-tap')
   } else {
     const t = touchInfo.getPoints()
     pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
@@ -157,24 +148,6 @@ function onTouchend(event: any) {
   snapToBetterNumber()
   if (touchInfo.length === 0) {
     pointerposition = null // signals mouse up
-
-    if (timePan || timeScale || timeRotate || timeStretch) {
-      tracker.push('pan', timePan)
-      tracker.push('scale', timeScale)
-      tracker.push('rotate', timeRotate)
-      tracker.push('stretch', timeStretch)
-      tracker.push('pan_value', totalPan[0].toFixed(2) + ':' + totalPan[1].toFixed(2))
-      tracker.push('rotate_value', totalRotate.toFixed(2))
-      tracker.push(
-        'scale_value',
-        state.affineScale[0].toFixed(2) + ':' + state.affineScale[1].toFixed(2)
-      )
-    }
-
-    timePan = 0
-    timeScale = 0
-    timeRotate = 0
-    timeStretch = 0
   } else {
     const t = touchInfo.getPoints()
     pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
@@ -208,8 +181,6 @@ function onTouchmove(event: any, id: string) {
     else angle = 0
     pointerangle = pointerangle2
     matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
-    timeRotate += now - state.lastMove
-    totalRotate += angle
 
     // stretch
     var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
@@ -223,7 +194,6 @@ function onTouchmove(event: any, id: string) {
       matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], 1))
       matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(-pointerangle))
     }
-    timeStretch += now - state.lastMove
   } else if (t.length > 1) {
     // (B) rotate
     if (shareState.options.rotatable && pointerangle && typeof pointerangle === 'number') {
@@ -231,8 +201,6 @@ function onTouchmove(event: any, id: string) {
       angle = pointerangle2 - pointerangle
       pointerangle = pointerangle2
       matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
-      timeRotate += now - state.lastMove
-      totalRotate += angle
     }
     // (C) scale
     if (shareState.options.zoomable && pointerdistance && typeof pointerdistance === 'number') {
@@ -243,8 +211,7 @@ function onTouchmove(event: any, id: string) {
       state.affineScale[1] *= scale[1]
       pointerdistance = pointerdistance2
       if (scale[0] !== 0 && scale[1] !== 0)
-        matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], scale[1]))
-      timeScale += now - state.lastMove      
+        matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], scale[1]))    
     }
   }
 
@@ -254,9 +221,6 @@ function onTouchmove(event: any, id: string) {
   position[1] = pointerposition2[1] - pointerposition[1]
   pointerposition = pointerposition2
   matrix = util.multiplyMatrix(matrix, util.getTranslateMatrix(position[0], position[1]))
-  timePan += now - state.lastMove
-  totalPan[0] += position[0]
-  totalPan[1] += position[1]
 
   transformVersion(matrix, state.affineMatrix)
   if (event.cancelable) event.preventDefault()
@@ -289,7 +253,6 @@ function onWheel(event: any) {
 }
 
 function switchMode() {
-  tracker.push('switch_mode', 'button')
   if (SUPPORT_TOUCH) {
     state.isLockRatio = !state.isLockRatio
   } else if (state.isLockRatio) {
@@ -326,8 +289,6 @@ function transformVersion(matrix1: Array<Array<number>>, matrix2: Array<Array<nu
 function transformReset() {
   state.affineMatrix = util.getOriginalMatrix()
   state.affineScale = [1, 1]
-  totalPan = [0, 0]
-  totalRotate = 0
   transformVersion(state.affineMatrix, state.affineMatrix)
 }
 
@@ -354,19 +315,6 @@ defineExpose({
 </script>
 
 <template>
-  <div class="pointervis">
-    <svg class="w-100 h-100" v-bind:key="state.lastMove">
-      <g v-for="n in state.touchLenght">
-        <circle
-          v-bind:cx="touchInfo.getXOfIndex(n)"
-          v-bind:cy="touchInfo.getYOfIndex(n)"
-          v-bind:fill="touchInfo.getColorOfIndex(n)"
-          r="5"
-        />
-      </g>
-    </svg>
-  </div>
-
   <div id="cartogram" class="d-flex flex-fill card-group">
     <div class="card w-100" v-bind:class="[shareState.options.showBase ? 'd-flex' : 'd-none']">
       <div class="d-flex flex-column card-body">
@@ -446,7 +394,6 @@ defineExpose({
             v-on:click="
               () => {
                 transformReset()
-                tracker.push('reset', 'button')
               }
             "
             title="Reset"
@@ -536,15 +483,5 @@ defineExpose({
   top: 0;
   left: 0;
   z-index: 1000;
-}
-
-.pointervis {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  z-index: 1001;
-  pointer-events: none;
 }
 </style>
