@@ -104,6 +104,7 @@ import random
 import datetime
 from flask import Flask, request, session, Response, flash, redirect, render_template, url_for
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 import validate_email
 import smtplib
 import email.mime.text
@@ -113,6 +114,7 @@ import redis
 from asset import Asset
 
 app = Flask(__name__)
+CORS(app)
 Asset(app)
 
 app.secret_key = "LTTNWg8luqfWKfDxjFaeC3vYoGrC2r2f5mtXo5IE/jt1GcY7/JaSq8V/tB"
