@@ -60,7 +60,7 @@ defineExpose({
 
   <!-- Modal -->
   <div
-    class="modal fade"
+    class="modal fade text-wrap"
     id="shareModal"
     tabindex="-1"
     aria-labelledby="shareModalLabel"

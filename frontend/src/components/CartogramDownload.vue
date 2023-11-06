@@ -55,7 +55,7 @@ defineExpose({
 
 <template>
   <div
-    class="modal fade"
+    class="modal fade text-wrap"
     id="downloadModal"
     tabindex="-1"
     aria-labelledby="downloadModalLabel"

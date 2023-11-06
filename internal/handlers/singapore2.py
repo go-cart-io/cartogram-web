@@ -5,7 +5,7 @@ import csv
 class CartogramHandler(handlers.base_handler.BaseCartogramHandler):
 
     def get_name(self):
-        return "Singapore (2000 vs 2022)"
+        return "Singapore (2000 vs 2020)"
 
     def get_gen_file(self):
         return "{}/singaporePA_processedmap.json".format(settings.CARTOGRAM_DATA_DIR)
