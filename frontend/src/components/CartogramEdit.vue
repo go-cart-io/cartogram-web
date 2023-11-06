@@ -18,15 +18,16 @@ const emit = defineEmits<{
 
 function generateTable() {
   let row, col: number
-
   state.fields = []
+  state.items = []
+  if (!props.grid_document || !props.grid_document.edit_mask) return
+  
   // Header
   for (col = 0; col < props.grid_document.width; col++) {
     state.fields.push({ key: col.toString(), label: props.grid_document.contents[col] })
   }
 
-  // Content
-  state.items = []
+  // Content  
   for (row = 1; row < props.grid_document.height; row++) {
     var data: any = {}
     for (col = 0; col < props.grid_document.width; col++) {
@@ -174,6 +175,10 @@ th {
   text-align: left;
   width: 100px;
   vertical-align: middle;
+}
+
+td {
+  min-width: 15px;
 }
 
 .modal-footer--sticky {

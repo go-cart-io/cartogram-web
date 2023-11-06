@@ -71,8 +71,8 @@ def init(map_name):
     print("E.G: The .json file for this map is located at CARTOGRAM_DATA_DIR/map.json. Enter \"map.json\".")
     print()
 
-    map_gen_path = input(("Enter the location of the .json file for this map ({}.geojson): ").format(map_name)) or user_friendly_name + ".geojson"
-    map_dat_path = input(("Enter the location of the .csv file for this map ({}.csv): ").format(map_name)) or user_friendly_name + ".csv"
+    map_gen_path = input(("Enter the location of the .json file for this map ({}.geojson): ").format(map_name)) or map_name + ".geojson"
+    map_dat_path = input(("Enter the location of the .csv file for this map ({}.csv): ").format(map_name)) or map_name + ".csv"
 
     if not os.path.exists("{}/{}".format(os.environ["CARTOGRAM_DATA_DIR"], map_gen_path)):
         print("Error: It looks like the file {}/{} does not exist.".format(
@@ -288,7 +288,8 @@ def write_cartogram(map_gen_file_path, map_name, regions, data_name, data_unit, 
                                                         map_gen_file_path, settings.CARTOGRAM_LAMBDA_URL,
                                                         settings.CARTOGRAM_LAMDA_API_KEY, unique_key, flags)
             cartogram_gen_output = lambda_result['stdout']
-
+            print("************")
+            print(lambda_result)
             q.put(cartogram_gen_output)
 
         threading.Thread(target=downloader_worker(), daemon=True).start()
@@ -333,7 +334,9 @@ def write_cartogram(map_gen_file_path, map_name, regions, data_name, data_unit, 
                 for line in to_print.split("\n"):
                     print("Generating {} map: {}".format(
                         data_name, line), flush=True)
-        
+                    
+        print("serverless")
+        print(gen_output)
         return json.loads(gen_output)
 
     def self_generate():
@@ -349,6 +352,9 @@ def write_cartogram(map_gen_file_path, map_name, regions, data_name, data_unit, 
                     data_name, line.decode().strip()))
 
         gen_output = "\n".join(gen_output_lines)
+
+        print("self")
+        print(gen_output)
         return json.loads(gen_output)
 
     cartogram_json = serverless_generate(
