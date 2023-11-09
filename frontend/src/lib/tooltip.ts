@@ -9,11 +9,21 @@ export default class Tooltip {
    * @param event The current mouse event
    * @param content The new content of the tooltip
    */
-  static draw(event: MouseEvent, content: string): void {
+  static draw(event: Event, content: string): void {
+    let x, y
+    if (event instanceof MouseEvent) {
+      x = event.pageX
+      y = event.pageY
+    } else if (event instanceof TouchEvent) {
+      x = event.changedTouches[0].pageX
+      y = event.changedTouches[0].pageY
+    }
+
+    if (!x || !y) return
     document.getElementById('tooltip')!.innerHTML = content
     document.getElementById('tooltip')!.style.display = 'inline-block'
-    document.getElementById('tooltip')!.style.left = event.pageX - 50 + 'px'
-    document.getElementById('tooltip')!.style.top = event.pageY + 15 + 'px'
+    document.getElementById('tooltip')!.style.left = x - 50 + 'px'
+    document.getElementById('tooltip')!.style.top = y + 15 + 'px'
   }
 
   static drawWithEntries(

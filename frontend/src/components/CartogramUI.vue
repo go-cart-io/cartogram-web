@@ -9,6 +9,7 @@ import * as util from '../lib/util'
 import type { Mappack } from '../lib/interface'
 import type { Region } from '../lib/region'
 import CartMap from '../lib/cartMap'
+import Tooltip from '../lib/tooltip'
 import CartogramLegend from './CartogramLegend.vue'
 import CartogramDownload from './CartogramDownload.vue'
 import CartogramShare from './CartogramShare.vue'
@@ -122,6 +123,7 @@ function getVersions(): { [key: string]: MapVersion } {
 
 // https://observablehq.com/@d3/multitouch
 function onTouchstart(event: any, id: string) {
+  Tooltip.hide()
   touchInfo.set(event)
   state.touchLenght = touchInfo.length
   var now = new Date().getTime()
@@ -148,6 +150,13 @@ function onTouchend(event: any) {
   snapToBetterNumber()
   if (touchInfo.length === 0) {
     pointerposition = null // signals mouse up
+
+    var now = new Date().getTime()
+    var timesince = now - lastTouch
+    if (timesince < DELAY_THRESHOLD) {
+      let region_id = event.target?.__data__?.region_id
+      if (region_id) map.drawTooltip(event, event.target.__data__.region_id) // Show infotip if hold
+    }
   } else {
     const t = touchInfo.getPoints()
     pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
@@ -211,16 +220,19 @@ function onTouchmove(event: any, id: string) {
       state.affineScale[1] *= scale[1]
       pointerdistance = pointerdistance2
       if (scale[0] !== 0 && scale[1] !== 0)
-        matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], scale[1]))    
+        matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], scale[1]))
     }
   }
 
-  // (A) translate
-  var pointerposition2 = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0]
-  position[0] = pointerposition2[0] - pointerposition[0]
-  position[1] = pointerposition2[1] - pointerposition[1]
-  pointerposition = pointerposition2
-  matrix = util.multiplyMatrix(matrix, util.getTranslateMatrix(position[0], position[1]))
+  var timesince = now - lastTouch
+  if (touchInfo.length > 1 || (touchInfo.length === 1 && timesince > DELAY_THRESHOLD)) {
+    // (A) translate
+    var pointerposition2 = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0]
+    position[0] = pointerposition2[0] - pointerposition[0]
+    position[1] = pointerposition2[1] - pointerposition[1]
+    pointerposition = pointerposition2
+    matrix = util.multiplyMatrix(matrix, util.getTranslateMatrix(position[0], position[1]))
+  }
 
   transformVersion(matrix, state.affineMatrix)
   if (event.cancelable) event.preventDefault()
