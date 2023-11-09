@@ -10,5 +10,6 @@ internal/*.svg
 internal/assets/node_modules
 
 data/test*
-internal/static/cartdata/test*
-internal/handlers/test*
+internal/static/cartdata/test*/*
+!internal/static/cartdata/test**/mappack.json
+!internal/static/cartdata/test**/template.csv

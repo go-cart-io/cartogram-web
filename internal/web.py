@@ -91,6 +91,46 @@ from handlers import srilanka
 from handlers import germany
 from handlers import indonesia
 from handlers import singaporeRe
+from handlers import test4
+from handlers import test6
+from handlers import test13
+from handlers import test14
+from handlers import test15
+from handlers import test16
+from handlers import test18
+from handlers import test20
+from handlers import test21
+from handlers import test22
+from handlers import test23
+from handlers import test24
+from handlers import test26
+from handlers import test28
+from handlers import test29
+from handlers import test30
+from handlers import test32
+from handlers import test34
+from handlers import test37
+from handlers import test38
+from handlers import test39
+from handlers import test41
+from handlers import test42
+from handlers import test44
+from handlers import test45
+from handlers import test47
+from handlers import test52
+from handlers import test54
+from handlers import test55
+from handlers import test58
+from handlers import test64
+from handlers import test75
+from handlers import test105
+from handlers import test109
+from handlers import test115
+from handlers import test117
+from handlers import test130
+from handlers import test132
+from handlers import test138
+from handlers import test147
 # ---addmap.py header marker---
 # !!!END DO NOT MODFIY
 
@@ -137,96 +177,136 @@ redis_conn = redis.Redis(host=settings.CARTOGRAM_REDIS_HOST, port=settings.CARTO
 
 cartogram_handlers = {
 #'test': test.CartogramHandler(),
-'argentina': argentina.CartogramHandler(),
-'australia': australia.CartogramHandler(),
-'canada': canada.CartogramHandler(),
-'japan2': japan2.CartogramHandler(),
-'france': france.CartogramHandler(),
-'uae': uae.CartogramHandler(),
-'asean': asean.CartogramHandler(),
-'mexico': mexico.CartogramHandler(),
+# 'argentina': argentina.CartogramHandler(),
+# 'australia': australia.CartogramHandler(),
+# 'canada': canada.CartogramHandler(),
+# 'japan2': japan2.CartogramHandler(),
+# 'france': france.CartogramHandler(),
+# 'uae': uae.CartogramHandler(),
+# 'asean': asean.CartogramHandler(),
+# 'mexico': mexico.CartogramHandler(),
 'singaporePA': singaporePA.CartogramHandler(),
-'saudiArabia': saudiArabia.CartogramHandler(),
-'netherlands': netherlands.CartogramHandler(),
-'thailand': thailand.CartogramHandler(),
-'phl': phl.CartogramHandler(),
-'israel3': israel3.CartogramHandler(),
-'vietnam': vietnam.CartogramHandler(),
-'southAfrica': southAfrica.CartogramHandler(),
-'italy2': italy2.CartogramHandler(),
-'colombia': colombia.CartogramHandler(),
-'southKorea2': southKorea2.CartogramHandler(),
-'newZealand': newZealand.CartogramHandler(),
-'europe': europe.CartogramHandler(),
-'algeria': algeria.CartogramHandler(),
-'libya': libya.CartogramHandler(),
+# 'saudiArabia': saudiArabia.CartogramHandler(),
+# 'netherlands': netherlands.CartogramHandler(),
+# 'thailand': thailand.CartogramHandler(),
+# 'phl': phl.CartogramHandler(),
+# 'israel3': israel3.CartogramHandler(),
+# 'vietnam': vietnam.CartogramHandler(),
+# 'southAfrica': southAfrica.CartogramHandler(),
+# 'italy2': italy2.CartogramHandler(),
+# 'colombia': colombia.CartogramHandler(),
+# 'southKorea2': southKorea2.CartogramHandler(),
+# 'newZealand': newZealand.CartogramHandler(),
+# 'europe': europe.CartogramHandler(),
+# 'algeria': algeria.CartogramHandler(),
+# 'libya': libya.CartogramHandler(),
 #'pakistan': pakistan.CartogramHandler(),
-'switzerland': switzerland.CartogramHandler(),
-'ireland': ireland.CartogramHandler(),
-'poland': poland.CartogramHandler(),
-'sweden': sweden.CartogramHandler(),
-'croatia': croatia.CartogramHandler(),
-'czechrepublic3': czechrepublic3.CartogramHandler(),
-'hungary': hungary.CartogramHandler(),
-'unitedkingdom2': unitedkingdom2.CartogramHandler(),
-'finland': finland.CartogramHandler(),
-'austria': austria.CartogramHandler(),
-'denmark': denmark.CartogramHandler(),
-'belgium': belgium.CartogramHandler(),
-'nigeria': nigeria.CartogramHandler(),
-'russia':russia.CartogramHandler(),
-'luxembourg': luxembourg.CartogramHandler(),
-'bangladesh': bangladesh.CartogramHandler(),
-'sanMarino': sanMarino.CartogramHandler(),
-'portugal': portugal.CartogramHandler(),
-'greece': greece.CartogramHandler(),
-'malaysia': malaysia.CartogramHandler(),
-'qatar': qatar.CartogramHandler(),
-'turkey': turkey.CartogramHandler(),
-'cambodia': cambodia.CartogramHandler(),
-'andorra': andorra.CartogramHandler(),
-'ethiopia': ethiopia.CartogramHandler(),
-'myanmar': myanmar.CartogramHandler(),
-'chile': chile.CartogramHandler(),
-'kaz': kaz.CartogramHandler(),
-'sudan': sudan.CartogramHandler(),
-'mongolia': mongolia.CartogramHandler(),
-'peru': peru.CartogramHandler(),
-'pak': pak.CartogramHandler(),
-'bolivia': bolivia.CartogramHandler(),
-'iceland': iceland.CartogramHandler(),
-'domrep': domrep.CartogramHandler(),
-'laos': laos.CartogramHandler(),
-'paraguay': paraguay.CartogramHandler(),
-'nepal': nepal.CartogramHandler(),
-'world': world.CartogramHandler(),
-'angola': angola.CartogramHandler(),
-'romania': romania.CartogramHandler(),
-'ukraine': ukraine.CartogramHandler(),
-'jamaica': jamaica.CartogramHandler(),
-'yemen': yemen.CartogramHandler(),
-'belarus': belarus.CartogramHandler(),
-'bahamas': bahamas.CartogramHandler(),
-'guyana': guyana.CartogramHandler(),
-'washington': washington.CartogramHandler(),
-'lebanon': lebanon.CartogramHandler(),
-'spain5': spain5.CartogramHandler(),
-'arab_league': arab_league.CartogramHandler(),
-'estonia': estonia.CartogramHandler(),
-'usa': usa.CartogramHandler(),
-'brazil': brazil.CartogramHandler(),
-'china': china.CartogramHandler(),
-'china2': china2.CartogramHandler(),
-'india': india.CartogramHandler(),
-'srilanka': srilanka.CartogramHandler(),
-'germany': germany.CartogramHandler(),
-'indonesia': indonesia.CartogramHandler(),
-'singaporeRe': singaporeRe.CartogramHandler(),
+# 'switzerland': switzerland.CartogramHandler(),
+# 'ireland': ireland.CartogramHandler(),
+# 'poland': poland.CartogramHandler(),
+# 'sweden': sweden.CartogramHandler(),
+# 'croatia': croatia.CartogramHandler(),
+# 'czechrepublic3': czechrepublic3.CartogramHandler(),
+# 'hungary': hungary.CartogramHandler(),
+# 'unitedkingdom2': unitedkingdom2.CartogramHandler(),
+# 'finland': finland.CartogramHandler(),
+# 'austria': austria.CartogramHandler(),
+# 'denmark': denmark.CartogramHandler(),
+# 'belgium': belgium.CartogramHandler(),
+# 'nigeria': nigeria.CartogramHandler(),
+# 'russia':russia.CartogramHandler(),
+# 'luxembourg': luxembourg.CartogramHandler(),
+# 'bangladesh': bangladesh.CartogramHandler(),
+# 'sanMarino': sanMarino.CartogramHandler(),
+# 'portugal': portugal.CartogramHandler(),
+# 'greece': greece.CartogramHandler(),
+# 'malaysia': malaysia.CartogramHandler(),
+# 'qatar': qatar.CartogramHandler(),
+# 'turkey': turkey.CartogramHandler(),
+# 'cambodia': cambodia.CartogramHandler(),
+# 'andorra': andorra.CartogramHandler(),
+# 'ethiopia': ethiopia.CartogramHandler(),
+# 'myanmar': myanmar.CartogramHandler(),
+# 'chile': chile.CartogramHandler(),
+# 'kaz': kaz.CartogramHandler(),
+# 'sudan': sudan.CartogramHandler(),
+# 'mongolia': mongolia.CartogramHandler(),
+# 'peru': peru.CartogramHandler(),
+# 'pak': pak.CartogramHandler(),
+# 'bolivia': bolivia.CartogramHandler(),
+# 'iceland': iceland.CartogramHandler(),
+# 'domrep': domrep.CartogramHandler(),
+# 'laos': laos.CartogramHandler(),
+# 'paraguay': paraguay.CartogramHandler(),
+# 'nepal': nepal.CartogramHandler(),
+# 'world': world.CartogramHandler(),
+# 'angola': angola.CartogramHandler(),
+# 'romania': romania.CartogramHandler(),
+# 'ukraine': ukraine.CartogramHandler(),
+# 'jamaica': jamaica.CartogramHandler(),
+# 'yemen': yemen.CartogramHandler(),
+# 'belarus': belarus.CartogramHandler(),
+# 'bahamas': bahamas.CartogramHandler(),
+# 'guyana': guyana.CartogramHandler(),
+# 'washington': washington.CartogramHandler(),
+# 'lebanon': lebanon.CartogramHandler(),
+# 'spain5': spain5.CartogramHandler(),
+# 'arab_league': arab_league.CartogramHandler(),
+# 'estonia': estonia.CartogramHandler(),
+# 'usa': usa.CartogramHandler(),
+# 'brazil': brazil.CartogramHandler(),
+# 'china': china.CartogramHandler(),
+# 'china2': china2.CartogramHandler(),
+# 'india': india.CartogramHandler(),
+# 'srilanka': srilanka.CartogramHandler(),
+# 'germany': germany.CartogramHandler(),
+# 'indonesia': indonesia.CartogramHandler(),
+# 'singaporeRe': singaporeRe.CartogramHandler(),
+'test4': test4.CartogramHandler(),
+'test6': test6.CartogramHandler(),
+'test13': test13.CartogramHandler(),
+'test14': test14.CartogramHandler(),
+'test15': test15.CartogramHandler(),
+'test16': test16.CartogramHandler(),
+'test18': test18.CartogramHandler(),
+'test20': test20.CartogramHandler(),
+'test21': test21.CartogramHandler(),
+'test22': test22.CartogramHandler(),
+'test23': test23.CartogramHandler(),
+'test24': test24.CartogramHandler(),
+'test26': test26.CartogramHandler(),
+'test28': test28.CartogramHandler(),
+'test29': test29.CartogramHandler(),
+'test30': test30.CartogramHandler(),
+'test32': test32.CartogramHandler(),
+'test34': test34.CartogramHandler(),
+'test37': test37.CartogramHandler(),
+'test38': test38.CartogramHandler(),
+'test39': test39.CartogramHandler(),
+'test41': test41.CartogramHandler(),
+'test42': test42.CartogramHandler(),
+'test44': test44.CartogramHandler(),
+'test45': test45.CartogramHandler(),
+'test47': test47.CartogramHandler(),
+'test52': test52.CartogramHandler(),
+'test54': test54.CartogramHandler(),
+'test55': test55.CartogramHandler(),
+'test58': test58.CartogramHandler(),
+'test64': test64.CartogramHandler(),
+'test75': test75.CartogramHandler(),
+'test105': test105.CartogramHandler(),
+'test109': test109.CartogramHandler(),
+'test115': test115.CartogramHandler(),
+'test117': test117.CartogramHandler(),
+'test130': test130.CartogramHandler(),
+'test132': test132.CartogramHandler(),
+'test138': test138.CartogramHandler(),
+'test147': test147.CartogramHandler(),
 # ---addmap.py body marker---
 # !!!END DO NOT MODFIY
 }
 
-default_cartogram_handler = "usa"
+default_cartogram_handler = "singaporePA"
 
 if settings.USE_DATABASE:
     class CartogramEntry(db.Model):
@@ -443,7 +523,7 @@ def make_cartogram_by_name(map_name):
         for selector_name in handler.selector_names():
             cartogram_handlers_select.append({'id': key, 'display_name': selector_name})
 
-    cartogram_handlers_select.sort(key=lambda h: h['display_name'])
+    #cartogram_handlers_select.sort(key=lambda h: h['display_name'])
 
     return render_template('cartogram.html', page_active='cartogram', cartogram_url=url_for('cartogram'),
                            cartogramui_url=url_for('cartogram_ui'), getprogress_url=url_for('getprogress'),
