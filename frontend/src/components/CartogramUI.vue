@@ -124,6 +124,8 @@ function getVersions(): { [key: string]: MapVersion } {
 // https://observablehq.com/@d3/multitouch
 function onTouchstart(event: any, id: string) {
   Tooltip.hide()
+  map.unhighlight(['map-area', 'cartogram-area'])
+
   touchInfo.set(event)
   state.touchLenght = touchInfo.length
   var now = new Date().getTime()
@@ -155,7 +157,11 @@ function onTouchend(event: any) {
     var timesince = now - lastTouch
     if (timesince < DELAY_THRESHOLD) {
       let region_id = event.target?.__data__?.region_id
-      if (region_id) map.drawTooltip(event, event.target.__data__.region_id) // Show infotip if hold
+      if (region_id) {
+        // Show infotip and link brushing
+        map.drawTooltip(event, region_id)
+        map.highlightByID(['map-area', 'cartogram-area'], region_id)
+      }
     }
   } else {
     const t = touchInfo.getPoints()

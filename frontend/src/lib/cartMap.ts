@@ -45,6 +45,11 @@ export default class CartMap {
   max_height = 0.0
 
   /**
+   * Region that is highlighed
+   */
+  highlighted_region: string | null = null
+
+  /**
    * constructor creates a new instance of the Map class
    * @param {string} name The name of the map or cartogram
    * @param {MapConfig} config The configuration of the map or cartogram
@@ -231,18 +236,31 @@ export default class CartMap {
    * @param {string} color The original color of the region
    * @param {boolean} highlight Whether to highlight or unhighlight the region
    */
-  static highlightByID(where_drawn: Array<string>, region_id: string, highlight: boolean) {
+  highlightByID(where_drawn: Array<string>, region_id: string) {
+    if (!this.highlighted_region) this.unhighlight(where_drawn)
+
+    this.highlighted_region = region_id
     where_drawn.forEach(function (element_id) {
       var polygons = document.getElementsByClassName('path-' + element_id + '-' + region_id)
 
       for (let i = 0; i < polygons.length; i++) {
-        if (highlight) {
-          polygons[i].setAttribute('stroke-width', '2')
-        } else {
-          polygons[i].setAttribute('stroke-width', '0.5')
-        }
+        polygons[i].setAttribute('stroke-width', '2')
       }
     })
+  }
+
+  unhighlight(where_drawn: Array<string>) {
+    if (!this.highlighted_region) return
+
+    var region_id = this.highlighted_region
+    where_drawn.forEach(function (element_id) {
+      var polygons = document.getElementsByClassName('path-' + element_id + '-' + region_id)
+
+      for (let i = 0; i < polygons.length; i++) {
+        polygons[i].setAttribute('stroke-width', '0.5')
+      }
+    })
+    this.highlighted_region = null
   }
 
   /**
@@ -353,7 +371,7 @@ export default class CartMap {
         'mouseenter',
         (function (map, where_drawn) {
           return function (event: MouseEvent, d: any) {
-            CartMap.highlightByID(where_drawn, d.region_id, true)
+            map.highlightByID(where_drawn, d.region_id)
             map.drawTooltip(event, d.region_id)
           }
         })(this, where_drawn)
@@ -370,7 +388,7 @@ export default class CartMap {
         'mouseleave',
         (function (map, where_drawn) {
           return function (event: MouseEvent, d: any) {
-            CartMap.highlightByID(where_drawn, d.region_id, false)
+            map.unhighlight(where_drawn)
             Tooltip.hide()
           }
         })(this, where_drawn)
