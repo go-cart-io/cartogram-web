@@ -23,9 +23,10 @@ var lastTouch = 0
 var timePan = 0,
   timeScale = 0,
   timeRotate = 0,
-  timeStretch = 0,
+  timeStretch3f = 0,
+  timeStretch2f = 0,
   totalPan = [0, 0],
-  totalRotate = 0  
+  totalRotate = 0
 const DELAY_THRESHOLD = 300
 const SUPPORT_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints
 
@@ -158,11 +159,12 @@ function onTouchend(event: any) {
   if (touchInfo.length === 0) {
     pointerposition = null // signals mouse up
 
-    if (timePan || timeScale || timeRotate || timeStretch) {
+    if (timePan || timeScale || timeRotate || timeStretch3f || timeStretch2f) {
       tracker.push('pan', timePan)
       tracker.push('scale', timeScale)
       tracker.push('rotate', timeRotate)
-      tracker.push('stretch', timeStretch)
+      tracker.push('stretch_3finger', timeStretch3f)
+      tracker.push('stretch_2finger', timeStretch2f)
       tracker.push('pan_value', totalPan[0].toFixed(2) + ':' + totalPan[1].toFixed(2))
       tracker.push('rotate_value', totalRotate.toFixed(2))
       tracker.push(
@@ -174,7 +176,8 @@ function onTouchend(event: any) {
     timePan = 0
     timeScale = 0
     timeRotate = 0
-    timeStretch = 0
+    timeStretch3f = 0
+    timeStretch2f = 0
   } else {
     const t = touchInfo.getPoints()
     pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
@@ -223,7 +226,12 @@ function onTouchmove(event: any, id: string) {
       matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], 1))
       matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(-pointerangle))
     }
-    timeStretch += now - state.lastMove
+
+    if (touchInfo.length === 3) {
+      timeStretch3f += now - state.lastMove
+    } else {
+      timeStretch2f += now - state.lastMove
+    }
   } else if (t.length > 1) {
     // (B) rotate
     if (shareState.options.rotatable && pointerangle && typeof pointerangle === 'number') {
@@ -244,7 +252,7 @@ function onTouchmove(event: any, id: string) {
       pointerdistance = pointerdistance2
       if (scale[0] !== 0 && scale[1] !== 0)
         matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], scale[1]))
-      timeScale += now - state.lastMove      
+      timeScale += now - state.lastMove
     }
   }
 
@@ -289,7 +297,6 @@ function onWheel(event: any) {
 }
 
 function switchMode() {
-  tracker.push('switch_mode', 'button')
   if (SUPPORT_TOUCH) {
     state.isLockRatio = !state.isLockRatio
   } else if (state.isLockRatio) {
@@ -300,6 +307,7 @@ function switchMode() {
   } else {
     state.isLockRatio = true
   }
+  tracker.push('lock_ratio', state.isLockRatio)
 }
 
 function transformVersion(matrix1: Array<Array<number>>, matrix2: Array<Array<number>>) {
