@@ -21,13 +21,13 @@ function generateTable() {
   state.fields = []
   state.items = []
   if (!props.grid_document || !props.grid_document.edit_mask) return
-  
+
   // Header
   for (col = 0; col < props.grid_document.width; col++) {
     state.fields.push({ key: col.toString(), label: props.grid_document.contents[col] })
   }
 
-  // Content  
+  // Content
   for (row = 1; row < props.grid_document.height; row++) {
     var data: any = {}
     for (col = 0; col < props.grid_document.width; col++) {

@@ -11,7 +11,6 @@ import ProgressBar from './ProgressBar.vue'
 import type { Mappack } from '../lib/interface'
 import { Region } from '../lib/region'
 import shareState from '../lib/state'
-import config from '../lib/config'
 
 const CONFIG = { version: 'devel' }
 
@@ -45,10 +44,8 @@ var cartogram_data: any = null
 var cartogramui_data: any = null
 var mappack: Mappack | null = null
 var regions: { [key: string]: Region } | null = null
-let urlParams: URLSearchParams
 
 onMounted(async () => {
-  urlParams = new URLSearchParams(window.location.search)
   cartogram_data = props.cartogram_data
   cartogramui_data = props.cartogramui_data
   await getMapPack()
@@ -56,13 +53,6 @@ onMounted(async () => {
   await nextTick()
   regions = cartogramUIEl.value.getRegions()
   state.versions = cartogramUIEl.value.getVersions()
-
-  if (urlParams.get('zoom') === '0') shareState.options.zoomable = false
-  else shareState.options.zoomable = true
-  if (urlParams.get('rotate') === '0') shareState.options.rotatable = false
-  else shareState.options.rotatable = true
-  if (urlParams.get('stretch') === '0') shareState.options.stretchable = false
-  else shareState.options.stretchable = true
 })
 
 /**
@@ -84,11 +74,6 @@ async function getMapPack() {
       progressBarEl.value.setValue(Math.floor((e.loaded / e.total) * 100))
     }
   )) as Mappack
-
-  if (urlParams.get('pid')) {
-    ;[shareState.options.zoomable, shareState.options.rotatable, shareState.options.stretchable] =
-      config(urlParams.get('pid')!, selectedHandler)
-  }
 }
 
 async function switchMap() {
@@ -251,13 +236,13 @@ function clearEditing() {
         role="group"
         aria-label="Data"
       >
-        <!--button
+        <button
           class="btn btn-primary"
           v-on:click="playVersions()"
           v-bind:disabled="state.isPlaying"
         >
           <i class="fas fa-play"></i>
-        </button-->
+        </button>
         <button
           v-for="(version, index) in state.versions"
           type="button"
@@ -332,45 +317,6 @@ function clearEditing() {
                   type="checkbox"
                   class="form-check-input"
                   v-model="shareState.options.showBase"
-                />
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-auto">
-                <label class="form-check-label" for="gridline-toggle-cartogram">Zoomable</label>
-              </div>
-              <div class="col text-end">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  v-model="shareState.options.zoomable"
-                />
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-auto">
-                <label class="form-check-label" for="gridline-toggle-cartogram">Rotatable</label>
-              </div>
-              <div class="col text-end">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  v-model="shareState.options.rotatable"
-                />
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-auto">
-                <label class="form-check-label" for="gridline-toggle-cartogram">Stretchable</label>
-              </div>
-              <div class="col text-end">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  v-model="shareState.options.stretchable"
                 />
               </div>
             </div>

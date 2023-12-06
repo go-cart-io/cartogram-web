@@ -37,7 +37,7 @@ async function processFile() {
 </script>
 
 <template>
-  <button disabled
+  <button
     class="btn btn-primary me-2"
     v-on:click="csvInput?.click()"
     id="upload-button"

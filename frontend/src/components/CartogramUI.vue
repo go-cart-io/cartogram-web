@@ -54,7 +54,6 @@ const state = reactive({
 
 onMounted(() => {
   if (!props.mappack) return
-  //TODO: check windows size for default shareState.options.showBase
 
   if (!props.cartogram_data) {
     switchMap(props.mappack)
@@ -186,10 +185,7 @@ function onTouchmove(event: any, id: string) {
 
   // Order should be rotate, scale, translate
   // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
-  if (
-    shareState.options.stretchable &&
-    (touchInfo.length === 3 || (touchInfo.length === 2 && !state.isLockRatio))
-  ) {
+  if (touchInfo.length === 3 || (touchInfo.length === 2 && !state.isLockRatio)) {
     // rotate
     var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
     if (pointerangle && typeof pointerangle === 'number') angle = pointerangle2 - pointerangle
@@ -211,14 +207,14 @@ function onTouchmove(event: any, id: string) {
     }
   } else if (t.length > 1) {
     // (B) rotate
-    if (shareState.options.rotatable && pointerangle && typeof pointerangle === 'number') {
+    if (pointerangle && typeof pointerangle === 'number') {
       var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
       angle = pointerangle2 - pointerangle
       pointerangle = pointerangle2
       matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
     }
     // (C) scale
-    if (shareState.options.zoomable && pointerdistance && typeof pointerdistance === 'number') {
+    if (pointerdistance && typeof pointerdistance === 'number') {
       var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
       scale[0] = pointerdistance2 / pointerdistance
       scale[1] = pointerdistance2 / pointerdistance
