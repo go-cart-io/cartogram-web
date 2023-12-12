@@ -16,6 +16,9 @@ var trackerInstance = (function () {
       if (!value) return
       userId = value
       console.log('User: ' + value)
+
+      let group = (parseInt(userId) - 1) % 4
+      console.log('Group: ' + group)
     },
     setMap(value: string) {
       mapId = value.replace('test', '')
