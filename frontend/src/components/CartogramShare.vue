@@ -5,7 +5,7 @@ import Citation from './Citation.vue'
 
 const props = defineProps<{
   sharing_key?: string | null
-  sysname?: string | null
+  name?: string | null
 }>()
 
 const state = reactive({
@@ -16,7 +16,7 @@ const socialURL = computed(() => {
   if (props.sharing_key)
     return location.protocol + '//' + location.host + '/cart/' + props.sharing_key
 
-  return location.protocol + '//' + location.host + '/cartogram/' + props.sysname
+  return location.protocol + '//' + location.host + '/cartogram/' + props.name
 })
 
 const socialURLEncoded = computed(() => {
@@ -28,7 +28,7 @@ const embedHTML = computed(() => {
   if (props.sharing_key) {
     embedURL = location.protocol + '//' + window.location.host + '/embed/cart/' + props.sharing_key
   } else {
-    embedURL = location.protocol + '//' + window.location.host + '/embed/map/' + props.sysname
+    embedURL = location.protocol + '//' + window.location.host + '/embed/map/' + props.name
   }
 
   return (

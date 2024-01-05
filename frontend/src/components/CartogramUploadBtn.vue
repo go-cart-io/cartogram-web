@@ -3,8 +3,11 @@ import { ref } from 'vue'
 import * as util from '../lib/util'
 import HTTP from '@/lib/http'
 
+import { useCartogramStore } from '../stores/cartogram'
+const store = useCartogramStore()
+
 const props = defineProps<{
-  sysname: string
+  mapname: string
 }>()
 
 const csvInput = ref<HTMLInputElement>()
@@ -17,7 +20,7 @@ var form_data: FormData
 
 async function processFile() {
   form_data = new FormData()
-  form_data.append('handler', props.sysname)
+  form_data.append('handler', props.mapname)
   if (!csvInput.value || !csvInput.value.files) return
 
   var input_data_file: any = csvInput.value.files[0]
@@ -37,8 +40,9 @@ async function processFile() {
 </script>
 
 <template>
-  <button disabled
+  <button
     class="btn btn-primary me-2"
+    v-bind:class="{ disabled: store.isLoading }"
     v-on:click="csvInput?.click()"
     id="upload-button"
     title="Upload data"

@@ -1,20 +1,18 @@
 <script setup lang="ts">
 import * as d3 from 'd3'
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive } from 'vue'
 
-import { MapVersionData, MapVersion } from '../lib/mapVersion'
-import TouchInfo from '../lib/touchInfo'
-import shareState from '../lib/state'
 import * as util from '../lib/util'
-import type { Mappack } from '../lib/interface'
-import type { Region } from '../lib/region'
+import TouchInfo from '../lib/touchInfo'
 import CartMap from '../lib/cartMap'
 import Tooltip from '../lib/tooltip'
 import CartogramLegend from './CartogramLegend.vue'
 import CartogramDownload from './CartogramDownload.vue'
 import CartogramShare from './CartogramShare.vue'
 
-var map: CartMap
+import { useCartogramStore } from '../stores/cartogram'
+const store = useCartogramStore()
+
 var touchInfo = new TouchInfo()
 var pointerangle: number | boolean, // (A)
   pointerposition: number[] | null, // (B)
@@ -29,20 +27,16 @@ const cartogramDownloadEl = ref()
 
 const props = withDefaults(
   defineProps<{
-    handler?: string
-    cartogram_data?: any
+    map: CartMap
     cartogramui_data?: any
-    mappack: Mappack | null
     mode?: string | null
   }>(),
   {
-    handler: 'usa',
     mode: 'full'
   }
 )
 
 const state = reactive({
-  isLoading: true,
   cursor: 'grab',
   isLockRatio: true,
   touchLenght: 0,
@@ -52,79 +46,10 @@ const state = reactive({
   affineScale: [1, 1] // Keep track of scale for scaling grid easily
 })
 
-onMounted(() => {
-  if (!props.mappack) return
-  //TODO: check windows size for default shareState.options.showBase
-
-  if (!props.cartogram_data) {
-    switchMap(props.mappack)
-  } else {
-    props.cartogram_data.tooltip = props.cartogramui_data.tooltip
-    var mapVersionData = MapVersionData.mapVersionDataFromMappack(null, props.cartogram_data)
-    switchMap(props.mappack, mapVersionData)
-  }
-})
-
-async function switchMap(mappack: Mappack, mapVersionData: MapVersionData | null = null) {
-  state.isLoading = true
-  map = new CartMap(props.handler, mappack.config)
-  let data_names = mappack.config.data_names || ['original', 'population']
-  let current_sysname = '0-base'
-  map.addVersion(
-    '0-base',
-    MapVersionData.mapVersionDataFromMappack(mappack, mappack[data_names[0]]),
-    '0-base'
-  )
-  for (let i = 1; i < data_names.length; i++) {
-    current_sysname = i.toString() + '-' + data_names[i]
-    map.addVersion(
-      current_sysname,
-      MapVersionData.mapVersionDataFromMappack(null, mappack[data_names[i]]),
-      '0-base'
-    )
-  }
-
-  if (mapVersionData !== null) {
-    map.addVersion('99-cartogram', mapVersionData, '0-base')
-    current_sysname = '99-cartogram'
-  }
-  shareState.current_sysname = current_sysname
-
-  /*
-    The keys in the colors.json file are prefixed with id_. We iterate through the regions and extract the color
-    information from colors.json to produce a color map where the IDs are plain region IDs, as required by
-    CartMap.
-    */
-  var colors: { [key: string]: string } = {}
-  Object.keys(map.regions).forEach(function (region_id) {
-    colors[region_id] = mappack.colors['id_' + region_id]
-  })
-  map.colors = colors
-  state.isLoading = false
-
-  await nextTick()
-  map.drawVersion('0-base', 'map-area', ['map-area', 'cartogram-area'])
-  map.drawVersion(shareState.current_sysname, 'cartogram-area', ['map-area', 'cartogram-area'])
-}
-
-function switchVersion(version: string) {
-  if (!version) return
-  map?.switchVersion(shareState.current_sysname, version, 'cartogram-area')
-  shareState.current_sysname = version
-}
-
-function getRegions(): { [key: string]: Region } {
-  return map?.regions || {}
-}
-
-function getVersions(): { [key: string]: MapVersion } {
-  return map?.versions || {}
-}
-
 // https://observablehq.com/@d3/multitouch
 function onTouchstart(event: any, id: string) {
   Tooltip.hide()
-  map.unhighlight(['map-area', 'cartogram-area'])
+  props.map.unhighlight(['map-area', 'cartogram-area'])
 
   touchInfo.set(event)
   state.touchLenght = touchInfo.length
@@ -159,8 +84,8 @@ function onTouchend(event: any) {
       let region_id = event.target?.__data__?.region_id
       if (region_id) {
         // Show infotip and link brushing
-        map.drawTooltip(event, region_id)
-        map.highlightByID(['map-area', 'cartogram-area'], region_id)
+        props.map.drawTooltip(event, region_id)
+        props.map.highlightByID(['map-area', 'cartogram-area'], region_id)
       }
     }
   } else {
@@ -186,10 +111,7 @@ function onTouchmove(event: any, id: string) {
 
   // Order should be rotate, scale, translate
   // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
-  if (
-    shareState.options.stretchable &&
-    (touchInfo.length === 3 || (touchInfo.length === 2 && !state.isLockRatio))
-  ) {
+  if (touchInfo.length === 3 || (touchInfo.length === 2 && !state.isLockRatio)) {
     // rotate
     var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
     if (pointerangle && typeof pointerangle === 'number') angle = pointerangle2 - pointerangle
@@ -211,14 +133,14 @@ function onTouchmove(event: any, id: string) {
     }
   } else if (t.length > 1) {
     // (B) rotate
-    if (shareState.options.rotatable && pointerangle && typeof pointerangle === 'number') {
+    if (pointerangle && typeof pointerangle === 'number') {
       var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
       angle = pointerangle2 - pointerangle
       pointerangle = pointerangle2
       matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
     }
     // (C) scale
-    if (shareState.options.zoomable && pointerdistance && typeof pointerdistance === 'number') {
+    if (pointerdistance && typeof pointerdistance === 'number') {
       var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
       scale[0] = pointerdistance2 / pointerdistance
       scale[1] = pointerdistance2 / pointerdistance
@@ -321,26 +243,16 @@ function snapToBetterNumber() {
   var matrix = util.getScaleMatrix(adjustedScale, adjustedScale)
   transformVersion(matrix, state.affineMatrix)
 }
-
-defineExpose({
-  switchMap,
-  switchVersion,
-  getRegions,
-  getVersions,
-  mapLegendEl,
-  cartogramLegendEl
-})
 </script>
 
 <template>
   <div id="cartogram" class="d-flex flex-fill card-group">
-    <div class="card w-100" v-bind:class="[shareState.options.showBase ? 'd-flex' : 'd-none']">
+    <div class="card w-100" v-bind:class="[store.options.showBase ? 'd-flex' : 'd-none']">
       <div class="d-flex flex-column card-body">
         <CartogramLegend
-          v-if="!state.isLoading"
           ref="mapLegendEl"
           mapID="map-area"
-          v-bind:map="map"
+          v-bind:map="props.map"
           sysname="0-base"
         >
           <svg id="map-area-svg" class="vis-area"></svg>
@@ -357,7 +269,7 @@ defineExpose({
             v-on:click="
               cartogramDownloadEl.generateSVGDownloadLinks(
                 'map-area',
-                JSON.stringify(map?.getVersionGeoJSON('0-base'))
+                JSON.stringify(props.map.getVersionGeoJSON('0-base'))
               )
             "
             data-bs-toggle="modal"
@@ -373,11 +285,10 @@ defineExpose({
     <div class="card w-100">
       <div class="d-flex flex-column card-body">
         <CartogramLegend
-          v-if="!state.isLoading"
           ref="cartogramLegendEl"
           mapID="cartogram-area"
-          v-bind:map="map"
-          v-bind:sysname="shareState.current_sysname"
+          v-bind:map="props.map"
+          v-bind:sysname="store.currentVersionName"
           v-bind:affineScale="state.affineScale"
           v-on:gridChanged="snapToBetterNumber"
         >
@@ -431,7 +342,7 @@ defineExpose({
               v-on:click="
                 cartogramDownloadEl.generateSVGDownloadLinks(
                   'cartogram-area',
-                  JSON.stringify(map?.getVersionGeoJSON(shareState.current_sysname))
+                  JSON.stringify(props.map.getVersionGeoJSON(store.currentVersionName))
                 )
               "
               data-bs-toggle="modal"
@@ -441,7 +352,7 @@ defineExpose({
               <i class="fas fa-download"></i>
             </button>
             <CartogramShare
-              v-bind:sysname="props.handler"
+              v-bind:name="store.currentMapName"
               v-bind:sharing_key="
                 props.cartogramui_data ? props.cartogramui_data.unique_sharing_key : null
               "

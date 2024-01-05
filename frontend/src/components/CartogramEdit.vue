@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import HTTP from '@/lib/http'
-import { reactive, ref, onMounted, nextTick } from 'vue'
+import { reactive } from 'vue'
+
+import { useCartogramStore } from '../stores/cartogram'
+const store = useCartogramStore()
 
 const props = defineProps<{
   grid_document: any
-  sysname: string
+  mapname: string
 }>()
 
 const state = reactive({
@@ -85,7 +88,7 @@ function updateCartogram() {
 
   req_body += '--' + mime_boundary + '\n'
   req_body += 'Content-Disposition: form-data; name="handler"\n\n'
-  req_body += props.sysname + '\n'
+  req_body += props.mapname + '\n'
 
   req_body += '--' + mime_boundary + '\n'
   req_body += 'Content-Disposition: form-data; name="csv"; filename="data.csv"\n'
@@ -104,6 +107,7 @@ function updateCartogram() {
 <template>
   <!-- Button trigger modal -->
   <button
+    v-bind:class="{ disabled: store.isLoading }"
     class="btn btn-primary me-2"
     data-bs-toggle="modal"
     data-bs-target="#editModal"
@@ -124,7 +128,7 @@ function updateCartogram() {
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="shareModalLabel">Update {{ grid_document.name }}</h1>
+          <h1 class="modal-title fs-5" id="shareModalLabel">Update {{ props.mapname }}</h1>
         </div>
         <div class="modal-body">
           <b-table :items="state.items" :fields="state.fields">

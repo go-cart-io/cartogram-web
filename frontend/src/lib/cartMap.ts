@@ -4,7 +4,7 @@ import SVG from './svg'
 import { Polygon, Region, RegionVersion } from './region'
 import { MapVersion, MapVersionData } from './mapVersion'
 import GallPetersProjection from './projection'
-import type { MapConfig } from './interface'
+import type { Mappack, MapConfig } from './interface'
 
 /**
  * CartMap contains map data for a conventional map or cartogram. One map can contain several versions. In a map version,
@@ -12,12 +12,10 @@ import type { MapConfig } from './interface'
  * population in a cartogram map version).
  */
 export default class CartMap {
-  name: string
-
   /**
    * The map configuration information.
    */
-  config: MapConfig
+  config: MapConfig = { dont_draw: [], elevate: [] }
 
   /**
    * The map colors. The keys are region IDs.
@@ -51,16 +49,41 @@ export default class CartMap {
 
   /**
    * constructor creates a new instance of the Map class
-   * @param {string} name The name of the map or cartogram
-   * @param {MapConfig} config The configuration of the map or cartogram
+   * @param {Mappack} mappack The data of the map and cartogram
    */
-  constructor(name: string, config: MapConfig) {
-    this.name = name
-    this.config = {
-      dont_draw: config.dont_draw.map((id) => id.toString()),
-      elevate: config.elevate.map((id) => id.toString())
+  init(mappack: Mappack, cartogram_data: any): string {
+    let data_names = mappack.config.data_names || ['original', 'population']
+    let versionName = '0-base'
+
+    this.addVersion('0-base', mappack, mappack[data_names[0]], '0-base')
+    for (let i = 1; i < data_names.length; i++) {
+      versionName = i.toString() + '-' + data_names[i]
+      this.addVersion(versionName, null, mappack[data_names[i]], '0-base')
     }
-    if (config.label_size) this.config.label_size = config.label_size
+  
+    if (cartogram_data !== null) {
+      this.addVersion('99-cartogram', null, cartogram_data, '0-base')
+      versionName = '99-cartogram'
+    }
+  
+    /*
+      The keys in the colors.json file are prefixed with id_. We iterate through the regions and extract the color
+      information from colors.json to produce a color map where the IDs are plain region IDs, as required by
+      CartMap.
+      */
+    var colors: { [key: string]: string } = {}
+    Object.keys(this.regions).forEach(function (region_id) {
+      colors[region_id] = mappack.colors['id_' + region_id]
+    })
+    this.colors = colors
+
+    this.config = {
+      dont_draw: mappack.config.dont_draw.map((id) => id.toString()),
+      elevate: mappack.config.elevate.map((id) => id.toString())
+    }
+    if (mappack.config.label_size) this.config.label_size = mappack.config.label_size
+
+    return versionName
   }
 
   getVersionGeoJSON(sysname: string) {
@@ -128,7 +151,9 @@ export default class CartMap {
    * @param {MapVersionData} data Data for the new map version.
    * @param {string} base_sysname Sysname of the version to be used as the standard for area equalization
    */
-  addVersion(sysname: string, data: MapVersionData, base_sysname: string) {
+  addVersion(sysname: string, mappack: Mappack | null, mappackItem: any, base_sysname: string) {
+    var data = MapVersionData.mapVersionDataFromMappack(mappack, mappackItem)
+
     if (this.versions.hasOwnProperty(sysname)) {
       delete this.versions[sysname]
     }
@@ -500,15 +525,15 @@ export default class CartMap {
 
   /**
    * switchVersion switches the map version displayed in the element with the given ID with an animation.
-   * @param {string} current_sysname The sysname of the currently displayed version
+   * @param {string} currentVersionName The sysname of the currently displayed version
    * @param {string} new_sysname The sysname of the version to be displayed
    * @param {string} element_id The ID of the element containing the map
    */
-  switchVersion(current_sysname: string, new_sysname: string, element_id: string) {
+  switchVersion(currentVersionName: string, new_sysname: string, element_id: string) {
     Object.keys(this.regions).forEach((region_id) => {
       var newRegionVersion = this.regions[region_id].versions[new_sysname]
 
-      this.regions[region_id].versions[current_sysname].polygons.forEach((polygon: Polygon) => {
+      this.regions[region_id].versions[currentVersionName].polygons.forEach((polygon: Polygon) => {
         const newPolygon = newRegionVersion.polygons.find((poly) => poly.id === polygon.id)
         if (!newPolygon) return
         const targetPath = newPolygon?.path || polygon.path
