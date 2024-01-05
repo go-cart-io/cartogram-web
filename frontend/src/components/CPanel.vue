@@ -6,9 +6,9 @@ import * as util from '../lib/util'
 import TouchInfo from '../lib/touchInfo'
 import CartMap from '../lib/cartMap'
 import Tooltip from '../lib/tooltip'
-import CartogramLegend from './CartogramLegend.vue'
-import CartogramDownload from './CartogramDownload.vue'
-import CartogramShare from './CartogramShare.vue'
+import CPanelLegend from './CPanelLegend.vue'
+import CPanelModalDownload from './CPanelModalDownload.vue'
+import CPanelModalShare from './CPanelModalShare.vue'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
@@ -23,7 +23,7 @@ const SUPPORT_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints
 
 const mapLegendEl = ref()
 const cartogramLegendEl = ref()
-const cartogramDownloadEl = ref()
+const modalDownloadEl = ref()
 
 const props = withDefaults(
   defineProps<{
@@ -249,14 +249,14 @@ function snapToBetterNumber() {
   <div id="cartogram" class="d-flex flex-fill card-group">
     <div class="card w-100" v-bind:class="[store.options.showBase ? 'd-flex' : 'd-none']">
       <div class="d-flex flex-column card-body">
-        <CartogramLegend
+        <c-panel-legend
           ref="mapLegendEl"
           mapID="map-area"
           v-bind:map="props.map"
           sysname="0-base"
         >
           <svg id="map-area-svg" class="vis-area"></svg>
-        </CartogramLegend>
+        </c-panel-legend>
       </div>
 
       <div class="card-footer d-flex justify-content-between">
@@ -267,7 +267,7 @@ function snapToBetterNumber() {
             class="btn btn-primary mx-1"
             id="map-download"
             v-on:click="
-              cartogramDownloadEl.generateSVGDownloadLinks(
+              modalDownloadEl.generateSVGDownloadLinks(
                 'map-area',
                 JSON.stringify(props.map.getVersionGeoJSON('0-base'))
               )
@@ -284,7 +284,7 @@ function snapToBetterNumber() {
 
     <div class="card w-100">
       <div class="d-flex flex-column card-body">
-        <CartogramLegend
+        <c-panel-legend
           ref="cartogramLegendEl"
           mapID="cartogram-area"
           v-bind:map="props.map"
@@ -305,7 +305,7 @@ function snapToBetterNumber() {
             v-on:wheel="onWheel"
           ></svg>
           <img class="position-absolute bottom-0 end-0 z-3" src="/static/img/by.svg" alt="cc-by" />
-        </CartogramLegend>
+        </c-panel-legend>
         <div class="position-absolute end-0" style="width: 2.5rem">
           <button
             class="btn btn-primary w-100 my-1"
@@ -340,7 +340,7 @@ function snapToBetterNumber() {
               class="btn btn-primary mx-1"
               id="cartogram-download"
               v-on:click="
-                cartogramDownloadEl.generateSVGDownloadLinks(
+                modalDownloadEl.generateSVGDownloadLinks(
                   'cartogram-area',
                   JSON.stringify(props.map.getVersionGeoJSON(store.currentVersionName))
                 )
@@ -351,7 +351,7 @@ function snapToBetterNumber() {
             >
               <i class="fas fa-download"></i>
             </button>
-            <CartogramShare
+            <c-panel-modal-share
               v-bind:name="store.currentMapName"
               v-bind:sharing_key="
                 props.cartogramui_data ? props.cartogramui_data.unique_sharing_key : null
@@ -363,7 +363,7 @@ function snapToBetterNumber() {
     </div>
 
     <p id="tooltip" style="display: none">&nbsp;</p>
-    <CartogramDownload ref="cartogramDownloadEl" />
+    <c-panel-modal-download ref="modalDownloadEl" />
   </div>
 </template>
 

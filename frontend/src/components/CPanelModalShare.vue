@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import * as util from '../lib/util'
-import Citation from './Citation.vue'
+import CTextCitation from './CTextCitation.vue'
 
 const props = defineProps<{
   sharing_key?: string | null
@@ -175,7 +175,7 @@ defineExpose({
             </div>
           </div>
 
-          <Citation />
+          <c-text-citation />
         </div>
       </div>
     </div>

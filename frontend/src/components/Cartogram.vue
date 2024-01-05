@@ -3,8 +3,8 @@ import { reactive, ref, onMounted, nextTick } from 'vue'
 import { Toast } from 'bootstrap'
 
 import CMenuBar from './CMenuBar.vue'
-import CartogramUI from './CartogramUI.vue'
-import CartogramChart from './CartogramChart.vue'
+import CPanel from './CPanel.vue'
+import CChart from './CChart.vue'
 import CProgressBar from './CProgressBar.vue'
 import HTTP from '../lib/http'
 import CartMap from '../lib/cartMap'
@@ -30,7 +30,7 @@ const state = reactive({
 })
 
 // Elements
-const cartogramChartEl = ref()
+const chartEl = ref()
 // Vars
 var map: CartMap = new CartMap()
 var cartogramResponse: any = null
@@ -83,7 +83,7 @@ function confirmData(cartogramui_promise: Promise<any>) {
       if (response.error == 'none') {
         state.currentComponent = 'chart'
         await nextTick()
-        cartogramChartEl.value.drawPieChartFromTooltip(
+        chartEl.value.drawPieChartFromTooltip(
           map.regions,
           response.tooltip,
           response.color_data
@@ -192,14 +192,14 @@ function clearEditing() {
     v-on:change="(isLoading: boolean) => (state.isLoading = isLoading)"
   />
   <div v-if="!state.isLoading" class="d-flex flex-fill p-2">
-    <CartogramChart
+    <c-chart
       v-if="state.currentComponent === 'chart'"
-      ref="cartogramChartEl"
+      ref="chartEl"
       v-on:confirm="getGeneratedCartogram"
       v-on:cancel="clearEditing"
     />
 
-    <CartogramUI
+    <c-panel
       v-else
       v-bind:key="state.mapkey"
       v-bind:map="map"

@@ -4,13 +4,13 @@ import tinycolor from 'tinycolor2'
 import { ref } from 'vue'
 import type { Region } from '@/lib/region'
 import type { ChartDataItem } from '@/lib/interface'
-import Tooltip from '@/components/Tooltip.vue'
+import CTooltip from '@/components/CTooltip.vue'
 
 import { select as d3Select } from 'd3-selection'
 import { transition as d3Transition } from 'd3-transition'
 d3Select.prototype.transition = d3Transition
 
-const tooltipEl = ref<typeof Tooltip>()
+const tooltipEl = ref<typeof CTooltip>()
 
 const emit = defineEmits(['confirm', 'cancel'])
 
@@ -356,7 +356,7 @@ defineExpose({
 
 <template>
   <div class="container-fluid p-3">
-    <Tooltip ref="tooltipEl" />
+    <c-tooltip ref="tooltipEl" />
     <div id="barchart-container" style="display: none">
       <p>
         Your cartogram was unable to be generated due to an error. You may make use of this barchart

@@ -3,8 +3,8 @@ import { reactive, onMounted } from 'vue'
 
 import type { Mappack } from '../lib/interface'
 import HTTP from '../lib/http'
-import CartogramUploadBtn from './CartogramUploadBtn.vue'
-import CartogramEdit from './CartogramEdit.vue'
+import CMenuBtnUpload from './CMenuBtnUpload.vue'
+import CMenuBtnEdit from './CMenuBtnEdit.vue'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
@@ -125,8 +125,8 @@ function confirmData(cartogramui_promise: Promise<any>) {
       <!-- Menu -->
       <div class="py-2 d-flex flex-nowrap">
         <span v-if="!props.isEmbed" class="text-nowrap">
-          <CartogramUploadBtn :mapname="store.currentMapName" v-on:change="confirmData" />
-          <CartogramEdit
+          <c-menu-btn-upload :mapname="store.currentMapName" v-on:change="confirmData" />
+          <c-menu-btn-edit
             v-bind:grid_document="props.grid_document"
             v-bind:mapname="store.currentMapName"
             v-on:change="confirmData"
