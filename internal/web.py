@@ -105,6 +105,7 @@ import random
 import datetime
 from flask import Flask, request, session, Response, flash, redirect, render_template, url_for
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from flask_cors import CORS
 import validate_email
 import smtplib
@@ -124,17 +125,13 @@ app.config['SQLALCHEMY_DATABASE_URI'] = settings.DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['ENV'] = 'development' if settings.DEBUG else 'production'
 
-# Whenever you make changes to the DB models, you must generate the tables using db.create_all() as follows:
-#
-# $ source ./setupenv.sh
-# (venv) $ python3
-# (venv) >>> import web
-# (venv) >>> web.db.create_all()
-#
-# NOTE: SQLAlchemy does not do database migrations. If you do change something, you'll need to figure out how to migrate
-#       the data manually, or delete everything and start from scratch.
+# Whenever you make changes to the DB models, you must run commands as follows:
+# export FLASK_APP=web.py
+# flask db migrate -m "Migration log."
+# flask db upgrade
 if settings.USE_DATABASE:
     db = SQLAlchemy(app)
+    migrate = Migrate(app, db)
 
 redis_conn = redis.Redis(host=settings.CARTOGRAM_REDIS_HOST, port=settings.CARTOGRAM_REDIS_PORT, db=0)
 
@@ -237,6 +234,7 @@ if settings.USE_DATABASE:
         id = db.Column(db.Integer, primary_key=True)
         string_key = db.Column(db.String(32), unique=True, nullable=False)
         date_created = db.Column(db.DateTime(), nullable=False)
+        date_accessed = db.Column(db.DateTime(), server_default='0001-01-01 00:00:00')        
         handler = db.Column(db.String(100), nullable=False)
         areas_string = db.Column(db.UnicodeText(), nullable=False)
         cartogram_data = db.Column(db.UnicodeText(), nullable=False)
@@ -466,6 +464,10 @@ def cartogram_by_key(string_key):
 
     if cartogram_entry.handler not in cartogram_handlers:
         return Response('Error', status=500)
+    
+    if cartogram_entry != None:
+        cartogram_entry.date_accessed = datetime.datetime.utcnow()
+        db.session.commit()
 
     cartogram_handlers_select = [{'id': key, 'display_name': handler.get_name()} for key, handler in
                                  cartogram_handlers.items()]
@@ -501,6 +503,10 @@ def cartogram_embed_by_key(string_key):
 
     if cartogram_entry.handler not in cartogram_handlers:
         return Response('Error', status=500)
+    
+    if cartogram_entry != None:
+        cartogram_entry.date_accessed = datetime.datetime.utcnow()
+        db.session.commit()
 
     return render_template('embed.html', page_active='cartogram', cartogram_url=url_for('cartogram'),
                            cartogramui_url=url_for('cartogram_ui'), getprogress_url=url_for('getprogress'),
@@ -671,6 +677,13 @@ def cartogram():
 
     return Response(json.dumps({'cartogram_data': cartogram_json}), content_type='application/json', status=200)
 
+@app.route('/cleanup')
+def cleanup():
+    if settings.USE_DATABASE:
+        year_ago = datetime.datetime.utcnow() - datetime.timedelta(days=366)
+        CartogramEntry.query.filter(CartogramEntry.date_accessed < year_ago).delete()
+        db.session.commit()
+        return Response(year_ago, status=200)
 
 if __name__ == '__main__':
     app.run(debug=settings.DEBUG, host=settings.HOST, port=settings.PORT)
