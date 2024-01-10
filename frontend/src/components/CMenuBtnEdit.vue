@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import HTTP from '@/lib/http'
 import { reactive } from 'vue'
+import HTTP from '../lib/http'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
@@ -70,8 +70,10 @@ function updateCartogram() {
   }
   csv = csv.substring(0, csv.length - 1) + '\n'
   for (let row in state.items) {
-    for (let key in state.items[row]) {
-      csv += '"' + state.items[row][key].replace(/"/gm, '""') + '",'
+    for (let key in state.items[row]) {      
+      let value = state.items[row][key]
+      value = (typeof value === 'string')? value.replace(/"/gm, '""') : value
+      csv += '"' + value + '",'
     }
     csv = csv.substring(0, csv.length - 1) + '\n'
   }
@@ -125,33 +127,36 @@ function updateCartogram() {
     aria-labelledby="editModalLabel"
     aria-hidden="true"
   >
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
           <h1 class="modal-title fs-5" id="shareModalLabel">Update {{ props.mapname }}</h1>
         </div>
         <div class="modal-body">
-          <b-table :items="state.items" :fields="state.fields">
-            <template v-for="(field, index) in state.fields" v-slot:[`head(${field.key})`]="data">
-              <span v-if="!field.headerEditable">{{ data.label }}</span>
-              <b-form-input
-                v-else
-                type="text"
-                v-bind:id="'input-h-' + field.key"
-                v-model="field.label"
-              ></b-form-input>
-            </template>
-
-            <template v-for="(field, index) in state.fields" v-slot:[`cell(${field.key})`]="data">
-              <span v-if="!field.editable">{{ data.value }}</span>
-              <b-form-input
-                v-else
-                v-bind:id="'input-' + data.index + '-' + field.key"
-                v-model="state.items[data.index][field.key]"
-                :type="field.type"
-              ></b-form-input>
-            </template>
-          </b-table>
+          <table>
+            <tr class="bg-light">
+              <th v-for="(field, index) in state.fields" class="p-1">
+                <span v-if="!field.headerEditable">{{ field.label }}</span>
+                <input
+                  v-else
+                  type="text"
+                  v-bind:id="'input-h-' + field.key"
+                  v-model="field.label"
+                />
+              </th>
+            </tr>
+            <tr v-for="(row, rIndex) in state.items">
+              <td v-for="(cell, cIndex) in row" class="p-1">
+                <span v-if="!state.fields[cIndex].editable">{{ cell }}</span>
+                <input
+                  v-else
+                  v-bind:id="'input-' + rIndex + '-' + cIndex"
+                  v-model="state.items[rIndex][cIndex]"
+                  :type="state.fields[cIndex].type"
+                />
+              </td>
+            </tr>
+          </table>
         </div>
         <div class="modal-footer modal-footer--sticky bg-white">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -170,19 +175,10 @@ function updateCartogram() {
 </template>
 
 <style>
-thead,
-tbody,
-tfoot,
-tr,
-td,
-th {
-  text-align: left;
-  width: 100px;
-  vertical-align: middle;
-}
-
-td {
-  min-width: 15px;
+input{
+  border: 0;
+  box-sizing: border-box;
+  display:block;
 }
 
 .modal-footer--sticky {
