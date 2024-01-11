@@ -8,7 +8,7 @@ import CartMap from '../lib/cartMap'
 import Tooltip from '../lib/tooltip'
 import CPanelLegend from './CPanelLegend.vue'
 import CPanelModalDownload from './CPanelModalDownload.vue'
-import CPanelModalShare from './CPanelModalShare.vue'
+import CPanelBtnShare from './CPanelBtnShare.vue'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
@@ -351,7 +351,7 @@ function snapToBetterNumber() {
             >
               <i class="fas fa-download"></i>
             </button>
-            <c-panel-modal-share
+            <c-panel-btn-share
               v-bind:name="store.currentMapName"
               v-bind:sharing_key="
                 props.cartogramui_data ? props.cartogramui_data.unique_sharing_key : null

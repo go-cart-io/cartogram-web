@@ -8,10 +8,6 @@ const props = defineProps<{
   name?: string | null
 }>()
 
-const state = reactive({
-  show: false
-})
-
 const socialURL = computed(() => {
   if (props.sharing_key)
     return location.protocol + '//' + location.host + '/cart/' + props.sharing_key
@@ -38,13 +34,10 @@ const embedHTML = computed(() => {
   )
 })
 
-function show() {
-  state.show = true
+function access() {
+  var http = new XMLHttpRequest()
+  http.open("GET", socialURL.value)
 }
-
-defineExpose({
-  show
-})
 </script>
 
 <template>
@@ -54,6 +47,7 @@ defineExpose({
     data-bs-toggle="modal"
     data-bs-target="#shareModal"
     title="Share cartogram"
+    v-on:click="access()"
   >
     <i class="fas fa-share-alt"></i>
   </button>
