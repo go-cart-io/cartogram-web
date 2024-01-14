@@ -614,68 +614,110 @@ def cartogram_ui():
 
 
 @app.route('/cartogram', methods=['POST'])
-def cartogram():
-    if 'handler' not in request.form:
-        return Response('{"error":"badrequest"}', status=400, content_type="application/json")
-
-    if request.form['handler'] not in cartogram_handlers:
-        return Response('{"error":"badhandler"}', status=404, content_type="application/json")
-
-    handler = request.form['handler']
-    cartogram_handler = cartogram_handlers[handler]
-
-    if 'values' not in request.form:
-        return Response('{"error":"badrequest"}', status=400, content_type="application/json")
-
-    values = request.form['values'].split(";")
-    # The existing verificaiton code expects all floats. To avoid modifying it, we replace the string "NA" with the
-    # number 0.0 for verification purposes only.
-    values_to_verify = []
+def cartogram():    
+    colName = 0
+    colColor = 1
+    colValue = 2 # Starting column of data
 
     try:
-        for i in range(len(values)):
-            if values[i] == "NA":
-                values_to_verify.append(0.0)
+        data = json.loads(request.form["data"])
+        datastring = "cartogram_id,Region Data,Region Name,Inset\n"
+        colorJson = {}
+        tooltip = {"data":{}}
+        for regionId, region in data["values"]["items"].items():
+            # Validate values
+            float(regionId)
+            region[colName] = region[colName].replace(",", "")
+            if region[colValue] is not None:
+                float(region[colValue])
             else:
-                values[i] = float(values[i])
-                values_to_verify.append(values[i])
-    except ValueError:
-        return Response('{"error":"badvalues"}', status=400, content_type="application/json")
+                region[colValue] = "NA"
+            if not re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', region[colColor]):
+                return Response('{"error":The color data was invaild."}', status=400, content_type="application/json")
+            
+            datastring = datastring + '{},{},{},\n'.format(regionId, region[colValue], region[colName])
+            colorJson['id_' + regionId] = region[colColor]
+            tooltip['data']['id_' + regionId] = {'name': region[colName], 'value': region[colValue]}
 
-    if cartogram_handler.validate_values(values_to_verify) != True:
-        return Response('{"error":"badvalues"}', status=400, content_type="application/json")
+        if 'handler' not in data or data['handler'] not in cartogram_handlers:
+            return Response('{"error":The handler was invaild."}', status=400, content_type="application/json")
 
-    unique_sharing_key = ""
+        if 'unique_sharing_key' not in data:
+            return Response('{"error":"Missing sharing key."}', status=404, content_type="application/json")
 
-    if 'unique_sharing_key' in request.form:
-        unique_sharing_key = request.form['unique_sharing_key']
+        handler = data['handler']
+        cartogram_handler = cartogram_handlers[handler]
+        unique_sharing_key = data['unique_sharing_key']
 
-    lambda_result = awslambda.generate_cartogram(cartogram_handler.gen_area_data(values),
-                                                 cartogram_handler.get_gen_file(), settings.CARTOGRAM_LAMBDA_URL,
-                                                 settings.CARTOGRAM_LAMDA_API_KEY, unique_sharing_key)
+        lambda_result = awslambda.generate_cartogram(datastring,
+                            cartogram_handler.get_gen_file(), settings.CARTOGRAM_LAMBDA_URL,
+                            settings.CARTOGRAM_LAMDA_API_KEY, unique_sharing_key)
 
-    cartogram_gen_output = lambda_result['stdout']
+        cartogram_gen_output = lambda_result['stdout']
 
-    if cartogram_handler.expect_geojson_output():
-        # Just confirm that we've been given valid JSON. Calculate the extrema if necessary
-        cartogram_json = json.loads(cartogram_gen_output)
+        if cartogram_handler.expect_geojson_output():
+            # Just confirm that we've been given valid JSON. Calculate the extrema if necessary
+            cartogram_json = json.loads(cartogram_gen_output)
 
-        if "bbox" not in cartogram_json:
-            cartogram_json["bbox"] = geojson_extrema.get_extrema_from_geojson(cartogram_json)
-    else:
-        cartogram_json = gen2dict.translate(io.StringIO(cartogram_gen_output), settings.CARTOGRAM_COLOR,
-                                            cartogram_handler.remove_holes())
+            if "bbox" not in cartogram_json:
+                cartogram_json["bbox"] = geojson_extrema.get_extrema_from_geojson(cartogram_json)
+        else:
+            cartogram_json = gen2dict.translate(io.StringIO(cartogram_gen_output), settings.CARTOGRAM_COLOR,
+                                                cartogram_handler.remove_holes())
+            
+        m = re.match(r'(.+)\s?\((.+)\)$', data["values"]["fields"][colValue]["label"])
+        if m:
+            tooltip['label'] = m.group(1).strip()
+            tooltip['unit'] = m.group(2).strip()
+        else:
+            tooltip['label'] = data["values"]["fields"][colValue]["label"].strip()
+        cartogram_json['tooltip'] = tooltip
 
-    cartogram_json['unique_sharing_key'] = unique_sharing_key
+        with open("static/userdata/" + unique_sharing_key + ".json", "w") as outfile:
+            outfile.write(json.dumps({'{}-custom'.format(colValue): cartogram_json}))
 
-    if settings.USE_DATABASE:
-        cartogram_entry = CartogramEntry.query.filter_by(string_key=unique_sharing_key).first()
-
-        if cartogram_entry != None:
-            cartogram_entry.cartogram_data = json.dumps(cartogram_json)
+        if settings.USE_DATABASE:
+            new_cartogram_entry = CartogramEntry(string_key=unique_sharing_key, date_created=datetime.datetime.today(),
+                                    handler=handler, areas_string='-',
+                                    cartogram_data='-', cartogramui_data=json.dumps({"colors": colorJson}))
+            db.session.add(new_cartogram_entry)
             db.session.commit()
+        
+        return get_mappack_by_key(unique_sharing_key, False)
+    
+    except (KeyError, csv.Error, ValueError, UnicodeDecodeError):
+        return Response('{"error":"The data was invalid."}', status=400, content_type="application/json")
+    except Exception as e:
+        return Response('{"error":"{}"}'.format(e), status=400, content_type="application/json")    
 
-    return Response(json.dumps({'cartogram_data': cartogram_json}), content_type='application/json', status=200)
+@app.route('/mappack/<string_key>', methods=['GET'])
+def get_mappack_by_key(string_key, updateaccess = True):
+    if not settings.USE_DATABASE:
+        return Response('Not found', status=404)
+
+    cartogram_entry = CartogramEntry.query.filter_by(string_key=string_key).first_or_404()
+
+    if cartogram_entry == None or cartogram_entry.handler not in cartogram_handlers:
+        return Response('Error', status=500)
+    
+    if updateaccess:
+        cartogram_entry.date_accessed = datetime.datetime.utcnow()
+        db.session.commit()
+
+    mappack = json.loads(cartogram_entry.cartogramui_data)
+    with open("static/cartdata/{}/mappack.json".format(cartogram_entry.handler), "r") as file:
+        original_mappack = json.load(file)
+        for item in ["abbreviations", "config", "labels", "original"]:
+            mappack[item] = original_mappack[item]
+
+    with open("static/userdata/{}.json".format(cartogram_entry.string_key), "r") as file:
+        new_maps = json.load(file)
+        mappack.update(new_maps)
+        data_names = list(new_maps.keys())
+        data_names.insert(0, "original")
+        mappack["config"]["data_names"] = data_names
+
+    return Response(json.dumps(mappack), content_type='application/json', status=200)
 
 @app.route('/cleanup')
 def cleanup():

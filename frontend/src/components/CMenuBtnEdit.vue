@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
-import HTTP from '../lib/http'
+
+import type CartMap from '../lib/cartMap'
+import type { DataTable } from '../lib/interface'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
@@ -8,101 +10,46 @@ const store = useCartogramStore()
 const props = defineProps<{
   grid_document: any
   mapname: string
+  map: CartMap
 }>()
 
 const state = reactive({
-  fields: [] as Array<any>,
-  items: [] as Array<any>
+  data: {
+    fields: [],
+    items: {}
+  } as DataTable
 })
 
 const emit = defineEmits<{
-  (e: 'change', cartogramui_promise: Promise<any>): void
+  (e: 'change', data: DataTable): void
 }>()
 
 function generateTable() {
-  let row, col: number
-  state.fields = []
-  state.items = []
-  if (!props.grid_document || !props.grid_document.edit_mask) return
+  state.data.fields = []
+  state.data.items = {}
+  if (!props.map || !props.map.versions) return
   
   // Header
-  for (col = 0; col < props.grid_document.width; col++) {
-    state.fields.push({ key: col.toString(), label: props.grid_document.contents[col] })
+  state.data.fields = [{key: 'area', label: 'Area', editable: false},
+    {key: 'color', label: 'Color', editable: true, type: 'color'}]
+  for (const [versionKey, version] of Object.entries(props.map.versions)) {
+    if (versionKey === '0-base') continue
+    state.data.fields.push({ key: versionKey, label: version.name + ' (' + version.unit + ')', editable: true, type: 'number', headerEditable: true })
   }
 
-  // Content  
-  for (row = 1; row < props.grid_document.height; row++) {
-    var data: any = {}
-    for (col = 0; col < props.grid_document.width; col++) {
-      data[col.toString()] = props.grid_document.contents[props.grid_document.width * row + col]
+  // Content
+  for (const [regionKey, region] of Object.entries(props.map.regions)) {
+    var data: any = [region.name, props.map.colors[regionKey]]
+    for (const [versionKey, version] of Object.entries(region.versions)) {
+      if (versionKey === '0-base') continue
+      data.push(version.value)
     }
-    state.items.push(data)
-  }
-
-  for (let i = 0; i < props.grid_document.edit_mask.length; i++) {
-    // set editable property of col
-    if (props.grid_document.edit_mask[i].row === null) {
-      if (typeof props.grid_document.edit_mask[i].type === 'string') {
-        state.fields[props.grid_document.edit_mask[i].col].editable = true
-        state.fields[props.grid_document.edit_mask[i].col].type =
-          props.grid_document.edit_mask[i].type
-      } else {
-        state.fields[props.grid_document.edit_mask[i].col].editable =
-          props.grid_document.edit_mask[i].editable
-      }
-    } else if (props.grid_document.edit_mask[i].row === 0 && props.grid_document.edit_mask[i].col) {
-      // set editable property of header
-      if (typeof props.grid_document.edit_mask[i].type === 'string') {
-        state.fields[props.grid_document.edit_mask[i].col].headerEditable = true
-      } else {
-        state.fields[props.grid_document.edit_mask[i].col].headerEditable =
-          props.grid_document.edit_mask[i].editable
-      }
-    }
+    state.data.items[regionKey] = data
   }
 }
 
 function updateCartogram() {
-  var mime_boundary = HTTP.generateMIMEBoundary()
-  var csv = ''
-  for (let key in state.fields) {
-    csv += '"' + state.fields[key].label.replace(/"/gm, '""') + '",'
-  }
-  csv = csv.substring(0, csv.length - 1) + '\n'
-  for (let row in state.items) {
-    for (let key in state.items[row]) {      
-      let value = state.items[row][key]
-      value = (typeof value === 'string')? value.replace(/"/gm, '""') : value
-      csv += '"' + value + '",'
-    }
-    csv = csv.substring(0, csv.length - 1) + '\n'
-  }
-
-  // The MIME boundary can't be contained in the request body text
-  while (true) {
-    var search_string = csv + 'csv' + 'handler' // + handler
-    if (search_string.search(mime_boundary) === -1) break
-
-    mime_boundary = HTTP.generateMIMEBoundary()
-  }
-
-  var req_body = ''
-
-  req_body += '--' + mime_boundary + '\n'
-  req_body += 'Content-Disposition: form-data; name="handler"\n\n'
-  req_body += props.mapname + '\n'
-
-  req_body += '--' + mime_boundary + '\n'
-  req_body += 'Content-Disposition: form-data; name="csv"; filename="data.csv"\n'
-  req_body += 'Content-Type: text/csv\n\n'
-  req_body += csv + '\n'
-  req_body += '--' + mime_boundary + '--'
-
-  var cartogramui_promise = HTTP.post('/cartogramui', req_body, {
-    'Content-Type': 'multipart/form-data; boundary=' + mime_boundary
-  })
-
-  emit('change', cartogramui_promise)
+  emit('change', state.data)
 }
 </script>
 
@@ -135,7 +82,7 @@ function updateCartogram() {
         <div class="modal-body">
           <table>
             <tr class="bg-light">
-              <th v-for="(field, index) in state.fields" class="p-1">
+              <th v-for="(field, index) in state.data.fields" class="p-1">
                 <span v-if="!field.headerEditable">{{ field.label }}</span>
                 <input
                   v-else
@@ -145,14 +92,14 @@ function updateCartogram() {
                 />
               </th>
             </tr>
-            <tr v-for="(row, rIndex) in state.items">
+            <tr v-for="(row, rIndex) in state.data.items">
               <td v-for="(cell, cIndex) in row" class="p-1">
-                <span v-if="!state.fields[cIndex].editable">{{ cell }}</span>
+                <span v-if="!state.data.fields[cIndex].editable">{{ cell }}</span>
                 <input
                   v-else
                   v-bind:id="'input-' + rIndex + '-' + cIndex"
-                  v-model="state.items[rIndex][cIndex]"
-                  :type="state.fields[cIndex].type"
+                  v-model="state.data.items[rIndex][cIndex]"
+                  :type="state.data.fields[cIndex].type"
                 />
               </td>
             </tr>

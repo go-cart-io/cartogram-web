@@ -128,7 +128,7 @@ export default class CartMap {
       }, this)
 
       const regionValue = region.value
-      if (regionValue.toString() !== 'NA') {
+      if (regionValue && regionValue.toString() !== 'NA') {
         sum += regionValue
       } else {
         na_regions.push({ id: region_id, area: areaValue })
@@ -253,6 +253,7 @@ export default class CartMap {
     )
     this.versions[sysname].legendData.versionOriginalArea = version_area
     this.versions[sysname].legendData.versionTotalValue = version_value
+    this.versions[sysname].unit = data.unit
   }
 
   /**

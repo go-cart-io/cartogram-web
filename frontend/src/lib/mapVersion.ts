@@ -280,6 +280,7 @@ export class MapVersionData {
  */
 export class MapVersion {
   name: string
+  unit: string = ''
   extrema: Extrema
   dimension: { x: number; y: number }
   labels: Labels | null = null

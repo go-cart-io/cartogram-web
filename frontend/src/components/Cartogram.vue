@@ -7,8 +7,9 @@ import CPanel from './CPanel.vue'
 import CChart from './CChart.vue'
 import CProgressBar from './CProgressBar.vue'
 import HTTP from '../lib/http'
+import * as util from '../lib/util'
 import CartMap from '../lib/cartMap'
-import type { Mappack } from '../lib/interface'
+import type { Mappack, DataTable } from '../lib/interface'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
@@ -33,7 +34,7 @@ const state = reactive({
 const chartEl = ref()
 // Vars
 var map: CartMap = new CartMap()
-var cartogramResponse: any = null
+var tempDataTable: any = null
 var cartogram_data: any = null
 var cartogramui_data: any = null
 var mappack: Mappack | null = null
@@ -76,27 +77,12 @@ function switchVersion(version: string) {
   store.currentVersionName = version
 }
 
-function confirmData(cartogramui_promise: Promise<any>) {  
-  cartogramui_promise
-    .then(async function (response: any) {
-      cartogramResponse = response
-      if (response.error == 'none') {
-        state.currentComponent = 'chart'
-        await nextTick()
-        chartEl.value.drawPieChartFromTooltip(
-          map.regions,
-          response.tooltip,
-          response.color_data
-        )
-      } else {
-        state.error = response.error
-        Toast.getOrCreateInstance(document.getElementById('errorToast')!).show()
-      }
-    })
-    .catch(function (error: any) {
-      state.error = error
-      Toast.getOrCreateInstance(document.getElementById('errorToast')!).show()
-    })
+async function confirmData(data: DataTable) {  
+  tempDataTable = data
+  state.currentComponent = 'chart'
+  await nextTick()
+
+  chartEl.value.drawPieChartFromTooltip(map.regions, data)
 }
 
 /**
@@ -107,19 +93,13 @@ function confirmData(cartogramui_promise: Promise<any>) {
  * @param {string} unique_sharing_key The unique sharing key returned by CartogramUI
  */
 async function getGeneratedCartogram() {
-  if (!mappack) return
-
-  var sysname = store.currentMapName
-  var areas_string = cartogramResponse.areas_string
-  var unique_sharing_key = cartogramResponse.unique_sharing_key
-  mappack.colors = cartogramResponse.color_data
-
-  var res = await new Promise(function (resolve, reject) {
-    var req_body = HTTP.serializePostVariables({
-      handler: sysname,
-      values: areas_string,
+  var unique_sharing_key = util.generateShareKey(32)
+  var newmappack = await new Promise<Mappack>(function (resolve, reject) {
+    var req_body = 'data=' + JSON.stringify({
+      handler: store.currentMapName,
+      values: tempDataTable,
       unique_sharing_key: unique_sharing_key
-    })
+    })    
 
     var progressUpdater = window.setInterval(
       (function (key) {
@@ -146,35 +126,30 @@ async function getGeneratedCartogram() {
       function (response: any) {
         store.loadingProgress = 100
         window.clearInterval(progressUpdater)
-        resolve(response.cartogram_data)
+        resolve(response)
       },
-      function () {
+      function (error: any) {
         window.clearInterval(progressUpdater)
-        reject(Error('There was an error retrieving the cartogram from the server.'))
+        reject(error)
       }
     )
   }).catch(function (error: any) {
     state.currentComponent = 'map'
     state.error = error
-    cartogramResponse = null
+    tempDataTable = null
     Toast.getOrCreateInstance(document.getElementById('errorToast')!).show()
     return
   })
 
-  cartogram_data = res
-  cartogramui_data = cartogramResponse
-  cartogram_data.tooltip = cartogramui_data.tooltip
-  store.currentVersionName = '99-cartogram'
-  state.currentComponent = 'map'  
-
+  state.currentComponent = 'map'
   await nextTick()
-  switchMap(mappack)
-  cartogramResponse = null  
+  if (newmappack) switchMap(newmappack)
+  tempDataTable = null  
 }
 
 function clearEditing() {
   state.currentComponent = 'map'
-  cartogramResponse = null
+  tempDataTable = null
 }
 </script>
 
@@ -183,6 +158,7 @@ function clearEditing() {
     v-bind:isEmbed="props.mode === 'embed'"
     v-bind:mapName="props.defaultHandler"
     v-bind:maps="props.cartogram_handlers"
+    v-bind:map="map"
     v-bind:grid_document="mappack?.griddocument"
     v-on:map_changed="switchMap"
     v-on:version_changed="switchVersion"

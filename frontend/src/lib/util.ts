@@ -104,3 +104,16 @@ export function multiplyMatrix(
 
   return result
 }
+
+// https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
+export function generateShareKey(length: number): string {
+  let result = Date.now().toString();
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  let counter = result.length;
+  while (counter < length) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    counter += 1;
+  }
+  return result;
+}

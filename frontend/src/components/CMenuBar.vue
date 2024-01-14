@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { reactive, onMounted } from 'vue'
 
-import type { Mappack } from '../lib/interface'
+import type { Mappack, DataTable } from '../lib/interface'
+import type CartMap from '../lib/cartMap'
 import HTTP from '../lib/http'
 import CMenuBtnUpload from './CMenuBtnUpload.vue'
 import CMenuBtnEdit from './CMenuBtnEdit.vue'
@@ -14,6 +15,7 @@ const props = withDefaults(
     isEmbed: boolean
     mapName: string
     maps: Array<{ id: string; display_name: string }> | null
+    map: CartMap
     grid_document: any
   }>(),
   {
@@ -58,8 +60,8 @@ function playVersions() {
   }, 1000)
 }
 
-function confirmData(cartogramui_promise: Promise<any>) {
-  emit('confirm_data', cartogramui_promise)
+function confirmData(data: DataTable) {
+  emit('confirm_data', data)
 }
 </script>
 
@@ -125,10 +127,11 @@ function confirmData(cartogramui_promise: Promise<any>) {
       <!-- Menu -->
       <div class="py-2 d-flex flex-nowrap">
         <span v-if="!props.isEmbed" class="text-nowrap">
-          <c-menu-btn-upload :mapname="store.currentMapName" v-on:change="confirmData" />
+          <!-- <c-menu-btn-upload :mapname="store.currentMapName" v-on:change="confirmData" /> -->
           <c-menu-btn-edit
             v-bind:grid_document="props.grid_document"
             v-bind:mapname="store.currentMapName"
+            v-bind:map="props.map"
             v-on:change="confirmData"
           />
         </span>
