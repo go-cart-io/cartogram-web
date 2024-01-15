@@ -3,16 +3,14 @@ import { computed, reactive, ref } from 'vue'
 import * as util from '../lib/util'
 import CTextCitation from './CTextCitation.vue'
 
-const props = defineProps<{
-  sharing_key?: string | null
-  name?: string | null
-}>()
+import { useCartogramStore } from '../stores/cartogram'
+const store = useCartogramStore()
 
 const socialURL = computed(() => {
-  if (props.sharing_key)
-    return location.protocol + '//' + location.host + '/cart/' + props.sharing_key
+  if (store.stringKey)
+    return location.protocol + '//' + location.host + '/cart/' + store.stringKey
 
-  return location.protocol + '//' + location.host + '/cartogram/' + props.name
+  return location.protocol + '//' + location.host + '/cartogram/' + store.currentMapName
 })
 
 const socialURLEncoded = computed(() => {
@@ -21,10 +19,10 @@ const socialURLEncoded = computed(() => {
 
 const embedHTML = computed(() => {
   let embedURL
-  if (props.sharing_key) {
-    embedURL = location.protocol + '//' + window.location.host + '/embed/cart/' + props.sharing_key
+  if (store.stringKey) {
+    embedURL = location.protocol + '//' + window.location.host + '/embed/cart/' + store.stringKey
   } else {
-    embedURL = location.protocol + '//' + window.location.host + '/embed/map/' + props.name
+    embedURL = location.protocol + '//' + window.location.host + '/embed/map/' + store.currentMapName
   }
 
   return (

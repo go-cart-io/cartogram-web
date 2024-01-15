@@ -4,6 +4,7 @@ import { reactive, onMounted } from 'vue'
 import type { Mappack, DataTable } from '../lib/interface'
 import type CartMap from '../lib/cartMap'
 import HTTP from '../lib/http'
+import CMenuSelectMap from './CMenuSelectMap.vue'
 import CMenuBtnUpload from './CMenuBtnUpload.vue'
 import CMenuBtnEdit from './CMenuBtnEdit.vue'
 
@@ -13,10 +14,8 @@ const store = useCartogramStore()
 const props = withDefaults(
   defineProps<{
     isEmbed: boolean
-    mapName: string
-    maps: Array<{ id: string; display_name: string }> | null
+    maps: { [key: string]; display_name: string } | null
     map: CartMap
-    grid_document: any
   }>(),
   {
     isEmbed: false
@@ -28,23 +27,6 @@ const state = reactive({
 })
 
 const emit = defineEmits(['map_changed', 'version_changed', 'loading_progress', 'confirm_data'])
-
-onMounted(() => {
-  store.currentMapName = props.mapName
-  switchMap()
-})
-
-async function switchMap() {
-  var mappack = (await HTTP.get(
-    '/static/cartdata/' + store.currentMapName + '/mappack.json?v=devel',
-    null,
-    function (e: any) {
-      store.loadingProgress = Math.floor((e.loaded / e.total) * 100)
-    }
-  )) as Mappack
-
-  emit('map_changed', mappack)
-}
 
 function playVersions() {
   state.isPlaying = true
@@ -72,22 +54,10 @@ function confirmData(data: DataTable) {
         <img src="/static/img/gocart_final.svg" width="80" alt="go-cart.io logo" />
       </div>
 
-      <div v-if="!props.isEmbed" class="p-2" style="max-width: 30%">
-        <div class="d-flex">
-          <select class="form-select" v-model="store.currentMapName" v-on:change="switchMap">
-            <option v-for="map in props.maps" v-bind:value="map.id">
-              {{ map.display_name }}
-            </option>
-          </select>
-          <a
-            class="btn btn-primary ms-2"
-            title="Download template"
-            v-bind:href="'/static/cartdata/' + store.currentMapName + '/template.csv'"
-          >
-            <i class="fas fa-file-download"></i>
-          </a>
-        </div>
-      </div>
+      <c-menu-select-map 
+        v-bind:maps="props.maps" 
+        v-bind:isEmbed="props.isEmbed"
+        v-on:map_changed="mappack => emit('map_changed', mappack)" />
 
       <div
         class="btn-group d-flex flex-shrink-1 p-2"
@@ -129,7 +99,6 @@ function confirmData(data: DataTable) {
         <span v-if="!props.isEmbed" class="text-nowrap">
           <!-- <c-menu-btn-upload :mapname="store.currentMapName" v-on:change="confirmData" /> -->
           <c-menu-btn-edit
-            v-bind:grid_document="props.grid_document"
             v-bind:mapname="store.currentMapName"
             v-bind:map="props.map"
             v-on:change="confirmData"

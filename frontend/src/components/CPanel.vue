@@ -28,7 +28,6 @@ const modalDownloadEl = ref()
 const props = withDefaults(
   defineProps<{
     map: CartMap
-    cartogramui_data?: any
     mode?: string | null
   }>(),
   {
@@ -351,12 +350,7 @@ function snapToBetterNumber() {
             >
               <i class="fas fa-download"></i>
             </button>
-            <c-panel-btn-share
-              v-bind:name="store.currentMapName"
-              v-bind:sharing_key="
-                props.cartogramui_data ? props.cartogramui_data.unique_sharing_key : null
-              "
-            />
+            <c-panel-btn-share />
           </span>
         </div>
       </div>

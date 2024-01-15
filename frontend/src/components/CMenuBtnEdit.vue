@@ -8,7 +8,6 @@ import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
 const props = defineProps<{
-  grid_document: any
   mapname: string
   map: CartMap
 }>()

@@ -51,7 +51,7 @@ export default class CartMap {
    * constructor creates a new instance of the Map class
    * @param {Mappack} mappack The data of the map and cartogram
    */
-  init(mappack: Mappack, cartogram_data: any): string {
+  init(mappack: Mappack): string {
     let data_names = mappack.config.data_names || ['original', 'population']
     let versionName = '0-base'
 
@@ -60,12 +60,7 @@ export default class CartMap {
       versionName = i.toString() + '-' + data_names[i]
       this.addVersion(versionName, null, mappack[data_names[i]], '0-base')
     }
-  
-    if (cartogram_data !== null) {
-      this.addVersion('99-cartogram', null, cartogram_data, '0-base')
-      versionName = '99-cartogram'
-    }
-  
+    
     /*
       The keys in the colors.json file are prefixed with id_. We iterate through the regions and extract the color
       information from colors.json to produce a color map where the IDs are plain region IDs, as required by

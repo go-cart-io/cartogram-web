@@ -2,7 +2,6 @@ export interface Mappack {
   abbreviations: { [key: string]: string } // e.g. Alabama: 'AL'
   colors: { [key: string]: string } // e.g. id_1: '#7570b3'
   config: MapConfig
-  griddocument: any
   labels: Labels
   [key: string]: any // map
 }

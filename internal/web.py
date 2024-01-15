@@ -429,29 +429,27 @@ Message:
 
 
 @app.route('/cartogram', methods=['GET'])
-def make_cartogram():    
-    return make_cartogram_by_name(default_cartogram_handler)
+def get_cartogram():    
+    return get_cartogram_by_name(default_cartogram_handler)
 
 
 @app.route('/cartogram/<map_name>', methods=['GET'])
-def make_cartogram_by_name(map_name):
+def get_cartogram_by_name(map_name):
 
     if map_name not in cartogram_handlers:
-        return Response('Error', status=500)
+        return Response('Cannot find the map {}'.format(map_name), status=500)
     
-    cartogram_handlers_select = []
+    cartogram_handlers_select = {}
 
     for key, handler in cartogram_handlers.items():
         for selector_name in handler.selector_names():
-            cartogram_handlers_select.append({'id': key, 'display_name': selector_name})
+            cartogram_handlers_select[key] = selector_name
 
-    cartogram_handlers_select.sort(key=lambda h: h['display_name'])
+    dict(sorted(cartogram_handlers_select.items()))
 
-    return render_template('cartogram.html', page_active='cartogram', cartogram_url=url_for('cartogram'),
-                           cartogramui_url=url_for('cartogram_ui'), getprogress_url=url_for('getprogress'),
-                           cartogram_data_dir=url_for('static', filename='cartdata'),
-                           cartogram_handlers=cartogram_handlers_select,
-                           default_cartogram_handler=map_name, cartogram_version=settings.VERSION,
+    return render_template('cartogram.html', page_active='cartogram', 
+                           maps=cartogram_handlers_select,
+                           map_name=map_name,
                            tracking=tracking.determine_tracking_action(request))
 
 
@@ -462,23 +460,23 @@ def cartogram_by_key(string_key):
 
     cartogram_entry = CartogramEntry.query.filter_by(string_key=string_key).first_or_404()
 
-    if cartogram_entry.handler not in cartogram_handlers:
+    if cartogram_entry is None or cartogram_entry.handler not in cartogram_handlers:
         return Response('Error', status=500)
     
-    if cartogram_entry != None:
-        cartogram_entry.date_accessed = datetime.datetime.utcnow()
-        db.session.commit()
+    cartogram_entry.date_accessed = datetime.datetime.utcnow()
+    db.session.commit()    
+    
+    cartogram_handlers_select = {}
 
-    cartogram_handlers_select = [{'id': key, 'display_name': handler.get_name()} for key, handler in
-                                 cartogram_handlers.items()]
+    for key, handler in cartogram_handlers.items():
+        for selector_name in handler.selector_names():
+            cartogram_handlers_select[key] = selector_name
 
-    return render_template('cartogram.html', page_active='cartogram', cartogram_url=url_for('cartogram'),
-                           cartogramui_url=url_for('cartogram_ui'), getprogress_url=url_for('getprogress'),
-                           cartogram_data_dir=url_for('static', filename='cartdata'),
-                           cartogram_handlers=cartogram_handlers_select,
-                           default_cartogram_handler=cartogram_entry.handler,
-                           cartogram_data=cartogram_entry.cartogram_data,
-                           cartogramui_data=cartogram_entry.cartogramui_data, cartogram_version=settings.VERSION,
+    dict(sorted(cartogram_handlers_select.items()))
+
+    return render_template('cartogram.html', page_active='cartogram', 
+                           maps=cartogram_handlers_select,
+                           map_name=cartogram_entry.handler, map_data_key=string_key,
                            tracking=tracking.determine_tracking_action(request))
 
 
@@ -488,10 +486,8 @@ def cartogram_embed_by_map(map_name):
     if map_name not in cartogram_handlers:
         return Response('Error', status=500)
 
-    return render_template('embed.html', page_active='cartogram', cartogram_url=url_for('cartogram'),
-                           cartogramui_url=url_for('cartogram_ui'), getprogress_url=url_for('getprogress'),
-                           cartogram_data_dir=url_for('static', filename='cartdata'),
-                           map_name=map_name, cartogram_version=settings.VERSION,
+    return render_template('embed.html', page_active='cartogram', 
+                           map_name=map_name,
                            mode='embed', tracking=tracking.determine_tracking_action(request))
 
 @app.route('/embed/cart/<string_key>', methods=['GET'])
@@ -508,13 +504,9 @@ def cartogram_embed_by_key(string_key):
         cartogram_entry.date_accessed = datetime.datetime.utcnow()
         db.session.commit()
 
-    return render_template('embed.html', page_active='cartogram', cartogram_url=url_for('cartogram'),
-                           cartogramui_url=url_for('cartogram_ui'), getprogress_url=url_for('getprogress'),
-                           cartogram_data_dir=url_for('static', filename='cartdata'),
-                           default_cartogram_handler=cartogram_entry.handler,
-                           cartogram_data=cartogram_entry.cartogram_data,
-                           cartogramui_data=cartogram_entry.cartogramui_data, cartogram_version=settings.VERSION,
-                           mode='embed', tracking=tracking.determine_tracking_action(request))
+    return render_template('embed.html', page_active='cartogram', 
+                        map_name=cartogram_entry.handler, map_data_key=string_key,
+                        mode='embed', tracking=tracking.determine_tracking_action(request))
 
 
 @app.route('/setprogress', methods=['POST'])
@@ -563,56 +555,6 @@ def getprogress():
                         status=200, content_type='application/json')
 
 
-@app.route('/cartogramui', methods=['POST'])
-def cartogram_ui():
-    json_response = {}
-
-    if 'handler' not in request.form:
-        json_response['error'] = 'You must specify a handler.'
-        return Response(json.dumps(json_response), status=200, content_type="application/json")
-
-    if request.form['handler'] not in cartogram_handlers:
-        json_response['error'] = 'The handler specified was invaild.'
-        return Response(json.dumps(json_response), status=200, content_type="application/json")
-
-    if 'csv' not in request.files:
-        json_response['error'] = 'You must upload CSV data.'
-        return Response(json.dumps(json_response), status=200, content_type="application/json")
-
-    cartogram_handler = cartogram_handlers[request.form['handler']]
-
-    try:
-
-        # This is necessary because Werkzeug's file stream is in binary mode
-        csv_codec = codecs.iterdecode(request.files['csv'].stream, 'utf-8')
-        cart_data = cartogram_handler.csv_to_area_string_and_colors(csv_codec)
-
-        json_response['error'] = "none"
-        json_response['areas_string'] = cart_data[0]
-        json_response['color_data'] = cart_data[1]
-        json_response['tooltip'] = cart_data[2]
-        json_response['grid_document'] = cart_data[3]
-
-        cartogram_entry_key = get_random_string(32)
-
-        json_response['unique_sharing_key'] = cartogram_entry_key
-
-        if settings.USE_DATABASE:
-            new_cartogram_entry = CartogramEntry(string_key=cartogram_entry_key, date_created=datetime.datetime.today(),
-                                                 handler=request.form['handler'], areas_string=cart_data[0],
-                                                 cartogram_data="{}", cartogramui_data=json.dumps(json_response))
-
-            db.session.add(new_cartogram_entry)
-            db.session.commit()
-
-        return Response(json.dumps(json_response), status=200, content_type="application/json")
-
-    except (KeyError, csv.Error, ValueError, UnicodeDecodeError) as error:
-
-        json_response['error'] = 'There was a problem reading your CSV/Excel file.'
-        return Response(json.dumps(json_response), status=200, content_type="application/json")
-
-
 @app.route('/cartogram', methods=['POST'])
 def cartogram():    
     colName = 0
@@ -642,16 +584,16 @@ def cartogram():
         if 'handler' not in data or data['handler'] not in cartogram_handlers:
             return Response('{"error":The handler was invaild."}', status=400, content_type="application/json")
 
-        if 'unique_sharing_key' not in data:
+        if 'stringKey' not in data:
             return Response('{"error":"Missing sharing key."}', status=404, content_type="application/json")
 
         handler = data['handler']
         cartogram_handler = cartogram_handlers[handler]
-        unique_sharing_key = data['unique_sharing_key']
+        string_key = data['stringKey']
 
         lambda_result = awslambda.generate_cartogram(datastring,
                             cartogram_handler.get_gen_file(), settings.CARTOGRAM_LAMBDA_URL,
-                            settings.CARTOGRAM_LAMDA_API_KEY, unique_sharing_key)
+                            settings.CARTOGRAM_LAMDA_API_KEY, string_key)
 
         cartogram_gen_output = lambda_result['stdout']
 
@@ -673,17 +615,17 @@ def cartogram():
             tooltip['label'] = data["values"]["fields"][colValue]["label"].strip()
         cartogram_json['tooltip'] = tooltip
 
-        with open("static/userdata/" + unique_sharing_key + ".json", "w") as outfile:
+        with open("static/userdata/" + string_key + ".json", "w") as outfile:
             outfile.write(json.dumps({'{}-custom'.format(colValue): cartogram_json}))
 
         if settings.USE_DATABASE:
-            new_cartogram_entry = CartogramEntry(string_key=unique_sharing_key, date_created=datetime.datetime.today(),
+            new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
                                     handler=handler, areas_string='-',
                                     cartogram_data='-', cartogramui_data=json.dumps({"colors": colorJson}))
             db.session.add(new_cartogram_entry)
             db.session.commit()
         
-        return get_mappack_by_key(unique_sharing_key, False)
+        return get_mappack_by_key(string_key, False)
     
     except (KeyError, csv.Error, ValueError, UnicodeDecodeError):
         return Response('{"error":"The data was invalid."}', status=400, content_type="application/json")
@@ -716,6 +658,8 @@ def get_mappack_by_key(string_key, updateaccess = True):
         data_names = list(new_maps.keys())
         data_names.insert(0, "original")
         mappack["config"]["data_names"] = data_names
+
+    mappack['stringKey'] = string_key
 
     return Response(json.dumps(mappack), content_type='application/json', status=200)
 

@@ -9,10 +9,9 @@ import './assets/styles.scss'
 
 if (document.getElementById('cartogram-app')) {
   const app = createApp(App, {
-    defaultHandler,
-    cartogram_handlers,
-    cartogram_data,
-    cartogramui_data,
+    mapName,
+    maps,
+    mapDataKey,
     mode
   })
   app.use(createPinia())

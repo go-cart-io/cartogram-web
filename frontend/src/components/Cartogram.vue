@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, onMounted, nextTick } from 'vue'
+import { reactive, ref, onBeforeMount, nextTick } from 'vue'
 import { Toast } from 'bootstrap'
 
 import CMenuBar from './CMenuBar.vue'
@@ -15,11 +15,10 @@ import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
 const props = defineProps<{
-  defaultHandler: string
-  cartogram_handlers: Array<{ id: string; display_name: string }> | null
-  cartogram_data: any
-  cartogramui_data: any
-  mode: string | null
+  mapName: string  
+  maps: { [key: string]; display_name: string } | null
+  mapDataKey: string
+  mode: string | null  
 }>()
 
 const state = reactive({
@@ -35,15 +34,11 @@ const chartEl = ref()
 // Vars
 var map: CartMap = new CartMap()
 var tempDataTable: any = null
-var cartogram_data: any = null
-var cartogramui_data: any = null
 var mappack: Mappack | null = null
 
-onMounted(async () => {
-  cartogram_data = props.cartogram_data
-  cartogramui_data = props.cartogramui_data
-  if (cartogram_data) cartogram_data.tooltip = cartogramui_data.tooltip
-  store.currentMapName = props.defaultHandler
+onBeforeMount(() => {
+  store.currentMapName = props.mapName
+  store.stringKey = props.mapDataKey
 })
 
 /**
@@ -61,14 +56,14 @@ async function switchMap(newmappack: Mappack) {
   //store.currentMapName
   mappack = newmappack
   map = new CartMap()  
-  store.currentVersionName = map.init(mappack, cartogram_data)  
+  store.currentVersionName = map.init(mappack)  
   store.versions = map.versions
   state.mapkey = Date.now()
 
   await nextTick()
   map.drawVersion('0-base', 'map-area', ['map-area', 'cartogram-area'])
   map.drawVersion(store.currentVersionName, 'cartogram-area', ['map-area', 'cartogram-area']) 
-  cartogram_data = null 
+  tempDataTable = null 
 }
 
 function switchVersion(version: string) {
@@ -88,17 +83,14 @@ async function confirmData(data: DataTable) {
 /**
  * getGeneratedCartogram generates a cartogram with the given dataset, and updates the progress bar with progress
  * information from the backend.
- * @param {string} sysname The sysname of the map
- * @param {string} areas_string The areas string of the dataset
- * @param {string} unique_sharing_key The unique sharing key returned by CartogramUI
  */
 async function getGeneratedCartogram() {
-  var unique_sharing_key = util.generateShareKey(32)
+  var stringKey = util.generateShareKey(32)
   var newmappack = await new Promise<Mappack>(function (resolve, reject) {
     var req_body = 'data=' + JSON.stringify({
       handler: store.currentMapName,
       values: tempDataTable,
-      unique_sharing_key: unique_sharing_key
+      stringKey: stringKey
     })    
 
     var progressUpdater = window.setInterval(
@@ -116,7 +108,7 @@ async function getGeneratedCartogram() {
             }
           )
         }
-      })(unique_sharing_key),
+      })(stringKey),
       500
     )
 
@@ -142,6 +134,7 @@ async function getGeneratedCartogram() {
   })
 
   state.currentComponent = 'map'
+  store.stringKey = newmappack.stringKey
   await nextTick()
   if (newmappack) switchMap(newmappack)
   tempDataTable = null  
@@ -156,10 +149,8 @@ function clearEditing() {
 <template>
   <c-menu-bar
     v-bind:isEmbed="props.mode === 'embed'"
-    v-bind:mapName="props.defaultHandler"
-    v-bind:maps="props.cartogram_handlers"
+    v-bind:maps="props.maps"
     v-bind:map="map"
-    v-bind:grid_document="mappack?.griddocument"
     v-on:map_changed="switchMap"
     v-on:version_changed="switchVersion"
     v-on:confirm_data="confirmData"
@@ -179,7 +170,6 @@ function clearEditing() {
       v-else
       v-bind:key="state.mapkey"
       v-bind:map="map"
-      v-bind:cartogramui_data="cartogramui_data"
       v-bind:mode="props.mode"
     />
   </div>
