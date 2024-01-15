@@ -14,10 +14,8 @@ const tooltipEl = ref<typeof CTooltip>()
 
 const emit = defineEmits(['confirm', 'cancel'])
 
-function drawPieChartFromTooltip(
-  regions: { [key: string]: Region },
-  rawdata: DataTable
-) {
+function drawPieChart(rawdata: DataTable) {  
+  const colName = 0
   const colColor = 1
   const colValue = 2
   const container = 'piechart-area'
@@ -65,14 +63,14 @@ function drawPieChartFromTooltip(
 
   svg.attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')')
 
-  const dataWithOthers = Object.keys(regions)
+  const dataWithOthers = Object.keys(rawdata.items)
     .map((region_id, _i, _a) => {
       return {
         label: region_id,
         value: rawdata.items[region_id][colValue],
         color: rawdata.items[region_id][colColor],
-        abbreviation: regions[region_id].abbreviation,
-        name: regions[region_id].name
+        abbreviation: rawdata.items[region_id][colName],
+        name: rawdata.items[region_id][colName]
       }
     })
     .filter((d) => d.value !== 'NA')
@@ -259,7 +257,7 @@ function drawPieChartFromTooltip(
 }
 
 defineExpose({
-  drawPieChartFromTooltip
+  drawPieChart
 })
 </script>
 

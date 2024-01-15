@@ -3,7 +3,6 @@ import { reactive, onMounted } from 'vue'
 
 import type { Mappack, DataTable } from '../lib/interface'
 import type CartMap from '../lib/cartMap'
-import HTTP from '../lib/http'
 import CMenuSelectMap from './CMenuSelectMap.vue'
 import CMenuBtnUpload from './CMenuBtnUpload.vue'
 import CMenuBtnEdit from './CMenuBtnEdit.vue'
@@ -97,11 +96,8 @@ function confirmData(data: DataTable) {
       <!-- Menu -->
       <div class="py-2 d-flex flex-nowrap">
         <span v-if="!props.isEmbed" class="text-nowrap">
-          <!-- <c-menu-btn-upload :mapname="store.currentMapName" v-on:change="confirmData" /> -->
-          <c-menu-btn-edit
-            v-bind:mapname="store.currentMapName"
-            v-bind:map="props.map"
-            v-on:change="confirmData"
+          <c-menu-btn-upload v-bind:map="props.map" v-on:change="confirmData" />
+          <c-menu-btn-edit v-bind:map="props.map" v-on:change="confirmData"
           />
         </span>
 

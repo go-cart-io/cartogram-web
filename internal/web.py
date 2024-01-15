@@ -562,24 +562,9 @@ def cartogram():
     colValue = 2 # Starting column of data
 
     try:
-        data = json.loads(request.form["data"])
-        datastring = "cartogram_id,Region Data,Region Name,Inset\n"
-        colorJson = {}
-        tooltip = {"data":{}}
-        for regionId, region in data["values"]["items"].items():
-            # Validate values
-            float(regionId)
-            region[colName] = region[colName].replace(",", "")
-            if region[colValue] is not None:
-                float(region[colValue])
-            else:
-                region[colValue] = "NA"
-            if not re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', region[colColor]):
-                return Response('{"error":The color data was invaild."}', status=400, content_type="application/json")
-            
-            datastring = datastring + '{},{},{},\n'.format(regionId, region[colValue], region[colName])
-            colorJson['id_' + regionId] = region[colColor]
-            tooltip['data']['id_' + regionId] = {'name': region[colName], 'value': region[colValue]}
+        data = json.loads(request.form['data'])
+        handler = data['handler']
+        cartogram_handler = cartogram_handlers[handler]
 
         if 'handler' not in data or data['handler'] not in cartogram_handlers:
             return Response('{"error":The handler was invaild."}', status=400, content_type="application/json")
@@ -587,11 +572,9 @@ def cartogram():
         if 'stringKey' not in data:
             return Response('{"error":"Missing sharing key."}', status=404, content_type="application/json")
 
-        handler = data['handler']
-        cartogram_handler = cartogram_handlers[handler]
         string_key = data['stringKey']
-
-        lambda_result = awslambda.generate_cartogram(datastring,
+        cart_data = cartogram_handler.get_area_string_and_colors(data)
+        lambda_result = awslambda.generate_cartogram(cart_data[0],
                             cartogram_handler.get_gen_file(), settings.CARTOGRAM_LAMBDA_URL,
                             settings.CARTOGRAM_LAMDA_API_KEY, string_key)
 
@@ -607,13 +590,7 @@ def cartogram():
             cartogram_json = gen2dict.translate(io.StringIO(cartogram_gen_output), settings.CARTOGRAM_COLOR,
                                                 cartogram_handler.remove_holes())
             
-        m = re.match(r'(.+)\s?\((.+)\)$', data["values"]["fields"][colValue]["label"])
-        if m:
-            tooltip['label'] = m.group(1).strip()
-            tooltip['unit'] = m.group(2).strip()
-        else:
-            tooltip['label'] = data["values"]["fields"][colValue]["label"].strip()
-        cartogram_json['tooltip'] = tooltip
+        cartogram_json['tooltip'] = cart_data[2]
 
         with open("static/userdata/" + string_key + ".json", "w") as outfile:
             outfile.write(json.dumps({'{}-custom'.format(colValue): cartogram_json}))
@@ -621,10 +598,10 @@ def cartogram():
         if settings.USE_DATABASE:
             new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
                                     handler=handler, areas_string='-',
-                                    cartogram_data='-', cartogramui_data=json.dumps({"colors": colorJson}))
+                                    cartogram_data='-', cartogramui_data=json.dumps({"colors": cart_data[1]}))
             db.session.add(new_cartogram_entry)
             db.session.commit()
-        
+
         return get_mappack_by_key(string_key, False)
     
     except (KeyError, csv.Error, ValueError, UnicodeDecodeError):

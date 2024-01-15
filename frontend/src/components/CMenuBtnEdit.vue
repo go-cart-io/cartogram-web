@@ -8,7 +8,6 @@ import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
 const props = defineProps<{
-  mapname: string
   map: CartMap
 }>()
 
@@ -76,7 +75,7 @@ function updateCartogram() {
     <div class="modal-dialog modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="shareModalLabel">Update {{ props.mapname }}</h1>
+          <h1 class="modal-title fs-5" id="shareModalLabel">Update {{ store.currentMapName }}</h1>
         </div>
         <div class="modal-body">
           <table>

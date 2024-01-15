@@ -86,7 +86,9 @@ export default class HTTP {
             }
           } else {
             console.log(url)
-            reject(Error('Unable to fetch data from the server.'))
+            var response = JSON.parse(this.responseText)
+            const errorText = response.error? response.error : 'Unable to fetch data from the server.'
+            reject(Error(errorText))
           }
         }
       }

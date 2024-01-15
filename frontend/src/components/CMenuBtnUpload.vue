@@ -1,41 +1,94 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import * as util from '../lib/util'
-import HTTP from '@/lib/http'
+import * as d3 from 'd3'
+import * as XLSX from 'xlsx'
+
+import type CartMap from '../lib/cartMap'
+import type { DataTable } from '../lib/interface'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
 const props = defineProps<{
-  mapname: string
+  map: CartMap
+}>()
+
+const emit = defineEmits<{
+  (e: 'change', data: DataTable): void
 }>()
 
 const csvInput = ref<HTMLInputElement>()
 
-const emit = defineEmits<{
-  (e: 'change', cartogramui_promise: Promise<any>): void
-}>()
-
-var form_data: FormData
-
 async function processFile() {
-  form_data = new FormData()
-  form_data.append('handler', props.mapname)
   if (!csvInput.value || !csvInput.value.files) return
 
-  var input_data_file: any = csvInput.value.files[0]
-  if (!input_data_file) return
+  let data = {
+    fields: [],
+    items: {}
+  } as DataTable  
+
+  var dataFile: any = csvInput.value.files[0]
+  var dataJson: any = {}
+  if (!dataFile) return
 
   // if input file is xls/xlsx file
-  if (input_data_file.name.split('.').pop().slice(0, 3) === 'xls') {
-    await util.convertExcelToCSV(input_data_file).then((csv_file) => {
-      input_data_file = csv_file
-    })
+  await readFile(dataFile).then((json) => {
+    dataJson = json
+  })
+
+  if (!dataJson || dataJson.length < 1) return
+  
+  const colName = 0
+  const colColor = 1  
+  const colValue = 2
+  let dataKeys = Object.keys(dataJson[0])
+
+  // Header
+  data.fields = [{key: 'area', label: 'Area', editable: false},
+    {key: 'color', label: 'Color', editable: true}]  
+  for (let col = colValue; col < dataKeys.length; col++) {
+    data.fields.push({ key: col + '-custom', label: dataKeys[col], editable: true, type: 'number', headerEditable: true })
+  }  
+
+  // Content
+  for (let row = 0; row < dataJson.length; row++) {
+    let dataItem: any = [dataJson[row][dataKeys[colName]], dataJson[row][dataKeys[colColor]]]
+    for (let col = colValue; col < dataKeys.length; col++) {
+      let value = dataJson[row][dataKeys[col]]
+      if (typeof value === 'string') value = parseFloat(value)
+      dataItem.push(value)
+    }
+    data.items[row] = dataItem
   }
 
-  form_data.append('csv', input_data_file)
-  var cartogramui_promise = HTTP.post('/cartogramui', form_data)
-  emit('change', cartogramui_promise)
+  emit('change', data)
+}
+
+function readFile(file: File): Promise<any> {
+  return new Promise((resolve, reject) => {
+    let reader = new FileReader()
+    let type = file.name.split('.').pop()?.slice(0, 3)
+    try {
+      reader.onloadend = function (e) {
+        var data = e.target?.result
+        var dataJson = {}
+
+        if (type === 'xls') {
+          var wb = XLSX.read(data, { type: 'binary' })
+          var ws = wb.Sheets[wb.SheetNames[0]]
+          dataJson = XLSX.utils.sheet_to_json(ws)
+        } else {
+          dataJson = d3.csvParse(data as string)
+        }
+
+        resolve(dataJson)
+      }
+    } catch (e) {
+      console.log(e)
+      reject(Error('Given file is corrupted or incorrect format.'))
+    }
+    reader.readAsBinaryString(file)
+  })
 }
 </script>
 

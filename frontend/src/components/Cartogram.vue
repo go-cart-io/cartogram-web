@@ -60,10 +60,17 @@ async function switchMap(newmappack: Mappack) {
   store.versions = map.versions
   state.mapkey = Date.now()
 
+  redraw()
+}
+
+
+async function redraw() {
+  state.currentComponent = 'map'
+
   await nextTick()
   map.drawVersion('0-base', 'map-area', ['map-area', 'cartogram-area'])
   map.drawVersion(store.currentVersionName, 'cartogram-area', ['map-area', 'cartogram-area']) 
-  tempDataTable = null 
+  tempDataTable = null
 }
 
 function switchVersion(version: string) {
@@ -77,7 +84,7 @@ async function confirmData(data: DataTable) {
   state.currentComponent = 'chart'
   await nextTick()
 
-  chartEl.value.drawPieChartFromTooltip(map.regions, data)
+  chartEl.value.drawPieChart(data)
 }
 
 /**
@@ -130,19 +137,15 @@ async function getGeneratedCartogram() {
     state.error = error
     tempDataTable = null
     Toast.getOrCreateInstance(document.getElementById('errorToast')!).show()
+    redraw()
     return
   })
 
   state.currentComponent = 'map'
-  store.stringKey = newmappack.stringKey
+  if (newmappack) store.stringKey = newmappack.stringKey
   await nextTick()
   if (newmappack) switchMap(newmappack)
   tempDataTable = null  
-}
-
-function clearEditing() {
-  state.currentComponent = 'map'
-  tempDataTable = null
 }
 </script>
 
@@ -163,7 +166,7 @@ function clearEditing() {
       v-if="state.currentComponent === 'chart'"
       ref="chartEl"
       v-on:confirm="getGeneratedCartogram"
-      v-on:cancel="clearEditing"
+      v-on:cancel="redraw"
     />
 
     <c-panel
