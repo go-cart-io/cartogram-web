@@ -3,27 +3,33 @@ import * as d3 from 'd3'
 import tinycolor from 'tinycolor2'
 import { ref } from 'vue'
 import type { Region } from '@/lib/region'
-import type { ChartDataItem } from '@/lib/interface'
-import Tooltip from '@/components/Tooltip.vue'
+import type { ChartDataItem, DataTable } from '@/lib/interface'
+import CTooltip from '@/components/CTooltip.vue'
 
 import { select as d3Select } from 'd3-selection'
 import { transition as d3Transition } from 'd3-transition'
 d3Select.prototype.transition = d3Transition
 
-const tooltipEl = ref<typeof Tooltip>()
+const tooltipEl = ref<typeof CTooltip>()
 
 const emit = defineEmits(['confirm', 'cancel'])
 
-function drawPieChartFromTooltip(
-  regions: { [key: string]: Region },
-  tooltip: any,
-  colors: { [key: string]: string } = {}
-) {
+function drawPieChart(rawdata: DataTable) {  
+  const colName = 0
+  const colColor = 1
+  const colValue = 2
   const container = 'piechart-area'
   const containerElement = document.getElementById(container)
 
   while (containerElement?.firstChild) {
     containerElement.removeChild(containerElement.firstChild)
+  }
+
+  let labelText = '', unitText = ''
+  let match = rawdata.fields[colValue].label.match(/(.+)\s?\((.+)\)$/)
+  if (match) {
+    labelText =  match[1]
+    unitText = match[2]
   }
 
   const width = 600,
@@ -57,14 +63,14 @@ function drawPieChartFromTooltip(
 
   svg.attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')')
 
-  const dataWithOthers = Object.keys(regions)
+  const dataWithOthers = Object.keys(rawdata.items)
     .map((region_id, _i, _a) => {
       return {
         label: region_id,
-        value: tooltip.data['id_' + region_id].value,
-        color: colors['id_' + region_id],
-        abbreviation: regions[region_id].abbreviation,
-        name: regions[region_id].name
+        value: rawdata.items[region_id][colValue],
+        color: rawdata.items[region_id][colColor],
+        abbreviation: rawdata.items[region_id][colName],
+        name: rawdata.items[region_id][colName]
       }
     })
     .filter((d) => d.value !== 'NA')
@@ -82,7 +88,7 @@ function drawPieChartFromTooltip(
 
   const total = dataWithOthers.reduce((acc, datum) => acc + datum.value, 0)
   document.getElementById('data-total')!.innerHTML =
-    formatAsScientificNotation(total) + (tooltip.unit === '' ? '' : ' ' + tooltip.unit)
+    formatAsScientificNotation(total) + unitText
 
   const othersThreshold = total * 0.025
 
@@ -148,18 +154,18 @@ function drawPieChartFromTooltip(
       d3.select(this).style('fill', color)
       tooltipEl.value?.drawWithEntries(event, d.data.name, d.data.abbreviation, [
         {
-          name: tooltip.label,
+          name: labelText,
           value: d.data.value,
-          unit: tooltip.unit
+          unit: unitText
         }
       ])
     })
     .on('mousemove', function (event, d) {
       tooltipEl.value?.drawWithEntries(event, d.data.name, d.data.abbreviation, [
         {
-          name: tooltip.label,
+          name: labelText,
           value: d.data.value,
-          unit: tooltip.unit
+          unit: unitText
         }
       ])
     })
@@ -250,122 +256,14 @@ function drawPieChartFromTooltip(
   polyline.exit().remove()
 }
 
-// /**
-//  * drawChartFromTooltip draws a barchart of the uploaded dataset, which can be found in the tooltip of the
-//  * CartogramUI response. We use this when CartogramUI returns a success response, but cartogram generation fails.
-//  * @param {string} container The ID of the element to draw the barchart in
-//  * @param {Object} tooltip The tooltip to retrieve the data from
-//  */
-//  drawBarChartFromTooltip(container, tooltip) {
-//   var margin = { top: 5, right: 5, bottom: 5, left: 50 },
-//     width = 800 - margin.left - margin.right,
-//     height = 400 - margin.top - margin.bottom
-
-//   // ranges
-//   var x = d3.scaleBand().rangeRound([0, width]).padding(0.05)
-
-//   var y = d3.scaleLinear().range([height, 0])
-
-//   // axes
-//   var xAxis = d3.axisBottom(x)
-
-//   var yAxis = d3.axisLeft(y).ticks(10)
-
-//   // SVG element
-//   var svg = d3
-//     .select('#' + container)
-//     .append('svg')
-//     .attr('width', width + margin.left + margin.right)
-//     .attr('height', height + margin.top + margin.bottom)
-//     .append('g')
-//     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-
-//   // Data formatting
-//   var data = new Array()
-
-//   Object.keys(tooltip.data).forEach(function (key, index) {
-//     data.push(tooltip.data[key])
-//   })
-
-//   /* Display in alphabetical order */
-//   data.sort(function (a, b) {
-//     if (a.name < b.name) return -1
-//     else if (a.name > b.name) return 1
-//     else return 0
-//   })
-
-//   // scale the range of the data
-//   x.domain(
-//     data.map(function (d) {
-//       return d.name
-//     })
-//   )
-//   y.domain([
-//     0,
-//     d3.max(data, function (d) {
-//       return d.value
-//     }) + 5
-//   ])
-
-//   // add axes
-//   svg
-//     .append('g')
-//     .attr('class', 'x axis')
-//     .attr('transform', 'translate(0,' + height + ')')
-//     .call(xAxis)
-//     .selectAll('text')
-//     .style('text-anchor', 'end')
-//     .attr('dx', '-.8em')
-//     .attr('dy', '-.55em')
-//     .attr('transform', 'rotate(-90)')
-
-//   svg
-//     .append('g')
-//     .attr('class', 'y axis')
-//     .call(yAxis)
-//     .append('text')
-//     .attr('transform', 'rotate(-90)')
-//     .attr('y', 5)
-//     .attr('dy', '.71em')
-//     .style('text-anchor', 'end')
-//     .text('User Data')
-
-//   // add the bar chart
-//   svg
-//     .selectAll('bar')
-//     .data(data)
-//     .enter()
-//     .append('rect')
-//     .attr('class', 'bar')
-//     .attr('x', function (d) {
-//       return x(d.name)
-//     })
-//     .attr('width', x.bandwidth())
-//     .attr('y', function (d) {
-//       return y(d.value)
-//     })
-//     .attr('height', function (d) {
-//       return height - y(d.value)
-//     })
-// }
-
 defineExpose({
-  drawPieChartFromTooltip
+  drawPieChart
 })
 </script>
 
 <template>
   <div class="container-fluid p-3">
-    <Tooltip ref="tooltipEl" />
-    <div id="barchart-container" style="display: none">
-      <p>
-        Your cartogram was unable to be generated due to an error. You may make use of this barchart
-        instead, or refresh the page and try again.
-      </p>
-
-      <div id="barchart" style="height: 600px"></div>
-    </div>
-
+    <c-tooltip ref="tooltipEl" />
     <div id="piechart">
       <div class="row">
         <div>
@@ -381,8 +279,8 @@ defineExpose({
       </div>
       <div id="piechart-area"></div>
       <div class="text-center" id="piechart-buttons">
-        <button class="btn btn-primary" v-on:click="emit('confirm')">Yes, I Confirm</button>
-        <button class="btn btn-primary mx-2" v-on:click="emit('cancel')">Cancel</button>
+        <button class="btn btn-secondary mx-2" v-on:click="emit('cancel')">Cancel</button>
+        <button class="btn btn-primary" v-on:click="emit('confirm')">Yes, I Confirm</button>        
       </div>
     </div>
   </div>

@@ -1,22 +1,16 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import * as util from '../lib/util'
-import Citation from './Citation.vue'
+import CTextCitation from './CTextCitation.vue'
 
-const props = defineProps<{
-  sharing_key?: string | null
-  sysname?: string | null
-}>()
-
-const state = reactive({
-  show: false
-})
+import { useCartogramStore } from '../stores/cartogram'
+const store = useCartogramStore()
 
 const socialURL = computed(() => {
-  if (props.sharing_key)
-    return location.protocol + '//' + location.host + '/cart/' + props.sharing_key
+  if (store.stringKey)
+    return location.protocol + '//' + location.host + '/cart/' + store.stringKey
 
-  return location.protocol + '//' + location.host + '/cartogram/' + props.sysname
+  return location.protocol + '//' + location.host + '/cartogram/' + store.currentMapName
 })
 
 const socialURLEncoded = computed(() => {
@@ -25,10 +19,10 @@ const socialURLEncoded = computed(() => {
 
 const embedHTML = computed(() => {
   let embedURL
-  if (props.sharing_key) {
-    embedURL = location.protocol + '//' + window.location.host + '/embed/cart/' + props.sharing_key
+  if (store.stringKey) {
+    embedURL = location.protocol + '//' + window.location.host + '/embed/cart/' + store.stringKey
   } else {
-    embedURL = location.protocol + '//' + window.location.host + '/embed/map/' + props.sysname
+    embedURL = location.protocol + '//' + window.location.host + '/embed/map/' + store.currentMapName
   }
 
   return (
@@ -38,13 +32,10 @@ const embedHTML = computed(() => {
   )
 })
 
-function show() {
-  state.show = true
+function access() {
+  var http = new XMLHttpRequest()
+  http.open("GET", socialURL.value)
 }
-
-defineExpose({
-  show
-})
 </script>
 
 <template>
@@ -54,6 +45,7 @@ defineExpose({
     data-bs-toggle="modal"
     data-bs-target="#shareModal"
     title="Share cartogram"
+    v-on:click="access()"
   >
     <i class="fas fa-share-alt"></i>
   </button>
@@ -175,7 +167,7 @@ defineExpose({
             </div>
           </div>
 
-          <Citation />
+          <c-text-citation />
         </div>
       </div>
     </div>

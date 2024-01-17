@@ -1,20 +1,18 @@
 <script setup lang="ts">
 import * as d3 from 'd3'
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive } from 'vue'
 
-import { MapVersionData, MapVersion } from '../lib/mapVersion'
-import TouchInfo from '../lib/touchInfo'
-import shareState from '../lib/state'
 import * as util from '../lib/util'
-import type { Mappack } from '../lib/interface'
-import type { Region } from '../lib/region'
+import TouchInfo from '../lib/touchInfo'
 import CartMap from '../lib/cartMap'
 import Tooltip from '../lib/tooltip'
-import CartogramLegend from './CartogramLegend.vue'
-import CartogramDownload from './CartogramDownload.vue'
-import CartogramShare from './CartogramShare.vue'
+import CPanelLegend from './CPanelLegend.vue'
+import CPanelModalDownload from './CPanelModalDownload.vue'
+import CPanelBtnShare from './CPanelBtnShare.vue'
 
-var map: CartMap
+import { useCartogramStore } from '../stores/cartogram'
+const store = useCartogramStore()
+
 var touchInfo = new TouchInfo()
 var pointerangle: number | boolean, // (A)
   pointerposition: number[] | null, // (B)
@@ -25,24 +23,19 @@ const SUPPORT_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints
 
 const mapLegendEl = ref()
 const cartogramLegendEl = ref()
-const cartogramDownloadEl = ref()
+const modalDownloadEl = ref()
 
 const props = withDefaults(
   defineProps<{
-    handler?: string
-    cartogram_data?: any
-    cartogramui_data?: any
-    mappack: Mappack | null
+    map: CartMap
     mode?: string | null
   }>(),
   {
-    handler: 'usa',
     mode: 'full'
   }
 )
 
 const state = reactive({
-  isLoading: true,
   cursor: 'grab',
   isLockRatio: true,
   touchLenght: 0,
@@ -52,78 +45,10 @@ const state = reactive({
   affineScale: [1, 1] // Keep track of scale for scaling grid easily
 })
 
-onMounted(() => {
-  if (!props.mappack) return
-
-  if (!props.cartogram_data) {
-    switchMap(props.mappack)
-  } else {
-    props.cartogram_data.tooltip = props.cartogramui_data.tooltip
-    var mapVersionData = MapVersionData.mapVersionDataFromMappack(null, props.cartogram_data)
-    switchMap(props.mappack, mapVersionData)
-  }
-})
-
-async function switchMap(mappack: Mappack, mapVersionData: MapVersionData | null = null) {
-  state.isLoading = true
-  map = new CartMap(props.handler, mappack.config)
-  let data_names = mappack.config.data_names || ['original', 'population']
-  let current_sysname = '0-base'
-  map.addVersion(
-    '0-base',
-    MapVersionData.mapVersionDataFromMappack(mappack, mappack[data_names[0]]),
-    '0-base'
-  )
-  for (let i = 1; i < data_names.length; i++) {
-    current_sysname = i.toString() + '-' + data_names[i]
-    map.addVersion(
-      current_sysname,
-      MapVersionData.mapVersionDataFromMappack(null, mappack[data_names[i]]),
-      '0-base'
-    )
-  }
-
-  if (mapVersionData !== null) {
-    map.addVersion('99-cartogram', mapVersionData, '0-base')
-    current_sysname = '99-cartogram'
-  }
-  shareState.current_sysname = current_sysname
-
-  /*
-    The keys in the colors.json file are prefixed with id_. We iterate through the regions and extract the color
-    information from colors.json to produce a color map where the IDs are plain region IDs, as required by
-    CartMap.
-    */
-  var colors: { [key: string]: string } = {}
-  Object.keys(map.regions).forEach(function (region_id) {
-    colors[region_id] = mappack.colors['id_' + region_id]
-  })
-  map.colors = colors
-  state.isLoading = false
-
-  await nextTick()
-  map.drawVersion('0-base', 'map-area', ['map-area', 'cartogram-area'])
-  map.drawVersion(shareState.current_sysname, 'cartogram-area', ['map-area', 'cartogram-area'])
-}
-
-function switchVersion(version: string) {
-  if (!version) return
-  map?.switchVersion(shareState.current_sysname, version, 'cartogram-area')
-  shareState.current_sysname = version
-}
-
-function getRegions(): { [key: string]: Region } {
-  return map?.regions || {}
-}
-
-function getVersions(): { [key: string]: MapVersion } {
-  return map?.versions || {}
-}
-
 // https://observablehq.com/@d3/multitouch
 function onTouchstart(event: any, id: string) {
   Tooltip.hide()
-  map.unhighlight(['map-area', 'cartogram-area'])
+  props.map.unhighlight(['map-area', 'cartogram-area'])
 
   touchInfo.set(event)
   state.touchLenght = touchInfo.length
@@ -158,8 +83,8 @@ function onTouchend(event: any) {
       let region_id = event.target?.__data__?.region_id
       if (region_id) {
         // Show infotip and link brushing
-        map.drawTooltip(event, region_id)
-        map.highlightByID(['map-area', 'cartogram-area'], region_id)
+        props.map.drawTooltip(event, region_id)
+        props.map.highlightByID(['map-area', 'cartogram-area'], region_id)
       }
     }
   } else {
@@ -317,30 +242,15 @@ function snapToBetterNumber() {
   var matrix = util.getScaleMatrix(adjustedScale, adjustedScale)
   transformVersion(matrix, state.affineMatrix)
 }
-
-defineExpose({
-  switchMap,
-  switchVersion,
-  getRegions,
-  getVersions,
-  mapLegendEl,
-  cartogramLegendEl
-})
 </script>
 
 <template>
   <div id="cartogram" class="d-flex flex-fill card-group">
-    <div class="card w-100" v-bind:class="[shareState.options.showBase ? 'd-flex' : 'd-none']">
+    <div class="card w-100" v-bind:class="[store.options.showBase ? 'd-flex' : 'd-none']">
       <div class="d-flex flex-column card-body">
-        <CartogramLegend
-          v-if="!state.isLoading"
-          ref="mapLegendEl"
-          mapID="map-area"
-          v-bind:map="map"
-          sysname="0-base"
-        >
+        <c-panel-legend ref="mapLegendEl" mapID="map-area" v-bind:map="props.map" sysname="0-base">
           <svg id="map-area-svg" class="vis-area"></svg>
-        </CartogramLegend>
+        </c-panel-legend>
       </div>
 
       <div class="card-footer d-flex justify-content-between">
@@ -351,9 +261,9 @@ defineExpose({
             class="btn btn-primary mx-1"
             id="map-download"
             v-on:click="
-              cartogramDownloadEl.generateSVGDownloadLinks(
+              modalDownloadEl.generateSVGDownloadLinks(
                 'map-area',
-                JSON.stringify(map?.getVersionGeoJSON('0-base'))
+                JSON.stringify(props.map.getVersionGeoJSON('0-base'))
               )
             "
             data-bs-toggle="modal"
@@ -368,12 +278,11 @@ defineExpose({
 
     <div class="card w-100">
       <div class="d-flex flex-column card-body">
-        <CartogramLegend
-          v-if="!state.isLoading"
+        <c-panel-legend
           ref="cartogramLegendEl"
           mapID="cartogram-area"
-          v-bind:map="map"
-          v-bind:sysname="shareState.current_sysname"
+          v-bind:map="props.map"
+          v-bind:sysname="store.currentVersionName"
           v-bind:affineScale="state.affineScale"
           v-on:gridChanged="snapToBetterNumber"
         >
@@ -390,7 +299,7 @@ defineExpose({
             v-on:wheel="onWheel"
           ></svg>
           <img class="position-absolute bottom-0 end-0 z-3" src="/static/img/by.svg" alt="cc-by" />
-        </CartogramLegend>
+        </c-panel-legend>
         <div class="position-absolute end-0" style="width: 2.5rem">
           <button
             class="btn btn-primary w-100 my-1"
@@ -425,9 +334,9 @@ defineExpose({
               class="btn btn-primary mx-1"
               id="cartogram-download"
               v-on:click="
-                cartogramDownloadEl.generateSVGDownloadLinks(
+                modalDownloadEl.generateSVGDownloadLinks(
                   'cartogram-area',
-                  JSON.stringify(map?.getVersionGeoJSON(shareState.current_sysname))
+                  JSON.stringify(props.map.getVersionGeoJSON(store.currentVersionName))
                 )
               "
               data-bs-toggle="modal"
@@ -436,19 +345,14 @@ defineExpose({
             >
               <i class="fas fa-download"></i>
             </button>
-            <CartogramShare
-              v-bind:sysname="props.handler"
-              v-bind:sharing_key="
-                props.cartogramui_data ? props.cartogramui_data.unique_sharing_key : null
-              "
-            />
+            <c-panel-btn-share />
           </span>
         </div>
       </div>
     </div>
 
     <p id="tooltip" style="display: none">&nbsp;</p>
-    <CartogramDownload ref="cartogramDownloadEl" />
+    <c-panel-modal-download ref="modalDownloadEl" />
   </div>
 </template>
 

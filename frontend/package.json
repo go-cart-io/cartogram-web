@@ -1,6 +1,6 @@
 {
   "name": "cartogram",
-  "version": "0.0.0",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "vite --host",
@@ -13,11 +13,11 @@
   "dependencies": {
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.2.3",
-    "bootstrap-vue-3": "^0.5.1",
     "d3": "^7.8.4",
+    "pinia": "^2.1.7",
     "tinycolor2": "^1.6.0",
     "vue": "^3.3.2",
-    "xlsx": "^0.18.5"
+    "xlsx": "npm:@e965/xlsx@^0.20.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.33.0",

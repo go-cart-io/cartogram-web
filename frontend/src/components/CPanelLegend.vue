@@ -3,7 +3,9 @@ import * as d3 from 'd3'
 import { nextTick, onMounted, reactive, watch } from 'vue'
 import type CartMap from '@/lib/cartMap'
 import * as util from '../lib/util'
-import shareState from '../lib/state'
+
+import { useCartogramStore } from '../stores/cartogram'
+const store = useCartogramStore()
 
 var numGridOptions = 3
 var versionArea: number
@@ -45,26 +47,11 @@ const state = reactive({
   versionTotalValue: 1 as number
 })
 
-// watch(
-//   () => props.isLegendResizable,
-//   (type, prevType) => {
-//     update()
-//   }
-// )
-
 watch(
   () => props.sysname,
   (type, prevType) => {
     update()
   }
-)
-
-watch(
-  () => props.map.name,
-  (type, prevType) => {
-    update()
-  },
-  { deep: true }
 )
 
 watch(
@@ -97,8 +84,8 @@ onMounted(() => {
 })
 
 async function update() {
-  if (!props.map) return
-  state.unit = Object.values(props.map.regions)[0].getVersion(props.sysname).unit
+  if (!props.map || !props.map.versions[props.sysname]) return
+  state.unit = Object.values(props.map.regions)[0].getVersion(props.sysname)?.unit
   versionArea = props.map.versions[props.sysname].legendData.versionOriginalArea || 0
   versionTotalValue = props.map.versions[props.sysname].legendData.versionTotalValue || 0
 
@@ -249,7 +236,7 @@ function drawGridLines() {
 
 function updateGridLines(gridWidth: number) {
   if (isNaN(gridWidth)) return
-  let stroke_opacity = shareState.options.showGrid ? defaultOpacity : 0
+  let stroke_opacity = store.options.showGrid ? defaultOpacity : 0
   const gridPattern = d3.select('#' + props.mapID + '-grid')
   gridPattern
     .select('path')
@@ -343,7 +330,7 @@ function updateGridIndex(change: number) {
         </pattern>
       </defs>
       <rect
-        v-if="shareState.options.showGrid"
+        v-if="store.options.showGrid"
         width="100%"
         height="100%"
         v-bind:fill="'url(#' + props.mapID + '-grid)'"

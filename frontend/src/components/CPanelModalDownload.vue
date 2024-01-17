@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import Citation from './Citation.vue'
+import CTextCitation from './CTextCitation.vue'
 
 const state = reactive({
   show: false
@@ -78,7 +78,7 @@ defineExpose({
             <a id="download-modal-svg-link" class="btn btn-lg btn-primary mx-3">SVG</a>
             <a id="download-modal-geojson-link" class="btn btn-lg btn-primary">GeoJSON</a>
           </p>
-          <Citation />
+          <c-text-citation />
         </div>
       </div>
     </div>

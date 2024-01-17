@@ -105,6 +105,7 @@ import random
 import datetime
 from flask import Flask, request, session, Response, flash, redirect, render_template, url_for
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from flask_cors import CORS
 import validate_email
 import smtplib
@@ -124,17 +125,13 @@ app.config['SQLALCHEMY_DATABASE_URI'] = settings.DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['ENV'] = 'development' if settings.DEBUG else 'production'
 
-# Whenever you make changes to the DB models, you must generate the tables using db.create_all() as follows:
-#
-# $ source ./setupenv.sh
-# (venv) $ python3
-# (venv) >>> import web
-# (venv) >>> web.db.create_all()
-#
-# NOTE: SQLAlchemy does not do database migrations. If you do change something, you'll need to figure out how to migrate
-#       the data manually, or delete everything and start from scratch.
+# Whenever you make changes to the DB models, you must run commands as follows:
+# export FLASK_APP=web.py
+# flask db migrate -m "Migration log."
+# flask db upgrade
 if settings.USE_DATABASE:
     db = SQLAlchemy(app)
+    migrate = Migrate(app, db)
 
 redis_conn = redis.Redis(host=settings.CARTOGRAM_REDIS_HOST, port=settings.CARTOGRAM_REDIS_PORT, db=0)
 
@@ -237,6 +234,7 @@ if settings.USE_DATABASE:
         id = db.Column(db.Integer, primary_key=True)
         string_key = db.Column(db.String(32), unique=True, nullable=False)
         date_created = db.Column(db.DateTime(), nullable=False)
+        date_accessed = db.Column(db.DateTime(), server_default='0001-01-01 00:00:00')        
         handler = db.Column(db.String(100), nullable=False)
         areas_string = db.Column(db.UnicodeText(), nullable=False)
         cartogram_data = db.Column(db.UnicodeText(), nullable=False)
@@ -431,29 +429,27 @@ Message:
 
 
 @app.route('/cartogram', methods=['GET'])
-def make_cartogram():    
-    return make_cartogram_by_name(default_cartogram_handler)
+def get_cartogram():    
+    return get_cartogram_by_name(default_cartogram_handler)
 
 
 @app.route('/cartogram/<map_name>', methods=['GET'])
-def make_cartogram_by_name(map_name):
+def get_cartogram_by_name(map_name):
 
     if map_name not in cartogram_handlers:
-        return Response('Error', status=500)
+        return Response('Cannot find the map {}'.format(map_name), status=500)
     
-    cartogram_handlers_select = []
+    cartogram_handlers_select = {}
 
     for key, handler in cartogram_handlers.items():
         for selector_name in handler.selector_names():
-            cartogram_handlers_select.append({'id': key, 'display_name': selector_name})
+            cartogram_handlers_select[key] = selector_name
 
-    cartogram_handlers_select.sort(key=lambda h: h['display_name'])
+    dict(sorted(cartogram_handlers_select.items()))
 
-    return render_template('cartogram.html', page_active='cartogram', cartogram_url=url_for('cartogram'),
-                           cartogramui_url=url_for('cartogram_ui'), getprogress_url=url_for('getprogress'),
-                           cartogram_data_dir=url_for('static', filename='cartdata'),
-                           cartogram_handlers=cartogram_handlers_select,
-                           default_cartogram_handler=map_name, cartogram_version=settings.VERSION,
+    return render_template('cartogram.html', page_active='cartogram', 
+                           maps=cartogram_handlers_select,
+                           map_name=map_name,
                            tracking=tracking.determine_tracking_action(request))
 
 
@@ -464,19 +460,23 @@ def cartogram_by_key(string_key):
 
     cartogram_entry = CartogramEntry.query.filter_by(string_key=string_key).first_or_404()
 
-    if cartogram_entry.handler not in cartogram_handlers:
+    if cartogram_entry is None or cartogram_entry.handler not in cartogram_handlers:
         return Response('Error', status=500)
+    
+    cartogram_entry.date_accessed = datetime.datetime.utcnow()
+    db.session.commit()    
+    
+    cartogram_handlers_select = {}
 
-    cartogram_handlers_select = [{'id': key, 'display_name': handler.get_name()} for key, handler in
-                                 cartogram_handlers.items()]
+    for key, handler in cartogram_handlers.items():
+        for selector_name in handler.selector_names():
+            cartogram_handlers_select[key] = selector_name
 
-    return render_template('cartogram.html', page_active='cartogram', cartogram_url=url_for('cartogram'),
-                           cartogramui_url=url_for('cartogram_ui'), getprogress_url=url_for('getprogress'),
-                           cartogram_data_dir=url_for('static', filename='cartdata'),
-                           cartogram_handlers=cartogram_handlers_select,
-                           default_cartogram_handler=cartogram_entry.handler,
-                           cartogram_data=cartogram_entry.cartogram_data,
-                           cartogramui_data=cartogram_entry.cartogramui_data, cartogram_version=settings.VERSION,
+    dict(sorted(cartogram_handlers_select.items()))
+
+    return render_template('cartogram.html', page_active='cartogram', 
+                           maps=cartogram_handlers_select,
+                           map_name=cartogram_entry.handler, map_data_key=string_key,
                            tracking=tracking.determine_tracking_action(request))
 
 
@@ -486,10 +486,8 @@ def cartogram_embed_by_map(map_name):
     if map_name not in cartogram_handlers:
         return Response('Error', status=500)
 
-    return render_template('embed.html', page_active='cartogram', cartogram_url=url_for('cartogram'),
-                           cartogramui_url=url_for('cartogram_ui'), getprogress_url=url_for('getprogress'),
-                           cartogram_data_dir=url_for('static', filename='cartdata'),
-                           map_name=map_name, cartogram_version=settings.VERSION,
+    return render_template('embed.html', page_active='cartogram', 
+                           map_name=map_name,
                            mode='embed', tracking=tracking.determine_tracking_action(request))
 
 @app.route('/embed/cart/<string_key>', methods=['GET'])
@@ -501,14 +499,14 @@ def cartogram_embed_by_key(string_key):
 
     if cartogram_entry.handler not in cartogram_handlers:
         return Response('Error', status=500)
+    
+    if cartogram_entry != None:
+        cartogram_entry.date_accessed = datetime.datetime.utcnow()
+        db.session.commit()
 
-    return render_template('embed.html', page_active='cartogram', cartogram_url=url_for('cartogram'),
-                           cartogramui_url=url_for('cartogram_ui'), getprogress_url=url_for('getprogress'),
-                           cartogram_data_dir=url_for('static', filename='cartdata'),
-                           default_cartogram_handler=cartogram_entry.handler,
-                           cartogram_data=cartogram_entry.cartogram_data,
-                           cartogramui_data=cartogram_entry.cartogramui_data, cartogram_version=settings.VERSION,
-                           mode='embed', tracking=tracking.determine_tracking_action(request))
+    return render_template('embed.html', page_active='cartogram', 
+                        map_name=cartogram_entry.handler, map_data_key=string_key,
+                        mode='embed', tracking=tracking.determine_tracking_action(request))
 
 
 @app.route('/setprogress', methods=['POST'])
@@ -557,120 +555,98 @@ def getprogress():
                         status=200, content_type='application/json')
 
 
-@app.route('/cartogramui', methods=['POST'])
-def cartogram_ui():
-    json_response = {}
-
-    if 'handler' not in request.form:
-        json_response['error'] = 'You must specify a handler.'
-        return Response(json.dumps(json_response), status=200, content_type="application/json")
-
-    if request.form['handler'] not in cartogram_handlers:
-        json_response['error'] = 'The handler specified was invaild.'
-        return Response(json.dumps(json_response), status=200, content_type="application/json")
-
-    if 'csv' not in request.files:
-        json_response['error'] = 'You must upload CSV data.'
-        return Response(json.dumps(json_response), status=200, content_type="application/json")
-
-    cartogram_handler = cartogram_handlers[request.form['handler']]
+@app.route('/cartogram', methods=['POST'])
+def cartogram():    
+    colName = 0
+    colColor = 1
+    colValue = 2 # Starting column of data
 
     try:
+        data = json.loads(request.form['data'])
+        handler = data['handler']
+        cartogram_handler = cartogram_handlers[handler]
 
-        # This is necessary because Werkzeug's file stream is in binary mode
-        csv_codec = codecs.iterdecode(request.files['csv'].stream, 'utf-8')
-        cart_data = cartogram_handler.csv_to_area_string_and_colors(csv_codec)
+        if 'handler' not in data or data['handler'] not in cartogram_handlers:
+            return Response('{"error":The handler was invaild."}', status=400, content_type="application/json")
 
-        json_response['error'] = "none"
-        json_response['areas_string'] = cart_data[0]
-        json_response['color_data'] = cart_data[1]
-        json_response['tooltip'] = cart_data[2]
-        json_response['grid_document'] = cart_data[3]
+        if 'stringKey' not in data:
+            return Response('{"error":"Missing sharing key."}', status=404, content_type="application/json")
 
-        cartogram_entry_key = get_random_string(32)
+        string_key = data['stringKey']
+        cart_data = cartogram_handler.get_area_string_and_colors(data)
+        lambda_result = awslambda.generate_cartogram(cart_data[0],
+                            cartogram_handler.get_gen_file(), settings.CARTOGRAM_LAMBDA_URL,
+                            settings.CARTOGRAM_LAMDA_API_KEY, string_key)
 
-        json_response['unique_sharing_key'] = cartogram_entry_key
+        cartogram_gen_output = lambda_result['stdout']
+
+        if cartogram_handler.expect_geojson_output():
+            # Just confirm that we've been given valid JSON. Calculate the extrema if necessary
+            cartogram_json = json.loads(cartogram_gen_output)
+
+            if "bbox" not in cartogram_json:
+                cartogram_json["bbox"] = geojson_extrema.get_extrema_from_geojson(cartogram_json)
+        else:
+            cartogram_json = gen2dict.translate(io.StringIO(cartogram_gen_output), settings.CARTOGRAM_COLOR,
+                                                cartogram_handler.remove_holes())
+            
+        cartogram_json['tooltip'] = cart_data[2]
+
+        with open("static/userdata/" + string_key + ".json", "w") as outfile:
+            outfile.write(json.dumps({'{}-custom'.format(colValue): cartogram_json}))
 
         if settings.USE_DATABASE:
-            new_cartogram_entry = CartogramEntry(string_key=cartogram_entry_key, date_created=datetime.datetime.today(),
-                                                 handler=request.form['handler'], areas_string=cart_data[0],
-                                                 cartogram_data="{}", cartogramui_data=json.dumps(json_response))
-
+            new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
+                                    handler=handler, areas_string='-',
+                                    cartogram_data='-', cartogramui_data=json.dumps({"colors": cart_data[1]}))
             db.session.add(new_cartogram_entry)
             db.session.commit()
 
-        return Response(json.dumps(json_response), status=200, content_type="application/json")
+        return get_mappack_by_key(string_key, False)
+    
+    except (KeyError, csv.Error, ValueError, UnicodeDecodeError):
+        return Response('{"error":"The data was invalid."}', status=400, content_type="application/json")
+    except Exception as e:
+        return Response('{"error":"{}"}'.format(e), status=400, content_type="application/json")    
 
-    except (KeyError, csv.Error, ValueError, UnicodeDecodeError) as error:
+@app.route('/mappack/<string_key>', methods=['GET'])
+def get_mappack_by_key(string_key, updateaccess = True):
+    if not settings.USE_DATABASE:
+        return Response('Not found', status=404)
 
-        json_response['error'] = 'There was a problem reading your CSV/Excel file.'
-        return Response(json.dumps(json_response), status=200, content_type="application/json")
+    cartogram_entry = CartogramEntry.query.filter_by(string_key=string_key).first_or_404()
 
+    if cartogram_entry == None or cartogram_entry.handler not in cartogram_handlers:
+        return Response('Error', status=500)
+    
+    if updateaccess:
+        cartogram_entry.date_accessed = datetime.datetime.utcnow()
+        db.session.commit()
 
-@app.route('/cartogram', methods=['POST'])
-def cartogram():
-    if 'handler' not in request.form:
-        return Response('{"error":"badrequest"}', status=400, content_type="application/json")
+    mappack = json.loads(cartogram_entry.cartogramui_data)
+    with open("static/cartdata/{}/mappack.json".format(cartogram_entry.handler), "r") as file:
+        original_mappack = json.load(file)
+        for item in ["abbreviations", "config", "labels", "original"]:
+            mappack[item] = original_mappack[item]
 
-    if request.form['handler'] not in cartogram_handlers:
-        return Response('{"error":"badhandler"}', status=404, content_type="application/json")
+    with open("static/userdata/{}.json".format(cartogram_entry.string_key), "r") as file:
+        new_maps = json.load(file)
+        mappack.update(new_maps)
+        data_names = list(new_maps.keys())
+        data_names.insert(0, "original")
+        mappack["config"]["data_names"] = data_names
 
-    handler = request.form['handler']
-    cartogram_handler = cartogram_handlers[handler]
+    mappack['stringKey'] = string_key
 
-    if 'values' not in request.form:
-        return Response('{"error":"badrequest"}', status=400, content_type="application/json")
+    return Response(json.dumps(mappack), content_type='application/json', status=200)
 
-    values = request.form['values'].split(";")
-    # The existing verificaiton code expects all floats. To avoid modifying it, we replace the string "NA" with the
-    # number 0.0 for verification purposes only.
-    values_to_verify = []
-
-    try:
-        for i in range(len(values)):
-            if values[i] == "NA":
-                values_to_verify.append(0.0)
-            else:
-                values[i] = float(values[i])
-                values_to_verify.append(values[i])
-    except ValueError:
-        return Response('{"error":"badvalues"}', status=400, content_type="application/json")
-
-    if cartogram_handler.validate_values(values_to_verify) != True:
-        return Response('{"error":"badvalues"}', status=400, content_type="application/json")
-
-    unique_sharing_key = ""
-
-    if 'unique_sharing_key' in request.form:
-        unique_sharing_key = request.form['unique_sharing_key']
-
-    lambda_result = awslambda.generate_cartogram(cartogram_handler.gen_area_data(values),
-                                                 cartogram_handler.get_gen_file(), settings.CARTOGRAM_LAMBDA_URL,
-                                                 settings.CARTOGRAM_LAMDA_API_KEY, unique_sharing_key)
-
-    cartogram_gen_output = lambda_result['stdout']
-
-    if cartogram_handler.expect_geojson_output():
-        # Just confirm that we've been given valid JSON. Calculate the extrema if necessary
-        cartogram_json = json.loads(cartogram_gen_output)
-
-        if "bbox" not in cartogram_json:
-            cartogram_json["bbox"] = geojson_extrema.get_extrema_from_geojson(cartogram_json)
-    else:
-        cartogram_json = gen2dict.translate(io.StringIO(cartogram_gen_output), settings.CARTOGRAM_COLOR,
-                                            cartogram_handler.remove_holes())
-
-    cartogram_json['unique_sharing_key'] = unique_sharing_key
-
+@app.route('/cleanup')
+def cleanup():
     if settings.USE_DATABASE:
-        cartogram_entry = CartogramEntry.query.filter_by(string_key=unique_sharing_key).first()
-
-        if cartogram_entry != None:
-            cartogram_entry.cartogram_data = json.dumps(cartogram_json)
-            db.session.commit()
-
-    return Response(json.dumps({'cartogram_data': cartogram_json}), content_type='application/json', status=200)
-
+        year_ago = datetime.datetime.utcnow() - datetime.timedelta(days=366)
+        CartogramEntry.query.filter(CartogramEntry.date_accessed < year_ago).delete()
+        db.session.commit()
+        return Response(year_ago, status=200)
 
 if __name__ == '__main__':
     app.run(debug=settings.DEBUG, host=settings.HOST, port=settings.PORT)
