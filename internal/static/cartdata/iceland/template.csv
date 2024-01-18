@@ -1,9 +1,9 @@
-Region,Population,Population (1998) (People),Colour
-Eastern Region,13173,12574,#d95f02
-Northeastern Region,30600,26632,#66a61e
-Capital Region,233034,164606,#d95f02
-Northwestern Region,7322,9785,#e7298a
-Southern Region,28399,20489,#e6ab02
-Southern Peninsula,27829,15715,#66a61e
-Westfjords,7115,8656,#1b9e77
-Western Region,16662,13924,#7570b3
+Region,Colour,Population,Population (1998) (People)
+Eastern Region,#d95f02,13173,12574
+Northeastern Region,#66a61e,30600,26632
+Capital Region,#d95f02,233034,164606
+Northwestern Region,#e7298a,7322,9785
+Southern Region,#e6ab02,28399,20489
+Southern Peninsula,#66a61e,27829,15715
+Westfjords,#1b9e77,7115,8656
+Western Region,#7570b3,16662,13924

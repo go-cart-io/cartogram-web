@@ -1,13 +1,13 @@
-Canton,Population,Population (1821) (People),Colour
-Capellen,50094,10685,#e6ab02
-Clervaux,18936,9851,#7570b3
-Diekirch,33782,10343,#1b9e77
-Echternach,19189,10696,#e7298a
-Esch-sur-Alzette,183364,12078,#1b9e77
-Grevenmacher,30887,11096,#66a61e
-Luxembourg,190671,23953,#7570b3
-Mersch,33326,10542,#d95f02
-Redange,19473,10345,#e7298a
-Remich,23244,11229,#d95f02
-Vianden,5510,3484,#e6ab02
-Wiltz,17632,9780,#66a61e
+Canton,Colour,Population,Population (1821) (People)
+Capellen,#e6ab02,50094,10685
+Clervaux,#7570b3,18936,9851
+Diekirch,#1b9e77,33782,10343
+Echternach,#e7298a,19189,10696
+Esch-sur-Alzette,#1b9e77,183364,12078
+Grevenmacher,#66a61e,30887,11096
+Luxembourg,#7570b3,190671,23953
+Mersch,#d95f02,33326,10542
+Redange,#e7298a,19473,10345
+Remich,#d95f02,23244,11229
+Vianden,#e6ab02,5510,3484
+Wiltz,#66a61e,17632,9780

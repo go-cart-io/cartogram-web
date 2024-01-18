@@ -1,14 +1,14 @@
-Region,Population,GDP,Colour
-Auvergne-Rhone-Alpes,8026685,284015,#d95f02
-Bourgogne-Franche-Comte,2795301,83439,#1b9e77
-Brittany,3329395,104960,#d95f02
-Centre-Val de Loire,2566759,78982,#e7298a
-Corsica,339178,10129,#e6ab02
-Grand Est,5518188,170737,#66a61e
-Hauts-de-France,5978266,174795,#7570b3
-Ile-de-France,12213364,757907,#e6ab02
-Normandy,3319067,102725,#1b9e77
-Nouvelle-Aquitaine,5987014,187023,#66a61e
-Occitanie,5892817,179516,#e7298a
-Pays de la Loire,3786545,123731,#7570b3
-Provence-Alpes-Cote d'Azur,5059473,172756,#7570b3
+Region,Colour,Population,GDP
+Auvergne-Rhone-Alpes,#d95f02,8026685,284015
+Bourgogne-Franche-Comte,#1b9e77,2795301,83439
+Brittany,#d95f02,3329395,104960
+Centre-Val de Loire,#e7298a,2566759,78982
+Corsica,#e6ab02,339178,10129
+Grand Est,#66a61e,5518188,170737
+Hauts-de-France,#7570b3,5978266,174795
+Ile-de-France,#e6ab02,12213364,757907
+Normandy,#1b9e77,3319067,102725
+Nouvelle-Aquitaine,#66a61e,5987014,187023
+Occitanie,#e7298a,5892817,179516
+Pays de la Loire,#7570b3,3786545,123731
+Provence-Alpes-Cote d'Azur,#7570b3,5059473,172756

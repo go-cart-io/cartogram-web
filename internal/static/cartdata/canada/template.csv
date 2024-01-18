@@ -1,14 +1,14 @@
-Region,Population,GDP,Colour
-Alberta,4362503,331937,#7570b3
-British Columbia,5034482,282204,#e6ab02
-Manitoba,1362789,71019,#d95f02
-New Brunswick,773020,36088,#e6ab02
-Newfoundland and Labrador,522537,33074,#d95f02
-Northwest Territories,44420,4856,#e7298a
-Nova Scotia,966858,42715,#e7298a
-Nunavut,39170,2846,#1b9e77
-Ontario,14490207,825805,#e7298a
-Prince Edward Island,155318,6652,#1b9e77
-Quebec,8452209,417173,#7570b3
-Saskatchewan,1169131,79513,#66a61e
-Yukon,40208,2895,#66a61e
+Region,Colour,Population,GDP
+Alberta,#7570b3,4362503,331937
+British Columbia,#e6ab02,5034482,282204
+Manitoba,#d95f02,1362789,71019
+New Brunswick,#e6ab02,773020,36088
+Newfoundland and Labrador,#d95f02,522537,33074
+Northwest Territories,#e7298a,44420,4856
+Nova Scotia,#e7298a,966858,42715
+Nunavut,#1b9e77,39170,2846
+Ontario,#e7298a,14490207,825805
+Prince Edward Island,#1b9e77,155318,6652
+Quebec,#7570b3,8452209,417173
+Saskatchewan,#66a61e,1169131,79513
+Yukon,#66a61e,40208,2895

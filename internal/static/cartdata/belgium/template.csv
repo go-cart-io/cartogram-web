@@ -1,4 +1,4 @@
-Region,Population,GDP,Colour
-Bruxelles,1191604,83550,#e6ab02
-Vlaanderen,6516011,273847,#66a61e
-Wallonie,3614473,108129,#e7298a
+Region,Colour,Population,GDP
+Bruxelles,#e6ab02,1191604,83550
+Vlaanderen,#66a61e,6516011,273847
+Wallonie,#e7298a,3614473,108129

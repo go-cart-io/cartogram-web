@@ -59,5 +59,6 @@ class BaseCartogramHandler:
         
         return datastring, colorJson, tooltip
 
-
+    def order_by_example(self, csv_reader, region_name, name_column, population_column, data_column, color_column, order, result, id_data):
+        return id_data
     

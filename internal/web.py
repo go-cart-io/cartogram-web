@@ -1,104 +1,9 @@
 #!/usr/bin/env python
-import cartwrap, gen2dict, geojson_extrema, awslambda, tracking, custom_captcha
+import gen2dict, geojson_extrema, awslambda, tracking, custom_captcha
 import settings
-import recaptcha_verify
-
-# !!!DO NOT MODFIY THE FOLLOWING SECTION
-from handlers import test
-from handlers import argentina
-from handlers import australia
-from handlers import canada
-from handlers import japan2
-from handlers import france
-from handlers import uae
-from handlers import asean
-from handlers import mexico
-from handlers import singaporePA
-from handlers import saudiArabia
-from handlers import netherlands
-from handlers import thailand
-from handlers import phl
-from handlers import israel3
-from handlers import vietnam
-from handlers import southAfrica
-from handlers import italy2
-from handlers import colombia
-from handlers import southKorea2
-from handlers import newZealand
-from handlers import europe
-from handlers import algeria
-from handlers import libya
-#from handlers import pakistan
-from handlers import switzerland
-from handlers import ireland
-from handlers import poland
-from handlers import sweden
-from handlers import croatia
-from handlers import czechrepublic3
-from handlers import hungary
-from handlers import unitedkingdom2
-from handlers import finland
-from handlers import austria
-from handlers import denmark
-from handlers import belgium
-from handlers import russia
-from handlers import nigeria
-from handlers import luxembourg
-from handlers import bangladesh
-from handlers import sanMarino
-from handlers import portugal
-from handlers import greece
-from handlers import malaysia
-from handlers import qatar
-from handlers import turkey
-from handlers import cambodia
-from handlers import andorra
-from handlers import ethiopia
-from handlers import myanmar
-from handlers import chile
-from handlers import kaz
-from handlers import sudan
-from handlers import mongolia
-from handlers import peru
-from handlers import pak
-from handlers import bolivia
-from handlers import iceland
-from handlers import laos
-from handlers import domrep
-from handlers import laos
-from handlers import paraguay
-from handlers import nepal
-from handlers import world
-from handlers import angola
-from handlers import romania
-from handlers import ukraine
-from handlers import jamaica
-from handlers import yemen
-from handlers import belarus
-from handlers import bahamas
-from handlers import guyana
-from handlers import washington
-from handlers import lebanon
-from handlers import spain5
-from handlers import arab_league
-from handlers import estonia
-from handlers import usa
-from handlers import brazil
-from handlers import china
-from handlers import china2
-from handlers import india
-from handlers import srilanka
-from handlers import germany
-from handlers import indonesia
-from handlers import singaporeRe
-from handlers import singapore2
-# ---addmap.py header marker---
-# !!!END DO NOT MODFIY
 
 import json
 import csv
-import codecs
-import re
 import io
 import string
 import random
@@ -113,13 +18,14 @@ import email.mime.text
 import socket
 import redis
 
+from handler import CartogramHandler
 from asset import Asset
 
 app = Flask(__name__)
 CORS(app)
 Asset(app)
 
-app.secret_key = "LTTNWg8luqfWKfDxjFaeC3vYoGrC2r2f5mtXo5IE/jt1GcY7/JaSq8V/tB"
+app.secret_key = 'LTTNWg8luqfWKfDxjFaeC3vYoGrC2r2f5mtXo5IE/jt1GcY7/JaSq8V/tB'
 app.config['SQLALCHEMY_DATABASE_URI'] = settings.DATABASE_URI
 # This gets rid of an annoying Flask error message. We don't need this feature anyway.
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -135,99 +41,8 @@ if settings.USE_DATABASE:
 
 redis_conn = redis.Redis(host=settings.CARTOGRAM_REDIS_HOST, port=settings.CARTOGRAM_REDIS_PORT, db=0)
 
-cartogram_handlers = {
-#'test': test.CartogramHandler(),
-'argentina': argentina.CartogramHandler(),
-'australia': australia.CartogramHandler(),
-'canada': canada.CartogramHandler(),
-'japan2': japan2.CartogramHandler(),
-'france': france.CartogramHandler(),
-'uae': uae.CartogramHandler(),
-'asean': asean.CartogramHandler(),
-'mexico': mexico.CartogramHandler(),
-'singaporePA': singaporePA.CartogramHandler(),
-'saudiArabia': saudiArabia.CartogramHandler(),
-'netherlands': netherlands.CartogramHandler(),
-'thailand': thailand.CartogramHandler(),
-'phl': phl.CartogramHandler(),
-'israel3': israel3.CartogramHandler(),
-'vietnam': vietnam.CartogramHandler(),
-'southAfrica': southAfrica.CartogramHandler(),
-'italy2': italy2.CartogramHandler(),
-'colombia': colombia.CartogramHandler(),
-'southKorea2': southKorea2.CartogramHandler(),
-'newZealand': newZealand.CartogramHandler(),
-'europe': europe.CartogramHandler(),
-'algeria': algeria.CartogramHandler(),
-'libya': libya.CartogramHandler(),
-#'pakistan': pakistan.CartogramHandler(),
-'switzerland': switzerland.CartogramHandler(),
-'ireland': ireland.CartogramHandler(),
-'poland': poland.CartogramHandler(),
-'sweden': sweden.CartogramHandler(),
-'croatia': croatia.CartogramHandler(),
-'czechrepublic3': czechrepublic3.CartogramHandler(),
-'hungary': hungary.CartogramHandler(),
-'unitedkingdom2': unitedkingdom2.CartogramHandler(),
-'finland': finland.CartogramHandler(),
-'austria': austria.CartogramHandler(),
-'denmark': denmark.CartogramHandler(),
-'belgium': belgium.CartogramHandler(),
-'nigeria': nigeria.CartogramHandler(),
-'russia':russia.CartogramHandler(),
-'luxembourg': luxembourg.CartogramHandler(),
-'bangladesh': bangladesh.CartogramHandler(),
-'sanMarino': sanMarino.CartogramHandler(),
-'portugal': portugal.CartogramHandler(),
-'greece': greece.CartogramHandler(),
-'malaysia': malaysia.CartogramHandler(),
-'qatar': qatar.CartogramHandler(),
-'turkey': turkey.CartogramHandler(),
-'cambodia': cambodia.CartogramHandler(),
-'andorra': andorra.CartogramHandler(),
-'ethiopia': ethiopia.CartogramHandler(),
-'myanmar': myanmar.CartogramHandler(),
-'chile': chile.CartogramHandler(),
-'kaz': kaz.CartogramHandler(),
-'sudan': sudan.CartogramHandler(),
-'mongolia': mongolia.CartogramHandler(),
-'peru': peru.CartogramHandler(),
-'pak': pak.CartogramHandler(),
-'bolivia': bolivia.CartogramHandler(),
-'iceland': iceland.CartogramHandler(),
-'domrep': domrep.CartogramHandler(),
-'laos': laos.CartogramHandler(),
-'paraguay': paraguay.CartogramHandler(),
-'nepal': nepal.CartogramHandler(),
-'world': world.CartogramHandler(),
-'angola': angola.CartogramHandler(),
-'romania': romania.CartogramHandler(),
-'ukraine': ukraine.CartogramHandler(),
-'jamaica': jamaica.CartogramHandler(),
-'yemen': yemen.CartogramHandler(),
-'belarus': belarus.CartogramHandler(),
-'bahamas': bahamas.CartogramHandler(),
-'guyana': guyana.CartogramHandler(),
-'washington': washington.CartogramHandler(),
-'lebanon': lebanon.CartogramHandler(),
-'spain5': spain5.CartogramHandler(),
-'arab_league': arab_league.CartogramHandler(),
-'estonia': estonia.CartogramHandler(),
-'usa': usa.CartogramHandler(),
-'brazil': brazil.CartogramHandler(),
-'china': china.CartogramHandler(),
-'china2': china2.CartogramHandler(),
-'india': india.CartogramHandler(),
-'srilanka': srilanka.CartogramHandler(),
-'germany': germany.CartogramHandler(),
-'indonesia': indonesia.CartogramHandler(),
-'singaporeRe': singaporeRe.CartogramHandler(),
-'singapore2': singapore2.CartogramHandler(),
-# ---addmap.py body marker---
-# !!!END DO NOT MODFIY
-}
-
-default_cartogram_handler = "usa"
+default_cartogram_handler = 'usa'
+cartogram_handler = CartogramHandler()
 
 if settings.USE_DATABASE:
     class CartogramEntry(db.Model):
@@ -241,7 +56,7 @@ if settings.USE_DATABASE:
         cartogramui_data = db.Column(db.UnicodeText(), nullable=False)
 
         def __repr__(self):
-            return "<CartogramEntry {}>".format(self.string_key)
+            return '<CartogramEntry {}>'.format(self.string_key)
 
 
 # This function returns a random string containg lowercase letters and numbers that is *length* characters long.
@@ -252,16 +67,16 @@ def get_random_string(length):
 
 @app.route('/consent', methods=['POST'])
 def consent():
-    user_consent = request.form.get("consent", "")
+    user_consent = request.form.get('consent', '')
 
-    if user_consent == "yes":
+    if user_consent == 'yes':
         resp = Response(json.dumps({'error': 'none', 'tracking_id': settings.CARTOGRAM_GA_TRACKING_ID}),
                         content_type='application/json', status=200)
-        resp.set_cookie("tracking", "track", max_age=31556926)  # One year
+        resp.set_cookie('tracking', 'track', max_age=31556926)  # One year
         return resp
     else:
         resp = Response(json.dumps({'error': 'none'}), content_type='application/json', status=200)
-        resp.set_cookie("tracking", "do_not_track", max_age=31556926)
+        resp.set_cookie('tracking', 'do_not_track', max_age=31556926)
         return resp
 
 
@@ -308,7 +123,7 @@ def contact():
         captcha = custom_captcha.generate_captcha()
         session['captcha_hashed'] = captcha['captcha_hashed']
 
-        return render_template('contact.html', page_active='contact', name="", message="", email_address="", subject="",
+        return render_template('contact.html', page_active='contact', name='', message='', email_address='', subject='',
                                csrf_token=csrf_token, tracking=tracking.determine_tracking_action(request),
                                captcha_image=captcha['captcha_image'], captcha_audio=captcha['captcha_audio'])
     else:
@@ -370,7 +185,7 @@ def contact():
                                    captcha_image=captcha['captcha_image'],
                                    captcha_audio=captcha['captcha_audio'])
 
-        if not custom_captcha.validate_captcha(request.form.get("captcha", ""), session['captcha_hashed']):
+        if not custom_captcha.validate_captcha(request.form.get('captcha', ''), session['captcha_hashed']):
             session['captcha_hashed'] = captcha['captcha_hashed']
             flash('Please retry completing the CAPTCHA.', 'danger')
             return render_template('contact.html', page_active='contact', name=name, message=message,
@@ -379,14 +194,14 @@ def contact():
                                    captcha_image=captcha['captcha_image'], captcha_audio=captcha['captcha_audio'])
 
         # Escape all of the variables:
-        name = name.replace("<", "&lt;")
-        name = name.replace(">", "&gt;")
+        name = name.replace('<', '&lt;')
+        name = name.replace('>', '&gt;')
 
-        subject = subject.replace("<", "&lt;")
-        subject = subject.replace(">", "&gt;")
+        subject = subject.replace('<', '&lt;')
+        subject = subject.replace('>', '&gt;')
 
-        message = message.replace("<", "&lt;")
-        message = message.replace(">", "&gt;")
+        message = message.replace('<', '&lt;')
+        message = message.replace('>', '&gt;')
 
         # Generate the message body
         message_body = """A message was received from the go-cart.io contact form.
@@ -400,7 +215,7 @@ Message:
 {}""".format(name, email_address, subject, message)
 
         mime_message = email.mime.text.MIMEText(message_body)
-        mime_message['Subject'] = "go-cart.io Contact Form: " + subject
+        mime_message['Subject'] = 'go-cart.io Contact Form: ' + subject
         mime_message['From'] = settings.SMTP_FROM_EMAIL
         mime_message['To'] = settings.SMTP_DESTINATION
 
@@ -423,7 +238,7 @@ Message:
                                    tracking=tracking.determine_tracking_action(request),
                                    captcha_image=captcha['captcha_image'], captcha_audio=captcha['captcha_audio'])
 
-        session['captcha_hashed'] = ""
+        session['captcha_hashed'] = ''
         flash('Your message was successfully sent.', 'success')
         return redirect(url_for('contact'))
 
@@ -436,19 +251,11 @@ def get_cartogram():
 @app.route('/cartogram/<map_name>', methods=['GET'])
 def get_cartogram_by_name(map_name):
 
-    if map_name not in cartogram_handlers:
+    if not cartogram_handler.has_handler(map_name):
         return Response('Cannot find the map {}'.format(map_name), status=500)
-    
-    cartogram_handlers_select = {}
-
-    for key, handler in cartogram_handlers.items():
-        for selector_name in handler.selector_names():
-            cartogram_handlers_select[key] = selector_name
-
-    dict(sorted(cartogram_handlers_select.items()))
 
     return render_template('cartogram.html', page_active='cartogram', 
-                           maps=cartogram_handlers_select,
+                           maps=cartogram_handler.get_sorted_handler_names(),
                            map_name=map_name,
                            tracking=tracking.determine_tracking_action(request))
 
@@ -460,35 +267,27 @@ def cartogram_by_key(string_key):
 
     cartogram_entry = CartogramEntry.query.filter_by(string_key=string_key).first_or_404()
 
-    if cartogram_entry is None or cartogram_entry.handler not in cartogram_handlers:
+    if cartogram_entry is None or not cartogram_handler.has_handler(cartogram_entry.handler):
         return Response('Error', status=500)
     
     cartogram_entry.date_accessed = datetime.datetime.utcnow()
     db.session.commit()    
-    
-    cartogram_handlers_select = {}
-
-    for key, handler in cartogram_handlers.items():
-        for selector_name in handler.selector_names():
-            cartogram_handlers_select[key] = selector_name
-
-    dict(sorted(cartogram_handlers_select.items()))
 
     return render_template('cartogram.html', page_active='cartogram', 
-                           maps=cartogram_handlers_select,
+                           maps=cartogram_handler.get_sorted_handler_names(),
                            map_name=cartogram_entry.handler, map_data_key=string_key,
                            tracking=tracking.determine_tracking_action(request))
 
 
 @app.route('/embed/map/<map_name>', methods=['GET'])
 def cartogram_embed_by_map(map_name):
-
-    if map_name not in cartogram_handlers:
+    if not cartogram_handler.has_handler(map_name):
         return Response('Error', status=500)
 
     return render_template('embed.html', page_active='cartogram', 
                            map_name=map_name,
                            mode='embed', tracking=tracking.determine_tracking_action(request))
+
 
 @app.route('/embed/cart/<string_key>', methods=['GET'])
 def cartogram_embed_by_key(string_key):
@@ -497,7 +296,7 @@ def cartogram_embed_by_key(string_key):
 
     cartogram_entry = CartogramEntry.query.filter_by(string_key=string_key).first_or_404()
 
-    if cartogram_entry.handler not in cartogram_handlers:
+    if not cartogram_handler.has_handler(cartogram_entry.handler):
         return Response('Error', status=500)
     
     if cartogram_entry != None:
@@ -514,20 +313,17 @@ def setprogress():
     params = json.loads(request.data)
 
     if params['secret'] != settings.CARTOGRAM_PROGRESS_SECRET:
-        return Response("", status=200)
+        return Response('', status=200)
 
-    current_progress = redis_conn.get("cartprogress-{}".format(params['key']))
+    current_progress = redis_conn.get('cartprogress-{}'.format(params['key']))
 
     if current_progress is None:
-
         current_progress = {
             'order': params['order'],
             'stderr': params['stderr'],
             'progress': params['progress']
         }
-
     else:
-
         current_progress = json.loads(current_progress.decode())
 
         if current_progress['order'] < params['order']:
@@ -537,15 +333,15 @@ def setprogress():
                 'progress': params['progress']
             }
 
-    redis_conn.set("cartprogress-{}".format(params['key']), json.dumps(current_progress))
-    redis_conn.expire("cartprogress-{}".format(params['key']), 300)
+    redis_conn.set('cartprogress-{}'.format(params['key']), json.dumps(current_progress))
+    redis_conn.expire('cartprogress-{}'.format(params['key']), 300)
 
     return Response('', status=200)
 
 
 @app.route('/getprogress', methods=['GET'])
 def getprogress():
-    current_progress = redis_conn.get("cartprogress-{}".format(request.args["key"]))
+    current_progress = redis_conn.get('cartprogress-{}'.format(request.args['key']))
 
     if current_progress == None:
         return Response(json.dumps({'progress': None, 'stderr': ''}), status=200, content_type='application/json')
@@ -564,18 +360,17 @@ def cartogram():
     try:
         data = json.loads(request.form['data'])
         handler = data['handler']
-        cartogram_handler = cartogram_handlers[handler]
 
-        if 'handler' not in data or data['handler'] not in cartogram_handlers:
-            return Response('{"error":The handler was invaild."}', status=400, content_type="application/json")
+        if 'handler' not in data or not cartogram_handler.has_handler(handler):
+            return Response("{'error':The handler was invaild.'}", status=400, content_type='application/json')
 
         if 'stringKey' not in data:
-            return Response('{"error":"Missing sharing key."}', status=404, content_type="application/json")
+            return Response("{'error':'Missing sharing key.'}", status=404, content_type='application/json')
 
         string_key = data['stringKey']
-        cart_data = cartogram_handler.get_area_string_and_colors(data)
+        cart_data = cartogram_handler.get_area_string_and_colors(handler, data)
         lambda_result = awslambda.generate_cartogram(cart_data[0],
-                            cartogram_handler.get_gen_file(), settings.CARTOGRAM_LAMBDA_URL,
+                            cartogram_handler.get_gen_file(handler), settings.CARTOGRAM_LAMBDA_URL,
                             settings.CARTOGRAM_LAMDA_API_KEY, string_key)
 
         cartogram_gen_output = lambda_result['stdout']
@@ -584,30 +379,30 @@ def cartogram():
             # Just confirm that we've been given valid JSON. Calculate the extrema if necessary
             cartogram_json = json.loads(cartogram_gen_output)
 
-            if "bbox" not in cartogram_json:
-                cartogram_json["bbox"] = geojson_extrema.get_extrema_from_geojson(cartogram_json)
+            if 'bbox' not in cartogram_json:
+                cartogram_json['bbox'] = geojson_extrema.get_extrema_from_geojson(cartogram_json)
         else:
             cartogram_json = gen2dict.translate(io.StringIO(cartogram_gen_output), settings.CARTOGRAM_COLOR,
                                                 cartogram_handler.remove_holes())
             
         cartogram_json['tooltip'] = cart_data[2]
 
-        with open("static/userdata/" + string_key + ".json", "w") as outfile:
+        with open('static/userdata/' + string_key + '.json', 'w') as outfile:
             outfile.write(json.dumps({'{}-custom'.format(colValue): cartogram_json}))
 
         if settings.USE_DATABASE:
             new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
                                     handler=handler, areas_string='-',
-                                    cartogram_data='-', cartogramui_data=json.dumps({"colors": cart_data[1]}))
+                                    cartogram_data='-', cartogramui_data=json.dumps({'colors': cart_data[1]}))
             db.session.add(new_cartogram_entry)
             db.session.commit()
 
         return get_mappack_by_key(string_key, False)
     
     except (KeyError, csv.Error, ValueError, UnicodeDecodeError):
-        return Response('{"error":"The data was invalid."}', status=400, content_type="application/json")
+        return Response("{'error':'The data was invalid.'}", status=400, content_type='application/json')
     except Exception as e:
-        return Response('{"error":"{}"}'.format(e), status=400, content_type="application/json")    
+        return Response("{'error':'{}'}".format(e), status=400, content_type='application/json')    
 
 @app.route('/mappack/<string_key>', methods=['GET'])
 def get_mappack_by_key(string_key, updateaccess = True):
@@ -616,7 +411,7 @@ def get_mappack_by_key(string_key, updateaccess = True):
 
     cartogram_entry = CartogramEntry.query.filter_by(string_key=string_key).first_or_404()
 
-    if cartogram_entry == None or cartogram_entry.handler not in cartogram_handlers:
+    if cartogram_entry == None or not cartogram_handler.has_handler(cartogram_entry.handler):
         return Response('Error', status=500)
     
     if updateaccess:
@@ -624,17 +419,17 @@ def get_mappack_by_key(string_key, updateaccess = True):
         db.session.commit()
 
     mappack = json.loads(cartogram_entry.cartogramui_data)
-    with open("static/cartdata/{}/mappack.json".format(cartogram_entry.handler), "r") as file:
+    with open('static/cartdata/{}/mappack.json'.format(cartogram_entry.handler), 'r') as file:
         original_mappack = json.load(file)
-        for item in ["abbreviations", "config", "labels", "original"]:
+        for item in ['abbreviations', 'config', 'labels', 'original']:
             mappack[item] = original_mappack[item]
 
-    with open("static/userdata/{}.json".format(cartogram_entry.string_key), "r") as file:
+    with open('static/userdata/{}.json'.format(cartogram_entry.string_key), 'r') as file:
         new_maps = json.load(file)
         mappack.update(new_maps)
         data_names = list(new_maps.keys())
-        data_names.insert(0, "original")
-        mappack["config"]["data_names"] = data_names
+        data_names.insert(0, 'original')
+        mappack['config']['data_names'] = data_names
 
     mappack['stringKey'] = string_key
 

@@ -1,36 +1,36 @@
-State,Population,GDP,Colour
-Andaman and Nicobar Islands,379944,1.204,#66a61e
-Andhra Pradesh,49386799,90.84,#1b9e77
-Arunachal Pradesh,1382611,2.651,#e6ab02
-Assam,31169272,31.206,#d95f02
-Bihar,103804637,67.254,#e6ab02
-Chandigarh,1055450,5.69,#1b9e77
-Chhattisgarh,25540196,36.337,#e7298a
-Dadra and Nagar Haveli,342853,0.36,#e7298a
-Daman and Diu,242911,0.16,#1b9e77
-Delhi,18980000,76.542,#d95f02
-Goa,1457723,9.569,#66a61e
-Gujarat,60383628,149.833,#d95f02
-Haryana,25353081,76.11,#66a61e
-Himachal Pradesh,6864602,16.162,#7570b3
-Jammu and Kashmir,12548926,17.137,#e6ab02
-Jharkhand,32966238,33.811,#66a61e
-Karnataka,61130704,120.277,#e6ab02
-Kerala,33387677,77.551,#1b9e77
-Madhya Pradesh,72597565,85.076,#e6ab02
-Maharashtra,112372972,295.529,#7570b3
-Manipur,2721756,2.803,#7570b3
-Meghalaya,2964007,4.29,#7570b3
-Mizoram,1091014,2.015,#e7298a
-Nagaland,1980602,3.473,#66a61e
-Odisha,41947358,53.421,#d95f02
-Puducherry,1244464,4.125,#d95f02
-Punjab,27704236,62.145,#e7298a
-Rajasthan,68621012,101.296,#7570b3
-Sikkim,607688,2.422,#e7298a
-Tamil Nadu,72138958,167.172,#e7298a
-Telangana,35286757,76.665,#66a61e
-Tripura,3671032,5.247,#7570b3
-Uttar Pradesh,207281477,168.837,#1b9e77
-Uttarakhand,10116752,24.051,#d95f02
-West Bengal,91347736,138.272,#1b9e77
+State,Colour,Population,GDP
+Andaman and Nicobar Islands,#66a61e,379944,1.204
+Andhra Pradesh,#1b9e77,49386799,90.84
+Arunachal Pradesh,#e6ab02,1382611,2.651
+Assam,#d95f02,31169272,31.206
+Bihar,#e6ab02,103804637,67.254
+Chandigarh,#1b9e77,1055450,5.69
+Chhattisgarh,#e7298a,25540196,36.337
+Dadra and Nagar Haveli,#e7298a,342853,0.36
+Daman and Diu,#1b9e77,242911,0.16
+Delhi,#d95f02,18980000,76.542
+Goa,#66a61e,1457723,9.569
+Gujarat,#d95f02,60383628,149.833
+Haryana,#66a61e,25353081,76.11
+Himachal Pradesh,#7570b3,6864602,16.162
+Jammu and Kashmir,#e6ab02,12548926,17.137
+Jharkhand,#66a61e,32966238,33.811
+Karnataka,#e6ab02,61130704,120.277
+Kerala,#1b9e77,33387677,77.551
+Madhya Pradesh,#e6ab02,72597565,85.076
+Maharashtra,#7570b3,112372972,295.529
+Manipur,#7570b3,2721756,2.803
+Meghalaya,#7570b3,2964007,4.29
+Mizoram,#e7298a,1091014,2.015
+Nagaland,#66a61e,1980602,3.473
+Odisha,#d95f02,41947358,53.421
+Puducherry,#d95f02,1244464,4.125
+Punjab,#e7298a,27704236,62.145
+Rajasthan,#7570b3,68621012,101.296
+Sikkim,#e7298a,607688,2.422
+Tamil Nadu,#e7298a,72138958,167.172
+Telangana,#66a61e,35286757,76.665
+Tripura,#7570b3,3671032,5.247
+Uttar Pradesh,#1b9e77,207281477,168.837
+Uttarakhand,#d95f02,10116752,24.051
+West Bengal,#1b9e77,91347736,138.272

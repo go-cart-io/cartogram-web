@@ -1,15 +1,15 @@
-Region/Autonomous Region,Population,Population (2001) (People),Colour
-Attica,3828434,3894573,#7570b3
-Central Greece,547390,558144,#e6ab02
-Central Macedonia,1880297,1874597,#7570b3
-Crete,623065,594368,#e6ab02
-East Macedonia and Thrace,608182,607162,#d95f02
-Epirus,336856,336392,#7570b3
-Ionian Islands,207855,209608,#66a61e
-Mount Athos,1811,1961,#e7298a
-North Aegean,199231,205235,#66a61e
-Peloponnese,577903,597622,#e7298a
-South Aegean,309015,298462,#d95f02
-Thessaly,732762,740115,#1b9e77
-West Greece,679796,721541,#d95f02
-West Macedonia,283689,294317,#e7298a
+Region/Autonomous Region,Colour,Population,Population (2001) (People)
+Attica,#7570b3,3828434,3894573
+Central Greece,#e6ab02,547390,558144
+Central Macedonia,#7570b3,1880297,1874597
+Crete,#e6ab02,623065,594368
+East Macedonia and Thrace,#d95f02,608182,607162
+Epirus,#7570b3,336856,336392
+Ionian Islands,#66a61e,207855,209608
+Mount Athos,#e7298a,1811,1961
+North Aegean,#66a61e,199231,205235
+Peloponnese,#e7298a,577903,597622
+South Aegean,#d95f02,309015,298462
+Thessaly,#1b9e77,732762,740115
+West Greece,#d95f02,679796,721541
+West Macedonia,#e7298a,283689,294317

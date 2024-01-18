@@ -1,20 +1,20 @@
-Island,Population,Population (1980) (People),Colour
-Abaco,17224,7271,#d95f02
-Acklins,565,618,#d95f02
-Andros,7490,8307,#7570b3
-Berry Islands,807,509,#e6ab02
-Bimini,1988,1411,#d95f02
-Cat Island,1522,2215,#e6ab02
-Crooked Island,330,562,#e6ab02
-Eleuthera,8202,8331,#1b9e77
-Exuma,6928,3670,#e7298a
-Grand Bahama,51368,33102,#e7298a
-Harbour Island,1762,1133,#e7298a
-Inagua,913,924,#e7298a
-Long Island,3094,3404,#1b9e77
-Mayaguana,277,464,#66a61e
-New Providence,246329,135437,#66a61e
-Ragged Islands,72,164,#7570b3
-Rum Cay,99,78,#7570b3
-San Salvador,940,747,#66a61e
-Spanish Wells,1551,1167,#e7298a
+Island,Colour,Population,Population (1980) (People)
+Abaco,#d95f02,17224,7271
+Acklins,#d95f02,565,618
+Andros,#7570b3,7490,8307
+Berry Islands,#e6ab02,807,509
+Bimini,#d95f02,1988,1411
+Cat Island,#e6ab02,1522,2215
+Crooked Island,#e6ab02,330,562
+Eleuthera,#1b9e77,8202,8331
+Exuma,#e7298a,6928,3670
+Grand Bahama,#e7298a,51368,33102
+Harbour Island,#e7298a,1762,1133
+Inagua,#e7298a,913,924
+Long Island,#1b9e77,3094,3404
+Mayaguana,#66a61e,277,464
+New Providence,#66a61e,246329,135437
+Ragged Islands,#7570b3,72,164
+Rum Cay,#7570b3,99,78
+San Salvador,#66a61e,940,747
+Spanish Wells,#e7298a,1551,1167
