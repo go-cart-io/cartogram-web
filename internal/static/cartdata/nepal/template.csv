@@ -1,8 +1,8 @@
-Province,Population,GDP,Colour
-Bagmati Pradesh,6026600,12792464286,#e7298a
-Gandaki Pradesh,2472500,2573276786,#d95f02
-Karnali Pradesh,1701800,1064812500,#7570b3
-Province No. 1,4766900,4516500000,#e6ab02
-Province No. 2,5871100,3968714286,#66a61e
-Province No. 5,4831600,4042830357,#1b9e77
-Sudurpashchim Pradesh,2760947,1972821429,#d95f02
+Province,Colour,Population,GDP
+Bagmati Pradesh,#e7298a,6026600,12792464286
+Gandaki Pradesh,#d95f02,2472500,2573276786
+Karnali Pradesh,#7570b3,1701800,1064812500
+Province No. 1,#e6ab02,4766900,4516500000
+Province No. 2,#66a61e,5871100,3968714286
+Province No. 5,#1b9e77,4831600,4042830357
+Sudurpashchim Pradesh,#d95f02,2760947,1972821429

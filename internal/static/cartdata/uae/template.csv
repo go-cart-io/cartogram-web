@@ -1,8 +1,8 @@
-Emirate,Population,Natural Reserve Area,Colour
-Abu Dhabi,2784490,17207,#66a61e
-Ajman,372922,2,#1b9e77
-Dubai,4177059,1295,#d95f02
-Fujairah,152000,227,#66a61e
-Ras Al-Khaimah,416600,NA,#e7298a
-Sharjah,2374132,145,#7570b3
-Umm Al-Quwain,72000,NA,#e6ab02
+Emirate,Colour,Population,Natural Reserve Area
+Abu Dhabi,#66a61e,2784490,17207
+Ajman,#1b9e77,372922,2
+Dubai,#d95f02,4177059,1295
+Fujairah,#66a61e,152000,227
+Ras Al-Khaimah,#e7298a,416600,NA
+Sharjah,#7570b3,2374132,145
+Umm Al-Quwain,#e6ab02,72000,NA

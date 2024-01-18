@@ -1,9 +1,9 @@
-Division,Population,Population (1951) (People),Colour
-Azad Kashmir,4045000,886000,#d95f02
-Balochistan,12344408,1167167,#1b9e77
-Federally Administered Tribal Areas,5001676,1332005,#7570b3
-Gilgit-Baltistan,1300000,NA,#66a61e
-Islamabad Capital Territory,2006572,95940,#1b9e77
-Khyber Pakhtunkhwa,30523371,4556545,#e6ab02
-Punjab,110012442,20540762,#e7298a
-Sindh,47886051,6047748,#d95f02
+Division,Colour,Population,Population (1951) (People)
+Azad Kashmir,#d95f02,4045000,886000
+Balochistan,#1b9e77,12344408,1167167
+Federally Administered Tribal Areas,#7570b3,5001676,1332005
+Gilgit-Baltistan,#66a61e,1300000,NA
+Islamabad Capital Territory,#1b9e77,2006572,95940
+Khyber Pakhtunkhwa,#e6ab02,30523371,4556545
+Punjab,#e7298a,110012442,20540762
+Sindh,#d95f02,47886051,6047748
