@@ -50,7 +50,6 @@ export interface Extrema {
 export interface Labels {
   scale_x: number
   scale_y: number
-  skipSVG: boolean | null
   labels: Array<{ x: number; y: number; text: string }>
   lines: Array<{ x1: number; y1: number; x2: number; y2: number }>
 }
@@ -63,7 +62,11 @@ export interface Entry {
 
 export interface DataTable {
   fields: Array<{
-    key: string, label: string, editable: boolean, type?: string, headerEditable?: boolean
+    key: string
+    label: string
+    editable: boolean
+    type?: string
+    headerEditable?: boolean
   }>
   items: { [key: string]: any }
 }

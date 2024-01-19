@@ -15,9 +15,6 @@ def mappackify(map_name, name_array = ['original', 'population']):
     with open("static/cartdata/{}/config.json".format(map_name), "r") as config_json:
         mappack['config'] = json.load(config_json)
 
-    with open("static/cartdata/{}/griddocument.json".format(map_name), "r") as griddocument_json:
-        mappack['griddocument'] = json.load(griddocument_json)
-
     if os.path.exists("static/cartdata/{}/labels.json".format(map_name)):
         with open("static/cartdata/{}/labels.json".format(map_name), "r") as labels_json:
             mappack['labels'] = json.load(labels_json)

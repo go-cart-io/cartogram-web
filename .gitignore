@@ -8,7 +8,7 @@ internal/*landarea.csv
 internal/*population.csv
 internal/*.svg
 internal/assets/node_modules
+internal/handler.py.bak
 
 data/test*
 internal/static/cartdata/test*
-internal/handlers/test*
