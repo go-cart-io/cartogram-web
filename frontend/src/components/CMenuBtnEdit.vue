@@ -8,6 +8,7 @@ import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
 const props = defineProps<{
+  maps: { [key: string]; display_name: string } | null
   map: CartMap
 }>()
 
@@ -26,13 +27,21 @@ function generateTable() {
   state.data.fields = []
   state.data.items = {}
   if (!props.map || !props.map.versions) return
-  
+
   // Header
-  state.data.fields = [{key: 'area', label: 'Area', editable: false},
-    {key: 'color', label: 'Color', editable: true, type: 'color'}]
+  state.data.fields = [
+    { key: 'area', label: props.maps[store.currentMapName].region_identifier, editable: false },
+    { key: 'color', label: 'Color', editable: true, type: 'color' }
+  ]
   for (const [versionKey, version] of Object.entries(props.map.versions)) {
     if (versionKey === '0-base') continue
-    state.data.fields.push({ key: versionKey, label: version.name + ' (' + version.unit + ')', editable: true, type: 'number', headerEditable: true })
+    state.data.fields.push({
+      key: versionKey,
+      label: version.name + ' (' + version.unit + ')',
+      editable: true,
+      type: 'number',
+      headerEditable: true
+    })
   }
 
   // Content
@@ -75,7 +84,9 @@ function updateCartogram() {
     <div class="modal-dialog modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="shareModalLabel">Update {{ store.currentMapName }}</h1>
+          <h1 class="modal-title fs-5" id="shareModalLabel">
+            Update {{ props.maps[store.currentMapName].name }}
+          </h1>
         </div>
         <div class="modal-body">
           <table>
@@ -120,10 +131,10 @@ function updateCartogram() {
 </template>
 
 <style>
-input{
+input {
   border: 0;
   box-sizing: border-box;
-  display:block;
+  display: block;
 }
 
 .modal-footer--sticky {

@@ -362,10 +362,10 @@ def cartogram():
         handler = data['handler']
 
         if 'handler' not in data or not cartogram_handler.has_handler(handler):
-            return Response("{'error':The handler was invaild.'}", status=400, content_type='application/json')
+            return Response('{"error":"The handler was invaild."}', status=400, content_type='application/json')
 
         if 'stringKey' not in data:
-            return Response("{'error':'Missing sharing key.'}", status=404, content_type='application/json')
+            return Response('{"error":"Missing sharing key."}', status=404, content_type='application/json')
 
         string_key = data['stringKey']
         cart_data = cartogram_handler.get_area_string_and_colors(handler, data)
@@ -373,7 +373,7 @@ def cartogram():
                             cartogram_handler.get_gen_file(handler), settings.CARTOGRAM_LAMBDA_URL,
                             settings.CARTOGRAM_LAMDA_API_KEY, string_key)
 
-        cartogram_gen_output = lambda_result['stdout']
+        cartogram_gen_output = lambda_result['stdout']        
 
         if cartogram_handler.expect_geojson_output():
             # Just confirm that we've been given valid JSON. Calculate the extrema if necessary
@@ -386,23 +386,23 @@ def cartogram():
                                                 cartogram_handler.remove_holes())
             
         cartogram_json['tooltip'] = cart_data[2]
-
+        
         with open('static/userdata/' + string_key + '.json', 'w') as outfile:
             outfile.write(json.dumps({'{}-custom'.format(colValue): cartogram_json}))
-
+        
         if settings.USE_DATABASE:
             new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
                                     handler=handler, areas_string='-',
                                     cartogram_data='-', cartogramui_data=json.dumps({'colors': cart_data[1]}))
             db.session.add(new_cartogram_entry)
-            db.session.commit()
+            db.session.commit()        
 
         return get_mappack_by_key(string_key, False)
     
     except (KeyError, csv.Error, ValueError, UnicodeDecodeError):
-        return Response("{'error':'The data was invalid.'}", status=400, content_type='application/json')
+        return Response('{"error":"The data was invalid."}', status=400, content_type='application/json')
     except Exception as e:
-        return Response("{'error':'{}'}".format(e), status=400, content_type='application/json')    
+        return Response('{"error":"{}"}'.format(e), status=400, content_type='application/json')    
 
 @app.route('/mappack/<string_key>', methods=['GET'])
 def get_mappack_by_key(string_key, updateaccess = True):
@@ -416,21 +416,31 @@ def get_mappack_by_key(string_key, updateaccess = True):
     
     if updateaccess:
         cartogram_entry.date_accessed = datetime.datetime.utcnow()
-        db.session.commit()
+        db.session.commit()        
 
     mappack = json.loads(cartogram_entry.cartogramui_data)
     with open('static/cartdata/{}/mappack.json'.format(cartogram_entry.handler), 'r') as file:
         original_mappack = json.load(file)
-        for item in ['abbreviations', 'config', 'labels', 'original']:
-            mappack[item] = original_mappack[item]
 
     with open('static/userdata/{}.json'.format(cartogram_entry.string_key), 'r') as file:
-        new_maps = json.load(file)
-        mappack.update(new_maps)
-        data_names = list(new_maps.keys())
-        data_names.insert(0, 'original')
-        mappack['config']['data_names'] = data_names
+        new_maps = json.load(file)       
 
+    mappack.update(new_maps)
+    data_names = list(new_maps.keys())
+
+    if not 'config' in original_mappack:
+        mappack['config'] = {}
+    elif 'data_names' in original_mappack['config']:
+        base_name = original_mappack['config']['data_names'][0]
+    else:
+        base_name = 'original'
+
+    for item in ['abbreviations', 'config', 'labels', base_name]:
+        if item in original_mappack:
+            mappack[item] = original_mappack[item]
+
+    data_names.insert(0, base_name)        
+    mappack['config']['data_names'] = data_names
     mappack['stringKey'] = string_key
 
     return Response(json.dumps(mappack), content_type='application/json', status=200)

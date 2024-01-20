@@ -12,3 +12,4 @@ internal/handler.py.bak
 
 data/test*
 internal/static/cartdata/test*
+.Rhistory

@@ -96,41 +96,44 @@ def init(map_name):
     name_array = dataset_names.split(",")
     unit_names = input("What is unit of each dataset, in order (km.sq.,people)? ") or "km.sq.,people"
     unit_array = unit_names.split(",")    
-    contain_label_data = input("Do the .csv file contain the position of labels (y/N)? ") or "N"
+    labeling_scheme = input("What is the labelling scheme (1):\n 1. Auto labelling\n 2. Manual labelling\n 3. No label\n ? ") or "1"
 
     regions = get_regions_from_file(map_dat_path, name_array)
+    map_gen_file_path = "{}/{}".format(os.environ["CARTOGRAM_DATA_DIR"], map_gen_path)
 
     write_config(map_name, name_array)
     write_abbr(map_name, regions)
     write_colors(map_name, regions)
-    write_template(map_name, regions, region_identifier, name_array[1], unit_array[1])
+    write_template(map_name, regions, region_identifier, name_array[len(name_array) - 1], unit_array[len(name_array) - 1])
     
-    if contain_label_data == "y" or contain_label_data == "Y":
-        write_labels(map_name, regions)
+    is_gen_label = False
+    if os.path.exists("static/cartdata/{}/labels.json".format(map_name)): 
+        os.remove("static/cartdata/{}/labels.json".format(map_name))
+    if labeling_scheme == "1":    
+        is_gen_label = True
+    elif labeling_scheme == "2":
+        gen_svg(map_gen_file_path, map_name, regions)
+        
 
     print()
     print("I will now generate the map and cartogram. This may take a moment.")
     print()
-
-    map_gen_file_path = "{}/{}".format(os.environ["CARTOGRAM_DATA_DIR"], map_gen_path)
-    if (name_array[0] == "Area"):
-        write_area(map_gen_file_path, map_name, regions, name_array[0], unit_array[0])
+    
+    if (name_array[0] == "Area" or name_array[0] == "Land Area"):
+        write_area(map_gen_file_path, map_name, regions, name_array[0], unit_array[0], is_gen_label)
     else:        
-        write_cartogram(map_gen_file_path, map_name, regions, name_array[0], unit_array[0], 'ts')
+        write_cartogram(map_gen_file_path, map_name, regions, name_array[0], unit_array[0], is_gen_label, 'ts')
 
-    map_gen_file_path = "static/cartdata/{}/{}.json".format(map_name, name_array[0])
-    for i in range(len(name_array))[1:]:
-        write_cartogram(map_gen_file_path, map_name, regions, name_array[i], unit_array[i])
+    new_map_gen_file_path = "static/cartdata/{}/{}.json".format(map_name, name_array[0])
+    if len(name_array) > 1:
+        for i in range(len(name_array))[1:]:
+            write_cartogram(new_map_gen_file_path, map_name, regions, name_array[i], unit_array[i], is_gen_label)
 
     print("Generating map pack in static/cartdata/{}/mappack.json...".format(map_name))
     mappackify.mappackify(map_name, name_array)    
 
     modify_basejson(map_gen_file_path, regions)
-    modify_handler(map_name, user_friendly_name, map_gen_path)
-        
-    use_svg = input("Do you want to use svg file to update color, label, and configuration data (y/N)? ") or "N"
-    if (use_svg == 'y' or use_svg == 'Y'):
-        gen_svg(map_gen_file_path, map_name, regions)
+    modify_handler(map_name, user_friendly_name, map_gen_path, region_identifier)
 
     print()
     print("All done!")
@@ -203,16 +206,7 @@ def write_template(map_name, regions, region_identifier, region_name, unit):
             lambda region: '"{}","{}","{}"'.format(region["name"], region["color"], region[region_name]), regions))))
 
 
-def write_labels(map_name, regions,):
-    print("Writing static/cartdata/{}/labels.json...".format(map_name))
-    with open("static/cartdata/{}/labels.json".format(map_name), "w") as labels_json_file:
-        labels_json_file.write('{"scale_x": 1, "scale_y": 1, "labels": [')
-        labels_json_file.write(",\n".join(list(map(
-            lambda region: '{{"text": "{}", "x": {}, "y": {}}}'.format(region["abbreviation"], region["labelX"], region["labelY"]), regions))))
-        labels_json_file.write('\n], "lines": []}')
-
-
-def write_area(map_gen_file_path, map_name, regions, data_name, data_unit):
+def write_area(map_gen_file_path, map_name, regions, data_name, data_unit, is_gen_label):
     print("Generating conventional map...")
     with open(map_gen_file_path, "r") as map_gen_file:
         original_json = json.load(map_gen_file)
@@ -229,17 +223,23 @@ def write_area(map_gen_file_path, map_name, regions, data_name, data_unit):
                 "value": row[data_name]
             }
             original_json['tooltip']['data'][id_key] = tooltip_data
+
+        if is_gen_label:
+            for feature in original_json["features"]:
+                geom = shape(feature["geometry"])
+                point = geom.representative_point()
+                feature['properties']['repPt'] = [point.x, point.y]
     
     print("Writing static/cartdata/{}/{}.json...".format(map_name, data_name))
     with open("static/cartdata/{}/{}.json".format(map_name, data_name), "w") as original_json_file:
             json.dump(original_json, original_json_file)
 
 
-def write_cartogram(map_gen_file_path, map_name, regions, data_name, data_unit, flags=''):
+def write_cartogram(map_gen_file_path, map_name, regions, data_name, data_unit, is_gen_label=False, flags=''):
     print(("Generating {} map...").format(data_name))
     print("Making request to AWS Lambda function at {}.".format(settings.CARTOGRAM_LAMBDA_URL))
-    cartogram_data = 'name,Data,Color\n' + ("\n".join(list(map(
-        lambda region: '{},{},{}'.format(region["name"], region[data_name], region["color"]), regions))))      
+    cartogram_data = 'cartogram_id,Region Data,Region Name,Inset\n' + ("\n".join(list(map(
+        lambda region: '{},{},{},'.format(region["id"], region[data_name], region["name"]), regions))))   
 
     def serverless_generate():
 
@@ -254,7 +254,7 @@ def write_cartogram(map_gen_file_path, map_name, regions, data_name, data_unit, 
                                                         settings.CARTOGRAM_LAMDA_API_KEY, unique_key, flags)
             cartogram_gen_output = lambda_result['stdout']
             print("************")
-            print(lambda_result)
+            print(lambda_result['stderr'])
             q.put(cartogram_gen_output)
 
         threading.Thread(target=downloader_worker(), daemon=True).start()
@@ -301,7 +301,7 @@ def write_cartogram(map_gen_file_path, map_name, regions, data_name, data_unit, 
                         data_name, line), flush=True)
                     
         print("serverless")
-        print(gen_output)
+        # print(gen_output)
         return json.loads(gen_output)
 
     def self_generate():
@@ -319,7 +319,7 @@ def write_cartogram(map_gen_file_path, map_name, regions, data_name, data_unit, 
         gen_output = "\n".join(gen_output_lines)
 
         print("self")
-        print(gen_output)
+        # print(gen_output)
         return json.loads(gen_output)
 
     cartogram_json = serverless_generate(
@@ -344,10 +344,11 @@ def write_cartogram(map_gen_file_path, map_name, regions, data_name, data_unit, 
         }
         cartogram_json['tooltip']['data'][id_key] = tooltip_data
 
-    for feature in cartogram_json["features"]:
-        geom = shape(feature["geometry"])
-        point = geom.representative_point()
-        feature['properties']['repPt'] = [point.x, point.y]
+    if is_gen_label:
+        for feature in cartogram_json["features"]:
+            geom = shape(feature["geometry"])
+            point = geom.representative_point()
+            feature['properties']['repPt'] = [point.x, point.y]
 
     print()
     print("I will now finish up writing the map data files.")
@@ -359,8 +360,10 @@ def write_cartogram(map_gen_file_path, map_name, regions, data_name, data_unit, 
 
 
 def modify_basejson(map_gen_file_path, regions):
-    region_name_id_dict = ",".join(list(
-        map(lambda region: '"{}":"{}"'.format(region["name"], region["id"]), regions)))
+    print(("Updating {}...").format(map_gen_file_path))
+    region_name_id_dict = {}
+    for region in regions:
+        region_name_id_dict[region["name"]] = region["id"]
 
     with open(map_gen_file_path, 'r') as openfile: 
         json_obj = json.load(openfile)
@@ -369,7 +372,7 @@ def modify_basejson(map_gen_file_path, regions):
         outfile.write(json.dumps(json_obj))
 
 
-def modify_handler(map_name, user_friendly_name, map_gen_path):
+def modify_handler(map_name, user_friendly_name, map_gen_path, region_identifier):
     with open("handler.py", "r") as handler_py_file:
         web_py_contents = handler_py_file.read()
 
@@ -386,9 +389,11 @@ def modify_handler(map_name, user_friendly_name, map_gen_path):
         for line in web_py_lines:
 
             if line.strip() == "# ---addmap.py header marker---":
-                web_py_new_lines.append(
-                    "'" + map_name + "': {'name':'" + user_friendly_name + "', 'file':'" + map_gen_path + "'}")
                 web_py_new_lines.append("# ---addmap.py header marker---")
+                web_py_new_lines.append(
+                    "'" + map_name + "': {'name':'" + user_friendly_name + 
+                    "', 'region_identifier':'" + region_identifier +
+                    "', 'file':'" + map_gen_path + "'},")                
                 found_header = True
             else:
                 web_py_new_lines.append(line)

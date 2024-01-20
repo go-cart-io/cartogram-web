@@ -17,16 +17,13 @@ onMounted(async () => {
 })
 
 async function switchMap() {
-  var url = (store.sharingKey) ? 
-    '/mappack/' + store.sharingKey : '/static/cartdata/' + store.currentMapName + '/mappack.json'
+  var url = store.sharingKey
+    ? '/mappack/' + store.sharingKey
+    : '/static/cartdata/' + store.currentMapName + '/mappack.json'
 
-  var mappack = (await HTTP.get(
-    url,
-    null,
-    function (e: any) {
-      store.loadingProgress = Math.floor((e.loaded / e.total) * 100)
-    }
-  )) as Mappack
+  var mappack = (await HTTP.get(url, null, function (e: any) {
+    store.loadingProgress = Math.floor((e.loaded / e.total) * 100)
+  })) as Mappack
 
   emit('map_changed', mappack)
 }
@@ -35,8 +32,8 @@ async function switchMap() {
 <template>
   <div v-if="!props.isEmbed" class="d-flex p-2" style="max-width: 30%">
     <select class="form-select" v-model="store.currentMapName" v-on:change="switchMap">
-      <option v-for="(mapName, mapKey) in props.maps" v-bind:value="mapKey">
-        {{ mapName }}
+      <option v-for="(mapItem, mapKey) in props.maps" v-bind:value="mapKey">
+        {{ mapItem.name }}
       </option>
     </select>
     <a

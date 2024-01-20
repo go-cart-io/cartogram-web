@@ -53,10 +53,11 @@ function confirmData(data: DataTable) {
         <img src="/static/img/gocart_final.svg" width="80" alt="go-cart.io logo" />
       </div>
 
-      <c-menu-select-map 
-        v-bind:maps="props.maps" 
+      <c-menu-select-map
+        v-bind:maps="props.maps"
         v-bind:isEmbed="props.isEmbed"
-        v-on:map_changed="mappack => emit('map_changed', mappack)" />
+        v-on:map_changed="(mappack) => emit('map_changed', mappack)"
+      />
 
       <div
         class="btn-group d-flex flex-shrink-1 p-2"
@@ -85,10 +86,7 @@ function confirmData(data: DataTable) {
           {{ version.name }}
           <i
             class="fas fa-check"
-            v-if="
-              store.versions.length === 2 &&
-              store.currentVersionName === index.toString()
-            "
+            v-if="store.versions.length === 2 && store.currentVersionName === index.toString()"
           ></i>
         </button>
       </div>
@@ -97,7 +95,10 @@ function confirmData(data: DataTable) {
       <div class="py-2 d-flex flex-nowrap">
         <span v-if="!props.isEmbed" class="text-nowrap">
           <c-menu-btn-upload v-bind:map="props.map" v-on:change="confirmData" />
-          <c-menu-btn-edit v-bind:map="props.map" v-on:change="confirmData"
+          <c-menu-btn-edit
+            v-bind:maps="props.maps"
+            v-bind:map="props.map"
+            v-on:change="confirmData"
           />
         </span>
 
@@ -119,11 +120,7 @@ function confirmData(data: DataTable) {
                 >
               </div>
               <div class="col text-end">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  v-model="store.options.showGrid"
-                />
+                <input type="checkbox" class="form-check-input" v-model="store.options.showGrid" />
               </div>
             </div>
 
@@ -134,11 +131,7 @@ function confirmData(data: DataTable) {
                 >
               </div>
               <div class="col text-end">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  v-model="store.options.showBase"
-                />
+                <input type="checkbox" class="form-check-input" v-model="store.options.showBase" />
               </div>
             </div>
           </div>
