@@ -141,9 +141,11 @@ function onTouchstart(event: any, id: string) {
     tracker.push('reset', 'double-tap')
   } else {
     const t = touchInfo.getPoints()
-    pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
-    pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
-    pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
+    if (t.length > 0) {
+      pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
+      pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
+      pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
+    }
   }
 
   lastTouch = new Date().getTime()
@@ -180,9 +182,11 @@ function onTouchend(event: any) {
     timeStretch2f = 0
   } else {
     const t = touchInfo.getPoints()
-    pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
-    pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
-    pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
+    if (t.length > 0) {
+      pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
+      pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
+      pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
+    }
   }
 
   if (event.cancelable) event.preventDefault()
@@ -193,6 +197,8 @@ function onTouchmove(event: any, id: string) {
   if (touchInfo.length < 1 || touchInfo.length > 3 || !pointerposition) return
 
   const t = touchInfo.getPoints()
+  if (t.length < 1) return
+
   var matrix = util.getOriginalMatrix()
   var angle = 0
   var position = [0, 0]
@@ -203,6 +209,7 @@ function onTouchmove(event: any, id: string) {
   // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
   if (
     shareState.options.stretchable &&
+    t.length > 1 &&
     (touchInfo.length === 3 || (touchInfo.length === 2 && !state.isLockRatio))
   ) {
     // rotate

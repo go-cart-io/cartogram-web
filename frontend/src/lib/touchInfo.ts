@@ -94,17 +94,21 @@ export default class TouchInfo {
     this.thumbIndex = 0
   }
 
-  getPoints(): number[][] {
-    if (this.length === 0) return []
-    else if (this.length === 1) return [this.getThumb()]
-    return [this.getThumb(), this.getOthers()]
+  getPoints(): Array<any> {
+    try {
+      if (this.length === 1) return [this.getThumb()]
+      else if (this.length > 1) return [this.getThumb(), this.getOthers()]
+    } catch (err) {}
+    return []
   }
 
-  getThumb(): [number, number] {
+  getThumb(): Array<number> {
     return [this.touches[this.thumbIndex].pageX, this.touches[this.thumbIndex].pageY]
   }
 
-  getOthers(): [number, number] {
+  getOthers(): Array<number> {
+    if (this.length < 2) return []
+
     let x = 0,
       y = 0
     for (const identifier in this.touches) {
