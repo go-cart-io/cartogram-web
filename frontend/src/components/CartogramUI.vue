@@ -13,6 +13,7 @@ import CartMap from '../lib/cartMap'
 import CartogramLegend from './CartogramLegend.vue'
 import CartogramDownload from './CartogramDownload.vue'
 import CartogramShare from './CartogramShare.vue'
+import TouchVis from './TouchVis.vue'
 
 var map: CartMap
 var touchInfo = new TouchInfo()
@@ -370,16 +371,12 @@ defineExpose({
 
 <template>
   <div class="pointervis">
-    <svg class="w-100 h-100" v-bind:key="state.lastMove">
-      <g v-for="n in state.touchLenght">
-        <circle
-          v-bind:cx="touchInfo.getXOfIndex(n)"
-          v-bind:cy="touchInfo.getYOfIndex(n)"
-          v-bind:fill="touchInfo.getColorOfIndex(n)"
-          r="5"
-        />
-      </g>
-    </svg>
+    <TouchVis
+      v-bind:key="state.lastMove"
+      v-bind:handler="props.handler"
+      v-bind:touchInfo="touchInfo"
+      v-bind:touchLenght="state.touchLenght"
+    />
   </div>
 
   <div id="cartogram" class="d-flex flex-fill card-group">

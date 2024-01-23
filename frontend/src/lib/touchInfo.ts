@@ -118,18 +118,4 @@ export default class TouchInfo {
     }
     return [x / (this.length - 1), y / (this.length - 1)]
   }
-
-  getXOfIndex(index: number): number {
-    return this.touches[Object.keys(this.touches)[index - 1]].pageX
-  }
-
-  getYOfIndex(index: number): number {
-    return this.touches[Object.keys(this.touches)[index - 1]].pageY
-  }
-
-  getColorOfIndex(index: number): string {
-    if (this.thumbIndex === this.touches[Object.keys(this.touches)[index - 1]].identifier)
-      return 'blue'
-    return 'red'
-  }
 }
