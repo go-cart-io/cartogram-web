@@ -94,17 +94,21 @@ export default class TouchInfo {
     this.thumbIndex = 0
   }
 
-  getPoints(): number[][] {
-    if (this.length === 0) return []
-    else if (this.length === 1) return [this.getThumb()]
-    return [this.getThumb(), this.getOthers()]
+  getPoints(): Array<any> {
+    try {
+      if (this.length === 1) return [this.getThumb()]
+      else if (this.length > 1) return [this.getThumb(), this.getOthers()]
+    } catch (err) {}
+    return []
   }
 
-  getThumb(): [number, number] {
+  getThumb(): Array<number> {
     return [this.touches[this.thumbIndex].pageX, this.touches[this.thumbIndex].pageY]
   }
 
-  getOthers(): [number, number] {
+  getOthers(): Array<number> {
+    if (this.length < 2) return []
+
     let x = 0,
       y = 0
     for (const identifier in this.touches) {
@@ -113,19 +117,5 @@ export default class TouchInfo {
       y += this.touches[identifier].pageY
     }
     return [x / (this.length - 1), y / (this.length - 1)]
-  }
-
-  getXOfIndex(index: number): number {
-    return this.touches[Object.keys(this.touches)[index - 1]].pageX
-  }
-
-  getYOfIndex(index: number): number {
-    return this.touches[Object.keys(this.touches)[index - 1]].pageY
-  }
-
-  getColorOfIndex(index: number): string {
-    if (this.thumbIndex === this.touches[Object.keys(this.touches)[index - 1]].identifier)
-      return 'blue'
-    return 'red'
   }
 }
