@@ -2,13 +2,13 @@
 import { reactive } from 'vue'
 
 import type CartMap from '../lib/cartMap'
-import type { DataTable } from '../lib/interface'
+import type { MapHandlers, DataTable } from '../lib/interface'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
 const props = defineProps<{
-  maps: { [key: string]; display_name: string } | null
+  maps: MapHandlers
   map: CartMap
 }>()
 

@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { reactive, onMounted } from 'vue'
-
-import type { Mappack, DataTable } from '../lib/interface'
+import type { MapHandlers, DataTable } from '../lib/interface'
 import type CartMap from '../lib/cartMap'
 import CMenuSelectMap from './CMenuSelectMap.vue'
+import CMenuSelectVersion from './CMenuSelectVersion.vue'
 import CMenuBtnUpload from './CMenuBtnUpload.vue'
 import CMenuBtnEdit from './CMenuBtnEdit.vue'
 
@@ -13,7 +12,7 @@ const store = useCartogramStore()
 const props = withDefaults(
   defineProps<{
     isEmbed: boolean
-    maps: { [key: string]; display_name: string } | null
+    maps: MapHandlers
     map: CartMap
   }>(),
   {
@@ -21,25 +20,7 @@ const props = withDefaults(
   }
 )
 
-const state = reactive({
-  isPlaying: false
-})
-
 const emit = defineEmits(['map_changed', 'version_changed', 'loading_progress', 'confirm_data'])
-
-function playVersions() {
-  state.isPlaying = true
-  let keys = Object.keys(store.versions)
-  let i = 0
-  emit('version_changed', keys[i++])
-  let interval = setInterval(function () {
-    emit('version_changed', keys[i++])
-    if (i >= keys.length) {
-      clearInterval(interval)
-      state.isPlaying = false
-    }
-  }, 1000)
-}
 
 function confirmData(data: DataTable) {
   emit('confirm_data', data)
@@ -59,37 +40,7 @@ function confirmData(data: DataTable) {
         v-on:map_changed="(mappack) => emit('map_changed', mappack)"
       />
 
-      <div
-        class="btn-group d-flex flex-shrink-1 p-2"
-        style="min-width: 40px"
-        role="group"
-        aria-label="Data"
-      >
-        <button
-          class="btn btn-primary"
-          v-on:click="playVersions()"
-          v-bind:disabled="state.isPlaying"
-        >
-          <i class="fas fa-play"></i>
-        </button>
-        <button
-          v-for="(version, index) in store.versions"
-          type="button"
-          class="btn btn-outline-primary version"
-          v-bind:class="{ active: store.currentVersionName === index.toString() }"
-          v-on:click="
-            () => {
-              emit('version_changed', index.toString())
-            }
-          "
-        >
-          {{ version.name }}
-          <i
-            class="fas fa-check"
-            v-if="store.versions.length === 2 && store.currentVersionName === index.toString()"
-          ></i>
-        </button>
-      </div>
+      <c-menu-select-version v-on:version_changed="(version) => emit('version_changed', version)" />
 
       <!-- Menu -->
       <div class="py-2 d-flex flex-nowrap">

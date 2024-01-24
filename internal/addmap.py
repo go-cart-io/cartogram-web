@@ -1,16 +1,9 @@
 import sys
 import os
-import io
 import csv
 import json
 import shutil
-import gen2dict
-import svg2color
-import svg2labels
-import svg2config
 import geojson_extrema
-import traceback
-import importlib
 import cartwrap
 import mappackify
 import random
@@ -18,245 +11,421 @@ import string
 import redis
 import settings
 import awslambda
-import threading, queue
+import threading
+import queue
+import svg2color
+import svg2labels
+import svg2config
+from shapely.geometry import shape
+
 
 def get_random_string(length):
     return ''.join(random.SystemRandom().choice(string.ascii_lowercase + string.digits) for _ in range(length))
+
 
 def print_welcome():
 
     print("Welcome to the Add Map Wizard!")
     print()
 
+
 def print_usage():
 
     print("Usage: ")
     print()
     print("init [map-name]\t\tStart the process of adding a new map")
-    print("data [map-name]\t\tAdd dataset data, colors, and labels to a new map")
 
-def init(map_name):
 
-    def cleanup():
-
-        print()
-        print("I cannot continue. If you contact the developers for support, send the stacktrace below: ")
-        print()
-        traceback.print_stack(file=sys.stdout)
-
-        print()
-        print("An error occurred. Cleaning up...")
-
-        try:
-            os.remove("handlers/{}.py".format(map_name))
-            os.remove("{}.svg".format(map_name))
-        except OSError:
-            pass
+def cleanup(map_name):
+    try:
+        if os.path.exists("{}.svg".format(map_name)): 
+            os.remove("{}.svg".format(map_name))  
+    
+        with open("handler.py", "r") as handler_py_file:
+            handlers_str = "'" + map_name + "': {'name':"
+            web_py_contents = handler_py_file.read()
+            web_py_lines = web_py_contents.split("\n")
+            web_py_new_lines = []
+            for line in web_py_lines:
+                if not line.startswith(handlers_str):
+                    web_py_new_lines.append(line)     
         
+        with open("handler.py", "w") as handler_py_file:
+            handler_py_file.write("\n".join(web_py_new_lines))
+            
+    except OSError:
+        pass
+
+    if os.path.exists("static/cartdata/{}".format(map_name)):
         shutil.rmtree("static/cartdata/{}".format(map_name), ignore_errors=True)
 
-    if os.path.exists("handlers/{}.py".format(map_name)):
-        print("Error: It looks like a map with the name '{}' already exists (I found handlers/{}.py).".format(map_name, map_name))
-        return
-    
-    if os.path.exists("static/cartdata/{}".format(map_name)):
-        print("Error: It looks like a map with the name '{}' already exists (I found static/cartdata/{}).".format(map_name, map_name))
-        return
-    
-    user_friendly_name = input("Enter a user friendly name for this map: ")
+
+def init(map_name):  
+
+    if os.path.exists("handlers/{}.py".format(map_name)) or os.path.exists("static/cartdata/{}".format(map_name)):
+        is_overwrite = input(("It looks like a map with the name '{}' already exists. Do you want to overwrite (y/N): ").format(map_name))
+        if (is_overwrite != 'y' and is_overwrite != 'Y'):
+            print('End the process.')
+            return
+
+    user_friendly_name = input(("Enter a user friendly name for this map ({}): ").format(map_name)) or map_name
 
     print()
     print("Now I need to know where the .json and .csv files for this map are located. These files should be located in the CARTOGRAM_DATA_DIR directory. You should supply me with a path relative to CARTOGRAM_DATA_DIR.")
     print("E.G: The .json file for this map is located at CARTOGRAM_DATA_DIR/map.json. Enter \"map.json\".")
     print()
 
-    map_gen_path = input("Enter the location of the .json file for this map: ")
-    map_dat_path = input("Enter the location of the .csv file for this map: ")
+    map_gen_path = input(("Enter the location of the .json file for this map ({}.geojson): ").format(map_name)) or map_name + ".geojson"
+    map_dat_path = input(("Enter the location of the .csv file for this map ({}.csv): ").format(map_name)) or map_name + ".csv"
 
     if not os.path.exists("{}/{}".format(os.environ["CARTOGRAM_DATA_DIR"], map_gen_path)):
-        print("Error: It looks like the file {}/{} does not exist.".format(os.environ["CARTOGRAM_DATA_DIR"], map_gen_path))
+        print("Error: It looks like the file {}/{} does not exist.".format(
+            os.environ["CARTOGRAM_DATA_DIR"], map_gen_path))
         return
-    
+
     if not os.path.exists("{}/{}".format(os.environ["CARTOGRAM_DATA_DIR"], map_dat_path)):
-        print("Error: It looks like the file {}/{} does not exist.".format(os.environ["CARTOGRAM_DATA_DIR"], map_dat_path))
+        print("Error: It looks like the file {}/{} does not exist.".format(
+            os.environ["CARTOGRAM_DATA_DIR"], map_dat_path))
         return
-    
-    with open("{}/{}".format(os.environ["CARTOGRAM_DATA_DIR"], map_dat_path), "r") as dat_file:
-        dat_contents = dat_file.read()
-    
-    regions = []
-    
-    with open("{}/{}".format(os.environ["CARTOGRAM_DATA_DIR"], map_dat_path), newline='') as dat_file:
 
-        reader = csv.DictReader(dat_file)
-
-        for row in reader:
-
-            regions.append({
-                "id": row["Region Id"],
-                "data": row["Region Data"],
-                "name": row["Region Name"],
-                "abbreviation": row["Region Abbreviation"],
-                "inset": row["Region Inset"]
-            })
-    
-    def find_region_by_id(i):
-        for region in regions:
-            if region["id"] == i:
-                return region
-        
-        return None
-    
-    region_identifier = input("What are the regions of this map called (e.g. State, Province)? ")
-    dataset_name = input("What is the name of the dataset in the .dat file (e.g. GDP)? ")
-
-    handler_py_template = '''import settings
-import handlers.base_handler
-import csv
-
-class CartogramHandler(handlers.base_handler.BaseCartogramHandler):
-
-    def get_name(self):
-        return "{0}"
-
-    def get_gen_file(self):
-        return "{{}}/{1}".format(settings.CARTOGRAM_DATA_DIR)
-    
-    def validate_values(self, values):
-
-        if len(values) != {2}:
-            return False
-        
-        for v in values:
-            if type(v) != float:
-                return False
-
-        return True
-    
-    def gen_area_data(self, values):
-        return """cartogram_id,Region Data,Region Name,Inset
-{3}""".format(*values)
-    
-    def expect_geojson_output(self):
-        return True
-
-    def csv_to_area_string_and_colors(self, csvfile):
-
-        return self.order_by_example(csv.reader(csvfile), "{4}", 0, 1, 2, 3, [{5}], [0.0 for i in range(0,{2})], {{{6}}})
-'''
-    
-    area_data_template = "\n".join(list(map(lambda region: "{},{{}},{},{}".format(region["id"], region["name"], region["inset"]), regions)))
-    region_names = ",".join(list(map(lambda region: '"{}"'.format(region["name"]), regions)))
-    region_name_id_dict = ",".join(list(map(lambda region: '"{}":"{}"'.format(region["name"], region["id"]), regions)))
-
-    handler_py = handler_py_template.format(user_friendly_name, map_gen_path, len(regions), area_data_template, region_identifier, region_names, region_name_id_dict)
-
-    print("Writing handlers/{}.py...".format(map_name))
-
-    try:
-        with open("handlers/{}.py".format(map_name), "w") as handler_file:
-
-            try:
-                handler_file.write(handler_py)
-            except:
-                cleanup()
-                return
-    except:
-        cleanup()
-        return
-    
-    try:
+    if not os.path.exists("static/cartdata/{}".format(map_name)):
         os.mkdir("static/cartdata/{}".format(map_name))
-    except:
-        cleanup()
-        return
+
+    region_identifier = input("What are the regions of this map called (e.g. State, Province) (Region)? ") or "Region"
+    dataset_names = input("What is the name of datasets. Note that only letter with no space is allowed and it should match collumn name is .csv file. Use comma to separate each dataset (Area,Population)? ") or "Area,Population"
+    name_array = dataset_names.split(",")
+    unit_names = input("What is unit of each dataset, in order (km.sq.,people)? ") or "km.sq.,people"
+    unit_array = unit_names.split(",")    
+    labeling_scheme = input("What is the labelling scheme (1):\n 1. Auto labelling\n 2. Manual labelling\n 3. No label\n ? ") or "1"
+
+    regions = get_regions_from_file(map_dat_path, name_array)
+    map_gen_file_path = "{}/{}".format(os.environ["CARTOGRAM_DATA_DIR"], map_gen_path)
+
+    write_config(map_name, name_array)
+    write_abbr(map_name, regions)
+    write_colors(map_name, regions)
+    write_template(map_name, regions, region_identifier, name_array[len(name_array) - 1], unit_array[len(name_array) - 1])
     
+    is_gen_label = False
+    if os.path.exists("static/cartdata/{}/labels.json".format(map_name)): 
+        os.remove("static/cartdata/{}/labels.json".format(map_name))
+    if labeling_scheme == "1":    
+        is_gen_label = True
+    elif labeling_scheme == "2":
+        gen_svg(map_gen_file_path, map_name, regions)
+        
+
+    print()
+    print("I will now generate the map and cartogram. This may take a moment.")
+    print()
+    
+    if (name_array[0] == "Area" or name_array[0] == "Land Area"):
+        write_area(map_gen_file_path, map_name, regions, name_array[0], unit_array[0], is_gen_label)
+    else:        
+        write_cartogram(map_gen_file_path, map_name, regions, name_array[0], unit_array[0], is_gen_label, 'ts')
+
+    new_map_gen_file_path = "static/cartdata/{}/{}.json".format(map_name, name_array[0])
+    if len(name_array) > 1:
+        for i in range(len(name_array))[1:]:
+            write_cartogram(new_map_gen_file_path, map_name, regions, name_array[i], unit_array[i], is_gen_label)
+
+    print("Generating map pack in static/cartdata/{}/mappack.json...".format(map_name))
+    mappackify.mappackify(map_name, name_array)    
+
+    modify_basejson(map_gen_file_path, regions)
+    modify_handler(map_name, user_friendly_name, map_gen_path, region_identifier)
+
+    print()
+    print("All done!")
+    print()
+
+
+def get_regions_from_file(map_dat_path, name_array):
+    regions = []
+    with open("{}/{}".format(os.environ["CARTOGRAM_DATA_DIR"], map_dat_path), newline='') as dat_file:
+        reader = csv.DictReader(dat_file)
+        for row in reader:
+            region = {
+                "id": row["Id"],
+                "name": row["Name"],
+                "abbreviation": row["Abbreviation"],
+                "color": row["Color"]
+            }
+            if "Label.X" in row and "Label.Y" in row:
+                region["labelX"] = float(row["Label.X"])
+                region["labelY"] = float(row["Label.Y"])
+            for name in name_array:
+                region[name] = float(row[name])
+            regions.append(region)
+    return regions
+
+
+def find_region_by_id(regions, i):
+    for region in regions:
+        if region["id"] == i:
+            return region
+    
+    return None
+
+
+def write_config(map_name, dataname_array):
     print("Writing static/cartdata/{}/config.json...".format(map_name))
+    with open("static/cartdata/{}/config.json".format(map_name), "w") as config_json_file:
+        config = {
+            "dont_draw": [],
+            "elevate": [],
+            "data_names": dataname_array
+        }
+        json.dump(config, config_json_file)
 
-    try:
-        with open("static/cartdata/{}/config.json".format(map_name), "w") as config_json_file:
 
-            try:
-                config_json_file.write("""{
-    "dont_draw": [],
-    "elevate": []
-}""")
-            except:
-                cleanup()
-                return
-    except:
-        cleanup()
-        return
-    
+def write_abbr(map_name, regions):
     print("Writing static/cartdata/{}/abbreviations.json...".format(map_name))
+    with open("static/cartdata/{}/abbreviations.json".format(map_name), "w") as abbreviations_json_file:
+        abbreviations_json_file.write("{\n")
+        abbreviations_json_file.write(",\n".join(list(map(
+            lambda region: '"{}":"{}"'.format(region["name"], region["abbreviation"]), regions))))
+        abbreviations_json_file.write("\n}")
 
-    try:
-        with open("static/cartdata/{}/abbreviations.json".format(map_name), "w") as abbreviations_json_file:
 
-            try:
-                abbreviations_json_file.write("{\n")
-                abbreviations_json_file.write(",\n".join(list(map(lambda region: '"{}":"{}"'.format(region["name"], region["abbreviation"]), regions))))
-                abbreviations_json_file.write("\n}")
-            except:
-                cleanup()
-                return
-    except:
-        cleanup()
-        return
-
+def write_colors(map_name, regions):
     print("Writing static/cartdata/{}/colors.json...".format(map_name))
+    with open("static/cartdata/{}/colors.json".format(map_name), "w") as colors_json_file:
+            colors_json_file.write("{\n")
+            colors_json_file.write(",\n".join(
+                list(map(lambda region: '"id_{}":"{}"'.format(region["id"], region["color"]), regions))))
+            colors_json_file.write("\n}")
 
-    try:
-        with open("static/cartdata/{}/colors.json".format(map_name), "w") as colors_json_file:
 
-            try:
-                colors_json_file.write("{\n")
-                colors_json_file.write(",\n".join(list(map(lambda region: '"id_{}":"#aaaaaa"'.format(region["id"]), regions))))
-                colors_json_file.write("\n}")
-            except:
-                cleanup()
-                return
-    except:
-        cleanup()
-        return
-    
+def write_template(map_name, regions, region_identifier, region_name, unit):
     print("Writing static/cartdata/{}/template.csv...".format(map_name))
+    with open("static/cartdata/{}/template.csv".format(map_name), "w") as template_csv_file:
+        template_csv_file.write('"{}","Colour","{} ({})"\n'.format(
+            region_identifier, region_name, unit))
+        template_csv_file.write("\n".join(list(map(
+            lambda region: '"{}","{}","{}"'.format(region["name"], region["color"], region[region_name]), regions))))
 
-    try:
-        with open("static/cartdata/{}/template.csv".format(map_name), "w") as template_csv_file:
+
+def write_area(map_gen_file_path, map_name, regions, data_name, data_unit, is_gen_label):
+    print("Generating conventional map...")
+    with open(map_gen_file_path, "r") as map_gen_file:
+        original_json = json.load(map_gen_file)
+        original_json['tooltip'] = {
+            "label": data_name,
+            "unit": data_unit,
+            "data": {}
+        }
+
+        for row in regions:
+            id_key = 'id_{}'.format(row["id"])
+            tooltip_data = {
+                "name": row["name"], 
+                "value": row[data_name]
+            }
+            original_json['tooltip']['data'][id_key] = tooltip_data
+
+        if is_gen_label:
+            for feature in original_json["features"]:
+                geom = shape(feature["geometry"])
+                point = geom.representative_point()
+                feature['properties']['repPt'] = [point.x, point.y]
+    
+    print("Writing static/cartdata/{}/{}.json...".format(map_name, data_name))
+    with open("static/cartdata/{}/{}.json".format(map_name, data_name), "w") as original_json_file:
+            json.dump(original_json, original_json_file)
+
+
+def write_cartogram(map_gen_file_path, map_name, regions, data_name, data_unit, is_gen_label=False, flags=''):
+    print(("Generating {} map...").format(data_name))
+    print("Making request to AWS Lambda function at {}.".format(settings.CARTOGRAM_LAMBDA_URL))
+    cartogram_data = 'cartogram_id,Region Data,Region Name,Inset\n' + ("\n".join(list(map(
+        lambda region: '{},{},{},'.format(region["id"], region[data_name], region["name"]), regions))))   
+
+    def serverless_generate():
+
+        redis_conn = redis.Redis(
+            host=settings.CARTOGRAM_REDIS_HOST, port=settings.CARTOGRAM_REDIS_PORT, db=0)
+        q = queue.Queue()
+        unique_key = get_random_string(50)
+
+        def downloader_worker():
+            lambda_result = awslambda.generate_cartogram(cartogram_data,
+                                                        map_gen_file_path, settings.CARTOGRAM_LAMBDA_URL,
+                                                        settings.CARTOGRAM_LAMDA_API_KEY, unique_key, flags)
+            cartogram_gen_output = lambda_result['stdout']
+            # print("************")
+            # print(lambda_result['stderr'])
+            q.put(cartogram_gen_output)
+
+        threading.Thread(target=downloader_worker(), daemon=True).start()
+
+        current_stderr = ""
+        current_progress_level = None
+        gen_output = ""
+
+        while True:
+            current_progress = redis_conn.get(
+                "cartprogress-{}".format(unique_key))
+
+            if current_progress == None:
+                pass
+            else:
+                current_progress = json.loads(current_progress.decode())
+                if current_progress['progress'] != current_progress_level:
+                    to_print = current_progress['stderr'].replace(
+                        current_stderr, "")
+                    for line in to_print.split("\n"):
+                        print("Generating {} map: {}".format(
+                            data_name, line), flush=True)
+                    current_stderr = current_progress['stderr']
+                    current_progress_level = current_progress['progress']
 
             try:
-                template_csv_file.write('"{}","Population","{}","Colour"\n'.format(region_identifier, dataset_name))
-                template_csv_file.write("\n".join(list(map(lambda region: '"{}","","{}",""'.format(region["name"], region["data"]), regions))))
-            except:
-                cleanup()
-                return
-    except:
-        cleanup()
-        return
-    
+                gen_output = q.get(False, timeout=0.1)
+                break
+            except queue.Empty:
+                pass
+
+        current_progress = redis_conn.get(
+            "cartprogress-{}".format(unique_key))
+
+        if current_progress == None:
+            pass
+        else:
+            current_progress = json.loads(current_progress.decode())
+            if current_progress['progress'] != current_progress_level:
+                to_print = current_progress['stderr'].replace(
+                    current_stderr, "")
+                for line in to_print.split("\n"):
+                    print("Generating {} map: {}".format(
+                        data_name, line), flush=True)
+                    
+        # print("serverless")
+        # print(gen_output)
+        return json.loads(gen_output)
+
+    def self_generate():
+
+        gen_output_lines = []
+
+        for source, line in cartwrap.generate_cartogram(cartogram_data, map_gen_file_path, os.environ["CARTOGRAM_EXE"], False, flags):
+
+            if source == "stdout":
+                gen_output_lines.append(line.decode().strip())
+            else:
+                print("Generating {} map: {}".format(
+                    data_name, line.decode().strip()))
+
+        gen_output = "\n".join(gen_output_lines)
+
+        # print("self")
+        # print(gen_output)
+        return json.loads(gen_output)
+
+    cartogram_json = serverless_generate(
+    ) if settings.CARTOGRAM_LOCAL_DOCKERIZED else self_generate()
+
+    # Calculate the bounding box if necessary
+    if "bbox" not in cartogram_json:
+        cartogram_json["bbox"] = geojson_extrema.get_extrema_from_geojson(
+            cartogram_json)
+
+    cartogram_json['tooltip'] = {
+        "label": data_name,
+        "unit": data_unit,
+        "data": {}
+    }
+
+    for row in regions:
+        id_key = 'id_{}'.format(row["id"])
+        tooltip_data = {
+            "name": row["abbreviation"], 
+            "value": row[data_name]
+        }
+        cartogram_json['tooltip']['data'][id_key] = tooltip_data
+
+    if is_gen_label:
+        for feature in cartogram_json["features"]:
+            geom = shape(feature["geometry"])
+            point = geom.representative_point()
+            feature['properties']['repPt'] = [point.x, point.y]
+
+    print()
+    print("I will now finish up writing the map data files.")
+    print()
+
+    print("Writing static/cartdata/{}/{}.json...".format(map_name, data_name))
+    with open("static/cartdata/{}/{}.json".format(map_name, data_name), "w") as original_json_file:
+        json.dump(cartogram_json, original_json_file)
+
+
+def modify_basejson(map_gen_file_path, regions):
+    print(("Updating {}...").format(map_gen_file_path))
+    region_name_id_dict = {}
+    for region in regions:
+        region_name_id_dict[region["name"]] = region["id"]
+
+    with open(map_gen_file_path, 'r') as openfile: 
+        json_obj = json.load(openfile)
+    json_obj['regions'] = region_name_id_dict
+    with open(map_gen_file_path, "w") as outfile:
+        outfile.write(json.dumps(json_obj))
+
+
+def modify_handler(map_name, user_friendly_name, map_gen_path, region_identifier):
+    with open("handler.py", "r") as handler_py_file:
+        web_py_contents = handler_py_file.read()
+
+        print()
+        print("I will now modify handler.py to add your new map. Before I do this, I will back up the current version of handler.py to handler.py.bak.")
+        print()
+
+        print("Backing up handler.py...")
+        shutil.copy("handler.py", "handler.py.bak")
+
+        web_py_lines = web_py_contents.split("\n")
+        web_py_new_lines = []
+        found_header = False
+        for line in web_py_lines:
+
+            if line.strip() == "# ---addmap.py header marker---":
+                web_py_new_lines.append("# ---addmap.py header marker---")
+                web_py_new_lines.append(
+                    "'" + map_name + "': {'name':'" + user_friendly_name + 
+                    "', 'region_identifier':'" + region_identifier +
+                    "', 'file':'" + map_gen_path + "'},")                
+                found_header = True
+            else:
+                web_py_new_lines.append(line)
+
+        if not found_header:
+            print(
+                "I was not able to find the appropriate markers that allow me to modify the handler.py file.")
+            return
+
+        with open("handler.py", "w") as handler_py_file:
+            handler_py_file.write("\n".join(web_py_new_lines))
+
+
+def gen_svg(map_gen_file_path, map_name, regions):
     print()
     print("I will now create {}.svg. You should edit this file to specify the default color and add labels for each region.".format(map_name))
     print("DO NOT RESIZE OR RESCALE THE CONTENTS OF THIS FILE! Accurate label placement depends on the scale calculated by this wizard.")
     print()
 
     try:
-        with open("{}/{}".format(os.environ["CARTOGRAM_DATA_DIR"], map_gen_path), "r") as map_gen_file:
-
+        with open(map_gen_file_path, "r") as map_gen_file:
             geo_json = json.load(map_gen_file)
 
     except Exception as e:
         print(repr(e))
-        cleanup()
+        cleanup(map_name)
         return
 
     print("Writing {}.svg...".format(map_name))
-
     try:
-        with open("{}.svg".format(map_name), "w") as svg_file:
-
+        with open("{}/{}.svg".format(os.environ["CARTOGRAM_DATA_DIR"], map_name), "w") as svg_file:
             try:
-
                 max_x = geo_json["bbox"][2]
                 min_x = geo_json["bbox"][0]
                 max_y = geo_json["bbox"][3]
@@ -265,18 +434,15 @@ class CartogramHandler(handlers.base_handler.BaseCartogramHandler):
                 width = max_x - min_x
                 height = max_y - min_y
 
-
                 scale = 750.0/width
                 
                 width *= scale
                 height *= scale
                 
                 def x_transform(x):
-
                     return (x - min_x)*scale
                 
                 def y_transform(y):
-
                     return (max_y - y)*scale
                 
                 svg_file.write("""<svg version="1.1"
@@ -289,67 +455,47 @@ class CartogramHandler(handlers.base_handler.BaseCartogramHandler):
                 next_polygon_id = 1
 
                 for feature in geo_json["features"]:
-
                     if feature["geometry"]["type"] == "Polygon":
-
                         polygon_path = None
                         hole_paths = []
                         polygon_id = next_polygon_id
 
                         for path in feature["geometry"]["coordinates"]:
-
                             next_polygon_id += 1
 
                             if polygon_path == None:
-
-                                polygon_path = " ".join(list(map(lambda coord: "{} {}".format(round(x_transform(coord[0]), 3), round(y_transform(coord[1]), 3)), path)))
-                                
+                                polygon_path = " ".join(list(map(lambda coord: "{} {}".format(round(x_transform(coord[0]), 3), round(y_transform(coord[1]), 3)), path)))                                
                             else:
-
                                 hole_path = " ".join(list(map(lambda coord: "{} {}".format(round(x_transform(coord[0]), 3), round(y_transform(coord[1]), 3)), path)))
-
                                 hole_paths.append("M {} z".format(hole_path))
                         
                         path = "M {} z {}".format(polygon_path, " ".join(hole_paths))
-
-                        region = find_region_by_id(feature["properties"]["cartogram_id"])
-                        #region = find_region_by_id(feature["id"])
-
-                        #svg_file.write('<path gocart:regionname="{}" d="{}" id="polygon-{}" class="region-{}" fill="#aaaaaa" stroke="#000000" stroke-width="1"/>\n'.format(region["name"], path, polygon_id, feature["properties"]["cartogram_id"]))
+                        region = find_region_by_id(regions, feature["properties"]["cartogram_id"])
                         svg_file.write(
                             '<path gocart:regionname="{}" d="{}" id="polygon-{}" class="region-{}" fill="#aaaaaa" stroke="#000000" stroke-width="1"/>\n'.format(
                                 region["name"], path, polygon_id, feature["properties"]["cartogram_id"]))
+                        
                     elif feature["geometry"]["type"] == "MultiPolygon":
-
                         for polygon in feature["geometry"]["coordinates"]:
-
                             polygon_path = None
                             hole_paths = []
                             polygon_id = next_polygon_id
 
                             for path in polygon:
-
                                 next_polygon_id += 1
 
                                 if polygon_path == None:
-
-                                    polygon_path = " ".join(list(map(lambda coord: "{} {}".format(round(x_transform(coord[0]), 3), round(y_transform(coord[1]), 3)), path)))
-                                    
+                                    polygon_path = " ".join(list(map(lambda coord: "{} {}".format(round(x_transform(coord[0]), 3), round(y_transform(coord[1]), 3)), path)))  
                                 else:
-
                                     hole_path = " ".join(list(map(lambda coord: "{} {}".format(round(x_transform(coord[0]), 3), round(y_transform(coord[1]), 3)), path)))
-
                                     hole_paths.append("M {} z".format(hole_path))
                             
                             path = "M {} z {}".format(polygon_path, " ".join(hole_paths))
-
                             print(feature["properties"]["cartogram_id"])
-
-                            region = find_region_by_id(feature["properties"]["cartogram_id"])
-
+                            region = find_region_by_id(regions, feature["properties"]["cartogram_id"])
                             print(repr(region))
-
                             svg_file.write('<path gocart:regionname="{}" d="{}" id="polygon-{}" class="region-{}" fill="#aaaaaa" stroke="#000000" stroke-width="1"/>\n'.format(region["name"], path, polygon_id, feature["properties"]["cartogram_id"]))
+
                     else:
                         raise Exception("Unsupported feature type {}.".format(feature["geometry"]["type"]))
                 
@@ -357,564 +503,84 @@ class CartogramHandler(handlers.base_handler.BaseCartogramHandler):
             
             except Exception as e:
                 print(repr(e))
-                cleanup()
+                cleanup(map_name)
                 return
     except Exception as e:
         print(repr(e))
-        cleanup()
+        cleanup(map_name)
         return
-
+    
     print("Writing static/cartdata/{}/labels.json...".format(map_name))
-
     try:
         with open("static/cartdata/{}/labels.json".format(map_name), "w") as labels_json_file:
-
             try:
                 labels_json_file.write('{{"scale_x": {0}, "scale_y": {0}, "labels": [], "lines": []}}'.format(scale))
             except Exception as e:
                 print(repr(e))
-                cleanup()
+                cleanup(map_name)
                 return
     except Exception as e:
         print(repr(e))
-        cleanup()
-        return
-    
-    print()
-    print("I will now create {0}-landarea.csv and {0}-population.csv. You should edit these files to specify the land area (in square kilometers) and population of each region.".format(map_name))
-    print("DO NOT ALTER THE COLOR INFORMATION IN THESE FILES! You should specify the color for each region by editing {}.svg".format(map_name))
-    print()
-
-    print("Writing {}-landarea.csv...".format(map_name))
-
-    try:
-        with open("{}-landarea.csv".format(map_name), "w") as template_csv_file:
-
-            try:
-                template_csv_file.write('"{}","","Land Area","Colour"\n'.format(region_identifier))
-                template_csv_file.write("\n".join(list(map(lambda region: '"{}","","","#aaaaaa"'.format(region["name"]), regions))))
-            except:
-                cleanup()
-                return
-    except:
-        cleanup()
-        return
-    
-    print("Writing {}-population.csv...".format(map_name))
-
-    try:
-        with open("{}-population.csv".format(map_name), "w") as template_csv_file:
-
-            try:
-                template_csv_file.write('"{}","","Population","Colour"\n'.format(region_identifier))
-                template_csv_file.write("\n".join(list(map(lambda region: '"{}","","","#aaaaaa"'.format(region["name"]), regions))))
-            except:
-                cleanup()
-                return
-    except:
-        cleanup()
-        return
-    
-    print()
-    print("I will now modify web.py to add your new map. Before I do this, I will back up the current version of web.py to web.py.bak.")
-    print()
-
-    print("Backing up web.py...")
-
-    try:
-        shutil.copy("web.py", "web.py.bak")
-    except:
-        cleanup()
+        cleanup(map_name)
         return
 
-    print("Editing web.py...")
-
-    try:
-        with open("web.py", "r") as web_py_file:
-
-            try:
-                web_py_contents = web_py_file.read()
-                web_py_lines = web_py_contents.split("\n")
-            except:
-                cleanup()
-                return
-        
-        web_py_new_lines = []
-        found_header = False
-        found_body = False
-        for line in web_py_lines:
-
-            if line.strip() == "# ---addmap.py header marker---":
-
-                web_py_new_lines.append("from handlers import {}".format(map_name))
-                web_py_new_lines.append("# ---addmap.py header marker---")
-                found_header = True
-            elif line.strip() == "# ---addmap.py body marker---":
-
-                web_py_new_lines.append("'{0}': {0}.CartogramHandler(),".format(map_name))
-                web_py_new_lines.append("# ---addmap.py body marker---")
-                found_body = True
-            else:
-                web_py_new_lines.append(line)
-        
-        if not found_header or not found_body:
-            print("I was not able to find the appropriate markers that allow me to modify the web.py file.")
-            cleanup()
-            return
-        
-        with open("web.py", "w") as web_py_file:
-
-            try:
-                web_py_file.write("\n".join(web_py_new_lines))
-            except:
-                print("An error occured while trying to write changes to web.py.")
-                cleanup()
-                return
-    except:
-        cleanup()
-        return
-        
-    
-    print()
-    print("All done!")
-    print()
-
-def data(map_name):
-
-    def cleanup():
-
-        print()
-        print("I cannot continue. If you contact the developers for support, send the stacktrace below: ")
-        print()
-        traceback.print_stack(file=sys.stdout)
-
-        print()
-        print("An error occurred. Cleaning up...")
-
-        try:
-            os.remove("static/cartdata/{}/population.json".format(map_name))
-            os.remove("static/cartdata/{}/griddocument.json".format(map_name))
-            os.remove("static/cartdata/{}/original.json".format(map_name))
-        except OSError:
-            pass
-
-    if not os.path.exists("handlers/{}.py".format(map_name)):
-        print("Error: It looks like a map with the name '{}' doesn't exist (I didn't find handlers/{}.py).".format(map_name, map_name))
-        return
-    
+def update_by_svg(map_name):   
     if not os.path.exists("static/cartdata/{}".format(map_name)):
         print("Error: It looks like a map with the name '{}' doesn't exist (I didn't find static/cartdata/{}).".format(map_name, map_name))
         return
     
-    if not os.path.exists("{}.svg".format(map_name)):
+    svg_file_path = "{}/{}.svg".format(os.environ["CARTOGRAM_DATA_DIR"], map_name)
+    if not os.path.exists(svg_file_path):
         print("Error: It looks like {}.svg doesn't exist. I need this file to add color information to your new map.")
         return
-    
-    if not os.path.exists("{}-landarea.csv".format(map_name)):
-        print("Error: It looks like {}.svg doesn't exist. I need this file to add land area information to your new map.")
-        return
-    
-    if not os.path.exists("{}-population.csv".format(map_name)):
-        print("Error: It looks like {}.svg doesn't exist. I need this file to add population information to your new map.")
-        return
-    
-    print()
-    print("I will now parse {}.svg to learn each map region's default color.".format(map_name))
-    print()
-
-    print("Reading {}.svg...".format(map_name))
 
     try:
-        new_colors, colors_by_name = svg2color.convert("{}.svg".format(map_name), "static/cartdata/{}/colors.json".format(map_name))
-        print(repr(new_colors))
-        print(repr(colors_by_name))
-    except Exception as e:
-        print(repr(e))
-        cleanup()
-        return
-    
-    print()
-    print("I will now parse {}.svg for label information.".format(map_name))
-    print()
-
-    print("Reading static/cartdata/{}/labels.json...".format(map_name))
-    try:
-        with open("static/cartdata/{}/labels.json".format(map_name), "r") as labels_json_file:
-
-            try:
-                labels_json = json.load(labels_json_file)
-                labels_scale_x = labels_json['scale_x']
-                labels_scale_y = labels_json['scale_y']
-            except Exception as e:
-                print(repr(e))
-                cleanup()
-                return
-    except Exception as e:
-        print(repr(e))
-        cleanup()
-        return
-    
-    print("Reading {}.svg...".format(map_name))
-
-    try:
-        labels = svg2labels.convert("{}.svg".format(map_name), labels_scale_x, labels_scale_y)
-    except Exception as e:
-        print(repr(e))
-        cleanup()
-        return
-    
-    print()
-    print("I will now parse {}.svg for configuration information.".format(map_name))
-    print()
-    
-    print("Reading {}.svg...".format(map_name))
-
-    try:
-        config = svg2config.convert("{}.svg".format(map_name))
-    except Exception as e:
-        print(repr(e))
-        cleanup()
-        return
-    
-    print()
-    print("I will now parse the land area and population information from each region from {0}-landarea.csv and {0}-population.csv".format(map_name))
-    print()
-
-    try:
-        map_module = importlib.import_module('handlers.{}'.format(map_name))
-
-        map_handler = map_module.CartogramHandler()
-
-        print("Reading {}-landarea.csv...".format(map_name))
-        with open("{}-landarea.csv".format(map_name), "r", newline='') as landarea_csv:
-
-            try:
-                landarea_cartogramui = map_handler.csv_to_area_string_and_colors(landarea_csv)
-            except Exception as e:
-                print(repr(e))
-                cleanup()
-                return
-        
-        print("Reading {}-population.csv...".format(map_name))
-
-        with open("{}-population.csv".format(map_name), "r", newline='') as population_csv:
-
-            try:
-                population_cartogramui = map_handler.csv_to_area_string_and_colors(population_csv)
-                population_cartogramui[2]["unit"] = "people"
-            except Exception as e:
-                print(repr(e))
-                cleanup()
-                return
-        
-        print("Reading {}-population.csv...".format(map_name))
-        regions_populations = {}
-        with open("{}-population.csv".format(map_name), "r", newline='') as population_csv:
-
-            try:
-                reader = csv.reader(population_csv)
-
-                header_row = True
-                for row in reader:
-
-                    if header_row:
-                        header_row = False
-                        continue
-                    
-                    regions_populations[row[0]] = row[2]
-            except Exception as e:
-                print(repr(e))
-                cleanup()
-                return
-                    
-    except Exception as e:
-        print(repr(e))
-        cleanup()
-        return
-
-    print()
-    print("I will now generate the conventional and population map data. This may take a moment.")
-    print()
-
-    print("Generating population map...")
-    print("Making request to AWS Lambda function at {}.".format(settings.CARTOGRAM_LAMBDA_URL))
-    try:
-
-        areas = population_cartogramui[0].split(";")
-
-        def serverless_generate():
-
-            redis_conn = redis.Redis(host=settings.CARTOGRAM_REDIS_HOST, port=settings.CARTOGRAM_REDIS_PORT, db=0)
-            q = queue.Queue()
-            unique_key = get_random_string(50)
-
-            def downloader_worker():
-                lambda_result = awslambda.generate_cartogram(map_handler.gen_area_data(areas),
-                                             map_handler.get_gen_file(), settings.CARTOGRAM_LAMBDA_URL,
-                                             settings.CARTOGRAM_LAMDA_API_KEY, unique_key)
-
-                cartogram_gen_output = lambda_result['stdout']
-
-                q.put(cartogram_gen_output)
-
-            threading.Thread(target=downloader_worker(), daemon=True).start()
-
-            current_stderr = ""
-            current_progress_level = None
-            gen_output = ""
-
-            while True:
-                current_progress = redis_conn.get("cartprogress-{}".format(unique_key))
-
-                if current_progress == None:
-                    pass
-                else:
-                    current_progress = json.loads(current_progress.decode())
-                    if current_progress['progress'] != current_progress_level:
-                        to_print = current_progress['stderr'].replace(current_stderr, "")
-                        for line in to_print.split("\n"):
-                            print("Generating population map: {}".format(line), flush=True)
-                        current_stderr = current_progress['stderr']
-                        current_progress_level = current_progress['progress']
-
-                try:
-                    gen_output = q.get(False, timeout=0.1)
-                    break
-                except queue.Empty:
-                    pass
-
-            current_progress = redis_conn.get("cartprogress-{}".format(unique_key))
-
-            if current_progress == None:
-                pass
-            else:
-                current_progress = json.loads(current_progress.decode())
-                if current_progress['progress'] != current_progress_level:
-                    to_print = current_progress['stderr'].replace(current_stderr, "")
-                    for line in to_print.split("\n"):
-                        print("Generating population map: {}".format(line), flush=True)
-
-            return json.loads(gen_output)
-
-        def self_generate():
-
-            gen_output_lines = []
-
-            for source, line in cartwrap.generate_cartogram(map_handler.gen_area_data(areas), map_handler.get_gen_file(), os.environ["CARTOGRAM_EXE"]):
-
-                if source == "stdout":
-                    gen_output_lines.append(line.decode().strip())
-                else:
-                    print("Generating population map: {}".format(line.decode().strip()))
-
-            gen_output = "\n".join(gen_output_lines)
-            return json.loads(gen_output)
-
-        cartogram_json = serverless_generate() if settings.CARTOGRAM_LOCAL_DOCKERIZED else self_generate()
-
-        # Calculate the bounding box if necessary
-        if "bbox" not in cartogram_json:
-            cartogram_json["bbox"] = geojson_extrema.get_extrema_from_geojson(cartogram_json)
-
-        cartogram_json["tooltip"] = population_cartogramui[2]
-    except Exception as e:
-        traceback.print_exc()
-        print(repr(e))
-        cleanup()
-        return
-
-    print("Generating conventional map...")
-    try:
-
-        with open(map_handler.get_gen_file(), "r") as map_gen_file:
-
-            try:
-                original_json = json.load(map_gen_file)
-
-                original_tooltip = landarea_cartogramui[2]
-                original_tooltip['unit'] = 'km sq.'
-
-                original_json['tooltip'] = original_tooltip
-            except Exception as e:
-                print(repr(e))
-                cleanup()
-                return
-    except Exception as e:
-        print(repr(e))
-        cleanup()
-        return
-    
-    print()
-    print("I will now generate the finalized data entry template.")
-    print()
-
-
-    print("Reading static/cartdata/{}/template.csv...".format(map_name))
-    final_template = []
-    try:
-
-        with open("static/cartdata/{}/template.csv".format(map_name), "r", newline='') as template_csv_file:
-
-            try:
-                reader = csv.reader(template_csv_file)
-
-                header_row = True
-                for row in reader:
-
-                    if header_row:
-                        final_template.append(row)
-                        header_row = False
-                        continue
-                    
-                    final_template.append([row[0], regions_populations[row[0]], row[2], colors_by_name[row[0]]])
-            except Exception as e:
-                print(repr(e))
-                cleanup()
-                return
-    except Exception as e:
-        print(repr(e))
-        cleanup()
-        return
-    
-    print("Writing static/cartdata/{}/template.csv...".format(map_name))
-    try:
-        with open("static/cartdata/{}/template.csv".format(map_name), "w", newline='') as template_csv_file:
-
-            try:
-                writer = csv.writer(template_csv_file)
-
-                for row in final_template:
-                    writer.writerow(row)
-            except Exception as e:
-                print(repr(e))
-                cleanup()
-                return
-    except Exception as e:
-        print(repr(e))
-        cleanup()
-        return
-    
-    print("Reading static/cartdata/{}/template.csv...".format(map_name))
-    try:
-        with open("static/cartdata/{}/template.csv".format(map_name), "r", newline='') as template_csv_file:
-
-            try:
-                cartogramui = map_handler.csv_to_area_string_and_colors(template_csv_file)
-            except Exception as e:
-                print(repr(e))
-                cleanup()
-                return
-    except Exception as e:
-        print(repr(e))
-        cleanup()
-        return
-    
-    print("Writing static/cartdata/{}/griddocument.json...".format(map_name))
-    try:
-        with open("static/cartdata/{}/griddocument.json".format(map_name), "w") as griddocument_json_file:
-
-            try:
-                json.dump(cartogramui[3], griddocument_json_file)
-            except Exception as e:
-                print(repr(e))
-                cleanup()
-                return
-    except Exception as e:
-        print(repr(e))
-        cleanup()
-        return
-    
-    print()
-    print("I will now finish up writing the map data files.")
-    print()
-
-    print("Writing static/cartdata/{}/original.json...".format(map_name))
-    try:
-        with open("static/cartdata/{}/original.json".format(map_name), "w") as original_json_file:
-
-            try:
-                json.dump(original_json, original_json_file)
-            except Exception as e:
-                print(repr(e))
-                cleanup()
-                return
-    except Exception as e:
-        print(repr(e))
-        cleanup()
-        return
-    
-    print("Writing static/cartdata/{}/population.json...".format(map_name))
-    try:
-        with open("static/cartdata/{}/population.json".format(map_name), "w") as original_json_file:
-
-            try:
-                json.dump(cartogram_json, original_json_file)
-            except Exception as e:
-                print(repr(e))
-                cleanup()
-                return
-    except Exception as e:
-        print(repr(e))
-        cleanup()
-        return
-    
-    print("Writing static/cartdata/{}/labels.json...".format(map_name))
-    try:
-        with open("static/cartdata/{}/labels.json".format(map_name), "w") as labels_json_file:
-
-            try:
-                json.dump(labels, labels_json_file)
-            except Exception as e:
-                print(repr(e))
-                cleanup()
-                return
-    except Exception as e:
-        print(repr(e))
-        cleanup()
-        return
-    
-    print("Writing static/cartdata/{}/colors.json...".format(map_name))
-    try:
+        print()
+        print("I will now parse {}.svg to learn each map region's default color.".format(map_name))
+        new_colors, colors_by_name = svg2color.convert(svg_file_path, "static/cartdata/{}/colors.json".format(map_name))
+        print("Writing static/cartdata/{}/colors.json...".format(map_name))
         with open("static/cartdata/{}/colors.json".format(map_name), "w") as colors_json_file:
-
-            try:
-                json.dump(new_colors, colors_json_file)
-            except Exception as e:
-                print(repr(e))
-                cleanup()
-                return
-    except Exception as e:
-        print(repr(e))
-        cleanup()
-        return
+            json.dump(new_colors, colors_json_file)
+        # print(repr(new_colors))
+        # print(repr(colors_by_name))
     
-    print("Writing static/cartdata/{}/config.json...".format(map_name))
-    try:
+        print()
+        print("I will now parse {}.svg for label information.".format(map_name))
+        with open("static/cartdata/{}/labels.json".format(map_name), "r") as labels_json_file:
+            labels_json = json.load(labels_json_file)
+            labels_scale_x = labels_json['scale_x']
+            labels_scale_y = labels_json['scale_y']    
+        labels = svg2labels.convert(svg_file_path, labels_scale_x, labels_scale_y)
+        print("Writing static/cartdata/{}/labels.json...".format(map_name))
+        with open("static/cartdata/{}/labels.json".format(map_name), "w") as labels_json_file:
+            json.dump(labels, labels_json_file)
+    
+        print()
+        print("I will now parse {}.svg for configuration information.".format(map_name))        
+        config = svg2config.convert(svg_file_path)
+        print("Writing static/cartdata/{}/config.json...".format(map_name))
         with open("static/cartdata/{}/config.json".format(map_name), "w") as colors_json_file:
-
-            try:
-                json.dump(config, colors_json_file)
-            except Exception as e:
-                print(repr(e))
-                cleanup()
-                return
-    except Exception as e:
-        print(repr(e))
-        cleanup()
-        return
+            json.dump(config, colors_json_file)
     
-    print("Generating map pack in static/cartdata/{}/mappack.json...".format(map_name))
+        print("Updating map pack in static/cartdata/{}/mappack.json...".format(map_name))
+        with open("static/cartdata/{}/mappack.json".format(map_name), "r") as mappack_json_file:
+            mappack_json = json.load(mappack_json_file)
+        mappack_json["colors"] = new_colors
+        mappack_json["labels"] = labels
+        mappack_json["config"]["dont_draw"] = config["dont_draw"]
+        mappack_json["config"]["elevate"] = config["elevate"]
+        with open("static/cartdata/{}/mappack.json".format(map_name), "w") as mappack_json_file:
+            json.dump(mappack_json, mappack_json_file)
 
-    try:
-        mappackify.mappackify(map_name)
+
     except Exception as e:
         print(repr(e))
-        cleanup()
         return
     
     print()
     print("All done!")
     print()
+
 
 print_welcome()
 
@@ -924,8 +590,17 @@ if len(sys.argv) < 3:
 
 if sys.argv[1] == "init":
     init(sys.argv[2])
-elif sys.argv[1] == "data":
-    data(sys.argv[2])
+elif sys.argv[1] == "batch":
+    ids = sys.argv[2].split(":")
+    for x in range(int(ids[0]), int(ids[1]) + 1):
+        try:
+            init("test" + str(x))
+        except Exception as e:
+            print(e)
+elif sys.argv[1] == "update":
+    update_by_svg(sys.argv[2])            
+elif sys.argv[1] == "cleanup":
+    cleanup(sys.argv[2])
 else:
     print_usage()
     sys.exit(1)

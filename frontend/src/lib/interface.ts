@@ -1,3 +1,7 @@
+export interface MapHandlers {
+  [key: string]: { name: string; region_identifier: string; file: string }
+}
+
 export interface Mappack {
   abbreviations: { [key: string]: string } // e.g. Alabama: 'AL'
   colors: { [key: string]: string } // e.g. id_1: '#7570b3'

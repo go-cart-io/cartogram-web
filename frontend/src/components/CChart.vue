@@ -1,8 +1,11 @@
 <script setup lang="ts">
+/**
+ * A pie chart based on the provided data to let users confirm that the data makes sense.
+ */
+
 import * as d3 from 'd3'
 import tinycolor from 'tinycolor2'
 import { ref } from 'vue'
-import type { Region } from '@/lib/region'
 import type { ChartDataItem, DataTable } from '@/lib/interface'
 import CTooltip from '@/components/CTooltip.vue'
 
@@ -14,7 +17,7 @@ const tooltipEl = ref<typeof CTooltip>()
 
 const emit = defineEmits(['confirm', 'cancel'])
 
-function drawPieChart(rawdata: DataTable) {  
+function drawPieChart(rawdata: DataTable) {
   const colName = 0
   const colColor = 1
   const colValue = 2
@@ -25,10 +28,11 @@ function drawPieChart(rawdata: DataTable) {
     containerElement.removeChild(containerElement.firstChild)
   }
 
-  let labelText = '', unitText = ''
+  let labelText = '',
+    unitText = ''
   let match = rawdata.fields[colValue].label.match(/(.+)\s?\((.+)\)$/)
   if (match) {
-    labelText =  match[1]
+    labelText = match[1]
     unitText = match[2]
   }
 
@@ -87,8 +91,7 @@ function drawPieChart(rawdata: DataTable) {
   }
 
   const total = dataWithOthers.reduce((acc, datum) => acc + datum.value, 0)
-  document.getElementById('data-total')!.innerHTML =
-    formatAsScientificNotation(total) + unitText
+  document.getElementById('data-total')!.innerHTML = formatAsScientificNotation(total) + unitText
 
   const othersThreshold = total * 0.025
 
@@ -280,7 +283,7 @@ defineExpose({
       <div id="piechart-area"></div>
       <div class="text-center" id="piechart-buttons">
         <button class="btn btn-secondary mx-2" v-on:click="emit('cancel')">Cancel</button>
-        <button class="btn btn-primary" v-on:click="emit('confirm')">Yes, I Confirm</button>        
+        <button class="btn btn-primary" v-on:click="emit('confirm')">Yes, I Confirm</button>
       </div>
     </div>
   </div>

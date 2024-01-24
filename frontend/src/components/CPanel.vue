@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * The map panel with functions for interactivity to manipulate viewport.
+ */
+
 import * as d3 from 'd3'
 import { ref, reactive } from 'vue'
 

@@ -7,7 +7,7 @@ const state = reactive({
 })
 
 /**
- * generateSVGDownloadLinks generates download links for the map(s) and/or cartogram(s) displayed on the left and
+ * Generates download links for the map(s) and/or cartogram(s) displayed on the left and
  * right. We do this by taking advantage of the fact that D3 generates SVG markup. We convert the SVG markup into a
  * blob URL.
  */

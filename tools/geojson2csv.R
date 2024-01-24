@@ -1,9 +1,17 @@
 # A script to create data file to be used with addmap.py
 ######################################################
 
+# Relative file path to input geojson file
 input <- "../data/asean_processedmap.json"
+
+# Relative file path and prefix to output files
+# e.g., the output 'asean2' will produce asean2.csv and asean2.geojson
 output <- "../data/asean2"
+
+# Region name property, e.g., NAME_1 if from GADM
 name_property <- "NAME_0"
+
+# Region abbreviation property, e.g., HASC_1 if from GADM
 abbr_property <- "GID_0"
 
 ######################################################
@@ -46,3 +54,5 @@ bbox <- st_bbox(msoa_selected_fields)
 msoa_json$bbox <- c(bbox$xmin[[1]], bbox$ymin[[1]], bbox$xmax[[1]], bbox$ymax[[1]])
 msoa_json <- toJSON(msoa_json)
 write(msoa_json, outfile)
+
+print('All done.')

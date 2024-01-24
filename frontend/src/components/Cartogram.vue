@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * The main app with functions for managing components (between map panel, chart, and progress bar).
+ */
+
 import { reactive, ref, onBeforeMount, nextTick } from 'vue'
 import { Toast } from 'bootstrap'
 
@@ -9,14 +13,14 @@ import CProgressBar from './CProgressBar.vue'
 import HTTP from '../lib/http'
 import * as util from '../lib/util'
 import CartMap from '../lib/cartMap'
-import type { Mappack, DataTable } from '../lib/interface'
+import type { MapHandlers, Mappack, DataTable } from '../lib/interface'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
 const props = defineProps<{
   mapName: string
-  maps: { [key: string]; display_name: string } | null
+  maps: MapHandlers
   mapDataKey: string
   mode: string | null
 }>()
@@ -42,18 +46,11 @@ onBeforeMount(() => {
 })
 
 /**
- * getMapMap returns an HTTP get request for all of the static data (abbreviations, original and population map
- * geometries, etc.) for a map. The progress bar is automatically updated with the download progress.
- *
- * A map pack is a JSON object containing all of this information, which used to be located in separate JSON files.
- * Combining all of this information into one file increases download speed, especially for users on mobile devices,
- * and makes it easier to display a progress bar of map information download progress, which is useful for users
- * with slow Internet connections.
- * @param {string} sysname The sysname of the map
- * @returns {Promise}
+ * Switchs the current map in the application (e.g., From Singapore to Thailand).
+ * It initializes the new map, updates the current version, and triggers a redraw of the map.
+ * @param {Mappack} newmappack The new map pack to switch to.
  */
 async function switchMap(newmappack: Mappack) {
-  //store.currentMapName
   mappack = newmappack
   map = new CartMap()
   store.currentVersionName = map.init(mappack)
@@ -63,6 +60,10 @@ async function switchMap(newmappack: Mappack) {
   redraw()
 }
 
+/**
+ * Redraws the map and updating the current component to 'map'.
+ * It uses the nextTick function to ensure that the DOM has been updated before redrawing the map.
+ */
 async function redraw() {
   state.currentComponent = 'map'
 
@@ -72,12 +73,23 @@ async function redraw() {
   tempDataTable = null
 }
 
+/**
+ * Switchs the current version of the map in the application (e.g., from Area to Population).
+ * It takes a version parameter and updates the current version name in the store.
+ * It also calls the switchVersion method of the CartMap instance to switch the version of the map being displayed.
+ * @param {String} version The new version of the map to switch to.
+ */
 function switchVersion(version: string) {
   if (!version) return
   map.switchVersion(store.currentVersionName, version, 'cartogram-area')
   store.currentVersionName = version
 }
 
+/**
+ * Updates the state and triggering the drawing of a pie chart based on the provided data
+ * to let users confirm that the data makes sense.
+ * @param {DataTable} data A DataTable object containing the data for the pie chart.
+ */
 async function confirmData(data: DataTable) {
   tempDataTable = data
   state.currentComponent = 'chart'
@@ -87,7 +99,7 @@ async function confirmData(data: DataTable) {
 }
 
 /**
- * getGeneratedCartogram generates a cartogram with the given dataset, and updates the progress bar with progress
+ * Generates a cartogram with the given dataset, and updates the progress bar with progress
  * information from the backend.
  */
 async function getGeneratedCartogram() {

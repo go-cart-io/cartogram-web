@@ -1,53 +1,75 @@
 # Adding a Map
 
-This guide will help you add a new map to the go-cart.io website. This guide assumes that you have already set up the website code for local testing and development by following the instructions here https://github.com/jansky/cartogram-docker.
+This guide will help you add a new map to the go-cart.io website. This guide assumes that you have already set up the website code for local testing and development by following the instructions here https://github.com/atima/cartogram-docker.
 
 ## Contents
+
 - [1. What You'll Need](#1-what-youll-need)
 - [2. Preparing Your Data](#2-preparing-your-data)
 - [3. Initializing Your Map](#3-initializing-your-map)
 - [4. Adding the Rest of Your Data](#4-adding-the-rest-of-your-data)
-    - [Adding Colors and Labels Using a Python Script (and Inkscape)](#adding-colors-and-labels-using-a-python-script-and-inkscape)
-    - [Adding Colors and Labels Using Inkscape](#adding-colors-and-labels-using-inkscape)
+  - [Adding Colors and Labels Using a Python Script (and Inkscape)](#adding-colors-and-labels-using-a-python-script-and-inkscape)
+  - [Adding Colors and Labels Using Inkscape](#adding-colors-and-labels-using-inkscape)
 - [5. Saving Your Changes](#5-saving-your-changes)
 
-\* [Left/Right Map Display](#leftright-map-display)<br/>
-\* [Exporting the cartogram animation to a gif](create_cart_animation_gif.md)
+\* [Left/Right Map Display](#leftright-map-display)<br/> \* [Exporting the cartogram animation to a gif](create_cart_animation_gif.md)
 
 ## 1. What You'll Need
 
 To add a map, you will need the following files, information, and software:
 
-* Conventional map geography, in .gen format
-* Map region names and abbreviations
-* A sample dataset (e.g. GDP)
-* Population and land area (in km^2) for each map region
-* Inkscape, a free, open-source vector graphics editor for Windows, Mac, and Linux that can be downloaded at https://inkscape.org/. 
+- Conventional map geography, in .geojson format
+- Map region names and abbreviations
+- A dataset (e.g. population, GDP)
+- (Optional) Inkscape, a free, open-source vector graphics editor for Windows, Mac, and Linux that can be downloaded at https://inkscape.org/.
 
 ## 2. Preparing Your Data
 
-\* Please refer to the bottom of this README for displaying a different map on the left (equal-area map) from the map on the right (for cartogram calculations)
+The first step in adding a map is to prepare your data.
 
-The first step in adding a map is to prepare your data. 
+### 2.1 Generating a GeoJSON file (`_processedmap.json`)
 
-#### Select 1. or 2. to edit your map and to generate a GeoJSON file (`_processedmap.json`) and a CSV file for your map:
-1. To use Mapshaper, follow the steps at https://github.com/bbkc22113/geojson-to-csv-cartogram-web.
-2. To use QGIS, follow the steps at [qgis_processing.md](qgis_processing.md). Then, follow steps 2.1, 2.4, and 3 at https://github.com/bbkc22113/geojson-to-csv-cartogram-web to generate the necessary GeoJSON files (`_processedmap.json`) and CSV file for your map.
+Select 1. or 2. to edit your map:
 
-Then, copy the GeoJSON (`_processedmap.json`) file for the conventional map into `cartogram-docker/cartogram-web/data`. 
+1. To use Mapshaper, follow the steps at https://github.com/bbkc22113/geojson-to-csv-cartogram-web. No need to follow step 3.
+2. To use QGIS, follow the steps at [qgis_processing.md](qgis_processing.md). Then, follow steps 2.1 and 2.4 at https://github.com/bbkc22113/geojson-to-csv-cartogram-web to generate the necessary GeoJSON files (`_processedmap.json`) for your map.
 
-Now, you should edit the CSV file. Insert an example dataset under the 'Region Data' column, and ensure that there is a filled 'Region Abbreviation' column (you may need to create it). Do not use population for your example dataset. You will add population data for your map later in this process. A good choice for the example dataset is GDP by region. 
+Then, copy the GeoJSON (`_processedmap.json`) file for the conventional map into `cartogram-docker/cartogram-web/data`.
 
-Some region names may contain accent marks or other unicode characters. Please use only ASCII characters in your CSV file. You can see an example of a completed CSV file below:
+### 2.2 Generating csv file and edit the data:
+
+Open `tools/geojson2csv.R` in RStudio. Adjust the following variables accourdingly.
+
+    # Relative file path to input geojson file
+    input <- "../data/asean_processedmap.json"
+
+    # Relative file path and prefix to output files
+    # e.g., the output 'asean2' will produce asean2.csv and asean2.geojson
+    output <- "../data/asean2"
+
+    # Region name property, e.g., NAME_1 if from GADM
+    name_property <- "NAME_0"
+
+    # Region abbreviation property, e.g., HASC_1 if from GADM
+    abbr_property <- "GID_0"
+
+Then, click on source. In the console, it should say "All done.".
+
+Now, you should edit the CSV file. Insert the dataset with appropriate dataset name after the 'Color' column. The dataset name **must not** contain space or special characters. Note that data in the "Area" column should either come first or not at all. It is a special column that will be copied as-is and not processed by the cartogram generation algorithm.
+
+You can input multiple datasets. You can also edit the data in 'Color' column. You can see examples of completed CSV files below:
 
 ![CSV](edit-csv.png)
 
-**Important:** Before you finish, you should make sure that all of the region names are spelled correctly before you finish. If you notice that a region's name is misspelled, simply correct its spelling. Please note that after you initialize your map in the next step, you *cannot* correct spelling errors. Please double check the spelling of all the map region names before moving on to the next step.
+![CSV2](edit-csv2.png)
 
-When you're finished creating your CSV file, you should save it in `cartogram-docker/cartogram-web/data`. 
+**Important:** Before you finish, you should make sure that all of the region names are spelled correctly before you finish. If you notice that a region's name is misspelled, simply correct its spelling. Some region names may contain accent marks or other unicode characters. Please use only ASCII characters in your CSV file. Please note that after you initialize your map in the next step, you _cannot_ correct spelling errors. Please double check the spelling of all the map region names before moving on to the next step.
 
-### (For a world map) Adding "extent":"world" to _processedmap.json and adjusting bbox values.
-Open `_processedmap.json` in a text-editor.
+When you're finished creating your CSV file, you should save it in `cartogram-docker/cartogram-web/data`.
+
+### (For a world map) Adding "extent":"world" and adjusting bbox values.
+
+Open the geojson file generated from the R script in a text-editor.
 
 Add in the `"extent":"world"` key-value pair after `"type": "FeatureCollection"`.
 This will allow the cartogram executable to identify the GeoJSON as a world map.
@@ -55,6 +77,7 @@ This will allow the cartogram executable to identify the GeoJSON as a world map.
 Change the value for the `"bbox"` key to `[ -180, -90, 180, 90 ]` to accurately display the North and South Poles.
 
 ## 3. Initializing Your Map
+
 From here on, you will be making use of the Add Map Wizard. Before you can use this wizard to initialize your new map, you must start the Docker containers for the go-cart.io website. To do this, run
 
     $ cd cartogram-docker/
@@ -75,99 +98,64 @@ Once you have chosen a map name, you can open a new terminal window and run the 
 
 The wizard will then ask you a series of questions about your map, and generate files needed to complete the map addition process.
 
-    $ ./addmap.sh init france
-
+    $ ./addmap.sh init asean2
     Welcome to the Add Map Wizard!
 
-    Enter a user friendly name for this map: France
+    Enter a user friendly name for this map (asean2): Asean (5 years)
 
     Now I need to know where the .json and .csv files for this map are located. These files should be located in the CARTOGRAM_DATA_DIR directory. You should supply me with a path relative to CARTOGRAM_DATA_DIR.
     E.G: The .json file for this map is located at CARTOGRAM_DATA_DIR/map.json. Enter "map.json".
 
-    Enter the location of the .gen file for this map: france.json
-    Enter the location of the .dat file for this map: france.csv
-    What are the regions of this map called (e.g. State, Province)? Department
-    What is the name of the dataset in the .dat file (e.g. GDP)? GDP
+    Enter the location of the .json file for this map (asean2.geojson): asean2.geojson
+    Enter the location of the .csv file for this map (asean2.csv): asean2.csv
+    What are the regions of this map called (e.g. State, Province) (Region)? Country
+    What is the name of datasets. Note that only letter with no space is allowed and it should match collumn name is .csv file. Use comma to separate each dataset (Area,Population)? 2017,2018,2019,2020,2021
+    What is unit of each dataset, in order (km.sq.,people)? people,people,people,people,people
+    What is the labelling scheme (1):
+    1. Auto labelling
+    2. Manual labelling
+    3. No label
+    ? 3
+    Writing static/cartdata/asean2/config.json...
+    Writing static/cartdata/asean2/abbreviations.json...
+    Writing static/cartdata/asean2/colors.json...
+    Writing static/cartdata/asean2/template.csv...
 
-    Writing handlers/france.py...
-    Writing static/cartdata/france/config.json...
-    Writing static/cartdata/france/abbreviations.json...
-    Writing static/cartdata/france/colors.json...
-    Writing static/cartdata/france/template.csv...
+    I will now generate the map and cartogram. This may take a moment.
+    Generating 2017 map...
+    Making request to AWS Lambda function at http://serverless:5050/cartogram.
+    ...
+    I will now finish up writing the map data files.
 
-    I will now create france.svg. You should edit this file to specify the default color and add labels for each region.
-    DO NOT RESIZE OR RESCALE THE CONTENTS OF THIS FILE! Accurate label placement depends on the scale calculated by this wizard.
+    Writing static/cartdata/asean2/2017.json...
+    Generating 2018 map...
+    Making request to AWS Lambda function at http://serverless:5050/cartogram.
+    ...
 
-    Writing france.svg...
-    Writing static/cartdata/france/labels.json...
+    I will now finish up writing the map data files.
 
-    I will now create france-landarea.csv and france-population.csv. You should edit these files to specify the land area (in square kilometers) and population of each region.
-    DO NOT ALTER THE COLOR INFORMATION IN THESE FILES! You should specify the color for each region by editing france.svg
+    Writing static/cartdata/asean2/2018.json...
 
-    Writing france-landarea.csv...
-    Writing france-population.csv...
+    ...
 
-    I will now modify web.py to add your new map. Before I do this, I will back up the current version of web.py to web.py.bak.
+    Generating map pack in static/cartdata/asean2/mappack.json...
+    Updating /root/web/data/asean2.geojson...
 
-    Backing up web.py...
-    Editing web.py...
+    I will now modify handler.py to add your new map. Before I do this, I will back up the current version of handler.py to handler.py.bak.
+
+    Backing up handler.py...
 
     All done!
 
-## 4. Adding the Rest of Your Data
+## 4. (Optional) Adding Colors and Labels Using SVG
 
-At this point, the Add Map Wizard has produced several files in the `internal/` directory that you'll need to edit to complete the map addition process. First, you should edit `your-map-landarea.csv` and `your-map-population.csv` to add the population and land area information for each map region. You can edit these manually, using a text editor, or with a spreadsheet program like LibreOffice Calc or Microsoft Excel.
+If you select 2 (Manual labelling) for the labelling scheme, the script will generate a SVG file in `cartogram-docker/cartogram-web/data`. You now have the option of adding colours and labels using a Python script & Inkscape.
 
-You now have the option of adding colours and labels using a Python script (& Inkscape) or doing it completely manually using only Inkscape.
+1. Open the generated file (e.g., `asean2.svg`) in Inkscape to make any additional edits to the colours and labels as you see fit. If you need to add lines pointing labels to regions, please refer to [Adding Labels](#adding-labels). Once you have finished adding/editing all of your colours/labels, save your SVG file by going to File -> Save.
 
-## Adding Colors and Labels Using a Python Script (and Inkscape)
-This script adds colours and labels to `your-map.svg`
+2. Replace the `.svg` in `cartogram-web/internal/data` with the edited file.
 
-1. After completing the first step of the Add Map Wizard, copy your `_processedmap.json`, `.svg`, and `_data.csv` files into `colour_label_svg/data`.
-
-2. Change directories to `colour_label_svg` and set up your Python virtual environment for this directory.
-```
-$ cd colour_label_svg/
-$ python3 -m venv venv
-```
-
-3. Start up your Python virtual environment and install the dependencies for `colour_label_svg.py`.
-```
-$ source venv/bin/activate
-$ pip install pandas
-$ pip install geopandas
-$ pip install mapclassify
-$ pip install geojson
-$ pip install libpysal
-```
-\* Note: If a dependency-related error occurs, please install any other dependencies required.
-
-4. Run the `colour_label_svg.py` script.
-```
-$ python colour_label_svg.py
-```
-
-5. Enter the name of each file when prompted. This script will apply topological colouring and label the centroid of each polygon in the `.svg`.
-```
-Enter the name of the .json file: _processedmap.json
-Enter the name of the .csv file: _data.csv
-Enter the name of the .svg file: .svg
-```
-\* Note: The script currently does not label enclaves nor the territory surrounding it so you may need to include any missing labels.
-
-6. Exit your Python virtual environment.
-```
-$ deactivate
-```
-
-7. Open the generated `_coloured_labelled.svg` file in Inkscape to make any additional edits to the colours and labels as you see fit. If you need to add lines pointing labels to regions, please refer to [Adding Labels](#adding-labels). Once you have finished adding/editing all of your colours/labels, save your SVG file by going to File -> Save.
-
-8. Replace the `.svg` in `cartogram-web/internal/data` with the newly generated `_coloured_labelled.svg`. (Remember to rename it to the name of the file that was replaced! E.g. Remove `france.svg`from `cartogram-web/internal/data` and move `france_coloured_labelled.svg` to `cartogram-web/internal/data`. Then, rename `france_coloured_labelled.svg` to `france.svg`.
-
-9. Continue with the second step of the Add Map Wizard under [Finishing Up](#finishing-up).
-
-## Adding Colors and Labels Using Inkscape
-Now, by editing `your-map.svg` using Inkscape, you will set the default color for each map region and add labels for the conventional map.
+3. Continue with the second step of the Add Map Wizard under [Finishing Up](#finishing-up).
 
 ### Adding Colors
 
@@ -191,8 +179,8 @@ First, ensure that the ColorBrewer color palette is selected. To do this, click 
 
 The coloring process is straightforward. Left click on each region you want to color, and then left click on the color in the palette bar you want to apply to that region. Color the map as you wish while keeping in mind the following constraints:
 
-* Neighboring regions **must not** have the same color.
-* The distribution of colors throughout the map should be roughly equal. The default colors are not used to indicate data, but instead to allow users to clearly see the region boundaries.
+- Neighboring regions **must not** have the same color.
+- The distribution of colors throughout the map should be roughly equal. The default colors are not used to indicate data, but instead to allow users to clearly see the region boundaries.
 
 **Important:** Some of your map regions may include many small polygons that are hard to spot in Inkscape. You don't have to color each one. The Add Map Wizard only requires that you color **one** polygon per map region (usually it is easiest if you color the largest one).
 
@@ -208,8 +196,7 @@ First, we'll add a text label. Click the text tool on the toolbar, left click on
 
 ![Inkscape 7](inkscape-labels2.png)
 
-After you've added the text label, go to `Text -> Convert to Text` in the menubar (if you don't do this, then the text label won't be detected by the Add Map Wizard). Then, adjust the font size to 14 so that the label text appears as it would on the website. The font size of the labels in Inkscape does not affect their appearance on the website, but setting it appropriately will make it easier for you to place them correctly. 
-\* Note: Please use font size 12.5 for a world map.
+After you've added the text label, go to `Text -> Convert to Text` in the menubar (if you don't do this, then the text label won't be detected by the Add Map Wizard). Then, adjust the font size to 14 so that the label text appears as it would on the website. The font size of the labels in Inkscape does not affect their appearance on the website, but setting it appropriately will make it easier for you to place them correctly. \* Note: Please use font size 12.5 for a world map.
 
 Now, go to `Object -> Object Properties...`. Set the 'Label' field to `gocartlabel`, and click 'Set'. This will help the Add Map Wizard find your text labels in the SVG document.
 
@@ -231,52 +218,19 @@ Once you have finished adding all of your labels, you should save your SVG file 
 
 At this point, you're now ready to finish the map addition process. Open a Terminal window and navigate to the `cartogram-docker/` directory of the repository. Run the Add Map Wizard again:
 
-    $ ./addmap.sh data your-map-name
+    $ ./addmap.sh update your-map-name
 
 ## 5. Saving Your Changes
 
 Change directories to `cartogram-web/`. You should now commit your changes to your Git branch, and push these changes to GitHub.
 
     $ cd cartogram-web/
-    $ git add internal/handlers
+    $ git add internal/handler.py
     $ git add internal/static
-    $ git add data/[map_name]_processedmap.json
+    $ git add data/[map_name].geojson
     $ git commit -a -m "added map New Map Name"
     $ git push origin master
 
 You should also create a pull request on GitHub to let me know that you have finished adding the new map, so I can deploy it to the website. Navigate to your forked repository and click 'Create pull request'.
 
 ![Pull Request](pull-request.png)
-
-
-## Left/Right Map Display
-#### Displaying a different map on the left (equal-area map) from the map on the right (for cartogram calculations)
-
-1. Prepare 2x `_processedmap.json` files:
-* Map to display on the left (high-resolution equal-area map) (e.g. `highres_processedmap.json`)
-* Map on the right (for cartogram calculations) (e.g. `cartogram_calc_processedmap.json`)
-
-2. Run the first step of the Add Map Wizard as per normal for `highres_processedmap.json`.
-
-3. Fill in the data for the `-landarea.csv`, `-population.csv`, and `.svg` files.
-
-4. Replace `highres_processedmap.json` in the `data` folder with `cartogram_calc_processedmap.json`.<br/>
-    i) Rename `highres_processedmap.json` to `highres_old_processedmap.json`.<br/>
-    ii) Copy `cartogram_calc_processedmap.json` into `data` folder.<br/>
-    iii) Rename `cartogram_calc_processedmap.json` to `highres_processedmap.json`.<br/>
-
-5. Run the second step of the Add Map Wizard as per normal for `highres_processedmap.json` (renamed from `cartogram_calc_processedmap.json`).
-
-6. Move the original `highres_processedmap.json` (from steps 1-2) into `cartogram-web/internal/static/cartdata/highres_processedmap`.
-
-7. In `cartogram-web/internal/static/cartdata/highres_processedmap`, open `original.json`, and copy the key-value pair of `"tooltip": {...}` into `highres_processedmap.json`.
-
-8. Remove `original.json` from that folder and rename `highres_processedmap.json` to `original.json`, effectively replacing it.
-
-9. Change directories to `cartogram/web-internal` and update the `original.json` file
-```
-$ cd cartogram-web/internal
-$ ../../runcmd.sh web python mappackify.py highres 
-```
-
-10. Visit the website on your local machine. You should now see the left map as the one generated from the original `highres_processedmap.json` and the right map from `cartogram_calc_processedmap.json`.

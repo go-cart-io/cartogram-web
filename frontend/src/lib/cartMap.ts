@@ -48,7 +48,7 @@ export default class CartMap {
   highlighted_region: string | null = null
 
   /**
-   * constructor creates a new instance of the Map class
+   * Initializes a new instance of the Map class
    * @param {Mappack} mappack The data of the map and cartogram
    */
   init(mappack: Mappack): string {
@@ -60,7 +60,7 @@ export default class CartMap {
       versionName = i.toString() + '-' + data_names[i]
       this.addVersion(versionName, null, mappack[data_names[i]], '0-base')
     }
-    
+
     /*
       The keys in the colors.json file are prefixed with id_. We iterate through the regions and extract the color
       information from colors.json to produce a color map where the IDs are plain region IDs, as required by
@@ -101,9 +101,8 @@ export default class CartMap {
   }
 
   /**
-   * getTotalAreasAndValuesForVersion returns the sum of all region values and area for the specified map version.
-   * @param {string} sysname The sysname of the map version
-   * @returns {number[]} The total value and area of the specified map version
+   * Returns the sum of all region values and area for the specified regions.
+   * @returns {number[]} The total value and area of the specified regions
    */
   getTotalAreasAndValuesForVersion(regions: { [key: string]: any }): [number, number] {
     var area = 0
@@ -141,9 +140,9 @@ export default class CartMap {
   }
 
   /**
-   * addVersion adds a new version to the map. If a version with the specified sysname already exists, it will be overwritten.
+   * Adds a new version to the map. If a version with the specified sysname already exists, it will be overwritten.
    * @param {string} sysname A unique system identifier for the version
-   * @param {MapVersionData} data Data for the new map version.
+   * @param {Mappack} mappack Data for the new map version.
    * @param {string} base_sysname Sysname of the version to be used as the standard for area equalization
    */
   addVersion(sysname: string, mappack: Mappack | null, mappackItem: any, base_sysname: string) {
@@ -252,10 +251,9 @@ export default class CartMap {
   }
 
   /**
-   * highlightByID highlights or unhighlights a region depending on the given opacity value.
+   * Highlights a region in the specify map/cartogram.
+   * @param {Array<string>} where_drawn The map/cartogram to highlight
    * @param {string} region_id The ID of the region to highlight
-   * @param {string} color The original color of the region
-   * @param {boolean} highlight Whether to highlight or unhighlight the region
    */
   highlightByID(where_drawn: Array<string>, region_id: string) {
     if (!this.highlighted_region) this.unhighlight(where_drawn)
@@ -270,6 +268,9 @@ export default class CartMap {
     })
   }
 
+  /**
+   * Unhighlights all regions in the specify map/cartogram.
+   */
   unhighlight(where_drawn: Array<string>) {
     if (!this.highlighted_region) return
 
@@ -285,7 +286,7 @@ export default class CartMap {
   }
 
   /**
-   * drawTooltip draws the tooltip for the currently highlighted region.
+   * Draws the tooltip for the currently highlighted region.
    * @param {MouseEvent} event Mouse event. Used to place the tooltip next to the cursor
    * @param {string} region_id The ID of the region currently highlighted
    */
@@ -305,7 +306,7 @@ export default class CartMap {
   }
 
   /**
-   * drawVersion draws a map version in the element with the given ID. You must add colors to the map before attempting to draw a version.
+   * Draws a map version in the element with the given ID. You must add colors to the map before attempting to draw a version.
    * Note that version switching is not supported if you draw a version of a map with labels as the initial version.
    * @param {string} sysname The sysname of the map version
    * @param {string} element_id The element of the ID to place the map
@@ -520,7 +521,7 @@ export default class CartMap {
   }
 
   /**
-   * switchVersion switches the map version displayed in the element with the given ID with an animation.
+   * Switches the map version displayed in the element with the given ID with an animation.
    * @param {string} currentVersionName The sysname of the currently displayed version
    * @param {string} new_sysname The sysname of the version to be displayed
    * @param {string} element_id The ID of the element containing the map

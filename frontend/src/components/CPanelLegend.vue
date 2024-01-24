@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * Legend wrapper for map with functions for managing grid size.
+ */
+
 import * as d3 from 'd3'
 import { nextTick, onMounted, reactive, watch } from 'vue'
 import type CartMap from '@/lib/cartMap'
@@ -100,9 +104,8 @@ async function update() {
 }
 
 /**
- * The following returns the scaling factors (x and y) of map of specified version.
- * @param {string} sysname The sysname of the map version
- * @returns {number[]} The total polygon area of the specified map version
+ * Returns the scaling factors of map of current version.
+ * @returns {number} The scaling factors of map of current version.
  */
 function getVersionPolygonScale(): number {
   var scale_x: number, scale_y: number

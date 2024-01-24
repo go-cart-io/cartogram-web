@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import HTTP from '../lib/http'
-import type { Mappack } from '../lib/interface'
+import type { MapHandlers, Mappack } from '../lib/interface'
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
 const props = defineProps<{
   isEmbed: boolean
-  maps: { [key: string]; display_name: string } | null
+  maps: MapHandlers | null
 }>()
 
 const emit = defineEmits(['map_changed'])
@@ -17,8 +17,8 @@ onMounted(async () => {
 })
 
 async function switchMap() {
-  var url = store.sharingKey
-    ? '/mappack/' + store.sharingKey
+  var url = store.stringKey
+    ? '/mappack/' + store.stringKey
     : '/static/cartdata/' + store.currentMapName + '/mappack.json'
 
   var mappack = (await HTTP.get(url, null, function (e: any) {
