@@ -42,7 +42,7 @@ onMounted(() => {
         r="5"
       />
     </g>
-    <g v-if="props.handler === 'test4' && props.touchLenght > 2">
+    <g v-if="props.touchLenght > 2">
       <text
         font-weight="bold"
         v-bind:x="state.points[0][0] - 50"
