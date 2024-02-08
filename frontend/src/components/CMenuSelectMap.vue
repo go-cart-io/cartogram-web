@@ -11,13 +11,18 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['map_changed'])
+let mappackURL: string | null
 
 onMounted(async () => {
+  const urlParams = new URLSearchParams(window.location.search)
+  mappackURL = urlParams.get('url')
   switchMap()
 })
 
 async function switchMap() {
-  var url = store.stringKey
+  var url = mappackURL
+    ? mappackURL
+    : store.stringKey
     ? '/mappack/' + store.stringKey
     : '/static/cartdata/' + store.currentMapName + '/mappack.json'
 
