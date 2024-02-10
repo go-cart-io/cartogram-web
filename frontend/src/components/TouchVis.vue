@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { reactive, onMounted } from 'vue'
+import shareState from '../lib/state'
 import TouchInfo from '../lib/touchInfo'
 
 const props = defineProps<{
@@ -42,7 +43,7 @@ onMounted(() => {
         r="5"
       />
     </g>
-    <g v-if="props.touchLenght > 2">
+    <g v-if="props.touchLenght > 2 && shareState.options.stretchable">
       <text
         font-weight="bold"
         v-bind:x="state.points[0][0] - 50"
