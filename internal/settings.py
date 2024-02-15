@@ -20,6 +20,8 @@ PORT = int(os.environ.get('CARTOGRAM_PORT'))
 
 VERSION = os.environ.get('CARTOGRAM_VERSION')
 
+VITE_SERVER_PORT = os.environ.get('VITE_SERVER_PORT')
+
 SMTP_HOST = os.environ.get('CARTOGRAM_SMTP_HOST')
 SMTP_PORT = int(os.environ.get('CARTOGRAM_SMTP_PORT'))
 SMTP_AUTHENTICATION_REQUIRED = True if os.environ.get('CARTOGRAM_SMTP_AUTHENTICATION_REQUIRED').lower() == "true" else False

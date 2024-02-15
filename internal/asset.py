@@ -25,7 +25,7 @@ class Asset:
     
     def webpack_url_for(self, base_url, file):
         o = urlparse(base_url)
-        return '//' + o.hostname + ':5173/' + file   
+        return '//' + o.hostname + ':' + settings.VITE_SERVER_PORT + '/' + file   
 
     def reload_webpack_assets(self):
         self._get_webpack_assets(current_app)
