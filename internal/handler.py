@@ -97,11 +97,7 @@ class CartogramHandler:
         return handler in cartogram_handlers
     
     def get_sorted_handler_names(self):
-        cartogram_handlers_select = {}
-        for key, handler in cartogram_handlers.items():
-            cartogram_handlers_select[key] = {'name': handler['name'], 'region_identifier': handler['region_identifier']}
-
-        return dict(sorted(cartogram_handlers_select.items()))
+        return dict(sorted(cartogram_handlers.items(), key=lambda item: item[1]['name']))
 
     def get_name(self, handler):
         return cartogram_handlers[handler]['name']
