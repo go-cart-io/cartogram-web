@@ -1,6 +1,6 @@
 import requests
 import json
-
+from lambda_package import lambda_function
 def generate_cartogram(area_data, gen_file, lambda_url, lambda_api_key, cartogram_key, flags=''):
 
     headers = {
@@ -17,6 +17,10 @@ def generate_cartogram(area_data, gen_file, lambda_url, lambda_api_key, cartogra
         'flags': flags
     }
 
-    r = requests.post(lambda_url, headers=headers, json=lambda_event)
-
-    return r.json()
+    if lambda_url is not None and lambda_url is not '':
+        r = requests.post(lambda_url, headers=headers, json=lambda_event)
+        return r.json()
+    
+    else:        
+        r = lambda_function.lambda_handler({'body': json.dumps(lambda_event)}, {})
+        return json.loads(r['body'])

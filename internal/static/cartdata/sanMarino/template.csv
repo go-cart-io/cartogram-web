@@ -1,10 +1,10 @@
-Municipality,Population,Population (1986) (People),Colour
-Acquaviva,2167,1148,#e6ab02
-Borgo Maggiore,6946,4421,#66a61e
-Chiesanuova,1152,724,#1b9e77
-Domagnano,3584,1855,#e6ab02
-Faetano,1168,738,#e7298a
-Fiorentino,2552,1478,#d95f02
-Montegiardino,966,577,#7570b3
-San Marino,4063,4179,#7570b3
-Serravalle,10976,6995,#d95f02
+Municipality,Colour,Population,Population (1986) (People)
+Acquaviva,#e6ab02,2167,1148
+Borgo Maggiore,#66a61e,6946,4421
+Chiesanuova,#1b9e77,1152,724
+Domagnano,#e6ab02,3584,1855
+Faetano,#e7298a,1168,738
+Fiorentino,#d95f02,2552,1478
+Montegiardino,#7570b3,966,577
+San Marino,#7570b3,4063,4179
+Serravalle,#d95f02,10976,6995

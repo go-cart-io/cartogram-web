@@ -1,19 +1,19 @@
-Province,Population,Population (1985) (People),Colour
-Attapeu,156800,69631,#e6ab02
-Bokeo,200100,54925,#1b9e77
-Borikhamxai,309500,122300,#d95f02
-Champasak,743200,403041,#66a61e
-Houaphanh,308700,209921,#d95f02
-Khammouane,427400,213462,#7570b3
-Luang Namtha,195800,97028,#d95f02
-Luang Prabang,463300,295475,#1b9e77
-Oudomxay,340100,187115,#e7298a
-Phongsaly,191500,122984,#e6ab02
-Salavan,434700,187515,#d95f02
-Savannakhet,1053900,543611,#e7298a
-Vientiane [Prefecture],927700,377409,#7570b3
-Vientiane,456400,264277,#1b9e77
-Xaignabouli,417800,223611,#e6ab02
-Xaisomboun,105000,NA,#e7298a
-Sekong,127000,50909,#7570b3
-Xiangkhouang,264500,161589,#66a61e
+Province,Colour,Population,Population (1985) (People)
+Attapeu,#e6ab02,156800,69631
+Bokeo,#1b9e77,200100,54925
+Borikhamxai,#d95f02,309500,122300
+Champasak,#66a61e,743200,403041
+Houaphanh,#d95f02,308700,209921
+Khammouane,#7570b3,427400,213462
+Luang Namtha,#d95f02,195800,97028
+Luang Prabang,#1b9e77,463300,295475
+Oudomxay,#e7298a,340100,187115
+Phongsaly,#e6ab02,191500,122984
+Salavan,#d95f02,434700,187515
+Savannakhet,#e7298a,1053900,543611
+Vientiane [Prefecture],#7570b3,927700,377409
+Vientiane,#1b9e77,456400,264277
+Xaignabouli,#e6ab02,417800,223611
+Xaisomboun,#e7298a,105000,NA
+Sekong,#7570b3,127000,50909
+Xiangkhouang,#66a61e,264500,161589

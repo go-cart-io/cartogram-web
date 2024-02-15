@@ -4,7 +4,7 @@ import SVG from './svg'
 import { Polygon, Region, RegionVersion } from './region'
 import { MapVersion, MapVersionData } from './mapVersion'
 import GallPetersProjection from './projection'
-import type { MapConfig } from './interface'
+import type { Mappack, MapConfig } from './interface'
 
 /**
  * CartMap contains map data for a conventional map or cartogram. One map can contain several versions. In a map version,
@@ -12,12 +12,10 @@ import type { MapConfig } from './interface'
  * population in a cartogram map version).
  */
 export default class CartMap {
-  name: string
-
   /**
    * The map configuration information.
    */
-  config: MapConfig
+  config: MapConfig = { dont_draw: [], elevate: [] }
 
   /**
    * The map colors. The keys are region IDs.
@@ -45,17 +43,42 @@ export default class CartMap {
   max_height = 0.0
 
   /**
-   * constructor creates a new instance of the Map class
-   * @param {string} name The name of the map or cartogram
-   * @param {MapConfig} config The configuration of the map or cartogram
+   * Region that is highlighed
    */
-  constructor(name: string, config: MapConfig) {
-    this.name = name
-    this.config = {
-      dont_draw: config.dont_draw.map((id) => id.toString()),
-      elevate: config.elevate.map((id) => id.toString())
+  highlighted_region: string | null = null
+
+  /**
+   * Initializes a new instance of the Map class
+   * @param {Mappack} mappack The data of the map and cartogram
+   */
+  init(mappack: Mappack): string {
+    let data_names = mappack.config.data_names || ['original', 'population']
+    let versionName = '0-base'
+
+    this.addVersion('0-base', mappack, mappack[data_names[0]], '0-base')
+    for (let i = 1; i < data_names.length; i++) {
+      versionName = i.toString() + '-' + data_names[i]
+      this.addVersion(versionName, null, mappack[data_names[i]], '0-base')
     }
-    if (config.label_size) this.config.label_size = config.label_size
+
+    /*
+      The keys in the colors.json file are prefixed with id_. We iterate through the regions and extract the color
+      information from colors.json to produce a color map where the IDs are plain region IDs, as required by
+      CartMap.
+      */
+    var colors: { [key: string]: string } = {}
+    Object.keys(this.regions).forEach(function (region_id) {
+      colors[region_id] = mappack.colors['id_' + region_id]
+    })
+    this.colors = colors
+
+    this.config = {
+      dont_draw: mappack.config.dont_draw.map((id) => id.toString()),
+      elevate: mappack.config.elevate.map((id) => id.toString())
+    }
+    if (mappack.config.label_size) this.config.label_size = mappack.config.label_size
+
+    return versionName
   }
 
   getVersionGeoJSON(sysname: string) {
@@ -78,9 +101,8 @@ export default class CartMap {
   }
 
   /**
-   * getTotalAreasAndValuesForVersion returns the sum of all region values and area for the specified map version.
-   * @param {string} sysname The sysname of the map version
-   * @returns {number[]} The total value and area of the specified map version
+   * Returns the sum of all region values and area for the specified regions.
+   * @returns {number[]} The total value and area of the specified regions
    */
   getTotalAreasAndValuesForVersion(regions: { [key: string]: any }): [number, number] {
     var area = 0
@@ -100,7 +122,7 @@ export default class CartMap {
       }, this)
 
       const regionValue = region.value
-      if (regionValue.toString() !== 'NA') {
+      if (regionValue && regionValue.toString() !== 'NA') {
         sum += regionValue
       } else {
         na_regions.push({ id: region_id, area: areaValue })
@@ -118,12 +140,14 @@ export default class CartMap {
   }
 
   /**
-   * addVersion adds a new version to the map. If a version with the specified sysname already exists, it will be overwritten.
+   * Adds a new version to the map. If a version with the specified sysname already exists, it will be overwritten.
    * @param {string} sysname A unique system identifier for the version
-   * @param {MapVersionData} data Data for the new map version.
+   * @param {Mappack} mappack Data for the new map version.
    * @param {string} base_sysname Sysname of the version to be used as the standard for area equalization
    */
-  addVersion(sysname: string, data: MapVersionData, base_sysname: string) {
+  addVersion(sysname: string, mappack: Mappack | null, mappackItem: any, base_sysname: string) {
+    var data = MapVersionData.mapVersionDataFromMappack(mappack, mappackItem)
+
     if (this.versions.hasOwnProperty(sysname)) {
       delete this.versions[sysname]
     }
@@ -223,30 +247,46 @@ export default class CartMap {
     )
     this.versions[sysname].legendData.versionOriginalArea = version_area
     this.versions[sysname].legendData.versionTotalValue = version_value
+    this.versions[sysname].unit = data.unit
   }
 
   /**
-   * highlightByID highlights or unhighlights a region depending on the given opacity value.
+   * Highlights a region in the specify map/cartogram.
+   * @param {Array<string>} where_drawn The map/cartogram to highlight
    * @param {string} region_id The ID of the region to highlight
-   * @param {string} color The original color of the region
-   * @param {boolean} highlight Whether to highlight or unhighlight the region
    */
-  static highlightByID(where_drawn: Array<string>, region_id: string, highlight: boolean) {
+  highlightByID(where_drawn: Array<string>, region_id: string) {
+    if (!this.highlighted_region) this.unhighlight(where_drawn)
+
+    this.highlighted_region = region_id
     where_drawn.forEach(function (element_id) {
       var polygons = document.getElementsByClassName('path-' + element_id + '-' + region_id)
 
       for (let i = 0; i < polygons.length; i++) {
-        if (highlight) {
-          polygons[i].setAttribute('stroke-width', '2')
-        } else {
-          polygons[i].setAttribute('stroke-width', '0.5')
-        }
+        polygons[i].setAttribute('stroke-width', '2')
       }
     })
   }
 
   /**
-   * drawTooltip draws the tooltip for the currently highlighted region.
+   * Unhighlights all regions in the specify map/cartogram.
+   */
+  unhighlight(where_drawn: Array<string>) {
+    if (!this.highlighted_region) return
+
+    var region_id = this.highlighted_region
+    where_drawn.forEach(function (element_id) {
+      var polygons = document.getElementsByClassName('path-' + element_id + '-' + region_id)
+
+      for (let i = 0; i < polygons.length; i++) {
+        polygons[i].setAttribute('stroke-width', '0.5')
+      }
+    })
+    this.highlighted_region = null
+  }
+
+  /**
+   * Draws the tooltip for the currently highlighted region.
    * @param {MouseEvent} event Mouse event. Used to place the tooltip next to the cursor
    * @param {string} region_id The ID of the region currently highlighted
    */
@@ -266,7 +306,7 @@ export default class CartMap {
   }
 
   /**
-   * drawVersion draws a map version in the element with the given ID. You must add colors to the map before attempting to draw a version.
+   * Draws a map version in the element with the given ID. You must add colors to the map before attempting to draw a version.
    * Note that version switching is not supported if you draw a version of a map with labels as the initial version.
    * @param {string} sysname The sysname of the map version
    * @param {string} element_id The element of the ID to place the map
@@ -353,7 +393,7 @@ export default class CartMap {
         'mouseenter',
         (function (map, where_drawn) {
           return function (event: MouseEvent, d: any) {
-            CartMap.highlightByID(where_drawn, d.region_id, true)
+            map.highlightByID(where_drawn, d.region_id)
             map.drawTooltip(event, d.region_id)
           }
         })(this, where_drawn)
@@ -370,7 +410,7 @@ export default class CartMap {
         'mouseleave',
         (function (map, where_drawn) {
           return function (event: MouseEvent, d: any) {
-            CartMap.highlightByID(where_drawn, d.region_id, false)
+            map.unhighlight(where_drawn)
             Tooltip.hide()
           }
         })(this, where_drawn)
@@ -481,16 +521,16 @@ export default class CartMap {
   }
 
   /**
-   * switchVersion switches the map version displayed in the element with the given ID with an animation.
-   * @param {string} current_sysname The sysname of the currently displayed version
+   * Switches the map version displayed in the element with the given ID with an animation.
+   * @param {string} currentVersionName The sysname of the currently displayed version
    * @param {string} new_sysname The sysname of the version to be displayed
    * @param {string} element_id The ID of the element containing the map
    */
-  switchVersion(current_sysname: string, new_sysname: string, element_id: string) {
+  switchVersion(currentVersionName: string, new_sysname: string, element_id: string) {
     Object.keys(this.regions).forEach((region_id) => {
       var newRegionVersion = this.regions[region_id].versions[new_sysname]
 
-      this.regions[region_id].versions[current_sysname].polygons.forEach((polygon: Polygon) => {
+      this.regions[region_id].versions[currentVersionName].polygons.forEach((polygon: Polygon) => {
         const newPolygon = newRegionVersion.polygons.find((poly) => poly.id === polygon.id)
         if (!newPolygon) return
         const targetPath = newPolygon?.path || polygon.path

@@ -1,6 +1,6 @@
-Region,Population,GDP,Colour
-Hovedstaden,1822659,103847,#66a61e
-Midtjylland,1313596,52497,#1b9e77
-Nordjylland,589148,22071,#e7298a
-Sjaelland,835024,26158,#7570b3
-Syddanmark,1220763,49699,#e6ab02
+Region,Colour,Population,GDP
+Hovedstaden,#66a61e,1822659,103847
+Midtjylland,#1b9e77,1313596,52497
+Nordjylland,#e7298a,589148,22071
+Sjaelland,#7570b3,835024,26158
+Syddanmark,#e6ab02,1220763,49699

@@ -1,11 +1,11 @@
-Region,Population,Population (1980) (People),Colour
-Barima-Waini,27643,18329,#7570b3
-Cuyuni-Mazaruni,18375,14390,#d95f02
-Demerara-Mahaica,311563,317475,#e6ab02
-East Berbice-Corentyne,109652,152386,#e6ab02
-Essequibo Islands-West Demerara,107785,104750,#e7298a
-Mahaica-Berbice,49820,53898,#d95f02
-Pomeroon-Supenaam,46810,42341,#1b9e77
-Potaro-Siparuni,11077,4485,#66a61e
-Upper Demerara-Berbice,39992,38641,#1b9e77
-Upper Takutu-Upper Essequibo,24238,12873,#e7298a
+Region,Colour,Population,Population (1980) (People)
+Barima-Waini,#7570b3,27643,18329
+Cuyuni-Mazaruni,#d95f02,18375,14390
+Demerara-Mahaica,#e6ab02,311563,317475
+East Berbice-Corentyne,#e6ab02,109652,152386
+Essequibo Islands-West Demerara,#e7298a,107785,104750
+Mahaica-Berbice,#d95f02,49820,53898
+Pomeroon-Supenaam,#1b9e77,46810,42341
+Potaro-Siparuni,#66a61e,11077,4485
+Upper Demerara-Berbice,#1b9e77,39992,38641
+Upper Takutu-Upper Essequibo,#e7298a,24238,12873

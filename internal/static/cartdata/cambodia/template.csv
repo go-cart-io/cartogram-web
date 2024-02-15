@@ -1,26 +1,26 @@
-Province,Population,Population (1998) (People),Colour
-Banteay Meanchey,859545,577772,#e7298a
-Battambang,987400,793129,#66a61e
-Kampong Cham,895763,1608914,#d95f02
-Kampong Chhnang,525932,417693,#7570b3
-Kampong Speu,872219,598882,#e7298a
-Kampong Thom,677260,569060,#1b9e77
-Kampot,592845,528405,#1b9e77
-Kandal,1195547,1075125,#66a61e
-Koh Kong,123618,132106,#d95f02
-Kep,41798,NA,#d95f02
-Kratie,372825,263175,#7570b3
-Pailin,71600,22906,#1b9e77
-Preah Sihanouk,302887,155690,#7570b3
-Mondul Kiri,88649,32407,#1b9e77
-Otdar Meanchey,261252,68279,#66a61e
-Phnom Penh,2129371,999804,#e6ab02
-Pursat,411759,360445,#e6ab02
-Preah Vihear,251352,119261,#e7298a
-Prey Veng,1057428,946042,#e6ab02
-Ratanak Kiri,204027,94243,#e7298a
-Siem Reap,1006512,696164,#7570b3
-Stung Treng,159565,81074,#d95f02
-Svay Rieng,524554,478252,#66a61e
-Takeo,899485,790168,#e6ab02
-Tbong Khmum,775296,NA,#1b9e77
+Province,Colour,Population,Population (1998) (People)
+Banteay Meanchey,#e7298a,859545,577772
+Battambang,#66a61e,987400,793129
+Kampong Cham,#d95f02,895763,1608914
+Kampong Chhnang,#7570b3,525932,417693
+Kampong Speu,#e7298a,872219,598882
+Kampong Thom,#1b9e77,677260,569060
+Kampot,#1b9e77,592845,528405
+Kandal,#66a61e,1195547,1075125
+Koh Kong,#d95f02,123618,132106
+Kep,#d95f02,41798,NA
+Kratie,#7570b3,372825,263175
+Pailin,#1b9e77,71600,22906
+Preah Sihanouk,#7570b3,302887,155690
+Mondul Kiri,#1b9e77,88649,32407
+Otdar Meanchey,#66a61e,261252,68279
+Phnom Penh,#e6ab02,2129371,999804
+Pursat,#e6ab02,411759,360445
+Preah Vihear,#e7298a,251352,119261
+Prey Veng,#e6ab02,1057428,946042
+Ratanak Kiri,#e7298a,204027,94243
+Siem Reap,#7570b3,1006512,696164
+Stung Treng,#d95f02,159565,81074
+Svay Rieng,#66a61e,524554,478252
+Takeo,#e6ab02,899485,790168
+Tbong Khmum,#1b9e77,775296,NA

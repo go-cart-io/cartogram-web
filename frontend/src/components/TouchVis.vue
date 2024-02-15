@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { reactive, onMounted } from 'vue'
-import shareState from '../lib/state'
 import TouchInfo from '../lib/touchInfo'
 
+import { useCartogramStore } from '../stores/cartogram'
+const store = useCartogramStore()
+
 const props = defineProps<{
-  handler: string
   touchInfo: TouchInfo
   touchLenght: number
 }>()
@@ -43,7 +44,7 @@ onMounted(() => {
         r="5"
       />
     </g>
-    <g v-if="props.touchLenght > 2 && shareState.options.stretchable">
+    <g v-if="props.touchLenght > 2 && store.options.stretchable">
       <text
         font-weight="bold"
         v-bind:x="state.points[0][0] - 50"

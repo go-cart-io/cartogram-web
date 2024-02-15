@@ -1,6 +1,6 @@
-Region,Population,GDP,Colour
-Eastern Finland,582781,NA,#66a61e
-Lapland,186917,NA,#e7298a
-Oulu,458504,NA,#e6ab02
-Southern Finland,2116914,39540,#7570b3
-Western Finland,1848269,47343,#d95f02
+Region,Colour,Population,GDP
+Eastern Finland,#66a61e,582781,NA
+Lapland,#e7298a,186917,NA
+Oulu,#e6ab02,458504,NA
+Southern Finland,#7570b3,2116914,39540
+Western Finland,#d95f02,1848269,47343

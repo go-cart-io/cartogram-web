@@ -2,6 +2,7 @@ import json, os
 import settings
 
 from flask import current_app
+from urllib.parse import urlparse
 
 class Asset:
     def __init__(self, app=None):
@@ -21,6 +22,10 @@ class Asset:
 
     def url_for(self, file):
         return self.assets.get(file)
+    
+    def webpack_url_for(self, base_url, file):
+        o = urlparse(base_url)
+        return '//' + o.hostname + ':5173/' + file   
 
     def reload_webpack_assets(self):
         self._get_webpack_assets(current_app)

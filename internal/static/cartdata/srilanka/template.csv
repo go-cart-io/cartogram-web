@@ -1,26 +1,26 @@
-District,Population,Road Kilometerage (km),Colour
-Ampara,649402,1002,#7570b3
-Anuradhapura,860575,2259,#d95f02
-Badulla,815405,2214,#e7298a
-Batticaloa,526567,624,#1b9e77
-Colombo,2324349,864,#e6ab02
-Galle,1063334,1209,#d95f02
-Gampaha,2304833,1670,#1b9e77
-Hambantota,599903,1060,#d95f02
-Jaffna,583882,804,#1b9e77
-Kalutara,1221948,1115,#7570b3
-Kandy,1375382,2027,#d95f02
-Kegalle,840648,1781,#66a61e
-Kilinochchi,113510,804,#66a61e
-Kurunegala,1618465,2576,#e6ab02
-Mannar,99570,540,#7570b3
-Matale,484531,865,#1b9e77
-Matara,814048,935,#e6ab02
-Moneragala,451058,1321,#66a61e
-Mullaitivu,92238,622,#e7298a
-Nuwara Eliya,711644,1097,#7570b3
-Polonnaruwa,406088,882,#e7298a
-Puttalam,762396,1525,#e7298a
-Ratnapura,1088007,2230,#1b9e77
-Trincomalee,379541,666,#66a61e
-Vavuniya,172115,609,#e6ab02
+District,Colour,Population,Road Kilometerage (km)
+Ampara,#7570b3,649402,1002
+Anuradhapura,#d95f02,860575,2259
+Badulla,#e7298a,815405,2214
+Batticaloa,#1b9e77,526567,624
+Colombo,#e6ab02,2324349,864
+Galle,#d95f02,1063334,1209
+Gampaha,#1b9e77,2304833,1670
+Hambantota,#d95f02,599903,1060
+Jaffna,#1b9e77,583882,804
+Kalutara,#7570b3,1221948,1115
+Kandy,#d95f02,1375382,2027
+Kegalle,#66a61e,840648,1781
+Kilinochchi,#66a61e,113510,804
+Kurunegala,#e6ab02,1618465,2576
+Mannar,#7570b3,99570,540
+Matale,#1b9e77,484531,865
+Matara,#e6ab02,814048,935
+Moneragala,#66a61e,451058,1321
+Mullaitivu,#e7298a,92238,622
+Nuwara Eliya,#7570b3,711644,1097
+Polonnaruwa,#e7298a,406088,882
+Puttalam,#e7298a,762396,1525
+Ratnapura,#1b9e77,1088007,2230
+Trincomalee,#66a61e,379541,666
+Vavuniya,#e6ab02,172115,609

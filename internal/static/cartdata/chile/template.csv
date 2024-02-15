@@ -1,17 +1,17 @@
-Region,Population,Population (1982) (People),Colour
-Aisen del General Carlos Ibanez del Campo,103158,66292,#e7298a
-Antofagasta,607534,341436,#66a61e
-Araucania,957224,698706,#1b9e77
-Arica y Parinacota,226068,152406,#e6ab02
-Atacama,286168,184129,#7570b3
-Biobio,2037414,1517226,#d95f02
-Coquimbo,757586,420113,#d95f02
-Libertador General Bernardo O'Higgins,914555,585208,#e7298a
-Los Lagos,828708,541980,#e7298a
-Los Rios,384837,307052,#e6ab02
-Magallanes y Antartica Chilena,166533,130899,#7570b3
-Maule,1044950,728942,#66a61e
-Nuble,NA,NA,#7570b3
-Region Metropolitana de Santiago,7112808,4316113,#e6ab02
-Tarapaca,330558,122729,#d95f02
-Valparaiso,1815902,1209929,#1b9e77
+Region,Colour,Population,Population (1982) (People)
+Aisen del General Carlos Ibanez del Campo,#e7298a,103158,66292
+Antofagasta,#66a61e,607534,341436
+Araucania,#1b9e77,957224,698706
+Arica y Parinacota,#e6ab02,226068,152406
+Atacama,#7570b3,286168,184129
+Biobio,#d95f02,2037414,1517226
+Coquimbo,#d95f02,757586,420113
+Libertador General Bernardo O'Higgins,#e7298a,914555,585208
+Los Lagos,#e7298a,828708,541980
+Los Rios,#e6ab02,384837,307052
+Magallanes y Antartica Chilena,#7570b3,166533,130899
+Maule,#66a61e,1044950,728942
+Nuble,#7570b3,NA,NA
+Region Metropolitana de Santiago,#e6ab02,7112808,4316113
+Tarapaca,#d95f02,330558,122729
+Valparaiso,#1b9e77,1815902,1209929

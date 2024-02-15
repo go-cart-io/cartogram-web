@@ -9,7 +9,7 @@ This project uses the cartogram generation algorithm written by Gastner et. al. 
 
 ## Installation
 
-We recommend using docker to get project running on your computer. You can follow the instruction on https://github.com/jansky/cartogram-docker but use this repository when cloning cartogram-web.
+We recommend using docker to get project running on your computer. You can follow the instruction on https://github.com/atima/cartogram-docker but use this repository when cloning cartogram-web.
 
 ```shell script
 git clone https://github.com/atima/cartogram-web.git

@@ -86,7 +86,11 @@ export default class HTTP {
             }
           } else {
             console.log(url)
-            reject(Error('Unable to fetch data from the server.'))
+            var response = JSON.parse(this.responseText)
+            const errorText = response.error
+              ? response.error
+              : 'Unable to fetch data from the server.'
+            reject(Error(errorText))
           }
         }
       }
@@ -107,7 +111,7 @@ export default class HTTP {
   }
 
   /**
-   * serializePostVariables produces a www-form-urlencoded POST body from the given variables.
+   * Produces a www-form-urlencoded POST body from the given variables.
    * @param {Object.<string,string>} vars The variables to encode in the body
    * @returns {string}
    */
@@ -124,7 +128,7 @@ export default class HTTP {
   }
 
   /**
-   * generateMIMEBoundary generates a random string that can be used as a boundary in a multipart MIME post body.
+   * Generates a random string that can be used as a boundary in a multipart MIME post body.
    * @returns {string}
    */
   static generateMIMEBoundary(): string {

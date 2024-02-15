@@ -9,11 +9,9 @@
 
 {% block javascript %}
 <script>
-  var defaultHandler = "{{ default_cartogram_handler }}";
-  var cartogram_handlers = {{ (cartogram_handlers | safe) or 'null' }};
-  var cartogram_data = {{ (cartogram_data | safe) or 'null' }};
-  var cartogramui_data = {{ (cartogramui_data | safe) or 'null'}};
+  var mapName = "{{ map_name }}";
+  var maps = {{ (maps | safe) or '{}' }};
+  var mapDataKey = "{{ map_data_key }}";
   var mode = null;
-  var scale = 1.3;
 </script>
 {% endblock javascript %}

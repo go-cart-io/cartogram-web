@@ -1,8 +1,11 @@
+export interface MapHandlers {
+  [key: string]: { name: string; region_identifier: string; file: string }
+}
+
 export interface Mappack {
   abbreviations: { [key: string]: string } // e.g. Alabama: 'AL'
   colors: { [key: string]: string } // e.g. id_1: '#7570b3'
   config: MapConfig
-  griddocument: any
   labels: Labels
   [key: string]: any // map
 }
@@ -51,7 +54,6 @@ export interface Extrema {
 export interface Labels {
   scale_x: number
   scale_y: number
-  skipSVG: boolean | null
   labels: Array<{ x: number; y: number; text: string }>
   lines: Array<{ x1: number; y1: number; x2: number; y2: number }>
 }
@@ -60,6 +62,17 @@ export interface Entry {
   name: string
   value: number
   unit: string
+}
+
+export interface DataTable {
+  fields: Array<{
+    key: string
+    label: string
+    editable: boolean
+    type?: string
+    headerEditable?: boolean
+  }>
+  items: { [key: string]: any }
 }
 
 export interface ChartDataItem {

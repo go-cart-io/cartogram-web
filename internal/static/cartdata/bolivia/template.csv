@@ -1,10 +1,10 @@
-Department,Population,Population (2000) (People),Colour
-Chuquisaca,637013,551401,#d95f02
-Cochabamba,2028639,1483641,#7570b3
-Beni,480308,366864,#66a61e
-La Paz,2926996,2415081,#d95f02
-Oruro,551116,413600,#e7298a
-Pando,154355,52857,#e7298a
-Potosi,901555,742015,#1b9e77
-Santa Cruz,3370059,2004753,#e6ab02
-Tarija,583330,397578,#7570b3
+Department,Colour,Population,Population (2000) (People)
+Chuquisaca,#d95f02,637013,551401
+Cochabamba,#7570b3,2028639,1483641
+Beni,#66a61e,480308,366864
+La Paz,#d95f02,2926996,2415081
+Oruro,#e7298a,551116,413600
+Pando,#e7298a,154355,52857
+Potosi,#1b9e77,901555,742015
+Santa Cruz,#e6ab02,3370059,2004753
+Tarija,#7570b3,583330,397578
