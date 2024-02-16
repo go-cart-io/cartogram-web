@@ -45,6 +45,10 @@ let urlParams: URLSearchParams
 
 onBeforeMount(() => {
   urlParams = new URLSearchParams(window.location.search)
+  if (!urlParams.get('pid')) {
+    let pid = prompt('Please enter Participant ID')
+    window.location.replace(window.location.href + '?pid=' + pid)
+  }
   tracker.start()
   tracker.setUserID(urlParams.get('pid'))
 
