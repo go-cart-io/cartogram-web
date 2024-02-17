@@ -29,6 +29,7 @@ var timePan = 0,
   timeRotate = 0,
   timeStretch3f = 0,
   timeStretch2f = 0,
+  timeStretchAttempt = 0,
   totalPan = [0, 0],
   totalRotate = 0
 const DELAY_THRESHOLD = 300
@@ -93,12 +94,20 @@ function onTouchend(event: any) {
   if (touchInfo.length === 0) {
     pointerposition = null // signals mouse up
 
-    if (timePan || timeScale || timeRotate || timeStretch3f || timeStretch2f) {
+    if (
+      timePan ||
+      timeScale ||
+      timeRotate ||
+      timeStretch3f ||
+      timeStretch2f ||
+      timeStretchAttempt
+    ) {
       tracker.push('pan', timePan)
       tracker.push('scale', timeScale)
       tracker.push('rotate', timeRotate)
       tracker.push('stretch_3finger', timeStretch3f)
       tracker.push('stretch_2finger', timeStretch2f)
+      tracker.push('stretch_attempt', timeStretchAttempt)
       tracker.push('pan_value', totalPan[0].toFixed(2) + ':' + totalPan[1].toFixed(2))
       tracker.push('rotate_value', totalRotate.toFixed(2))
       tracker.push(
@@ -112,6 +121,7 @@ function onTouchend(event: any) {
     timeRotate = 0
     timeStretch3f = 0
     timeStretch2f = 0
+    timeStretchAttempt = 0
     // var now = new Date().getTime()
     // var timesince = now - lastTouch
     // if (timesince < DELAY_THRESHOLD) {
@@ -149,37 +159,37 @@ function onTouchmove(event: any, id: string) {
 
   // Order should be rotate, scale, translate
   // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
-  if (
-    store.options.stretchable &&
-    t.length > 1 &&
-    (touchInfo.length === 3 || (touchInfo.length === 2 && !state.isLockRatio))
-  ) {
-    // rotate
-    var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
-    if (pointerangle && typeof pointerangle === 'number') angle = pointerangle2 - pointerangle
-    else angle = 0
-    pointerangle = pointerangle2
-    matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
-    timeRotate += now - state.lastMove
-    totalRotate += angle
+  if (t.length > 1 && (touchInfo.length === 3 || (touchInfo.length === 2 && !state.isLockRatio))) {
+    if (store.options.stretchable) {
+      // rotate
+      var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
+      if (pointerangle && typeof pointerangle === 'number') angle = pointerangle2 - pointerangle
+      else angle = 0
+      pointerangle = pointerangle2
+      matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
+      timeRotate += now - state.lastMove
+      totalRotate += angle
 
-    // stretch
-    var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
-    if (pointerdistance && typeof pointerdistance === 'number')
-      scale[0] = pointerdistance2 / pointerdistance
-    else scale[0] = 0
-    state.affineScale[0] *= scale[0]
-    pointerdistance = pointerdistance2
-    if (scale[0] !== 0) {
-      matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(pointerangle))
-      matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], 1))
-      matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(-pointerangle))
-    }
+      // stretch
+      var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
+      if (pointerdistance && typeof pointerdistance === 'number')
+        scale[0] = pointerdistance2 / pointerdistance
+      else scale[0] = 0
+      state.affineScale[0] *= scale[0]
+      pointerdistance = pointerdistance2
+      if (scale[0] !== 0) {
+        matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(pointerangle))
+        matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], 1))
+        matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(-pointerangle))
+      }
 
-    if (touchInfo.length === 3) {
-      timeStretch3f += now - state.lastMove
+      if (touchInfo.length === 3) {
+        timeStretch3f += now - state.lastMove
+      } else {
+        timeStretch2f += now - state.lastMove
+      }
     } else {
-      timeStretch2f += now - state.lastMove
+      timeStretchAttempt += now - state.lastMove
     }
   } else if (t.length > 1) {
     // (B) rotate
