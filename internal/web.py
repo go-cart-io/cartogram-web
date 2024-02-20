@@ -16,7 +16,6 @@ import validate_email
 import smtplib
 import email.mime.text
 import socket
-import redis
 
 from handler import CartogramHandler
 from asset import Asset
@@ -39,8 +38,6 @@ if settings.USE_DATABASE:
     db = SQLAlchemy(app)
     migrate = Migrate(app, db)
 
-redis_conn = redis.Redis(host=settings.CARTOGRAM_REDIS_HOST, port=settings.CARTOGRAM_REDIS_PORT, db=0)
-
 default_cartogram_handler = 'usa'
 cartogram_handler = CartogramHandler()
 
@@ -51,8 +48,6 @@ if settings.USE_DATABASE:
         date_created = db.Column(db.DateTime(), nullable=False)
         date_accessed = db.Column(db.DateTime(), server_default='0001-01-01 00:00:00')        
         handler = db.Column(db.String(100), nullable=False)
-        areas_string = db.Column(db.UnicodeText(), nullable=False)
-        cartogram_data = db.Column(db.UnicodeText(), nullable=False)
         cartogramui_data = db.Column(db.UnicodeText(), nullable=False)
 
         def __repr__(self):
@@ -315,40 +310,13 @@ def setprogress():
     if params['secret'] != settings.CARTOGRAM_PROGRESS_SECRET:
         return Response('', status=200)
 
-    current_progress = redis_conn.get('cartprogress-{}'.format(params['key']))
-
-    if current_progress is None:
-        current_progress = {
-            'order': params['order'],
-            'stderr': params['stderr'],
-            'progress': params['progress']
-        }
-    else:
-        current_progress = json.loads(current_progress.decode())
-
-        if current_progress['order'] < params['order']:
-            current_progress = {
-                'order': params['order'],
-                'stderr': params['stderr'],
-                'progress': params['progress']
-            }
-
-    redis_conn.set('cartprogress-{}'.format(params['key']), json.dumps(current_progress))
-    redis_conn.expire('cartprogress-{}'.format(params['key']), 300)
-
+    awslambda.setprogress(params)
     return Response('', status=200)
-
 
 @app.route('/getprogress', methods=['GET'])
 def getprogress():
-    current_progress = redis_conn.get('cartprogress-{}'.format(request.args['key']))
-
-    if current_progress == None:
-        return Response(json.dumps({'progress': None, 'stderr': ''}), status=200, content_type='application/json')
-    else:
-        current_progress = json.loads(current_progress.decode())
-        return Response(json.dumps({'progress': current_progress['progress'], 'stderr': current_progress['stderr']}),
-                        status=200, content_type='application/json')
+    current_progress_output = awslambda.getprogress(request.args['key'])
+    return Response(json.dumps(current_progress_output), status=200, content_type='application/json')
 
 
 @app.route('/cartogram', methods=['POST'])
@@ -392,8 +360,7 @@ def cartogram():
         
         if settings.USE_DATABASE:
             new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
-                                    handler=handler, areas_string='-',
-                                    cartogram_data='-', cartogramui_data=json.dumps({'colors': cart_data[1]}))
+                                    handler=handler, cartogramui_data=json.dumps({'colors': cart_data[1]}))
             db.session.add(new_cartogram_entry)
             db.session.commit()        
 
