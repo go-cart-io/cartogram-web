@@ -3,15 +3,10 @@ import { ref } from 'vue'
 import * as d3 from 'd3'
 import * as XLSX from 'xlsx'
 
-import type CartMap from '../lib/cartMap'
 import type { DataTable } from '../lib/interface'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
-
-const props = defineProps<{
-  map: CartMap
-}>()
 
 const emit = defineEmits<{
   (e: 'change', data: DataTable): void
@@ -25,7 +20,7 @@ async function processFile() {
   let data = {
     fields: [],
     items: {}
-  } as DataTable  
+  } as DataTable
 
   var dataFile: any = csvInput.value.files[0]
   var dataJson: any = {}
@@ -37,18 +32,26 @@ async function processFile() {
   })
 
   if (!dataJson || dataJson.length < 1) return
-  
+
   const colName = 0
-  const colColor = 1  
+  const colColor = 1
   const colValue = 2
   let dataKeys = Object.keys(dataJson[0])
 
   // Header
-  data.fields = [{key: 'area', label: 'Area', editable: false},
-    {key: 'color', label: 'Color', editable: true}]  
+  data.fields = [
+    { key: 'area', label: 'Area', editable: false },
+    { key: 'color', label: 'Color', editable: true }
+  ]
   for (let col = colValue; col < dataKeys.length; col++) {
-    data.fields.push({ key: col + '-custom', label: dataKeys[col], editable: true, type: 'number', headerEditable: true })
-  }  
+    data.fields.push({
+      key: col + '-custom',
+      label: dataKeys[col],
+      editable: true,
+      type: 'number',
+      headerEditable: true
+    })
+  }
 
   // Content
   for (let row = 0; row < dataJson.length; row++) {

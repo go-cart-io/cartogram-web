@@ -7,14 +7,16 @@ import settings
 from math import log
 from lambda_package import cartwrap
 
-def generate_cartogram(area_data, gen_file, lambda_url, lambda_api_key, cartogram_key, flags=''):
+def generate_cartogram(area_data, gen_file, lambda_url, lambda_api_key, cartogram_key, flags=''): 
+    with open(gen_file, 'r') as gen_fp:
+        gen_file_contents = gen_fp.read()
 
+    return generate_cartogram_from_mapdata(area_data, gen_file_contents, lambda_url, lambda_api_key, cartogram_key)
+
+def generate_cartogram_from_mapdata(area_data, gen_file_contents, lambda_url, lambda_api_key, cartogram_key, flags=''):
     headers = {
         'x-api-key': lambda_api_key
     }
-
-    with open(gen_file, 'r') as gen_fp:
-        gen_file_contents = gen_fp.read()
 
     lambda_event = {
         'gen_file': gen_file_contents,

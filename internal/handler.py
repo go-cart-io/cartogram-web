@@ -123,6 +123,9 @@ class CartogramHandler:
         with open(self.get_gen_file(handler), 'r') as openfile: 
             handler_data = json.load(openfile)    
 
+        return self.get_area_string_and_colors_from_mapdata(self, handler_data, data)
+
+    def get_area_string_and_colors_from_mapdata(self, handler_data, data):
         colName = 0
         colColor = 1
         colValue = 2 # Starting column of data
@@ -140,7 +143,7 @@ class CartogramHandler:
                 region[colValue] = 'NA',
             if not re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', region[colColor]):
                 raise ValueError('The color data was invaild.')
-                   
+            
             regionId = handler_data['regions'][region[colName]]
             datastring = datastring + '{0},{1},{2},\n'.format(regionId, region[colValue], region[colName])
             colorJson['id_' + regionId] = region[colColor]

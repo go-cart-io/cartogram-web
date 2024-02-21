@@ -1,0 +1,14 @@
+{% extends 'base_layout.html' %}
+
+{% block content %}
+
+<div id="cartogram-editor" class="d-flex flex-column flex-fill">
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+	var maps = {{ (maps | safe) or '{}' }}
+</script>
+{% endblock javascript %}
