@@ -237,6 +237,11 @@ Message:
         flash('Your message was successfully sent.', 'success')
         return redirect(url_for('contact'))
 
+@app.route('/editor', methods=['GET'])
+def edit_cartogram():
+    return render_template('editor.html', page_active='editor', 
+                           maps=cartogram_handler.get_sorted_handler_names(),
+                           tracking=tracking.determine_tracking_action(request))
 
 @app.route('/cartogram', methods=['GET'])
 def get_cartogram():    
@@ -327,19 +332,27 @@ def cartogram():
 
     try:
         data = json.loads(request.form['data'])
-        handler = data['handler']
-
-        if 'handler' not in data or not cartogram_handler.has_handler(handler):
-            return Response('{"error":"The handler was invaild."}', status=400, content_type='application/json')
 
         if 'stringKey' not in data:
             return Response('{"error":"Missing sharing key."}', status=404, content_type='application/json')
-
         string_key = data['stringKey']
-        cart_data = cartogram_handler.get_area_string_and_colors(handler, data)
-        lambda_result = awslambda.generate_cartogram(cart_data[0],
-                            cartogram_handler.get_gen_file(handler), settings.CARTOGRAM_LAMBDA_URL,
-                            settings.CARTOGRAM_LAMDA_API_KEY, string_key)
+
+        if 'mapData' in data:
+            handler = 'custom'
+            mapData = data['mapData']            
+            cart_data = cartogram_handler.get_area_string_and_colors_from_mapdata(mapData, data)  
+            lambda_result = awslambda.generate_cartogram_from_mapdata(cart_data[0],
+                                json.dumps(mapData), settings.CARTOGRAM_LAMBDA_URL,
+                                settings.CARTOGRAM_LAMDA_API_KEY, string_key)
+        else:
+            handler = data['handler']
+            if 'handler' not in data or not cartogram_handler.has_handler(handler):
+                return Response('{"error":"The handler was invaild."}', status=400, content_type='application/json')
+            
+            cart_data = cartogram_handler.get_area_string_and_colors(handler, data)        
+            lambda_result = awslambda.generate_cartogram(cart_data[0],
+                                cartogram_handler.get_gen_file(handler), settings.CARTOGRAM_LAMBDA_URL,
+                                settings.CARTOGRAM_LAMDA_API_KEY, string_key)
 
         cartogram_gen_output = lambda_result['stdout']        
 
@@ -356,7 +369,12 @@ def cartogram():
         cartogram_json['tooltip'] = cart_data[2]
         
         with open('static/userdata/' + string_key + '.json', 'w') as outfile:
-            outfile.write(json.dumps({'{}-custom'.format(colValue): cartogram_json}))
+            outJson = {}
+            if handler is 'custom':
+                outJson['original'] = mapData
+
+            outJson['{}-custom'.format(colValue)] = cartogram_json
+            outfile.write(json.dumps(outJson))
         
         if settings.USE_DATABASE:
             new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
@@ -377,23 +395,25 @@ def get_mappack_by_key(string_key, updateaccess = True):
         return Response('Not found', status=404)
 
     cartogram_entry = CartogramEntry.query.filter_by(string_key=string_key).first_or_404()
-
-    if cartogram_entry == None or not cartogram_handler.has_handler(cartogram_entry.handler):
-        return Response('Error', status=500)
+    if cartogram_entry == None:
+        return Response('Not found', status=500)
     
     if updateaccess:
         cartogram_entry.date_accessed = datetime.datetime.utcnow()
         db.session.commit()        
 
     mappack = json.loads(cartogram_entry.cartogramui_data)
-    with open('static/cartdata/{}/mappack.json'.format(cartogram_entry.handler), 'r') as file:
-        original_mappack = json.load(file)
+    original_mappack = {}
+    if cartogram_handler.has_handler(cartogram_entry.handler):
+        with open('static/cartdata/{}/mappack.json'.format(cartogram_entry.handler), 'r') as file:
+            original_mappack = json.load(file)
 
     with open('static/userdata/{}.json'.format(cartogram_entry.string_key), 'r') as file:
         new_maps = json.load(file)       
 
     mappack.update(new_maps)
     data_names = list(new_maps.keys())
+    base_name = None
 
     if not 'config' in original_mappack:
         mappack['config'] = {}
@@ -402,11 +422,14 @@ def get_mappack_by_key(string_key, updateaccess = True):
     else:
         base_name = 'original'
 
-    for item in ['abbreviations', 'config', 'labels', base_name]:
+    for item in ['abbreviations', 'config', 'labels']:
         if item in original_mappack:
-            mappack[item] = original_mappack[item]
+            mappack[item] = original_mappack[item]    
+    
+    if base_name is not None and base_name in original_mappack:
+        mappack[base_name] = original_mappack[base_name]    
+        data_names.insert(0, base_name)
 
-    data_names.insert(0, base_name)        
     mappack['config']['data_names'] = data_names
     mappack['stringKey'] = string_key
 
