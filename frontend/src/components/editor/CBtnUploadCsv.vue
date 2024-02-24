@@ -3,10 +3,7 @@ import { ref } from 'vue'
 import * as d3 from 'd3'
 import * as XLSX from 'xlsx'
 
-import type { DataTable } from '../lib/interface'
-
-import { useCartogramStore } from '../stores/cartogram'
-const store = useCartogramStore()
+import type { DataTable } from '../../lib/interface'
 
 const emit = defineEmits<{
   (e: 'change', data: DataTable): void
@@ -33,38 +30,38 @@ async function processFile() {
 
   if (!dataJson || dataJson.length < 1) return
 
-  const colName = 0
-  const colColor = 1
-  const colValue = 2
-  let dataKeys = Object.keys(dataJson[0])
+  // const colName = 0
+  // const colColor = 1
+  // const colValue = 2
+  // let dataKeys = Object.keys(dataJson[0])
 
-  // Header
-  data.fields = [
-    { key: 'area', label: 'Area', editable: false },
-    { key: 'color', label: 'Color', editable: true }
-  ]
-  for (let col = colValue; col < dataKeys.length; col++) {
-    data.fields.push({
-      key: col + '-custom',
-      label: dataKeys[col],
-      editable: true,
-      type: 'number',
-      headerEditable: true
-    })
-  }
+  // // Header
+  // data.fields = [
+  //   { key: 'area', label: 'Area', editable: false },
+  //   { key: 'color', label: 'Color', editable: true }
+  // ]
+  // for (let col = colValue; col < dataKeys.length; col++) {
+  //   data.fields.push({
+  //     key: col + '-custom',
+  //     label: dataKeys[col],
+  //     editable: true,
+  //     type: 'number',
+  //     headerEditable: true
+  //   })
+  // }
 
-  // Content
-  for (let row = 0; row < dataJson.length; row++) {
-    let dataItem: any = [dataJson[row][dataKeys[colName]], dataJson[row][dataKeys[colColor]]]
-    for (let col = colValue; col < dataKeys.length; col++) {
-      let value = dataJson[row][dataKeys[col]]
-      if (typeof value === 'string') value = parseFloat(value)
-      dataItem.push(value)
-    }
-    data.items[row] = dataItem
-  }
+  // // Content
+  // for (let row = 0; row < dataJson.length; row++) {
+  //   let dataItem: any = [dataJson[row][dataKeys[colName]], dataJson[row][dataKeys[colColor]]]
+  //   for (let col = colValue; col < dataKeys.length; col++) {
+  //     let value = dataJson[row][dataKeys[col]]
+  //     if (typeof value === 'string') value = parseFloat(value)
+  //     dataItem.push(value)
+  //   }
+  //   data.items[row] = dataItem
+  // }
 
-  emit('change', data)
+  emit('change', dataJson)
 }
 
 function readFile(file: File): Promise<any> {
@@ -96,22 +93,11 @@ function readFile(file: File): Promise<any> {
 </script>
 
 <template>
-  <button
-    class="btn btn-primary me-2"
-    v-bind:class="{ disabled: store.isLoading }"
-    v-on:click="csvInput?.click()"
-    id="upload-button"
-    title="Upload data"
-  >
-    <i class="fas fa-file-upload"></i>
-  </button>
-
   <input
     ref="csvInput"
     type="file"
-    id="csv"
+    class="form-control"
     accept="text/csv,.csv,.xlsx,.xls"
-    style="display: none"
     v-on:change="processFile()"
   />
 </template>
