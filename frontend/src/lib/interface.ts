@@ -68,6 +68,7 @@ export interface DataTable {
   fields: Array<{
     key: string
     label: string
+    unit?: string
     editable: boolean
     type?: string
     headerEditable?: boolean
