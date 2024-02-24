@@ -130,7 +130,7 @@ function updateCartogram() {
   </div>
 </template>
 
-<style>
+<style scoped>
 input {
   border: 0;
   box-sizing: border-box;
