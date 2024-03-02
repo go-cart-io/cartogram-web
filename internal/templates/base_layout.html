@@ -77,8 +77,13 @@
   {% block content %}{% endblock %}
 
   <div class="container-fluid text-secondary">
-    &copy; Michael T. Gastner
-    <a href="http://michaelgastner.com/">michaelgastner.com</a>
+    <footer class="text-secondary">
+      <p>
+        &copy; go-cart.io.
+        Cartograms produced through this website utilize the <a href="https://www.pnas.org/content/115/10/E2156">Fast
+          Flow-based Algorithm</a> (Gastner, Seguy, and More, 2018).
+      </p>
+    </footer>
   </div>
 
   {% if tracking.action == "demand_consent" %}
