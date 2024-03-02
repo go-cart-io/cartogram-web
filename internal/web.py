@@ -341,11 +341,11 @@ def cartogram():
                             cartogram_handler.get_gen_file(handler), settings.CARTOGRAM_LAMBDA_URL,
                             settings.CARTOGRAM_LAMDA_API_KEY, string_key)
 
-        cartogram_gen_output = lambda_result['stdout']        
+        cartogram_gen_output = lambda_result['stdout'] 
 
         if cartogram_handler.expect_geojson_output():
             # Just confirm that we've been given valid JSON. Calculate the extrema if necessary
-            cartogram_json = json.loads(cartogram_gen_output)
+            cartogram_json = json.loads(cartogram_gen_output)            
 
             if 'bbox' not in cartogram_json:
                 cartogram_json['bbox'] = geojson_extrema.get_extrema_from_geojson(cartogram_json)
@@ -366,10 +366,10 @@ def cartogram():
 
         return get_mappack_by_key(string_key, False)
     
-    except (KeyError, csv.Error, ValueError, UnicodeDecodeError):
-        return Response('{"error":"The data was invalid."}', status=400, content_type='application/json')
+    # except (KeyError, csv.Error, ValueError, UnicodeDecodeError):
+    #     return Response('{"error":"The data was invalid."}', status=400, content_type='application/json')
     except Exception as e:
-        return Response('{"error":"{}"}'.format(e), status=400, content_type='application/json')    
+        return Response('{"error": "The data may be invalid or the process has timed out. Please try again later."}', status=400, content_type='application/json')  
 
 @app.route('/mappack/<string_key>', methods=['GET'])
 def get_mappack_by_key(string_key, updateaccess = True):

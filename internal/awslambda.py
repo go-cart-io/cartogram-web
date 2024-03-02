@@ -4,6 +4,7 @@ import os
 import re
 import redis
 import settings
+import uuid
 from math import log
 from lambda_package import cartwrap
 
@@ -39,8 +40,8 @@ def local_function(params):
 
     # We run C++ executable for most maps and old C excutable (named "cartogram_c") only for the World Map
     cartogram_exec = "cartogram"
-
-    map_data_filename = "conventional.json"
+    temp_filename = str(uuid.uuid4())
+    map_data_filename = temp_filename + ".json"
 
     # The C code deduces from the map data file extension whether we have GeoJSON or .gen
     world = False
@@ -51,15 +52,15 @@ def local_function(params):
                 world = True
                 cartogram_exec = "cartogram_c"
     except json.JSONDecodeError:
-        map_data_filename = "conventional.gen"
+        map_data_filename = temp_filename + ".gen"
 
     with open("/tmp/{}".format(map_data_filename), "w") as conventional_map_file:
         conventional_map_file.write(params["gen_file"])
 
     if cartogram_exec == "cartogram":
-        with open("/tmp/areas.csv", "w") as areas_file:
-            areas_file.write(params["area_data"])
-        area_data_path = "/tmp/areas.csv"
+        area_data_path = "/tmp/{}.csv".format(temp_filename)
+        with open(area_data_path, "w") as areas_file:
+            areas_file.write(params["area_data"])        
     else:
         area_data_path = params["area_data"]
 
@@ -104,6 +105,11 @@ def local_function(params):
                 })
 
                 order += 1
+    
+    if os.path.exists("/tmp/{}".format(map_data_filename)):
+        os.remove("/tmp/{}".format(map_data_filename))
+    if os.path.exists("/tmp/{}.csv".format(temp_filename)):
+        os.remove("/tmp/{}.csv".format(temp_filename))
 
     return {"stderr": stderr, "stdout": stdout}
 

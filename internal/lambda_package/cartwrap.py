@@ -1,9 +1,6 @@
 import subprocess
-import io
-from threading import Thread
+import threading
 from queue import Queue
-import re
-import math
 
 def reader(pipe, pipe_name, queue):
     try:
@@ -57,16 +54,21 @@ def generate_cartogram(area_data, gen_file, cartogram_executable, world=False, c
 
     q = Queue()
 
-    Thread(target=reader,args=[cartogram_process.stdout, "stdout", q]).start()
-    Thread(target=reader,args=[cartogram_process.stderr, "stderr", q]).start()
+    threading.Thread(target=reader,args=[cartogram_process.stdout, "stdout", q]).start()
+    threading.Thread(target=reader,args=[cartogram_process.stderr, "stderr", q]).start()
 
     if cart_exec_name != "cartogram":
         cartogram_process.stdin.write(str.encode(area_data))
         cartogram_process.stdin.close()
 
-    for _ in range(2):
-        for source, line in iter(q.get, None):
-            yield source,line
+    timer = threading.Timer(300, cartogram_process.terminate)  # Terminate after 300 seconds
+    timer.start()
+    try:
+        for _ in range(2):
+            for source, line in iter(q.get, None):
+                yield source,line
+    finally:
+        timer.cancel()
 
     #output, errors = cartogram_process.communicate(bytes(area_data, 'UTF-8'))
 
