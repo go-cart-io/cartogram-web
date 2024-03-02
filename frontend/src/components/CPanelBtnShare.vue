@@ -8,9 +8,9 @@ const store = useCartogramStore()
 
 const socialURL = computed(() => {
   if (store.stringKey)
-    return location.protocol + '//' + location.host + '/cart/' + store.stringKey
+    return location.protocol + '//' + location.host + '/cartogram/key/' + store.stringKey
 
-  return location.protocol + '//' + location.host + '/cartogram/' + store.currentMapName
+  return location.protocol + '//' + location.host + '/cartogram/map/' + store.currentMapName
 })
 
 const socialURLEncoded = computed(() => {
@@ -18,12 +18,7 @@ const socialURLEncoded = computed(() => {
 })
 
 const embedHTML = computed(() => {
-  let embedURL
-  if (store.stringKey) {
-    embedURL = location.protocol + '//' + window.location.host + '/embed/cart/' + store.stringKey
-  } else {
-    embedURL = location.protocol + '//' + window.location.host + '/embed/map/' + store.currentMapName
-  }
+  let embedURL = socialURL.value + '/embed'
 
   return (
     '<iframe src="' +
@@ -34,7 +29,7 @@ const embedHTML = computed(() => {
 
 function access() {
   var http = new XMLHttpRequest()
-  http.open("GET", socialURL.value)
+  http.open('GET', socialURL.value)
 }
 </script>
 
@@ -71,6 +66,14 @@ function access() {
         </div>
         <div class="modal-body">
           <div>
+            <div>
+              <p class="bg-warning-subtle p-1 rounded">
+                <span class="badge text-bg-warning">Important</span> The share link/embed will be
+                pruned from our server if there is no access for one year. We strongly advise you to
+                back up your original data in a safe place so you can regenerate the cartogram if
+                needed.
+              </p>
+            </div>
             <h3 class="text-center">Share now</h3>
             <div class="text-center">
               <a

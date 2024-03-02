@@ -240,23 +240,33 @@ Message:
 
 @app.route('/cartogram', methods=['GET'])
 def get_cartogram():    
-    return get_cartogram_by_name(default_cartogram_handler)
+    return get_cartogram_by_name(default_cartogram_handler, None)
 
 
-@app.route('/cartogram/<map_name>', methods=['GET'])
-def get_cartogram_by_name(map_name):
+@app.route('/cartogram/map/<map_name>', methods=['GET'], defaults={'mode': None})
+@app.route('/cartogram/map/<map_name>/<mode>', methods=['GET'])
+def get_cartogram_by_name(map_name, mode):
+    if mode == 'embed':
+        template = 'embed.html'
+    else:
+        template = 'cartogram.html'
 
     if not cartogram_handler.has_handler(map_name):
         return Response('Cannot find the map {}'.format(map_name), status=500)
 
-    return render_template('cartogram.html', page_active='cartogram', 
+    return render_template(template, page_active='cartogram', 
                            maps=cartogram_handler.get_sorted_handler_names(),
                            map_name=map_name,
-                           tracking=tracking.determine_tracking_action(request))
+                           mode=mode, tracking=tracking.determine_tracking_action(request))
 
+@app.route('/cartogram/key/<string_key>', methods=['GET'], defaults={'mode': None})
+@app.route('/cartogram/key/<string_key>/<mode>', methods=['GET'])
+def cartogram_by_key(string_key, mode):
+    if mode == 'embed':
+        template = 'embed.html'
+    else:
+        template = 'cartogram.html'
 
-@app.route('/cart/<string_key>', methods=['GET'])
-def cartogram_by_key(string_key):
     if not settings.USE_DATABASE:
         return Response('Not found', status=404)
 
@@ -268,40 +278,10 @@ def cartogram_by_key(string_key):
     cartogram_entry.date_accessed = datetime.datetime.utcnow()
     db.session.commit()    
 
-    return render_template('cartogram.html', page_active='cartogram', 
+    return render_template(template, page_active='cartogram', 
                            maps=cartogram_handler.get_sorted_handler_names(),
                            map_name=cartogram_entry.handler, map_data_key=string_key,
-                           tracking=tracking.determine_tracking_action(request))
-
-
-@app.route('/embed/map/<map_name>', methods=['GET'])
-def cartogram_embed_by_map(map_name):
-    if not cartogram_handler.has_handler(map_name):
-        return Response('Error', status=500)
-
-    return render_template('embed.html', page_active='cartogram', 
-                           map_name=map_name,
-                           mode='embed', tracking=tracking.determine_tracking_action(request))
-
-
-@app.route('/embed/cart/<string_key>', methods=['GET'])
-def cartogram_embed_by_key(string_key):
-    if not settings.USE_DATABASE:
-        return Response('Not found', status=404)
-
-    cartogram_entry = CartogramEntry.query.filter_by(string_key=string_key).first_or_404()
-
-    if not cartogram_handler.has_handler(cartogram_entry.handler):
-        return Response('Error', status=500)
-    
-    if cartogram_entry != None:
-        cartogram_entry.date_accessed = datetime.datetime.utcnow()
-        db.session.commit()
-
-    return render_template('embed.html', page_active='cartogram', 
-                        map_name=cartogram_entry.handler, map_data_key=string_key,
-                        mode='embed', tracking=tracking.determine_tracking_action(request))
-
+                           mode=mode, tracking=tracking.determine_tracking_action(request))
 
 @app.route('/setprogress', methods=['POST'])
 def setprogress():
@@ -411,6 +391,13 @@ def get_mappack_by_key(string_key, updateaccess = True):
     mappack['stringKey'] = string_key
 
     return Response(json.dumps(mappack), content_type='application/json', status=200)
+
+
+@app.route('/cart/<key>', methods=['GET'])
+@app.route('/embed/map/<key>', methods=['GET'])
+@app.route('/embed/cart/<key>', methods=['GET'])
+def cartogram_old(key):
+    return render_template('404_code_expired.html', title = 'Outdated share/embed code'), 404
 
 @app.route('/cleanup')
 def cleanup():

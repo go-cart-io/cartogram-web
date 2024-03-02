@@ -15,7 +15,7 @@ let mappackURL: string | null
 
 onMounted(async () => {
   const urlParams = new URLSearchParams(window.location.search)
-  mappackURL = urlParams.get('url')
+  mappackURL = null //urlParams.get('url') //TODO: enable only when there is schema verification
   switchMap()
 })
 
@@ -36,7 +36,12 @@ async function switchMap() {
 
 <template>
   <div v-if="!props.isEmbed" class="d-flex p-2" style="max-width: 30%">
-    <select class="form-select" v-model="store.currentMapName" v-on:change="switchMap">
+    <select
+      class="form-select"
+      v-model="store.currentMapName"
+      v-on:change="switchMap"
+      v-bind:disabled="store.stringKey.length > 0"
+    >
       <option v-for="(mapItem, mapKey) in props.maps" v-bind:value="mapKey">
         {{ mapItem.name }}
       </option>
