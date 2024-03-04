@@ -24,6 +24,7 @@ app = Flask(__name__)
 CORS(app)
 Asset(app)
 
+app.app_context().push()
 app.secret_key = 'LTTNWg8luqfWKfDxjFaeC3vYoGrC2r2f5mtXo5IE/jt1GcY7/JaSq8V/tB'
 app.config['SQLALCHEMY_DATABASE_URI'] = settings.DATABASE_URI
 # This gets rid of an annoying Flask error message. We don't need this feature anyway.
