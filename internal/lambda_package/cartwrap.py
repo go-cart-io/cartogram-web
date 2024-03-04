@@ -43,14 +43,14 @@ def generate_cartogram(area_data, gen_file, cartogram_executable, world=False, c
             gen_file,
             area_data,
             flag
-        ],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,bufsize=1)
+        ],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     else:
         cartogram_process = subprocess.Popen([
             cartogram_executable,
             '-g',
             gen_file,
             flag
-        ], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1)
+        ], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     q = Queue()
 

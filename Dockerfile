@@ -1,14 +1,12 @@
-FROM python:3-stretch
+FROM python:3-slim
 
 COPY ./internal /root/internal
 COPY ./data /root/data
 
-RUN echo "deb http://archive.debian.org/debian/ stretch main contrib non-free" > /etc/apt/sources.list
-RUN echo "deb http://archive.debian.org/debian/ stretch-proposed-updates main contrib non-free" > /etc/apt/sources.list
-RUN echo "deb http://archive.debian.org/debian-security stretch/updates main contrib non-free" > /etc/apt/sources.list.d/sources.list
-RUN apt-get update && apt-get -y install cron
+RUN apt-get update && apt-get -y install cron curl
 RUN (crontab -l ; echo "0 0 * * * curl http://localhost:5000/cleanup") | crontab
 
+RUN apt-get -y install gcc libgeos-dev libjpeg-dev zlib1g-dev
 RUN pip install --upgrade pip
 RUN pip install -r /root/internal/requirements.txt
 

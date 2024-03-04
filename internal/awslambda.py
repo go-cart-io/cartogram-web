@@ -25,7 +25,7 @@ def generate_cartogram(area_data, gen_file, lambda_url, lambda_api_key, cartogra
     }
 
     # Be careful, lambda function may not work anymore
-    if lambda_url is not None and lambda_url is not '':
+    if lambda_url != None and lambda_url != '':
         r = requests.post(lambda_url, headers=headers, json=lambda_event)
         return r.json()
     

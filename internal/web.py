@@ -24,6 +24,7 @@ app = Flask(__name__)
 CORS(app)
 Asset(app)
 
+app.app_context().push()
 app.secret_key = 'LTTNWg8luqfWKfDxjFaeC3vYoGrC2r2f5mtXo5IE/jt1GcY7/JaSq8V/tB'
 app.config['SQLALCHEMY_DATABASE_URI'] = settings.DATABASE_URI
 # This gets rid of an annoying Flask error message. We don't need this feature anyway.
@@ -349,6 +350,7 @@ def cartogram():
     # except (KeyError, csv.Error, ValueError, UnicodeDecodeError):
     #     return Response('{"error":"The data was invalid."}', status=400, content_type='application/json')
     except Exception as e:
+        #return e
         return Response('{"error": "The data may be invalid or the process has timed out. Please try again later."}', status=400, content_type='application/json')  
 
 @app.route('/mappack/<string_key>', methods=['GET'])
@@ -405,7 +407,7 @@ def cleanup():
         year_ago = datetime.datetime.utcnow() - datetime.timedelta(days=366)
         CartogramEntry.query.filter(CartogramEntry.date_accessed < year_ago).delete()
         db.session.commit()
-        return Response(year_ago, status=200)
+        return Response(year_ago.strftime('%B %d %Y - %H:%M:%S'), status=200)
 
 if __name__ == '__main__':
     app.run(debug=settings.DEBUG, host=settings.HOST, port=settings.PORT)
