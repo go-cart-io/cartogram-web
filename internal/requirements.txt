@@ -1,32 +1,34 @@
+alembic==1.13.1
+async-timeout==4.0.3
+blinker==1.7.0
 captcha==0.5.0
-#chardet==3.0.4
+certifi==2024.2.2
+charset-normalizer==3.3.2
+click==8.1.7
 Flask==3.0.2
+Flask-Cors==4.0.0
+Flask-Migrate==4.0.5
 Flask-SQLAlchemy==3.1.1
+greenlet==3.0.3
 gunicorn==21.2.0
+idna==3.6
+itsdangerous==2.1.2
+Jinja2==3.1.3
+Mako==1.3.2
+MarkupSafe==2.1.5
+numpy==1.26.4
+packaging==23.2
+pillow==10.2.0
 psycopg2-binary==2.9.9
 py-bcrypt==0.4
 redis==5.0.2
 requests==2.31.0
-requests-futures==1.0.0 # for lamda package
-validate-email==1.3
+requests-futures==1.0.0
+setuptools==69.1.0
 shapely==2.0.1
-Flask-Cors==4.0.0
-Flask-Migrate==4.0.5
-
-# Auto install with Flask 
-# Jinja2
-# MarkupSafe
-# Werkzeug
-# itsdangerous
-# click
-
-# Auto install with Flask-SQLAlchemy
-# SQLAlchemy
-
-# Auto install with captcha
-# Pillow
-
-# Auto install with requests
-# certifi
-# idna
-# urllib3
+SQLAlchemy==2.0.27
+typing_extensions==4.10.0
+urllib3==2.2.1
+validate_email==1.3
+Werkzeug==3.0.1
+wheel==0.42.0

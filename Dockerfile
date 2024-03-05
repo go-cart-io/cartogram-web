@@ -1,4 +1,4 @@
-FROM python:3-slim
+FROM python:3-slim-bookworm
 
 COPY ./internal /root/internal
 COPY ./data /root/data
