@@ -141,6 +141,7 @@ async function getGeneratedCartogram() {
         resolve(response)
       },
       function (error: any) {
+        store.loadingProgress = 100
         window.clearInterval(progressUpdater)
         reject(error)
       }
