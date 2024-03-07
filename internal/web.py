@@ -322,16 +322,22 @@ def cartogram():
                             cartogram_handler.get_gen_file(handler), settings.CARTOGRAM_LAMBDA_URL,
                             settings.CARTOGRAM_LAMDA_API_KEY, string_key)
 
-        cartogram_gen_output = lambda_result['stdout'] 
+        cartogram_gen_output = lambda_result['stdout']
+        # Parse the JSON string to a Python dictionary
+        parsed_output = json.loads(cartogram_gen_output)
+
+        # Access the 'Original' key
+        # This is required in the new cartogram binary
+        original_data = parsed_output['Original']
 
         if cartogram_handler.expect_geojson_output():
             # Just confirm that we've been given valid JSON. Calculate the extrema if necessary
-            cartogram_json = json.loads(cartogram_gen_output)            
+            cartogram_json = original_data
 
             if 'bbox' not in cartogram_json:
                 cartogram_json['bbox'] = geojson_extrema.get_extrema_from_geojson(cartogram_json)
         else:
-            cartogram_json = gen2dict.translate(io.StringIO(cartogram_gen_output), settings.CARTOGRAM_COLOR,
+            cartogram_json = gen2dict.translate(io.StringIO(json.dumps(original_data)), settings.CARTOGRAM_COLOR,
                                                 cartogram_handler.remove_holes())
             
         cartogram_json['tooltip'] = cart_data[2]
