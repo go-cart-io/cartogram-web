@@ -28,7 +28,7 @@ def generate_cartogram(area_data, gen_file, cartogram_executable, world=False, c
     
     # o flag for output to stdout
     if cart_exec_name == "cartogram":
-        flag = '-o'
+        flag = '-oQ'
     else:
         flag = '-s'
         
