@@ -3,7 +3,6 @@ import gen2dict, geojson_extrema, awslambda, tracking, custom_captcha
 import settings
 
 import json
-import csv
 import io
 import string
 import random
@@ -341,6 +340,7 @@ def cartogram():
         
         if settings.USE_DATABASE:
             new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
+                                    date_accessed=datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=365),
                                     handler=handler, cartogramui_data=json.dumps({'colors': cart_data[1]}))
             db.session.add(new_cartogram_entry)
             db.session.commit()        
@@ -401,13 +401,6 @@ def get_mappack_by_key(string_key, updateaccess = True):
 def cartogram_old(key):
     return render_template('404_code_expired.html', title = 'Outdated share/embed code'), 404
 
-@app.route('/cleanup')
-def cleanup():
-    if settings.USE_DATABASE:
-        year_ago = datetime.datetime.utcnow() - datetime.timedelta(days=366)
-        CartogramEntry.query.filter(CartogramEntry.date_accessed < year_ago).delete()
-        db.session.commit()
-        return Response(year_ago.strftime('%B %d %Y - %H:%M:%S'), status=200)
 
 if __name__ == '__main__':
     app.run(debug=settings.DEBUG, host=settings.HOST, port=settings.PORT)
