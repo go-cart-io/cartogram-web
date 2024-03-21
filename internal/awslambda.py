@@ -111,7 +111,7 @@ def local_function(params):
     if os.path.exists("/tmp/{}.csv".format(temp_filename)):
         os.remove("/tmp/{}.csv".format(temp_filename))
 
-    return {"stderr": stderr, "stdout": stdout}
+    return {"stderr": stderr, "stdout": stdout, "world": world}
 
 def setprogress(params):
     redis_conn = redis.Redis(host=settings.CARTOGRAM_REDIS_HOST, port=settings.CARTOGRAM_REDIS_PORT, db=0)
