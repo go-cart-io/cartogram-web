@@ -4,15 +4,11 @@ import csv
 import json
 import shutil
 import geojson_extrema
-import cartwrap
 import mappackify
 import random
 import string
-import redis
 import settings
 import awslambda
-import threading
-import queue
 import svg2color
 import svg2labels
 import svg2config
@@ -132,8 +128,7 @@ def init(map_name):
     print("Generating map pack in static/cartdata/{}/mappack.json...".format(map_name))
     mappackify.mappackify(map_name, name_array)    
 
-    modify_basejson(map_gen_file_path, regions)
-    modify_handler(map_name, user_friendly_name, map_gen_path, region_identifier)
+    modify_handler(map_name, user_friendly_name, map_gen_path, region_identifier, regions)
 
     print()
     print("All done!")
@@ -241,89 +236,13 @@ def write_cartogram(map_gen_file_path, map_name, regions, data_name, data_unit, 
     cartogram_data = 'cartogram_id,Region Data,Region Name,Inset\n' + ("\n".join(list(map(
         lambda region: '{},{},{},'.format(region["id"], region[data_name], region["name"]), regions))))   
 
-    def serverless_generate():
+    unique_key = get_random_string(50)
+    lambda_result = awslambda.generate_cartogram(cartogram_data,
+                            map_gen_file_path, settings.CARTOGRAM_LAMBDA_URL,
+                            settings.CARTOGRAM_LAMDA_API_KEY, unique_key, flags)
 
-        redis_conn = redis.Redis(
-            host=settings.CARTOGRAM_REDIS_HOST, port=settings.CARTOGRAM_REDIS_PORT, db=0)
-        q = queue.Queue()
-        unique_key = get_random_string(50)
-
-        def downloader_worker():
-            lambda_result = awslambda.generate_cartogram(cartogram_data,
-                                                        map_gen_file_path, settings.CARTOGRAM_LAMBDA_URL,
-                                                        settings.CARTOGRAM_LAMDA_API_KEY, unique_key, flags)
-            cartogram_gen_output = lambda_result['stdout']
-            # print("************")
-            # print(lambda_result['stderr'])
-            q.put(cartogram_gen_output)
-
-        threading.Thread(target=downloader_worker(), daemon=True).start()
-
-        current_stderr = ""
-        current_progress_level = None
-        gen_output = ""
-
-        while True:
-            current_progress = redis_conn.get(
-                "cartprogress-{}".format(unique_key))
-
-            if current_progress == None:
-                pass
-            else:
-                current_progress = json.loads(current_progress.decode())
-                if current_progress['progress'] != current_progress_level:
-                    to_print = current_progress['stderr'].replace(
-                        current_stderr, "")
-                    for line in to_print.split("\n"):
-                        print("Generating {} map: {}".format(
-                            data_name, line), flush=True)
-                    current_stderr = current_progress['stderr']
-                    current_progress_level = current_progress['progress']
-
-            try:
-                gen_output = q.get(False, timeout=0.1)
-                break
-            except queue.Empty:
-                pass
-
-        current_progress = redis_conn.get(
-            "cartprogress-{}".format(unique_key))
-
-        if current_progress == None:
-            pass
-        else:
-            current_progress = json.loads(current_progress.decode())
-            if current_progress['progress'] != current_progress_level:
-                to_print = current_progress['stderr'].replace(
-                    current_stderr, "")
-                for line in to_print.split("\n"):
-                    print("Generating {} map: {}".format(
-                        data_name, line), flush=True)
-                    
-        # print("serverless")
-        # print(gen_output)
-        return json.loads(gen_output)
-
-    def self_generate():
-
-        gen_output_lines = []
-
-        for source, line in cartwrap.generate_cartogram(cartogram_data, map_gen_file_path, os.environ["CARTOGRAM_EXE"], False, flags):
-
-            if source == "stdout":
-                gen_output_lines.append(line.decode().strip())
-            else:
-                print("Generating {} map: {}".format(
-                    data_name, line.decode().strip()))
-
-        gen_output = "\n".join(gen_output_lines)
-
-        # print("self")
-        # print(gen_output)
-        return json.loads(gen_output)
-
-    cartogram_json = serverless_generate(
-    ) if settings.CARTOGRAM_LOCAL_DOCKERIZED else self_generate()
+    # print(lambda_result)
+    cartogram_json = json.loads(lambda_result['stdout'])
 
     # Calculate the bounding box if necessary
     if "bbox" not in cartogram_json:
@@ -359,31 +278,22 @@ def write_cartogram(map_gen_file_path, map_name, regions, data_name, data_unit, 
         json.dump(cartogram_json, original_json_file)
 
 
-def modify_basejson(map_gen_file_path, regions):
-    print(("Updating {}...").format(map_gen_file_path))
+def modify_handler(map_name, user_friendly_name, map_gen_path, region_identifier, regions):
     region_name_id_dict = {}
     for region in regions:
         region_name_id_dict[region["name"]] = region["id"]
 
-    with open(map_gen_file_path, 'r') as openfile: 
-        json_obj = json.load(openfile)
-    json_obj['regions'] = region_name_id_dict
-    with open(map_gen_file_path, "w") as outfile:
-        outfile.write(json.dumps(json_obj))
-
-
-def modify_handler(map_name, user_friendly_name, map_gen_path, region_identifier):
-    with open("handler.py", "r") as handler_py_file:
-        web_py_contents = handler_py_file.read()
+    with open("handler_metadata.py", "r") as handler_metadata_py_file:
+        handler_metadata_py_contents = handler_metadata_py_file.read()
 
         print()
-        print("I will now modify handler.py to add your new map. Before I do this, I will back up the current version of handler.py to handler.py.bak.")
+        print("I will now modify handler_metadata.py to add your new map. Before I do this, I will back up the current version of handler_metadata.py to handler_metadata.py.bak.")
         print()
 
-        print("Backing up handler.py...")
-        shutil.copy("handler.py", "handler.py.bak")
+        print("Backing up handler_metadata.py...")
+        shutil.copy("handler_metadata.py", "handler_metadata.py.bak")
 
-        web_py_lines = web_py_contents.split("\n")
+        web_py_lines = handler_metadata_py_contents.split("\n")
         web_py_new_lines = []
         found_header = False
         for line in web_py_lines:
@@ -393,18 +303,19 @@ def modify_handler(map_name, user_friendly_name, map_gen_path, region_identifier
                 web_py_new_lines.append(
                     "'" + map_name + "': {'name':'" + user_friendly_name + 
                     "', 'region_identifier':'" + region_identifier +
-                    "', 'file':'" + map_gen_path + "'},")                
+                    "', 'file':'" + map_gen_path +
+                    "', 'regions':" + str(region_name_id_dict) + "},")                
                 found_header = True
             else:
                 web_py_new_lines.append(line)
 
         if not found_header:
             print(
-                "I was not able to find the appropriate markers that allow me to modify the handler.py file.")
+                "I was not able to find the appropriate markers that allow me to modify the handler_metadata.py file.")
             return
 
-        with open("handler.py", "w") as handler_py_file:
-            handler_py_file.write("\n".join(web_py_new_lines))
+        with open("handler_metadata.py", "w") as handler_metadata_py_file:
+            handler_metadata_py_file.write("\n".join(web_py_new_lines))
 
 
 def gen_svg(map_gen_file_path, map_name, regions):
