@@ -68,11 +68,7 @@ def lambda_handler(event, context):
 
                 if cartogram_exec == "cartogram_c":
                     current_progress = 1 / max(1 , log((current_progress/0.01), 5))
-                
-                # Prevents the progress bar from getting stuck at 100%
-                if current_progress == 1.0:
-                    current_progress = 0.95
-                    
+                                    
                 session.post(os.environ['CARTOGRAM_PROGRESS_URL'], json={
                     'secret': os.environ['CARTOGRAM_PROGRESS_SECRET'],
                     'key': params['key'],
