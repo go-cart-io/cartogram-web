@@ -49,7 +49,7 @@ class CartogramHandler:
                 float(region[colValue])
             else:
                 region[colValue] = 'NA',
-            if not re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', region[colColor]):
+            if region[colColor] != '' and not re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', region[colColor]):
                 raise ValueError('The color data was invaild.')
                    
             regionId = cartogram_handlers[handler]['regions'][region[colName]]
