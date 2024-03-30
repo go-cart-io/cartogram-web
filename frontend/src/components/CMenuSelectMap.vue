@@ -23,7 +23,7 @@ async function switchMap() {
   var url = mappackURL
     ? mappackURL
     : store.stringKey
-    ? '/mappack/' + store.stringKey
+    ? '/api/v1/mappack/' + store.stringKey
     : '/static/cartdata/' + store.currentMapName + '/mappack.json'
 
   var mappack = (await HTTP.get(url, null, function (e: any) {

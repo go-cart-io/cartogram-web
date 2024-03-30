@@ -11,6 +11,8 @@ from flask import Flask, request, session, Response, flash, redirect, render_tem
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import validate_email
 import smtplib
 import email.mime.text
@@ -20,8 +22,10 @@ from handler import CartogramHandler
 from asset import Asset
 
 app = Flask(__name__)
-CORS(app)
 Asset(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
+limiter = Limiter(get_remote_address, app=app, default_limits=["50 per hour"], 
+                  storage_uri='redis://{}:{}'.format(settings.CARTOGRAM_REDIS_HOST, settings.CARTOGRAM_REDIS_PORT))
 
 app.app_context().push()
 app.secret_key = 'LTTNWg8luqfWKfDxjFaeC3vYoGrC2r2f5mtXo5IE/jt1GcY7/JaSq8V/tB'
@@ -275,7 +279,7 @@ def cartogram_by_key(string_key, mode):
     if cartogram_entry is None or not cartogram_handler.has_handler(cartogram_entry.handler):
         return Response('Error', status=500)
     
-    cartogram_entry.date_accessed = datetime.datetime.utcnow()
+    cartogram_entry.date_accessed = datetime.datetime.now(datetime.UTC)
     db.session.commit()    
 
     return render_template(template, page_active='cartogram', 
@@ -283,23 +287,15 @@ def cartogram_by_key(string_key, mode):
                            map_name=cartogram_entry.handler, map_data_key=string_key,
                            mode=mode, tracking=tracking.determine_tracking_action(request))
 
-@app.route('/setprogress', methods=['POST'])
-def setprogress():
-    params = json.loads(request.data)
-
-    if params['secret'] != settings.CARTOGRAM_PROGRESS_SECRET:
-        return Response('', status=200)
-
-    awslambda.setprogress(params)
-    return Response('', status=200)
-
-@app.route('/getprogress', methods=['GET'])
+@app.route('/api/v1/getprogress', methods=['GET'])
+@limiter.exempt
 def getprogress():
     current_progress_output = awslambda.getprogress(request.args['key'])
     return Response(json.dumps(current_progress_output), status=200, content_type='application/json')
 
 
-@app.route('/cartogram', methods=['POST'])
+@app.route('/api/v1/cartogram', methods=['POST'])
+@limiter.limit("1 per minute")
 def cartogram():    
     colName = 0
     colColor = 1
@@ -335,26 +331,31 @@ def cartogram():
             
         cartogram_json['tooltip'] = cart_data[2]
         
-        with open('static/userdata/' + string_key + '.json', 'w') as outfile:
-            outfile.write(json.dumps({'{}-custom'.format(colValue): cartogram_json}))
-        
-        if settings.USE_DATABASE:
-            new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
-                                    date_accessed=datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=365),
-                                    handler=handler, cartogramui_data=json.dumps({'colors': cart_data[1]}))
-            db.session.add(new_cartogram_entry)
-            db.session.commit()        
+        if 'persist' in data:
+            with open('static/userdata/' + string_key + '.json', 'w') as outfile:
+                outfile.write(json.dumps({'{}-custom'.format(colValue): cartogram_json}))
+            
+            if settings.USE_DATABASE:
+                new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
+                                        date_accessed=datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=365),
+                                        handler=handler, cartogramui_data=json.dumps({'colors': cart_data[1]}))
+                db.session.add(new_cartogram_entry)
+                db.session.commit()        
+        else:
+            string_key = None
 
-        return get_mappack_by_key(string_key, False)
+        return get_mappack_by_userdata(handler, 
+                                       {'colors': cart_data[1], 'stringKey': string_key}, 
+                                       {'{}-custom'.format(colValue): cartogram_json})
     
     # except (KeyError, csv.Error, ValueError, UnicodeDecodeError):
     #     return Response('{"error":"The data was invalid."}', status=400, content_type='application/json')
     except Exception as e:
-        #return e
+        # return e
         return Response('{"error": "The data may be invalid or the process has timed out. Please try again later."}', status=400, content_type='application/json')  
 
-@app.route('/mappack/<string_key>', methods=['GET'])
-def get_mappack_by_key(string_key, updateaccess = True):
+@app.route('/api/v1/mappack/<string_key>', methods=['GET'])
+def get_mappack_by_key(string_key):
     if not settings.USE_DATABASE:
         return Response('Not found', status=404)
 
@@ -363,18 +364,22 @@ def get_mappack_by_key(string_key, updateaccess = True):
     if cartogram_entry == None or not cartogram_handler.has_handler(cartogram_entry.handler):
         return Response('Error', status=500)
     
-    if updateaccess:
-        cartogram_entry.date_accessed = datetime.datetime.utcnow()
-        db.session.commit()        
-
-    mappack = json.loads(cartogram_entry.cartogramui_data)
-    with open('static/cartdata/{}/mappack.json'.format(cartogram_entry.handler), 'r') as file:
-        original_mappack = json.load(file)
-
+    cartogram_entry.date_accessed = datetime.datetime.now(datetime.UTC)
+    db.session.commit()        
+    
     with open('static/userdata/{}.json'.format(cartogram_entry.string_key), 'r') as file:
-        new_maps = json.load(file)       
+        new_maps = json.load(file)
 
-    mappack.update(new_maps)
+    mappack = json.loads(cartogram_entry.cartogramui_data)       
+    mappack['stringKey'] = string_key
+
+    return get_mappack_by_userdata(cartogram_entry.handler, mappack, new_maps)
+
+def get_mappack_by_userdata(handler, mappack, new_maps):    
+    with open('static/cartdata/{}/mappack.json'.format(handler), 'r') as file:
+        original_mappack = json.load(file)
+    
+    mappack.update(new_maps) 
     data_names = list(new_maps.keys())
 
     if not 'config' in original_mappack:
@@ -390,10 +395,8 @@ def get_mappack_by_key(string_key, updateaccess = True):
 
     data_names.insert(0, base_name)        
     mappack['config']['data_names'] = data_names
-    mappack['stringKey'] = string_key
 
     return Response(json.dumps(mappack), content_type='application/json', status=200)
-
 
 @app.route('/cart/<key>', methods=['GET'])
 @app.route('/embed/map/<key>', methods=['GET'])

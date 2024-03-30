@@ -33,6 +33,8 @@ export default class HTTP {
               console.log(this.responseText)
               reject(Error('Unable to parse output.'))
             }
+          } else if (this.status == 429) {
+            reject(Error('Too many requests within specify time. Please try again later.'))
           } else {
             console.log(url)
             reject(Error('Unable to fetch data from the server.'))
@@ -84,6 +86,8 @@ export default class HTTP {
               console.log(this.responseText)
               reject(Error('Unable to parse output.'))
             }
+          } else if (this.status == 429) {
+            reject(Error('Too many requests within specify time. Please try again later.'))
           } else {
             console.log(url)
             var response = JSON.parse(this.responseText)

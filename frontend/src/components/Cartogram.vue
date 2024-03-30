@@ -110,29 +110,30 @@ async function getGeneratedCartogram() {
       JSON.stringify({
         handler: store.currentMapName,
         values: tempDataTable,
-        stringKey: stringKey
+        stringKey: stringKey,
+        persist: true
       })
 
     var progressUpdater = window.setInterval(
       (function (key) {
         return function () {
-          HTTP.get('/getprogress?key=' + encodeURIComponent(key) + '&time=' + Date.now()).then(
-            function (progress: any) {
-              if (progress.progress === null) {
-                store.loadingProgress = 8
-                return
-              }
-
-              store.loadingProgress = Math.floor(progress.progress * 100)
-              // state.error += progress.stderr
+          HTTP.get(
+            '/api/v1/getprogress?key=' + encodeURIComponent(key) + '&time=' + Date.now()
+          ).then(function (progress: any) {
+            if (progress.progress === null) {
+              store.loadingProgress = 8
+              return
             }
-          )
+
+            store.loadingProgress = Math.floor(progress.progress * 100)
+            // state.error += progress.stderr
+          })
         }
       })(stringKey),
       500
     )
 
-    HTTP.post('/cartogram', req_body, {
+    HTTP.post('/api/v1/cartogram', req_body, {
       'Content-type': 'application/x-www-form-urlencoded'
     }).then(
       function (response: any) {
