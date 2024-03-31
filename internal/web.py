@@ -1,25 +1,19 @@
 #!/usr/bin/env python
-import gen2dict, geojson_extrema, awslambda, tracking, custom_captcha
+import geojson_extrema, awslambda
 import settings
 
 import json
-import io
-import string
-import random
 import datetime
-from flask import Flask, request, session, Response, flash, redirect, render_template, url_for
+from flask import Flask, request, Response, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import validate_email
-import smtplib
-import email.mime.text
-import socket
 
 from handler import CartogramHandler
 from asset import Asset
+from views import contact, tracking, custom_captcha
 
 app = Flask(__name__)
 Asset(app)
@@ -42,10 +36,6 @@ if settings.USE_DATABASE:
     db = SQLAlchemy(app)
     migrate = Migrate(app, db)
 
-default_cartogram_handler = 'usa'
-cartogram_handler = CartogramHandler()
-
-if settings.USE_DATABASE:
     class CartogramEntry(db.Model):
         id = db.Column(db.Integer, primary_key=True)
         string_key = db.Column(db.String(32), unique=True, nullable=False)
@@ -57,27 +47,8 @@ if settings.USE_DATABASE:
         def __repr__(self):
             return '<CartogramEntry {}>'.format(self.string_key)
 
-
-# This function returns a random string containg lowercase letters and numbers that is *length* characters long.
-# This is used to generate the unique string key associated with each cartogram.
-def get_random_string(length):
-    return ''.join(random.SystemRandom().choice(string.ascii_lowercase + string.digits) for _ in range(length))
-
-
-@app.route('/consent', methods=['POST'])
-def consent():
-    user_consent = request.form.get('consent', '')
-
-    if user_consent == 'yes':
-        resp = Response(json.dumps({'error': 'none', 'tracking_id': settings.CARTOGRAM_GA_TRACKING_ID}),
-                        content_type='application/json', status=200)
-        resp.set_cookie('tracking', 'track', max_age=31556926)  # One year
-        return resp
-    else:
-        resp = Response(json.dumps({'error': 'none'}), content_type='application/json', status=200)
-        resp.set_cookie('tracking', 'do_not_track', max_age=31556926)
-        return resp
-
+default_cartogram_handler = 'usa'
+cartogram_handler = CartogramHandler()
 
 @app.route('/', methods=['GET'])
 def index():
@@ -101,145 +72,12 @@ def faq():
 
 @app.route('/tutorial', methods=['GET'])
 def tutorial():
-    return render_template('tutorial.html', page_active='tutorial',
-                           tracking=tracking.determine_tracking_action(request))
-
-@app.route('/gencaptcha', methods=['GET'])
-def gencaptcha():
-    captcha = custom_captcha.generate_captcha()
-    session['captcha_hashed'] = captcha['captcha_hashed']
-
-    return Response(json.dumps({'error': 'none', 'captcha_image': captcha['captcha_image'], 'captcha_audio': captcha['captcha_audio']}),
-                        content_type='application/json', status=200)
+    return render_template('tutorial.html', page_active='tutorial', tracking=tracking.determine_tracking_action(request))
 
 
-@app.route('/contact', methods=['GET', 'POST'])
-def contact():
-    if request.method == 'GET':
-        csrf_token = get_random_string(50)
-        session['csrf_token'] = csrf_token
-
-        captcha = custom_captcha.generate_captcha()
-        session['captcha_hashed'] = captcha['captcha_hashed']
-
-        return render_template('contact.html', page_active='contact', name='', message='', email_address='', subject='',
-                               csrf_token=csrf_token, tracking=tracking.determine_tracking_action(request),
-                               captcha_image=captcha['captcha_image'], captcha_audio=captcha['captcha_audio'])
-    else:
-
-        name = request.form.get('name', '')
-        email_address = request.form.get('email', '')
-        subject = request.form.get('subject', '')
-        message = request.form.get('message', '')
-        csrf = request.form.get('csrftoken', '')
-        captcha = custom_captcha.generate_captcha()
-
-        if 'csrf_token' not in session:
-            session['captcha_hashed'] = captcha['captcha_hashed']
-            flash('Invalid CSRF token.', 'danger')
-            csrf_token = get_random_string(50)
-            session['csrf_token'] = csrf_token
-            return render_template('contact.html', page_active='contact', name=name, message=message,
-                                   email_address=email_address, subject=subject, csrf_token=csrf_token,
-                                   tracking=tracking.determine_tracking_action(request),
-                                   captcha_image=captcha['captcha_image'], captcha_audio=captcha['captcha_audio'])
-
-        if session['csrf_token'] != csrf or len(session['csrf_token'].strip()) < 1:
-            session['captcha_hashed'] = captcha['captcha_hashed']
-            flash('Invalid CSRF token.', 'danger')
-            csrf_token = get_random_string(50)
-            session['csrf_token'] = csrf_token
-            return render_template('contact.html', page_active='contact', name=name, message=message,
-                                   email_address=email_address, subject=subject, csrf_token=csrf_token,
-                                   tracking=tracking.determine_tracking_action(request),
-                                   captcha_image=captcha['captcha_image'], captcha_audio=captcha['captcha_audio'])
-
-        csrf_token = get_random_string(50)
-        session['csrf_token'] = csrf_token
-
-        if len(name.strip()) < 1 or len(subject.strip()) < 1 or len(message.strip()) < 1:
-            session['captcha_hashed'] = captcha['captcha_hashed']
-            flash('You must fill out all of the form fields', 'danger')
-            return render_template('contact.html', page_active='contact', name=name, message=message,
-                                   email_address=email_address, subject=subject, csrf_token=csrf_token,
-                                   tracking=tracking.determine_tracking_action(request),
-                                   captcha_image=captcha['captcha_image'], captcha_audio=captcha['captcha_audio'])
-
-        if not validate_email.validate_email(email_address):
-            session['captcha_hashed'] = captcha['captcha_hashed']
-            flash('You must enter a valid email address.', 'danger')
-            return render_template('contact.html', page_active='contact', name=name, message=message,
-                                   email_address=email_address, subject=subject, csrf_token=csrf_token,
-                                   tracking=tracking.determine_tracking_action(request),
-                                   captcha_image=captcha['captcha_image'], captcha_audio=captcha['captcha_audio'])
-
-        if 'captcha_hashed' not in session:
-            session['captcha_hashed'] = captcha['captcha_hashed']
-            flash('Please retry completing the CAPTCHA.', 'danger')
-            csrf_token = get_random_string(50)
-            session['csrf_token'] = csrf_token
-            return render_template('contact.html', page_active='contact', name=name, message=message,
-                                   email_address=email_address, subject=subject, csrf_token=csrf_token,
-                                   tracking=tracking.determine_tracking_action(request),
-                                   captcha_image=captcha['captcha_image'],
-                                   captcha_audio=captcha['captcha_audio'])
-
-        if not custom_captcha.validate_captcha(request.form.get('captcha', ''), session['captcha_hashed']):
-            session['captcha_hashed'] = captcha['captcha_hashed']
-            flash('Please retry completing the CAPTCHA.', 'danger')
-            return render_template('contact.html', page_active='contact', name=name, message=message,
-                                   email_address=email_address, subject=subject, csrf_token=csrf_token,
-                                   tracking=tracking.determine_tracking_action(request),
-                                   captcha_image=captcha['captcha_image'], captcha_audio=captcha['captcha_audio'])
-
-        # Escape all of the variables:
-        name = name.replace('<', '&lt;')
-        name = name.replace('>', '&gt;')
-
-        subject = subject.replace('<', '&lt;')
-        subject = subject.replace('>', '&gt;')
-
-        message = message.replace('<', '&lt;')
-        message = message.replace('>', '&gt;')
-
-        # Generate the message body
-        message_body = """A message was received from the go-cart.io contact form.
-
-Name:       {}
-Email:      {}
-Subject:    {}
-
-Message:
-
-{}""".format(name, email_address, subject, message)
-
-        mime_message = email.mime.text.MIMEText(message_body)
-        mime_message['Subject'] = 'go-cart.io Contact Form: ' + subject
-        mime_message['From'] = settings.SMTP_FROM_EMAIL
-        mime_message['To'] = settings.SMTP_DESTINATION
-
-        try:
-            with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as smtp:
-
-                if settings.SMTP_AUTHENTICATION_REQUIRED:
-                    smtp.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-
-                smtp.send_message(mime_message)
-
-                smtp.quit()
-        # For some reason connect doesn't catch the socket error
-        # *sigh*
-        except (smtplib.SMTPException, socket.gaierror):
-            session['captcha_hashed'] = captcha['captcha_hashed']
-            flash('There was an error sending your message.', 'danger')
-            return render_template('contact.html', page_active='contact', name=name, message=message,
-                                   email_address=email_address, subject=subject, csrf_token=csrf_token,
-                                   tracking=tracking.determine_tracking_action(request),
-                                   captcha_image=captcha['captcha_image'], captcha_audio=captcha['captcha_audio'])
-
-        session['captcha_hashed'] = ''
-        flash('Your message was successfully sent.', 'success')
-        return redirect(url_for('contact'))
+app.add_url_rule('/contact', methods=['GET', 'POST'], view_func=contact.contact)
+app.add_url_rule('/api/v1/consent', methods=['POST'], view_func=tracking.consent)
+app.add_url_rule('/api/v1/gencaptcha', methods=['GET'], view_func=custom_captcha.gencaptcha)
 
 
 @app.route('/cartogram', methods=['GET'])

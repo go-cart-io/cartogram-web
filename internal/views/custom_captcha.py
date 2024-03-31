@@ -1,9 +1,18 @@
-import bcrypt
 from captcha.image import ImageCaptcha
 from captcha.audio import AudioCaptcha
+import bcrypt
 import secrets
-import string
+import json
 import base64
+
+from flask import session, Response
+
+def gencaptcha():
+    captcha = generate_captcha()
+    session['captcha_hashed'] = captcha['captcha_hashed']
+
+    return Response(json.dumps({'error': 'none', 'captcha_image': captcha['captcha_image'], 'captcha_audio': captcha['captcha_audio']}),
+                        content_type='application/json', status=200)
 
 def generate_captcha():
 
