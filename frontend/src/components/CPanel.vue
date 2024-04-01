@@ -6,13 +6,15 @@
 import * as d3 from 'd3'
 import { ref, reactive } from 'vue'
 
-import * as util from '../lib/util'
 import TouchInfo from '../lib/touchInfo'
+import * as util from '../lib/util'
 import CartMap from '../lib/cartMap'
+import CTouchVis from './CTouchVis.vue'
 import Tooltip from '../lib/tooltip'
 import CPanelLegend from './CPanelLegend.vue'
 import CPanelModalDownload from './CPanelModalDownload.vue'
 import CPanelBtnShare from './CPanelBtnShare.vue'
+
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
@@ -255,6 +257,13 @@ function snapToBetterNumber() {
 </script>
 
 <template>
+  <div class="pointervis">
+    <c-touch-vis
+      v-bind:key="state.lastMove"
+      v-bind:touchInfo="touchInfo"
+      v-bind:touchLenght="state.touchLenght"
+    />
+  </div>
   <div id="cartogram" class="d-flex flex-fill card-group">
     <div class="card w-100" v-bind:class="[store.options.showBase ? 'd-flex' : 'd-none']">
       <div class="d-flex flex-column card-body">
@@ -411,5 +420,15 @@ function snapToBetterNumber() {
   top: 0;
   left: 0;
   z-index: 1000;
+}
+
+.pointervis {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1001;
+  pointer-events: none;
 }
 </style>
