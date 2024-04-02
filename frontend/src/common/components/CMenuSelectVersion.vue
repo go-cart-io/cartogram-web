@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
 
-import { useCartogramStore } from '../stores/cartogram'
-const store = useCartogramStore()
+const props = defineProps<{
+  versions: { [key: string]: any }
+  currentVersionName: string
+}>()
 
 const emit = defineEmits(['version_changed'])
 
@@ -12,7 +14,7 @@ const state = reactive({
 
 function playVersions() {
   state.isPlaying = true
-  let keys = Object.keys(store.versions)
+  let keys = Object.keys(props.versions)
   let i = 0
   emit('version_changed', keys[i++])
   let interval = setInterval(function () {
@@ -33,7 +35,7 @@ function playVersions() {
     aria-label="Data"
   >
     <button
-      v-if="Object.keys(store.versions).length > 2"
+      v-if="Object.keys(props.versions).length > 2"
       class="btn btn-primary"
       v-on:click="playVersions()"
       v-bind:disabled="state.isPlaying"
@@ -41,10 +43,10 @@ function playVersions() {
       <i class="fas fa-play"></i>
     </button>
     <button
-      v-for="(version, index) in store.versions"
+      v-for="(version, index) in props.versions"
       type="button"
       class="btn btn-outline-primary version"
-      v-bind:class="{ active: store.currentVersionName === index.toString() }"
+      v-bind:class="{ active: props.currentVersionName === index.toString() }"
       v-on:click="
         () => {
           emit('version_changed', index.toString())
@@ -54,7 +56,7 @@ function playVersions() {
       {{ version.name }}
       <i
         class="fas fa-check"
-        v-if="store.versions.length === 2 && store.currentVersionName === index.toString()"
+        v-if="props.versions.length === 2 && props.currentVersionName === index.toString()"
       ></i>
     </button>
   </div>

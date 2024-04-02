@@ -7,13 +7,13 @@ import { reactive, ref, onBeforeMount, nextTick } from 'vue'
 import { Toast } from 'bootstrap'
 
 import CMenuBar from './CMenuBar.vue'
-import CPanel from './CPanel.vue'
+import CPanel from '../../common/components/CPanel.vue'
 import CChart from './CChart.vue'
 import CProgressBar from './CProgressBar.vue'
 import HTTP from '../lib/http'
-import * as util from '../lib/util'
-import CartMap from '../lib/cartMap'
-import type { MapHandlers, Mappack, DataTable } from '../lib/interface'
+import CartMap from '../../common/lib/cartMap'
+import type { MapHandlers, Mappack } from '../../common/lib/interface'
+import type { DataTable } from '../lib/interface'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
@@ -103,7 +103,20 @@ async function confirmData(data: DataTable) {
  * information from the backend.
  */
 async function getGeneratedCartogram() {
-  var stringKey = util.generateShareKey(32)
+  // https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
+  function generateShareKey(length: number): string {
+    let result = Date.now().toString()
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    const charactersLength = characters.length
+    let counter = result.length
+    while (counter < length) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength))
+      counter += 1
+    }
+    return result
+  }
+
+  var stringKey = generateShareKey(32)
   var newmappack = await new Promise<Mappack>(function (resolve, reject) {
     var req_body =
       'data=' +
@@ -182,7 +195,17 @@ async function getGeneratedCartogram() {
       v-on:cancel="redraw"
     />
 
-    <c-panel v-else v-bind:key="state.mapkey" v-bind:map="map" v-bind:mode="props.mode" />
+    <c-panel
+      v-else
+      v-bind:key="state.mapkey"
+      v-bind:map="map"
+      v-bind:currentMapName="store.currentMapName"
+      v-bind:currentVersionName="store.currentVersionName"
+      v-bind:stringKey="store.stringKey"
+      v-bind:showBase="store.options.showBase"
+      v-bind:showGrid="store.options.showGrid"
+      v-bind:mode="props.mode"
+    />
   </div>
 
   <div

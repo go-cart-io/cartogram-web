@@ -1,13 +1,3 @@
-export function addClipboard(button_id: string, message: string) {
-  var icon_id = button_id + '-icon'
-  navigator.clipboard.writeText(message)
-  document.getElementById(icon_id)?.setAttribute('src', '/static/img/clipboard-check.svg')
-
-  setTimeout(function () {
-    document.getElementById(icon_id)?.setAttribute('src', '/static/img/clipboard.svg')
-  }, 2000)
-}
-
 export const NICE_NUMBERS = [1, 2, 5, 10, 20, 50]
 export function findNearestNiceNumber(value: number): [number, number] {
   let scaleNiceNumber = 99
@@ -83,15 +73,12 @@ export function multiplyMatrix(
   return result
 }
 
-// https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
-export function generateShareKey(length: number): string {
-  let result = Date.now().toString();
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  const charactersLength = characters.length;
-  let counter = result.length;
-  while (counter < length) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    counter += 1;
-  }
-  return result;
+export function addClipboard(button_id: string, message: string) {
+  var icon_id = button_id + '-icon'
+  navigator.clipboard.writeText(message)
+  document.getElementById(icon_id)?.setAttribute('src', '/static/img/clipboard-check.svg')
+
+  setTimeout(function () {
+    document.getElementById(icon_id)?.setAttribute('src', '/static/img/clipboard.svg')
+  }, 2000)
 }

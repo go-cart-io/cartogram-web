@@ -5,11 +5,8 @@
 
 import * as d3 from 'd3'
 import { nextTick, onMounted, reactive, watch } from 'vue'
-import type CartMap from '@/lib/cartMap'
+import type CartMap from '../lib/cartMap'
 import * as util from '../lib/util'
-
-import { useCartogramStore } from '../stores/cartogram'
-const store = useCartogramStore()
 
 var numGridOptions = 3
 var versionArea: number
@@ -23,6 +20,7 @@ const props = withDefaults(
     mapID: string
     map: CartMap
     sysname: string
+    showGrid: boolean
     affineScale?: any
   }>(),
   {
@@ -239,7 +237,7 @@ function drawGridLines() {
 
 function updateGridLines(gridWidth: number) {
   if (isNaN(gridWidth)) return
-  let stroke_opacity = store.options.showGrid ? defaultOpacity : 0
+  let stroke_opacity = props.showGrid ? defaultOpacity : 0
   const gridPattern = d3.select('#' + props.mapID + '-grid')
   gridPattern
     .select('path')
@@ -333,7 +331,7 @@ function updateGridIndex(change: number) {
         </pattern>
       </defs>
       <rect
-        v-if="store.options.showGrid"
+        v-if="props.showGrid"
         width="100%"
         height="100%"
         v-bind:fill="'url(#' + props.mapID + '-grid)'"
@@ -343,3 +341,4 @@ function updateGridIndex(change: number) {
 </template>
 
 <style scoped></style>
+@/common/lib/cartMap

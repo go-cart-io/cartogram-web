@@ -15,10 +15,6 @@ import CPanelLegend from './CPanelLegend.vue'
 import CPanelModalDownload from './CPanelModalDownload.vue'
 import CPanelBtnShare from './CPanelBtnShare.vue'
 
-
-import { useCartogramStore } from '../stores/cartogram'
-const store = useCartogramStore()
-
 var touchInfo = new TouchInfo()
 var pointerangle: number | boolean, // (A)
   pointerposition: number[] | null, // (B)
@@ -34,6 +30,11 @@ const modalDownloadEl = ref()
 const props = withDefaults(
   defineProps<{
     map: CartMap
+    currentMapName: string
+    currentVersionName: string
+    stringKey: string
+    showBase: boolean
+    showGrid: boolean
     mode?: string | null
   }>(),
   {
@@ -265,9 +266,15 @@ function snapToBetterNumber() {
     />
   </div>
   <div id="cartogram" class="d-flex flex-fill card-group">
-    <div class="card w-100" v-bind:class="[store.options.showBase ? 'd-flex' : 'd-none']">
+    <div class="card w-100" v-bind:class="[props.showBase ? 'd-flex' : 'd-none']">
       <div class="d-flex flex-column card-body">
-        <c-panel-legend ref="mapLegendEl" mapID="map-area" v-bind:map="props.map" sysname="0-base">
+        <c-panel-legend
+          ref="mapLegendEl"
+          mapID="map-area"
+          v-bind:map="props.map"
+          sysname="0-base"
+          v-bind:showGrid="props.showGrid"
+        >
           <svg id="map-area-svg" class="vis-area"></svg>
         </c-panel-legend>
       </div>
@@ -301,7 +308,8 @@ function snapToBetterNumber() {
           ref="cartogramLegendEl"
           mapID="cartogram-area"
           v-bind:map="props.map"
-          v-bind:sysname="store.currentVersionName"
+          v-bind:sysname="props.currentVersionName"
+          v-bind:showGrid="props.showGrid"
           v-bind:affineScale="state.affineScale"
           v-on:gridChanged="snapToBetterNumber"
         >
@@ -355,7 +363,7 @@ function snapToBetterNumber() {
               v-on:click="
                 modalDownloadEl.generateSVGDownloadLinks(
                   'cartogram-area',
-                  JSON.stringify(props.map.getVersionGeoJSON(store.currentVersionName))
+                  JSON.stringify(props.map.getVersionGeoJSON(props.currentVersionName))
                 )
               "
               data-bs-toggle="modal"
@@ -364,7 +372,10 @@ function snapToBetterNumber() {
             >
               <i class="fas fa-download"></i>
             </button>
-            <c-panel-btn-share />
+            <c-panel-btn-share
+              v-bind:stringKey="props.stringKey"
+              v-bind:currentMapName="props.currentMapName"
+            />
           </span>
         </div>
       </div>

@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
       cssCodeSplit: false,
       rollupOptions: {
-        input: './src/main.ts'
+        input: './src/web/main.ts'
       }
     },
     server: {

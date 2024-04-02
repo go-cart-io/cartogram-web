@@ -21,10 +21,10 @@
 
   {% if config['ENV'] == "production" %}
   <link rel="stylesheet" href="/static/dist/{{ asset.url_for('style.css').file }}" />
-  <script type="module" src="/static/dist/{{ asset.url_for('src/main.ts').file }}"></script>
+  <script type="module" src="/static/dist/{{ asset.url_for('src/web/main.ts').file }}"></script>
   {% else %}
   <script type="module" src="{{ asset.webpack_url_for(request.host_url, '@vite/client') }}"></script>
-  <script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/main.ts') }}"></script>
+  <script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/web/main.ts') }}"></script>
   {% endif %}
 
   <title>Creating Cartograms Online</title>
