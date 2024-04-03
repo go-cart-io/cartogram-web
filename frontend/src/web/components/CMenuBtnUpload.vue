@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import * as d3 from 'd3'
 import * as XLSX from 'xlsx'
 
-import type CartMap from '../lib/cartMap'
+import type CartMap from '../../common/lib/cartMap'
 import type { DataTable } from '../lib/interface'
 
 import { useCartogramStore } from '../stores/cartogram'

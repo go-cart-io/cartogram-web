@@ -7,7 +7,7 @@ import * as d3 from 'd3'
 import tinycolor from 'tinycolor2'
 import { ref } from 'vue'
 import type { ChartDataItem, DataTable } from '../lib/interface'
-import CTooltip from '../../common/components/CTooltip.vue'
+import CTooltip from './CTooltip.vue'
 
 import { select as d3Select } from 'd3-selection'
 import { transition as d3Transition } from 'd3-transition'

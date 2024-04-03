@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import HTTP from '../lib/http'
-import type { MapHandlers, Mappack } from '../lib/interface'
+import type { MapHandlers, Mappack } from '../../common/lib/interface'
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
