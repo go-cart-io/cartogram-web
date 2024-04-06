@@ -12,7 +12,7 @@ class Asset:
             self.init_app(app)
 
     def init_app(self, app):
-        self.manifest_path = os.path.join(app.static_folder, "dist", "manifest.json")
+        self.manifest_path = os.path.join(app.static_folder, "dist", ".vite", "manifest.json")
         self._get_webpack_assets(app)
 
         if settings.DEBUG:

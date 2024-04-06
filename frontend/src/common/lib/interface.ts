@@ -1,5 +1,5 @@
 export interface MapHandlers {
-  [key: string]: { name: string; region_identifier: string; file: string }
+  [key: string]: { name: string; region_identifier: string }
 }
 
 export interface Mappack {
