@@ -81,7 +81,7 @@ app.add_url_rule('/api/v1/gencaptcha', methods=['GET'], view_func=custom_captcha
 
 
 @app.route('/cartogram', methods=['GET'])
-def get_cartogram():    
+def get_cartogram():
     return get_cartogram_by_name(default_cartogram_handler, None)
 
 
@@ -131,9 +131,11 @@ def getprogress():
     current_progress_output = awslambda.getprogress(request.args['key'])
     return Response(json.dumps(current_progress_output), status=200, content_type='application/json')
 
+def cartogram_rate_limit():
+    return settings.CARTOGRAM_RATE_LIMIT
 
 @app.route('/api/v1/cartogram', methods=['POST'])
-@limiter.limit("1 per minute")
+@limiter.limit(cartogram_rate_limit)
 def cartogram():    
     colName = 0
     colColor = 1
