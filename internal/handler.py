@@ -58,7 +58,8 @@ class CartogramHandler:
                    
             regionId = cartogram_handlers[handler]['regions'][region[colName]]
             datastring = datastring + '{0},{1},{2},\n'.format(regionId, region[colValue], region[colName])
-            colorJson['id_' + regionId] = region[colColor]
+            if region[colColor] != '':
+                colorJson['id_' + regionId] = region[colColor]
             tooltip['data']['id_' + regionId] = {'name': region[colName], 'value': region[colValue]}
 
         m = re.match(r'(.+)\s?\((.+)\)$', data['values']['fields'][colValue]['label'])

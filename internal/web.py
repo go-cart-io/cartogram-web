@@ -230,6 +230,8 @@ def get_mappack_by_userdata(handler, mappack, new_maps):
         if item in original_mappack:
             mappack[item] = original_mappack[item]
 
+    mappack['colors'] = {**original_mappack['colors'], **mappack['colors']}
+
     data_names.insert(0, base_name)        
     mappack['config']['data_names'] = data_names
 
