@@ -140,6 +140,7 @@ async function getGeneratedCartogram() {
 
             store.loadingProgress = Math.floor(progress.progress * 100)
             // state.error += progress.stderr
+            console.log(progress.stderr)
           })
         }
       })(stringKey),
