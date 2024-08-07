@@ -341,4 +341,3 @@ function updateGridIndex(change: number) {
 </template>
 
 <style scoped></style>
-@/common/lib/cartMap

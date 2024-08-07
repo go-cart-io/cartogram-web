@@ -1,5 +1,6 @@
 import pytest
 import json
+import time
 from tests.conftest import client
 
 testdata = {
@@ -19,7 +20,7 @@ testdata = {
             "5":["WEST REGION","#66a61e",922540,50]
         }
     },
-    "stringKey": "test",
+    "stringKey": time.time(),
     "persist":"true"
 }
 

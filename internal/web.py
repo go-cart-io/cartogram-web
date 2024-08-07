@@ -175,7 +175,7 @@ def create_app():
             cartogram_json['tooltip'] = cart_data[2]
             
             if 'persist' in data:
-                with open('static/userdata/' + string_key + '.json', 'w') as outfile:
+                with open('static/userdata/{}.json'.format(string_key), 'w') as outfile:
                     outfile.write(json.dumps({'{}-custom'.format(colValue): cartogram_json}))
                 
                 if settings.USE_DATABASE:
