@@ -19,8 +19,8 @@ const emit = defineEmits(['confirm', 'cancel'])
 
 function drawPieChart(rawdata: DataTable) {
   const colName = 0
-  const colColor = 1
-  const colValue = 2
+  const colColor = 2
+  const colValue = 4
   const container = 'piechart-area'
   const containerElement = document.getElementById(container)
 
@@ -71,7 +71,9 @@ function drawPieChart(rawdata: DataTable) {
     .map((region_id, _i, _a) => {
       return {
         label: region_id,
-        value: rawdata.items[region_id][colValue],
+        value: isNaN(rawdata.items[region_id][colValue])
+          ? rawdata.items[region_id][colValue]
+          : Number(rawdata.items[region_id][colValue]),
         color: rawdata.items[region_id][colColor],
         abbreviation: rawdata.items[region_id][colName],
         name: rawdata.items[region_id][colName]
@@ -329,4 +331,3 @@ polyline {
   shape-rendering: crispEdges;
 }
 </style>
-@/web/components/lib/interface

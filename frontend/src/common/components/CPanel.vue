@@ -4,24 +4,23 @@
  */
 
 import * as d3 from 'd3'
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch, nextTick } from 'vue'
 
 import TouchInfo from '../lib/touchInfo'
 import * as util from '../lib/util'
-import CartMap from '../lib/cartMap'
 import CTouchVis from './CTouchVis.vue'
-import Tooltip from '../lib/tooltip'
 import CPanelLegend from './CPanelLegend.vue'
 import CPanelModalDownload from './CPanelModalDownload.vue'
 import CPanelBtnShare from './CPanelBtnShare.vue'
 
-var touchInfo = new TouchInfo()
+let touchInfo = new TouchInfo()
 var pointerangle: number | boolean, // (A)
   pointerposition: number[] | null, // (B)
   pointerdistance: number | boolean // (C)
 var lastTouch = 0
 const DELAY_THRESHOLD = 300
 const SUPPORT_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints
+const DATA_COL = 3
 
 const mapLegendEl = ref()
 const cartogramLegendEl = ref()
@@ -29,15 +28,18 @@ const modalDownloadEl = ref()
 
 const props = withDefaults(
   defineProps<{
-    map: CartMap
     currentMapName: string
-    currentVersionName: string
-    stringKey: string
-    showBase: boolean
-    showGrid: boolean
+    currentVersionKey: string
+    versions: { [key: string]: any }
+    stringKey?: string
+    showBase?: boolean
+    showGrid?: boolean
     mode?: string | null
   }>(),
   {
+    stringKey: '',
+    showBase: false,
+    showGrid: true,
     mode: 'full'
   }
 )
@@ -52,11 +54,16 @@ const state = reactive({
   affineScale: [1, 1] // Keep track of scale for scaling grid easily
 })
 
+watch(
+  () => props.showBase,
+  (type, prevType) => {
+    nextTick()
+    cartogramLegendEl.value.updateView()
+  }
+)
+
 // https://observablehq.com/@d3/multitouch
 function onTouchstart(event: any, id: string) {
-  Tooltip.hide()
-  props.map.unhighlight(['map-area', 'cartogram-area'])
-
   touchInfo.set(event)
   state.touchLenght = touchInfo.length
   var now = new Date().getTime()
@@ -85,17 +92,6 @@ function onTouchend(event: any) {
   snapToBetterNumber()
   if (touchInfo.length === 0) {
     pointerposition = null // signals mouse up
-
-    var now = new Date().getTime()
-    var timesince = now - lastTouch
-    if (timesince < DELAY_THRESHOLD) {
-      let region_id = event.target?.__data__?.region_id
-      if (region_id) {
-        // Show infotip and link brushing
-        props.map.drawTooltip(event, region_id)
-        props.map.highlightByID(['map-area', 'cartogram-area'], region_id)
-      }
-    }
   } else {
     const t = touchInfo.getPoints()
     if (t.length > 0) {
@@ -220,7 +216,7 @@ function switchMode() {
 function transformVersion(matrix1: Array<Array<number>>, matrix2: Array<Array<number>>) {
   state.affineMatrix = util.multiplyMatrix(matrix1, matrix2)
 
-  d3.selectAll('#cartogram-area-svg g').attr(
+  d3.selectAll('#cartogram-area g.root').attr(
     'transform',
     'matrix(' +
       state.affineMatrix[0][0] +
@@ -265,17 +261,19 @@ function snapToBetterNumber() {
       v-bind:touchLenght="state.touchLenght"
     />
   </div>
+
   <div id="cartogram" class="d-flex flex-fill card-group">
-    <div class="card w-100" v-bind:class="[props.showBase ? 'd-flex' : 'd-none']">
+    <div class="card w-100" v-if="props.showBase">
       <div class="d-flex flex-column card-body">
         <c-panel-legend
           ref="mapLegendEl"
           mapID="map-area"
-          v-bind:map="props.map"
-          sysname="0-base"
+          v-bind:currentMapName="props.currentMapName"
+          v-bind:stringKey="props.stringKey"
+          v-bind:versionKey="DATA_COL.toString()"
+          v-bind:versions="props.versions"
           v-bind:showGrid="props.showGrid"
         >
-          <svg id="map-area-svg" class="vis-area"></svg>
         </c-panel-legend>
       </div>
 
@@ -289,7 +287,7 @@ function snapToBetterNumber() {
             v-on:click="
               modalDownloadEl.generateSVGDownloadLinks(
                 'map-area',
-                JSON.stringify(props.map.getVersionGeoJSON('0-base'))
+                JSON.stringify(mapLegendEl.getData('geo_1'))
               )
             "
             data-bs-toggle="modal"
@@ -307,24 +305,22 @@ function snapToBetterNumber() {
         <c-panel-legend
           ref="cartogramLegendEl"
           mapID="cartogram-area"
-          v-bind:map="props.map"
-          v-bind:sysname="props.currentVersionName"
+          v-bind:currentMapName="props.currentMapName"
+          v-bind:stringKey="props.stringKey"
+          v-bind:versionKey="props.currentVersionKey"
+          v-bind:versions="props.versions"
           v-bind:showGrid="props.showGrid"
           v-bind:affineScale="state.affineScale"
           v-on:gridChanged="snapToBetterNumber"
+          v-bind:style="{ cursor: state.cursor }"
+          v-on:mousedown="onTouchstart($event, 'cartogram-area')"
+          v-on:touchstart="onTouchstart($event, 'cartogram-area')"
+          v-on:mousemove="onTouchmove($event, 'cartogram-area')"
+          v-on:touchmove="onTouchmove($event, 'cartogram-area')"
+          v-on:mouseup="onTouchend"
+          v-on:touchend="onTouchend"
+          v-on:wheel="onWheel"
         >
-          <svg
-            id="cartogram-area-svg"
-            class="vis-area"
-            v-bind:style="{ cursor: state.cursor }"
-            v-on:mousedown="onTouchstart($event, 'cartogram-area-svg')"
-            v-on:touchstart="onTouchstart($event, 'cartogram-area-svg')"
-            v-on:mousemove="onTouchmove($event, 'cartogram-area-svg')"
-            v-on:touchmove="onTouchmove($event, 'cartogram-area-svg')"
-            v-on:mouseup="onTouchend"
-            v-on:touchend="onTouchend"
-            v-on:wheel="onWheel"
-          ></svg>
           <img class="position-absolute bottom-0 end-0 z-3" src="/static/img/by.svg" alt="cc-by" />
         </c-panel-legend>
         <div class="position-absolute end-0" style="width: 2.5rem">
@@ -363,7 +359,7 @@ function snapToBetterNumber() {
               v-on:click="
                 modalDownloadEl.generateSVGDownloadLinks(
                   'cartogram-area',
-                  JSON.stringify(props.map.getVersionGeoJSON(props.currentVersionName))
+                  JSON.stringify(cartogramLegendEl.getData('geo_1'))
                 )
               "
               data-bs-toggle="modal"
@@ -381,7 +377,6 @@ function snapToBetterNumber() {
       </div>
     </div>
 
-    <p id="tooltip" style="display: none">&nbsp;</p>
     <c-panel-modal-download ref="modalDownloadEl" />
   </div>
 </template>
@@ -390,56 +385,5 @@ function snapToBetterNumber() {
 #map-area,
 #cartogram-area {
   position: relative;
-}
-
-.vis-area {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  min-height: 100px;
-  mix-blend-mode: multiply;
-}
-
-.vis-area g {
-  transform-box: fill-box;
-  transform-origin: center;
-}
-
-.vis-area text {
-  font-family: sans-serif;
-  fill: #000;
-  alignment-baseline: middle;
-}
-
-.vis-area line {
-  stroke: #000;
-  stroke-width: 1;
-}
-</style>
-
-<style scoped>
-/* TODO: move to Tooltip component */
-#tooltip {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid black;
-  width: auto;
-  height: auto;
-  min-height: 75px;
-  padding: 5px;
-  position: absolute;
-  font-size: small;
-  top: 0;
-  left: 0;
-  z-index: 1000;
-}
-
-.pointervis {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  z-index: 1001;
-  pointer-events: none;
 }
 </style>

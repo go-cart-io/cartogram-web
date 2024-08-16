@@ -39,18 +39,19 @@ async function processFile() {
   if (!dataJson || dataJson.length < 1) return
 
   const colName = 0
-  const colColor = 1
-  const colValue = 2
+  const colColor = 2
+  const colValue = 3
   let dataKeys = Object.keys(dataJson[0])
 
   // Header
   data.fields = [
-    { key: 'area', label: 'Area', editable: false },
-    { key: 'color', label: 'Color', editable: true }
+    { key: '0', label: 'Region', editable: false },
+    { key: '1', label: 'Abbreviation', editable: true, type: 'text' },
+    { key: '2', label: 'Color', editable: true, type: 'color' }
   ]
   for (let col = colValue; col < dataKeys.length; col++) {
     data.fields.push({
-      key: col + '-custom',
+      key: col.toString(),
       label: dataKeys[col],
       editable: true,
       type: 'number',
@@ -60,7 +61,11 @@ async function processFile() {
 
   // Content
   for (let row = 0; row < dataJson.length; row++) {
-    let dataItem: any = [dataJson[row][dataKeys[colName]], dataJson[row][dataKeys[colColor]]]
+    let dataItem: any = [
+      dataJson[row][dataKeys[0]],
+      dataJson[row][dataKeys[1]],
+      dataJson[row][dataKeys[2]]
+    ]
     for (let col = colValue; col < dataKeys.length; col++) {
       let value = dataJson[row][dataKeys[col]]
       if (typeof value === 'string') value = parseFloat(value)
@@ -120,4 +125,3 @@ function readFile(file: File): Promise<any> {
     v-on:change="processFile()"
   />
 </template>
-../common/lib/cartMap

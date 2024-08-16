@@ -4,12 +4,14 @@ import settings
 
 import json
 import datetime
+import os
 from flask import Flask, request, Response, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from shapely.geometry import shape
 
 from handler import CartogramHandler
 from asset import Asset
@@ -45,7 +47,6 @@ def create_app():
             date_created = db.Column(db.DateTime(), nullable=False)
             date_accessed = db.Column(db.DateTime(), server_default='0001-01-01 00:00:00')        
             handler = db.Column(db.String(100), nullable=False)
-            cartogramui_data = db.Column(db.UnicodeText(), nullable=False)
 
             def __repr__(self):
                 return '<CartogramEntry {}>'.format(self.string_key)
@@ -143,9 +144,8 @@ def create_app():
     @limiter.limit(cartogram_rate_limit)
     def cartogram():    
         colName = 0
-        colColor = 1
-        colValue = 2 # Starting column of data
-        print(request.form)
+        colColor = 2
+        colValue = 4 # Starting column of data
 
         try:
             data = json.loads(request.form['data'])
@@ -158,7 +158,7 @@ def create_app():
                 return Response('{"error":"Missing sharing key."}', status=404, content_type='application/json')
 
             string_key = data['stringKey']
-            cart_data = cartogram_handler.get_area_string_and_colors(handler, data)
+            cart_data = cartogram_handler.get_area_string_and_colors(data)
             lambda_result = awslambda.generate_cartogram(cart_data[0],
                                 cartogram_handler.get_gen_file(handler), settings.CARTOGRAM_LAMBDA_URL,
                                 settings.CARTOGRAM_LAMDA_API_KEY, string_key)
@@ -169,27 +169,30 @@ def create_app():
             if lambda_result['world'] == False:
                 cartogram_json = cartogram_json['Original']
 
-            if 'bbox' not in cartogram_json:
-                cartogram_json['bbox'] = geojson_extrema.get_extrema_from_geojson(cartogram_json)
-                
-            cartogram_json['tooltip'] = cart_data[2]
+            for feature in cartogram_json["features"]:
+                geom = shape(feature["geometry"])
+                point = geom.representative_point()
+                feature['properties']['label'] = {'x': point.x, 'y': point.y}
             
             if 'persist' in data:
-                with open('static/userdata/{}.json'.format(string_key), 'w') as outfile:
-                    outfile.write(json.dumps({'{}-custom'.format(colValue): cartogram_json}))
+                os.mkdir('static/userdata/{}'.format(string_key)) 
+
+                with open('static/userdata/{}/data.csv'.format(string_key), 'w') as outfile:
+                    outfile.write(cart_data[1])
+                    
+                with open('static/userdata/{}/{}.json'.format(string_key, cart_data[2]), 'w') as outfile:
+                    outfile.write(json.dumps(cartogram_json))
                 
                 if settings.USE_DATABASE:
                     new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
                                             date_accessed=datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=365),
-                                            handler=handler, cartogramui_data=json.dumps({'colors': cart_data[1]}))
+                                            handler=handler)
                     db.session.add(new_cartogram_entry)
                     db.session.commit()        
             else:
                 string_key = None
 
-            return get_mappack_by_userdata(handler, 
-                                        {'colors': cart_data[1], 'stringKey': string_key}, 
-                                        {'{}-custom'.format(colValue): cartogram_json})
+            return Response('{"stringKey": "' +string_key + '"}', status=200, content_type='application/json')
         
         # except (KeyError, csv.Error, ValueError, UnicodeDecodeError):
         #     return Response('{"error":"The data was invalid."}', status=400, content_type='application/json')

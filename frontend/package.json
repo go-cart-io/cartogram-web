@@ -2,7 +2,6 @@
   "name": "cartogram",
   "version": "2.0.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "dev": "vite --host",
     "build": "run-p type-check build-only",
@@ -17,6 +16,8 @@
     "d3": "^7.8.4",
     "pinia": "^2.1.7",
     "tinycolor2": "^1.6.0",
+    "vega-embed": "^6.26.0",
+    "vitest": "^2.0.5",
     "vue": "^3.3.2",
     "xlsx": "npm:@e965/xlsx@^0.20.3"
   },

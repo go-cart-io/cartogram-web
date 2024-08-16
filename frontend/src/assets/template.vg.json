@@ -1,0 +1,126 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "padding": { "top": 20 },
+  "autosize": { "type": "fit", "contains": "padding" },
+  "signals": [
+    {
+      "name": "width",
+      "init": "containerSize()[0]",
+      "on": [{ "events": "window:resize", "update": "containerSize()[0]" }]
+    },
+    {
+      "name": "height",
+      "init": "containerSize()[1]",
+      "on": [{ "events": "window:resize", "update": "containerSize()[1]" }]
+    }
+  ],
+  "data": [
+    {
+      "name": "source_csv",
+      "url": "./static/usa-data.csv",
+      "format": { "type": "csv", "delimiter": "," }
+    },
+    {
+      "name": "source_geojson",
+      "url": "./static/usa-population.json",
+      "format": { "property": "features", "type": "json", "parse": {} }
+    },
+    {
+      "name": "geo_1",
+      "source": "source_geojson",
+      "transform": [
+        {
+          "type": "formula",
+          "expr": "datum[\"properties\"] && datum[\"properties\"][\"name\"]",
+          "as": "Region"
+        },
+        {
+          "type": "lookup",
+          "from": "source_csv",
+          "key": "Region",
+          "fields": ["Region"],
+          "values": ["Abbreviation", "Color"]
+        },
+        {
+          "type": "formula",
+          "expr": "geoArea('projectionSource', datum.geometry)",
+          "as": "Area"
+        },
+        {
+          "type": "formula",
+          "expr": "datum[\"properties\"][\"label\"][\"x\"]",
+          "as": "x"
+        },
+        {
+          "type": "formula",
+          "expr": "datum[\"properties\"][\"label\"][\"y\"]",
+          "as": "y"
+        }
+      ]
+    }
+  ],
+  "projections": [
+    {
+      "name": "projectionSource",
+      "size": { "signal": "[width, height]" },
+      "fit": { "signal": "data('source_geojson')" },
+      "type": "identity",
+      "reflectY": true
+    },
+    {
+      "name": "projectionFinal",
+      "size": { "signal": "[width, height]" },
+      "fit": { "signal": "data('geo_1')" },
+      "type": "identity",
+      "reflectY": true
+    }
+  ],
+  "marks": [
+    {
+      "name": "layer_0_marks",
+      "type": "shape",
+      "style": ["geoshape"],
+      "from": { "data": "geo_1" },
+      "encode": {
+        "update": {
+          "description": {
+            "signal": "\"geoshape_\" + datum[\"id\"]"
+          },
+          "stroke": { "value": "black" },
+          "strokeWidth": { "value": 0.2 },
+          "tooltip": { "signal": "datum" },
+          "fill": { "field": "Color" },
+          "ariaRoleDescription": { "value": "geoshape" }
+        },
+        "hover": {
+          "strokeWidth": { "value": 1 },
+          "zindex": { "value": 1 }
+        }
+      },
+      "transform": [{ "type": "geoshape", "projection": "projectionFinal" }]
+    },
+    {
+      "name": "layer_1_marks",
+      "type": "text",
+      "style": ["text"],
+      "from": { "data": "geo_1" },
+      "encode": {
+        "enter": {
+          "text": { "field": "Abbreviation" }
+        },
+        "update": {
+          "x": { "field": "x" },
+          "y": { "field": "y" },
+          "description": {
+            "signal": "\"geolabel_\" + datum[\"id\"]"
+          },
+          "align": { "value": "center" },
+          "baseline": { "value": "middle" },
+          "opacity": { "signal": "datum.Area < 400 ? 0:1" },
+          "ariaRoleDescription": { "value": "geolabel" }
+        }
+      },
+      "transform": [{ "type": "geopoint", "fields": ["x", "y"], "projection": "projectionFinal" }]
+    }
+  ]
+}

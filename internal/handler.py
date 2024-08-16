@@ -18,7 +18,7 @@ class CartogramHandler:
         return cartogram_handlers[handler]['name']
 
     def get_gen_file(self, handler):
-        return '{}/{}'.format(settings.CARTOGRAM_DATA_DIR, cartogram_handlers[handler]['file'])  
+        return './static/cartdata/{}/original.json'.format(handler)  
     
     def remove_holes(self):
         return False
@@ -31,21 +31,21 @@ class CartogramHandler:
     #   1. The areas string
     #   2. Color values for each region
     #   3. Tooltip data for each region
-    def get_area_string_and_colors(self, handler, data):
-        if handler not in cartogram_handlers:
-            raise KeyError('The handler was invaild.')
-
-        with open(self.get_gen_file(handler), 'r') as openfile: 
-            handler_data = json.load(openfile)    
-
+    def get_area_string_and_colors(self, data):
         colName = 0
-        colColor = 1
-        colValue = 2 # Starting column of data
+        colColor = 2
+        colValue = 4 # Starting column of data
+       
+        datacsv = 'Region,Abbreviation,Color,Land Area (km sq.),'
+        m = re.match(r'(.+)\s?\((.+)\)$', data['values']['fields'][colValue]['label'])
+        if m:
+            name = m.group(1).strip()
+            label = "{} ({})".format(name, m.group(2).strip())            
+        else:
+            name = label = data['values']['fields'][colValue]['label'].strip()
+        datacsv = datacsv + label + '\n'
 
-        datastring = 'cartogram_id,Region Data,Region Name,Inset\n'
-        colorJson = {}
-        tooltip = {'data':{}}
-
+        datastring = 'name,Data,Color\n'
         for rowId, region in data['values']['items'].items():
             # Validate values
             region[colName] = region[colName].replace(',', '')
@@ -56,18 +56,8 @@ class CartogramHandler:
             if region[colColor] != '' and not re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', region[colColor]):
                 raise ValueError('The color data was invaild.')
                    
-            regionId = cartogram_handlers[handler]['regions'][region[colName]]
-            datastring = datastring + '{0},{1},{2},\n'.format(regionId, region[colValue], region[colName])
-            if region[colColor] != '':
-                colorJson['id_' + regionId] = region[colColor]
-            tooltip['data']['id_' + regionId] = {'name': region[colName], 'value': region[colValue]}
-
-        m = re.match(r'(.+)\s?\((.+)\)$', data['values']['fields'][colValue]['label'])
-        if m:
-            tooltip['label'] = m.group(1)
-            tooltip['unit'] = m.group(2)
-        else:
-            tooltip['label'] = data['values']['fields'][colValue]['label']
+            datastring = datastring + '{0},{1},{2}\n'.format(region[colName], region[colValue], region[colColor])
+            datacsv = datacsv + '{0},{1},{2},{3},{4}\n'.format(region[0], region[1], region[2],region[3],region[4])        
         
-        return datastring, colorJson, tooltip
+        return datastring, datacsv, name
     
