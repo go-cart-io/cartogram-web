@@ -43,41 +43,39 @@ def migrate_geojson(handler_key, in_path, out_path=None):
 
     return label_with_unit, output_data
 
-def migrate():
-    cartogram_handler = handler.CartogramHandler()
-
+def migrate():    
     for handler_key in handler.cartogram_handlers:    
-        print("Migrate geojson and csv data....")
-        with open('static/cartdata/{}/abbreviations.json'.format(handler_key), 'r') as file:
-            abbr_data = json.load(file)
+    #     print("Migrate geojson and csv data....")
+    #     with open('static/cartdata/{}/abbreviations.json'.format(handler_key), 'r') as file:
+    #         abbr_data = json.load(file)
 
-        input_file = 'static/cartdata/{}/template.csv'.format(handler_key)
-        df = pd.read_csv(input_file)
+    #     input_file = 'static/cartdata/{}/template.csv'.format(handler_key)
+    #     df = pd.read_csv(input_file)
         
-        land_label, land_data = migrate_geojson(handler_key, 'static/cartdata/{}/original.json'.format(handler_key))
-        pop_label, pop_data = migrate_geojson(handler_key, 'static/cartdata/{}/population.json'.format(handler_key))
+    #     land_label, land_data = migrate_geojson(handler_key, 'static/cartdata/{}/original.json'.format(handler_key))
+    #     pop_label, pop_data = migrate_geojson(handler_key, 'static/cartdata/{}/population.json'.format(handler_key))
 
-        newdf = pd.DataFrame(columns=["Region", "Abbreviation", "Color", land_label, pop_label])
-        for index, row in df.iterrows():
-            name = row.iloc[0]
-            newdf.loc[len(newdf.index)] = [name, abbr_data[name], row.iloc[1], land_data[name], pop_data[name]] 
+    #     newdf = pd.DataFrame(columns=["Region", "Abbreviation", "Color", land_label, pop_label])
+    #     for index, row in df.iterrows():
+    #         name = row.iloc[0]
+    #         newdf.loc[len(newdf.index)] = [name, abbr_data[name], row.iloc[1], land_data[name], pop_data[name]] 
 
-        output_file = 'static/cartdata/{}/data.csv'.format(handler_key)
-        newdf.to_csv(output_file, index=False)
+    #     output_file = 'static/cartdata/{}/data.csv'.format(handler_key)
+    #     newdf.to_csv(output_file, index=False)
 
         # print("Migrate gen files....")
         # gen_path = cartogram_handler.get_gen_file(handler_key)
         # migrate_geojson(handler_key, gen_path, gen_path)
 
-        # print("Delete unused files....")
-        # for file in ['abbreviations', 'colors', 'config', 'griddocument', 'mappack', 'original', 'population']:
-        #     file_path = 'static/cartdata/{}/{}.json'.format(handler_key, file)
-        #     if os.path.exists(file_path):
-        #         os.remove(file_path)
+        print("Delete unused files....")
+        for file in ['abbreviations', 'colors', 'config', 'griddocument', 'mappack', 'labels']:
+            file_path = 'static/cartdata/{}/{}.json'.format(handler_key, file)
+            if os.path.exists(file_path):
+                os.remove(file_path)
 
-        # file_path = 'static/cartdata/{}/template.csv'.format(handler_key)
-        # if os.path.exists(file_path):
-        #     os.remove(file_path)
+        file_path = 'static/cartdata/{}/template.csv'.format(handler_key)
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
         print(handler_key)
 

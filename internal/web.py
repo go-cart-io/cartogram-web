@@ -198,53 +198,7 @@ def create_app():
         #     return Response('{"error":"The data was invalid."}', status=400, content_type='application/json')
         except Exception as e:
             print(e)
-            return Response('{"error": "The data may be invalid or the process has timed out. Please try again later."}', status=400, content_type='application/json')  
-
-    @app.route('/api/v1/mappack/<string_key>', methods=['GET'])
-    def get_mappack_by_key(string_key):
-        if not settings.USE_DATABASE:
-            return Response('Not found', status=404)
-
-        cartogram_entry = CartogramEntry.query.filter_by(string_key=string_key).first_or_404()
-
-        if cartogram_entry == None or not cartogram_handler.has_handler(cartogram_entry.handler):
-            return Response('Error', status=500)
-        
-        cartogram_entry.date_accessed = datetime.datetime.now(datetime.UTC)
-        db.session.commit()        
-        
-        with open('static/userdata/{}.json'.format(cartogram_entry.string_key), 'r') as file:
-            new_maps = json.load(file)
-
-        mappack = json.loads(cartogram_entry.cartogramui_data)       
-        mappack['stringKey'] = string_key
-
-        return get_mappack_by_userdata(cartogram_entry.handler, mappack, new_maps)
-
-    def get_mappack_by_userdata(handler, mappack, new_maps):    
-        with open('static/cartdata/{}/mappack.json'.format(handler), 'r') as file:
-            original_mappack = json.load(file)
-        
-        mappack.update(new_maps) 
-        data_names = list(new_maps.keys())
-
-        if not 'config' in original_mappack:
-            mappack['config'] = {}
-        elif 'data_names' in original_mappack['config']:
-            base_name = original_mappack['config']['data_names'][0]
-        else:
-            base_name = 'original'
-
-        for item in ['abbreviations', 'config', 'labels', base_name]:
-            if item in original_mappack:
-                mappack[item] = original_mappack[item]
-
-        mappack['colors'] = {**original_mappack['colors'], **mappack['colors']}
-
-        data_names.insert(0, base_name)        
-        mappack['config']['data_names'] = data_names
-
-        return Response(json.dumps(mappack), content_type='application/json', status=200)
+            return Response('{"error": "The data may be invalid or the process has timed out. Please try again later."}', status=400, content_type='application/json')
 
     @app.route('/cart/<key>', methods=['GET'])
     @app.route('/embed/map/<key>', methods=['GET'])

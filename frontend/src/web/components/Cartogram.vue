@@ -11,8 +11,7 @@ import CPanel from '../../common/components/CPanel.vue'
 import CChart from './CChart.vue'
 import CProgressBar from './CProgressBar.vue'
 import HTTP from '../lib/http'
-import CartMap from '../../common/lib/cartMap'
-import type { MapHandlers, Mappack } from '../../common/lib/interface'
+import type { MapHandlers } from '../../common/lib/interface'
 import type { DataTable } from '../lib/interface'
 
 import { useCartogramStore } from '../stores/cartogram'
@@ -36,9 +35,7 @@ const state = reactive({
 // Elements
 const chartEl = ref()
 // Vars
-var map: CartMap = new CartMap()
 var tempDataTable: any = null
-var mappack: Mappack | null = null
 
 onBeforeMount(() => {
   store.currentMapName = props.mapName
@@ -95,7 +92,7 @@ async function getGeneratedCartogram() {
   }
 
   var stringKey = generateShareKey(32)
-  var returnkey = await new Promise<Mappack>(function (resolve, reject) {
+  await new Promise<any>(function (resolve, reject) {
     var req_body =
       'data=' +
       JSON.stringify({
@@ -155,7 +152,6 @@ async function getGeneratedCartogram() {
   <c-menu-bar
     v-bind:isEmbed="props.mode === 'embed'"
     v-bind:maps="props.maps"
-    v-bind:map="map"
     v-on:map_changed="switchMap"
     v-on:version_changed="(version: string) => (store.currentVersionName = version)"
     v-on:confirm_data="confirmData"

@@ -2,7 +2,7 @@
 import * as d3 from 'd3'
 import { onMounted } from 'vue'
 
-import type { MapHandlers, Mappack } from '../../common/lib/interface'
+import type { MapHandlers } from '../../common/lib/interface'
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 

@@ -2,7 +2,6 @@
 import { reactive } from 'vue'
 import type { DataTable } from '../lib/interface'
 import type { MapHandlers } from '../../common/lib/interface'
-import type CartMap from '../../common/lib/cartMap'
 import CMenuSelectMap from './CMenuSelectMap.vue'
 import CMenuSelectVersion from '../../common/components/CMenuSelectVersion.vue'
 import CMenuBtnUpload from './CMenuBtnUpload.vue'
@@ -15,7 +14,6 @@ const props = withDefaults(
   defineProps<{
     isEmbed: boolean
     maps: MapHandlers
-    map: CartMap
   }>(),
   {
     isEmbed: false
@@ -60,7 +58,7 @@ function confirmData(data: DataTable) {
       <!-- Menu -->
       <div class="py-2 d-flex flex-nowrap">
         <span v-if="!props.isEmbed" class="text-nowrap">
-          <c-menu-btn-upload v-bind:map="props.map" v-on:change="confirmData" />
+          <c-menu-btn-upload v-on:change="confirmData" />
           <c-menu-btn-edit
             v-bind:maps="props.maps"
             v-bind:csvdata="state.csvdata"

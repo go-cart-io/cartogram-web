@@ -3,15 +3,10 @@ import { ref } from 'vue'
 import * as d3 from 'd3'
 import * as XLSX from 'xlsx'
 
-import type CartMap from '../../common/lib/cartMap'
 import type { DataTable } from '../lib/interface'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
-
-const props = defineProps<{
-  map: CartMap
-}>()
 
 const emit = defineEmits<{
   (e: 'change', data: DataTable): void
