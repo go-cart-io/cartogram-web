@@ -110,7 +110,7 @@ onMounted(async () => {
 })
 
 async function switchVersion() {
-  versionSpec.data[1].url = '/static/cartdata/' + props.currentMapName + '/' + state.version.header + '.json'
+  versionSpec.data[1].url = util.getGeojsonURL(props.currentMapName, props.stringKey, state.version.name + '.json')
 
   let container = await embed('#' + props.mapID + '-offscreen', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
   var transitions = 0
