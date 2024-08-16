@@ -3,8 +3,11 @@
  * Legend wrapper for map with functions for managing grid size.
  */
 
-import * as d3 from 'd3'
 import { onMounted, nextTick, reactive, watch } from 'vue'
+import * as d3 from 'd3'
+// @ts-ignore
+import { geoCylindricalEqualArea } from "d3-geo-projection"
+import * as vega from 'vega'
 import embed, { type VisualizationSpec } from 'vega-embed'
 
 import * as util from '../lib/util'
@@ -92,6 +95,14 @@ onMounted(async () => {
   const tooltipFormat = Object.values(props.versions).map(item => `"${item.name}": datum["${item.header}"] + " ${item.unit}"`).join(', ');
   versionSpec.marks[0].encode.update.tooltip.signal =
     '{title: datum.Region + " (" + datum.Abbreviation + ")", ' + tooltipFormat + '}'
+
+  if (props.currentMapName === "world") {
+    // Gall–Peters projection
+    vega.projection('cylindricalEqualArea', geoCylindricalEqualArea)
+    versionSpec.projections[0].type = versionSpec.projections[1].type = "cylindricalEqualArea"
+    versionSpec.projections[0].reflectY = versionSpec.projections[1].reflectY = false
+    versionSpec.projections[0].parallel = versionSpec.projections[1].parallel = 45
+  }
 
   visEl = d3.select('#' + props.mapID + '-vis')
   offscreenEl = d3.select('#' + props.mapID + '-offscreen')
