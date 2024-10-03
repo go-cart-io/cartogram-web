@@ -243,6 +243,8 @@ def write_cartogram(map_gen_file_path, map_name, regions, data_name, data_unit, 
 
     # print(lambda_result)
     cartogram_json = json.loads(lambda_result['stdout'])
+    if lambda_result['world'] == False:
+        cartogram_json = cartogram_json['Original']
 
     # Calculate the bounding box if necessary
     if "bbox" not in cartogram_json:
