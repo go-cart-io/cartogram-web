@@ -5,10 +5,17 @@ import re
 import redis
 import settings
 import uuid
+import util
 from math import log
 from lambda_package import cartwrap
 
-def generate_cartogram(area_data, gen_file, lambda_url, lambda_api_key, cartogram_key, flags=''):
+def generate_cartogram(data, gen_file, lambda_url, lambda_api_key, cartogram_key, flags=''):
+    datacsv = util.get_csv(data)
+    datasets = util.get_data_string(data)
+
+    #TODO Handle multiple datasets
+    datastring = datasets[0]['datastring']
+    name = datasets[0]['label']
 
     headers = {
         'x-api-key': lambda_api_key
@@ -19,7 +26,7 @@ def generate_cartogram(area_data, gen_file, lambda_url, lambda_api_key, cartogra
 
     lambda_event = {
         'gen_file': gen_file_contents,
-        'area_data': area_data,
+        'area_data': datastring,
         'key': cartogram_key,
         'flags': flags
     }
@@ -27,51 +34,59 @@ def generate_cartogram(area_data, gen_file, lambda_url, lambda_api_key, cartogra
     # Be careful, lambda function may not work anymore
     if lambda_url != None and lambda_url != '':
         r = requests.post(lambda_url, headers=headers, json=lambda_event)
-        return r.json()
+        lambda_result = r.json()
     
     else:        
-        return local_function(lambda_event)
-    
+        lambda_result = local_function(lambda_event)
+
+    cartogram_gen_output = lambda_result['stdout']
+    cartogram_json = json.loads(cartogram_gen_output)
+
+    if lambda_result['world'] == False:
+        cartogram_json = cartogram_json['Original']
+
+    return datacsv, cartogram_json, name
+   
 # similar to lambda_function.lambda_handler, but no overhead like json dump
 def local_function(params):
-    stdout = ""
-    stderr = ""
+    stdout = ''
+    stderr = ''
     order = 0
 
-    # We run C++ executable for most maps and old C excutable (named "cartogram_c") only for the World Map
-    cartogram_exec = "cartogram"
+    # We run C++ executable for most maps and old C excutable (named 'cartogram_c') only for the World Map
+    cartogram_exec = 'cartogram'
     temp_filename = str(uuid.uuid4())
-    map_data_filename = temp_filename + ".json"
+    map_data_filename = temp_filename + '.json'
 
     # The C code deduces from the map data file extension whether we have GeoJSON or .gen
     world = False
     try:
-        conventional_json = json.loads(params["gen_file"])
-        if "extent" in conventional_json.keys():
-            if conventional_json['extent'] == "world":
+        conventional_json = json.loads(params['gen_file'])
+        if 'extent' in conventional_json.keys():
+            if conventional_json['extent'] == 'world':
                 world = True
-                cartogram_exec = "cartogram_c"
+                cartogram_exec = 'cartogram_c'
     except json.JSONDecodeError:
-        map_data_filename = temp_filename + ".gen"
+        map_data_filename = temp_filename + '.gen'
 
-    with open("/tmp/{}".format(map_data_filename), "w") as conventional_map_file:
-        conventional_map_file.write(params["gen_file"])
+    with open('/tmp/{}'.format(map_data_filename), 'w') as conventional_map_file:
+        conventional_map_file.write(params['gen_file'])
 
-    if cartogram_exec == "cartogram":
-        area_data_path = "/tmp/{}.csv".format(temp_filename)
-        with open(area_data_path, "w") as areas_file:
-            areas_file.write(params["area_data"])        
+    if cartogram_exec == 'cartogram':
+        area_data_path = '/tmp/{}.csv'.format(temp_filename)
+        with open(area_data_path, 'w') as areas_file:
+            areas_file.write(params['area_data'])        
     else:
-        area_data_path = params["area_data"]
+        area_data_path = params['area_data']
 
-    if "flags" in params.keys():
-        flags = params["flags"]
+    if 'flags' in params.keys():
+        flags = params['flags']
     else:
         flags = ''
 
-    for source, line in cartwrap.generate_cartogram(area_data_path, "/tmp/{}".format(map_data_filename), "{}/{}".format(os.environ['LAMBDA_TASK_ROOT'], cartogram_exec), world, flags):
+    for source, line in cartwrap.generate_cartogram(area_data_path, '/tmp/{}'.format(map_data_filename), '{}/{}'.format(os.environ['LAMBDA_TASK_ROOT'], cartogram_exec), world, flags):
 
-        if source == "stdout":
+        if source == 'stdout':
             stdout += line.decode()
         else:
 
@@ -83,13 +98,13 @@ def local_function(params):
             
             s = re.search(r'Progress: (.+)', line.decode())
 
-            if cartogram_exec == "cartogram_c":
+            if cartogram_exec == 'cartogram_c':
                 s = re.search(r'max\. abs\. area error: (.+)', line.decode())
 
             if s != None:
                 current_progress = float(s.groups(1)[0])
 
-                if cartogram_exec == "cartogram_c":
+                if cartogram_exec == 'cartogram_c':
                     current_progress = 1 / max(1 , log((current_progress/0.01), 5))
                                     
                 setprogress({
@@ -102,12 +117,12 @@ def local_function(params):
 
                 order += 1
     
-    if os.path.exists("/tmp/{}".format(map_data_filename)):
-        os.remove("/tmp/{}".format(map_data_filename))
-    if os.path.exists("/tmp/{}.csv".format(temp_filename)):
-        os.remove("/tmp/{}.csv".format(temp_filename))
+    if os.path.exists('/tmp/{}'.format(map_data_filename)):
+        os.remove('/tmp/{}'.format(map_data_filename))
+    if os.path.exists('/tmp/{}.csv'.format(temp_filename)):
+        os.remove('/tmp/{}.csv'.format(temp_filename))
 
-    return {"stderr": stderr, "stdout": stdout, "world": world}
+    return {'stderr': stderr, 'stdout': stdout, 'world': world}
 
 def setprogress(params):
     redis_conn = redis.Redis(host=settings.CARTOGRAM_REDIS_HOST, port=settings.CARTOGRAM_REDIS_PORT, db=0)

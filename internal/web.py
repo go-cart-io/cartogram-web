@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import geojson_extrema, awslambda
+import awslambda
 import settings
 
 import json
@@ -158,16 +158,9 @@ def create_app():
                 return Response('{"error":"Missing sharing key."}', status=404, content_type='application/json')
 
             string_key = data['stringKey']
-            cart_data = cartogram_handler.get_area_string_and_colors(data)
-            lambda_result = awslambda.generate_cartogram(cart_data[0],
+            datacsv, cartogram_json, cartogram_name = awslambda.generate_cartogram(data,
                                 cartogram_handler.get_gen_file(handler), settings.CARTOGRAM_LAMBDA_URL,
                                 settings.CARTOGRAM_LAMDA_API_KEY, string_key)
-
-            cartogram_gen_output = lambda_result['stdout']
-            cartogram_json = json.loads(cartogram_gen_output)
-
-            if lambda_result['world'] == False:
-                cartogram_json = cartogram_json['Original']
 
             for feature in cartogram_json["features"]:
                 geom = shape(feature["geometry"])
@@ -175,12 +168,11 @@ def create_app():
                 feature['properties']['label'] = {'x': point.x, 'y': point.y}
             
             if 'persist' in data:
-                os.mkdir('static/userdata/{}'.format(string_key)) 
-
+                os.mkdir('static/userdata/{}'.format(string_key))
                 with open('static/userdata/{}/data.csv'.format(string_key), 'w') as outfile:
-                    outfile.write(cart_data[1])
+                    outfile.write(datacsv)
                     
-                with open('static/userdata/{}/{}.json'.format(string_key, cart_data[2]), 'w') as outfile:
+                with open('static/userdata/{}/{}.json'.format(string_key, cartogram_name), 'w') as outfile:
                     outfile.write(json.dumps(cartogram_json))
                 
                 if settings.USE_DATABASE:
@@ -192,7 +184,7 @@ def create_app():
             else:
                 string_key = None
 
-            return Response('{"stringKey": "' +string_key + '"}', status=200, content_type='application/json')
+            return Response(json.dumps({"stringKey": string_key}), status=200, content_type='application/json')
         
         # except (KeyError, csv.Error, ValueError, UnicodeDecodeError):
         #     return Response('{"error":"The data was invalid."}', status=400, content_type='application/json')

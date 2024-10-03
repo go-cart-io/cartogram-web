@@ -10,7 +10,7 @@ testdata = {
             {"key":"0","label":"Region"},
             {"key":"1","label":"Abbreviation"},
             {"key":"2","label":"Color"},
-            {"key":"2","label":"Land Area (km sq.)"},
+            {"key":"3","label":"Land Area (km sq.)"},
             {"key":"4","label":"Population (people)"}            
         ],
         "items": {

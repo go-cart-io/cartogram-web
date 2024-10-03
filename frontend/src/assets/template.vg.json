@@ -84,7 +84,7 @@
       "encode": {
         "update": {
           "description": {
-            "signal": "\"geoshape_\" + datum[\"id\"]"
+            "signal": "\"geoshape_\" + datum[\"properties\"][\"cartogram_id\"]"
           },
           "stroke": { "value": "black" },
           "strokeWidth": { "value": 0.2 },
@@ -112,7 +112,7 @@
           "x": { "field": "x" },
           "y": { "field": "y" },
           "description": {
-            "signal": "\"geolabel_\" + datum[\"id\"]"
+            "signal": "\"geolabel_\" + datum[\"properties\"][\"cartogram_id\"]"
           },
           "align": { "value": "center" },
           "baseline": { "value": "middle" },
