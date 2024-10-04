@@ -11,7 +11,6 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from shapely.geometry import shape
 
 from handler import CartogramHandler
 from asset import Asset
@@ -142,11 +141,7 @@ def create_app():
 
     @app.route('/api/v1/cartogram', methods=['POST'])
     @limiter.limit(cartogram_rate_limit)
-    def cartogram():    
-        colName = 0
-        colColor = 2
-        colValue = 4 # Starting column of data
-
+    def cartogram():
         try:
             data = json.loads(request.form['data'])
             handler = data['handler']
@@ -158,24 +153,11 @@ def create_app():
                 return Response('{"error":"Missing sharing key."}', status=404, content_type='application/json')
 
             string_key = data['stringKey']
-            datacsv, cartogram_json, cartogram_name = awslambda.generate_cartogram(data,
-                                cartogram_handler.get_gen_file(handler), settings.CARTOGRAM_LAMBDA_URL,
-                                settings.CARTOGRAM_LAMDA_API_KEY, string_key)
-
-            for feature in cartogram_json["features"]:
-                geom = shape(feature["geometry"])
-                point = geom.representative_point()
-                feature['properties']['label'] = {'x': point.x, 'y': point.y}
-            
-            if 'persist' in data:
-                os.mkdir('static/userdata/{}'.format(string_key))
-                with open('static/userdata/{}/data.csv'.format(string_key), 'w') as outfile:
-                    outfile.write(datacsv)
-                    
-                with open('static/userdata/{}/{}.json'.format(string_key, cartogram_name), 'w') as outfile:
-                    outfile.write(json.dumps(cartogram_json))
-                
-                if settings.USE_DATABASE:
+            awslambda.generate_cartogram(data,
+                cartogram_handler.get_gen_file(handler), settings.CARTOGRAM_LAMBDA_URL,
+                settings.CARTOGRAM_LAMDA_API_KEY, string_key)
+                        
+            if 'persist' in data and settings.USE_DATABASE:
                     new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
                                             date_accessed=datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=365),
                                             handler=handler)

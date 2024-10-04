@@ -11,14 +11,15 @@ testdata = {
             {"key":"1","label":"Abbreviation"},
             {"key":"2","label":"Color"},
             {"key":"3","label":"Land Area (km sq.)"},
-            {"key":"4","label":"Population (people)"}            
+            {"key":"4","label":"Population (people)"},
+            {"key":"5","label":"Number of Landed Properties (Landed Properties)"}
         ],
         "items": {
-            "1":["CENTRAL REGION","CR","#1b9e77",133.0,922580.0],
-            "2":["EAST REGION","ER","#e7298a",93.0,685940.0],
-            "3":["NORTH REGION","NR","#d95f02",135.0,582330.0],
-            "4":["NORTH-EAST REGION","NER","#7570b3",104.0,930860.0],
-            "5":["WEST REGION","WR","#66a61e",201.0,922540.0]
+            "1":["CENTRAL REGION","CR","#1b9e77",133.0,922580.0,84950],
+            "2":["EAST REGION","ER","#e7298a",93.0,685940.0,58390],
+            "3":["NORTH REGION","NR","#d95f02",135.0,582330.0,10990],
+            "4":["NORTH-EAST REGION","NER","#7570b3",104.0,930860.0,76100],
+            "5":["WEST REGION","WR","#66a61e",201.0,922540.0,20960]
         }
     },
     "stringKey": time.time(),

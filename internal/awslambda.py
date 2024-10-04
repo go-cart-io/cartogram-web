@@ -8,49 +8,56 @@ import uuid
 import util
 from math import log
 from lambda_package import cartwrap
+from shapely.geometry import shape
 
 def generate_cartogram(data, gen_file, lambda_url, lambda_api_key, cartogram_key, flags=''):
     datacsv = util.get_csv(data)
     datasets = util.get_data_string(data)
-
-    #TODO Handle multiple datasets
-    datastring = datasets[0]['datastring']
-    name = datasets[0]['label']
-
-    headers = {
-        'x-api-key': lambda_api_key
-    }
+    data_length = len(datasets)
 
     with open(gen_file, 'r') as gen_fp:
         gen_file_contents = gen_fp.read()
+        
+    # TODO cleanup if fail
+    if 'persist' in data:
+        os.mkdir('static/userdata/{}'.format(cartogram_key))
+        with open('static/userdata/{}/data.csv'.format(cartogram_key), 'w') as outfile:
+            outfile.write(datacsv)
 
-    lambda_event = {
-        'gen_file': gen_file_contents,
-        'area_data': datastring,
-        'key': cartogram_key,
-        'flags': flags
-    }
+    for i, dataset in enumerate(datasets):
+        datastring = dataset['datastring']
+        name = dataset['label']
 
-    # Be careful, lambda function may not work anymore
-    if lambda_url != None and lambda_url != '':
-        r = requests.post(lambda_url, headers=headers, json=lambda_event)
-        lambda_result = r.json()
-    
-    else:        
-        lambda_result = local_function(lambda_event)
+        lambda_event = {
+            'gen_file': gen_file_contents,
+            'area_data': datastring,
+            'key': cartogram_key,
+            'flags': flags
+        }
 
-    cartogram_gen_output = lambda_result['stdout']
-    cartogram_json = json.loads(cartogram_gen_output)
+        lambda_result = local_function(lambda_event, i, data_length)
 
-    if lambda_result['world'] == False:
-        cartogram_json = cartogram_json['Original']
+        cartogram_gen_output = lambda_result['stdout']
+        cartogram_json = json.loads(cartogram_gen_output)
 
-    return datacsv, cartogram_json, name
+        if lambda_result['world'] == False:
+            cartogram_json = cartogram_json['Original']
+
+        for feature in cartogram_json["features"]:
+            geom = shape(feature["geometry"])
+            point = geom.representative_point()
+            feature['properties']['label'] = {'x': point.x, 'y': point.y}
+
+        if 'persist' in data:
+            with open('static/userdata/{}/{}.json'.format(cartogram_key, name), 'w') as outfile:
+                outfile.write(json.dumps(cartogram_json))
+
+    return
    
 # similar to lambda_function.lambda_handler, but no overhead like json dump
-def local_function(params):
+def local_function(params, data_index = 0, data_length = 1):
     stdout = ''
-    stderr = ''
+    stderr = 'Dataset {}/{}\n'.format(data_index + 1, data_length)
     order = 0
 
     # We run C++ executable for most maps and old C excutable (named 'cartogram_c') only for the World Map
@@ -106,6 +113,11 @@ def local_function(params):
 
                 if cartogram_exec == 'cartogram_c':
                     current_progress = 1 / max(1 , log((current_progress/0.01), 5))
+
+                if current_progress == 1 and data_index == data_length - 1: # To prevent stucking at 0.99999
+                    current_progress = 1
+                else:
+                    current_progress = (current_progress / data_length) + (data_index / data_length)
                                     
                 setprogress({
                     'secret': os.environ['CARTOGRAM_PROGRESS_SECRET'],
