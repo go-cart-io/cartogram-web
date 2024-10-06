@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import awslambda
+import cartogram
 import settings
 
 import json
@@ -133,7 +133,7 @@ def create_app():
     @app.route('/api/v1/getprogress', methods=['GET'])
     @limiter.exempt
     def getprogress():
-        current_progress_output = awslambda.getprogress(request.args['key'])
+        current_progress_output = cartogram.getprogress(request.args['key'])
         return Response(json.dumps(current_progress_output), status=200, content_type='application/json')
 
     def cartogram_rate_limit():
@@ -141,7 +141,7 @@ def create_app():
 
     @app.route('/api/v1/cartogram', methods=['POST'])
     @limiter.limit(cartogram_rate_limit)
-    def cartogram():
+    def cartogram_gen():
         try:
             data = json.loads(request.form['data'])
             handler = data['handler']
@@ -156,7 +156,7 @@ def create_app():
             if 'persist' in data:
                 os.mkdir('{}/{}'.format("static/userdata", string_key))
 
-            awslambda.generate_cartogram(data, cartogram_handler.get_gen_file(handler), string_key, f"static/userdata/{string_key}")
+            cartogram.generate_cartogram(data, cartogram_handler.get_gen_file(handler), string_key, f"static/userdata/{string_key}")
                         
             if 'persist' in data and settings.USE_DATABASE:
                     new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),

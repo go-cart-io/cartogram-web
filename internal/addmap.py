@@ -7,7 +7,7 @@ import random
 import string
 import uuid
 import settings
-import awslambda
+import cartogram
 from shapely.geometry import shape
 
 
@@ -63,7 +63,7 @@ def init(map_name):
         for i, row in enumerate(reader, start=1):
             data["values"]["items"][str(i)] = row
 
-    awslambda.generate_cartogram(data, map_gen_path, str(uuid.uuid4()), folder, True)
+    cartogram.generate_cartogram(data, map_gen_path, str(uuid.uuid4()), folder, True)
 
     print()
     print("Suscessfully generated cartograms.")

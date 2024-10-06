@@ -7,7 +7,7 @@ import settings
 import uuid
 import util
 from math import log
-from lambda_package import cartwrap
+from cartogram_package import cartwrap
 from shapely.geometry import shape
 
 def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = False, flags = ''):
@@ -71,7 +71,6 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
 
     return
    
-# similar to lambda_function.lambda_handler, but no overhead like json dump
 def local_function(params, data_index = 0, data_length = 1, print_progress = False):
     stdout = ''
     stderr = 'Dataset {}/{}\n'.format(data_index + 1, data_length)
@@ -96,7 +95,7 @@ def local_function(params, data_index = 0, data_length = 1, print_progress = Fal
     else:
         flags = ''
 
-    for source, line in cartwrap.generate_cartogram(area_data_path, params['gen_file'], '{}/{}'.format(os.environ['LAMBDA_TASK_ROOT'], cartogram_exec), params['world'], flags):
+    for source, line in cartwrap.generate_cartogram(area_data_path, params['gen_file'], 'cartogram_package/{}'.format(cartogram_exec), params['world'], flags):
 
         if source == 'stdout':
             stdout += line.decode()
