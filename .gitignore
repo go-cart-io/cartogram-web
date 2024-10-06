@@ -6,6 +6,5 @@ tools/envsettings.sh
 internal/assets/node_modules
 internal/handler.py.bak
 
-data/test*
 internal/static/cartdata/test*
 .Rhistory
