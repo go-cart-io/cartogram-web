@@ -1,5 +1,5 @@
 export interface MapHandlers {
-  [key: string]: { name: string; region_identifier: string }
+  [key: string]: { name: string }
 }
 
 export interface Entry {

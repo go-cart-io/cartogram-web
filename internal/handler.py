@@ -10,7 +10,7 @@ class CartogramHandler:
     def get_sorted_handler_names(self):
         sub_cartogram_handlers = {}
         for key, value in cartogram_handlers.items():
-            sub_cartogram_handlers[key] = {'name': value['name'], 'region_identifier': value['region_identifier']}
+            sub_cartogram_handlers[key] = {'name': value['name']}
 
         return dict(sorted(sub_cartogram_handlers.items(), key=lambda item: item[1]['name']))
 
