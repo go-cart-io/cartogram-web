@@ -153,9 +153,10 @@ def create_app():
                 return Response('{"error":"Missing sharing key."}', status=404, content_type='application/json')
 
             string_key = data['stringKey']
-            awslambda.generate_cartogram(data,
-                cartogram_handler.get_gen_file(handler), settings.CARTOGRAM_LAMBDA_URL,
-                settings.CARTOGRAM_LAMDA_API_KEY, string_key)
+            if 'persist' in data:
+                os.mkdir('{}/{}'.format("static/userdata", string_key))
+
+            awslambda.generate_cartogram(data, cartogram_handler.get_gen_file(handler), string_key, f"static/userdata/{string_key}")
                         
             if 'persist' in data and settings.USE_DATABASE:
                     new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),

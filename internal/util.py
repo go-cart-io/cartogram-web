@@ -20,6 +20,7 @@ def get_csv(data):
 
 def get_data_string(data):    
     datasets = []
+    is_area_as_base = False
 
     # Find the position of spacial fields
     col_region = 0
@@ -33,6 +34,7 @@ def get_data_string(data):
             col_color = index
         elif header['label'].startswith('Land Area'):
             col_area = index
+            is_area_as_base = True
         elif header['label'] != 'Abbreviation':
             m = re.match(r'(.+)\s?\((.+)\)$', header['label'])
             if m:
@@ -55,4 +57,4 @@ def get_data_string(data):
                     
             col['datastring'] = col['datastring'] + '{0},{1},{2}\n'.format(row[col_region], row[col['index']], row[col_color])   
 
-    return datasets
+    return datasets, is_area_as_base
