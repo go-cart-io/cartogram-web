@@ -12,6 +12,14 @@
       "name": "height",
       "init": "containerSize()[1]",
       "on": [{ "events": "window:resize", "update": "containerSize()[1]" }]
+    },
+    {
+      "name": "active",
+      "value": null,
+      "on": [
+        { "events": "shape:mouseover", "update": "datum[\"properties\"][\"cartogram_id\"]" },
+        { "events": "mouseover[!event.item]", "update": "null" }
+      ]
     }
   ],
   "data": [
@@ -77,30 +85,7 @@
   ],
   "marks": [
     {
-      "name": "layer_0_marks",
-      "type": "shape",
-      "style": ["geoshape"],
-      "from": { "data": "geo_1" },
-      "encode": {
-        "update": {
-          "description": {
-            "signal": "\"geoshape_\" + datum[\"properties\"][\"cartogram_id\"]"
-          },
-          "stroke": { "value": "black" },
-          "strokeWidth": { "value": 0.2 },
-          "tooltip": { "signal": "datum" },
-          "fill": { "field": "Color" },
-          "ariaRoleDescription": { "value": "geoshape" }
-        },
-        "hover": {
-          "strokeWidth": { "value": 1 },
-          "zindex": { "value": 1 }
-        }
-      },
-      "transform": [{ "type": "geoshape", "projection": "projectionFinal" }]
-    },
-    {
-      "name": "layer_1_marks",
+      "name": "label_marks",
       "type": "text",
       "style": ["text"],
       "from": { "data": "geo_1" },
@@ -121,6 +106,27 @@
         }
       },
       "transform": [{ "type": "geopoint", "fields": ["x", "y"], "projection": "projectionFinal" }]
+    },
+    {
+      "name": "polygon_marks",
+      "type": "shape",
+      "style": ["geoshape"],
+      "from": { "data": "geo_1" },
+      "encode": {
+        "update": {
+          "description": {
+            "signal": "\"geoshape_\" + datum[\"properties\"][\"cartogram_id\"]"
+          },
+          "stroke": { "value": "black" },
+          "strokeWidth": {
+            "signal": "datum[\"properties\"][\"cartogram_id\"] == active? 1 : 0.2"
+          },
+          "tooltip": { "signal": "datum" },
+          "fill": { "field": "Color" },
+          "ariaRoleDescription": { "value": "geoshape" }
+        }
+      },
+      "transform": [{ "type": "geoshape", "projection": "projectionFinal" }]
     }
   ]
 }

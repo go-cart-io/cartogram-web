@@ -18,6 +18,7 @@ var pointerangle: number | boolean, // (A)
   pointerposition: number[] | null, // (B)
   pointerdistance: number | boolean // (C)
 var lastTouch = 0
+var currentHighlight: string | null = null
 const DELAY_THRESHOLD = 300
 const SUPPORT_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints
 const DATA_COL = 3
@@ -251,6 +252,13 @@ function snapToBetterNumber() {
   var matrix = util.getScaleMatrix(adjustedScale, adjustedScale)
   transformVersion(matrix, state.affineMatrix)
 }
+
+function highlight(item: { mapID: string; highlightID: string }) {
+  if (currentHighlight === item.highlightID) return
+  if (item.mapID === 'map-area') cartogramLegendEl.value.highlight(item.highlightID)
+  else if (item.mapID === 'cartogram-area') mapLegendEl.value.highlight(item.highlightID)
+  currentHighlight = item.highlightID
+}
 </script>
 
 <template>
@@ -273,6 +281,7 @@ function snapToBetterNumber() {
           v-bind:versionKey="DATA_COL.toString()"
           v-bind:versions="props.versions"
           v-bind:showGrid="props.showGrid"
+          v-on:highlight="highlight"
         >
         </c-panel-legend>
       </div>
@@ -320,6 +329,7 @@ function snapToBetterNumber() {
           v-on:mouseup="onTouchend"
           v-on:touchend="onTouchend"
           v-on:wheel="onWheel"
+          v-on:highlight="highlight"
         >
           <img class="position-absolute bottom-0 end-0 z-3" src="/static/img/by.svg" alt="cc-by" />
         </c-panel-legend>

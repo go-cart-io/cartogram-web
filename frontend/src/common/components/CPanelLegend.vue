@@ -18,7 +18,7 @@ var numGridOptions = 3
 const locale =
   navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language
 var defaultOpacity = 0.3
-var versionSpec = JSON.parse(JSON.stringify(spec))
+var versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
 var visEl: any
 var offscreenEl: any
 var visView: any
@@ -79,10 +79,11 @@ defineExpose({
   updateView: resizeViewWidth,
   getData,
   getCurrentScale,
-  updateGridIndex
+  updateGridIndex,
+  highlight
 })
 
-const emit = defineEmits(['gridChanged'])
+const emit = defineEmits(['gridChanged', 'highlight'])
 
 onMounted(async () => {
   if (!state.version) return
@@ -93,7 +94,7 @@ onMounted(async () => {
   versionSpec.data[2].transform[1].values.push(...headers)
 
   const tooltipFormat = Object.values(props.versions).map(item => `"${item.name}": datum["${item.header}"] + " ${item.unit}"`).join(', ');
-  versionSpec.marks[0].encode.update.tooltip.signal =
+  versionSpec.marks[1].encode.update.tooltip.signal =
     '{title: datum.Region + " (" + datum.Abbreviation + ")", ' + tooltipFormat + '}'
 
   if (props.currentMapName === "world") {
@@ -115,6 +116,10 @@ onMounted(async () => {
   visView.addResizeListener(function() {
     totalArea = util.getTotalAreas(visView.data('geo_1'))
     update()
+  })
+
+  visView.addSignalListener('active', function(name: string, value: any) {
+    emit('highlight', { 'mapID': props.mapID, 'highlightID': value })
   })
 
   update()
@@ -309,6 +314,10 @@ function updateGridIndex(change: number) {
   if (newIndex < 0 || newIndex > numGridOptions) return
   changeTo(newIndex)
 }
+
+function highlight(itemID: any) {
+  visView.signal("active", itemID).runAsync()
+}
 </script>
 
 <template>
@@ -395,10 +404,15 @@ function updateGridIndex(change: number) {
   width: 100%;
   height: 100%;
   min-height: 100px;
-  mix-blend-mode: multiply;
 }
 
 .vis-area.offscreen {
   opacity: 0;
+}
+</style>
+
+<style>
+path {
+  mix-blend-mode: multiply;
 }
 </style>
