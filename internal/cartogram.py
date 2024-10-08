@@ -1,12 +1,12 @@
-import requests
 import json
 import os
 import re
 import redis
-import settings
 import uuid
-import util
 from math import log
+
+import settings
+import util
 from cartogram_package import cartwrap
 from shapely.geometry import shape
 
@@ -24,8 +24,7 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
             world = True
     finally:
         world = False
-        
-    # TODO cleanup if fail
+
     if 'persist' in data:
         with open('{}/data.csv'.format(folder), 'w') as outfile:
             outfile.write(datacsv)

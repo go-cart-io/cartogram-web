@@ -136,21 +136,23 @@ def create_app():
     @app.route('/api/v1/cartogram', methods=['POST'])
     @limiter.limit(cartogram_rate_limit)
     def cartogram_gen():
+        data = json.loads(request.form['data'])
+        handler = data['handler']
+
+        if 'handler' not in data or not cartogram_handler.has_handler(handler):
+            return Response('{"error":"The handler was invaild."}', status=400, content_type='application/json')
+
+        if 'stringKey' not in data:
+            return Response('{"error":"Missing sharing key."}', status=404, content_type='application/json')
+        
+        string_key = data['stringKey']
+        folder_path = None
+        if 'persist' in data:
+            folder_path = f"static/userdata/{string_key}"
+            os.mkdir(folder_path)
+
         try:
-            data = json.loads(request.form['data'])
-            handler = data['handler']
-
-            if 'handler' not in data or not cartogram_handler.has_handler(handler):
-                return Response('{"error":"The handler was invaild."}', status=400, content_type='application/json')
-
-            if 'stringKey' not in data:
-                return Response('{"error":"Missing sharing key."}', status=404, content_type='application/json')
-
-            string_key = data['stringKey']
-            if 'persist' in data:
-                os.mkdir('{}/{}'.format("static/userdata", string_key))
-
-            cartogram.generate_cartogram(data, cartogram_handler.get_gen_file(handler), string_key, f"static/userdata/{string_key}")
+            cartogram.generate_cartogram(data, cartogram_handler.get_gen_file(handler), string_key, folder_path)
                         
             if 'persist' in data and settings.USE_DATABASE:
                     new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
@@ -166,7 +168,9 @@ def create_app():
         # except (KeyError, csv.Error, ValueError, UnicodeDecodeError):
         #     return Response('{"error":"The data was invalid."}', status=400, content_type='application/json')
         except Exception as e:
-            print(e)
+            if 'persist' in data and os.path.exists(folder_path):
+                shutil.rmtree(folder_path)
+
             return Response('{"error": "The data may be invalid or the process has timed out. Please try again later."}', status=400, content_type='application/json')
 
     @app.route('/cleanup', methods=['GET'])
