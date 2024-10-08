@@ -127,7 +127,6 @@ def local_function(params, data_index = 0, data_length = 1, print_progress = Fal
                     print('{}%'.format(current_progress * 100))
                                     
                 setprogress({
-                    'secret': os.environ['CARTOGRAM_PROGRESS_SECRET'],
                     'key': params['key'],
                     'progress': current_progress,
                     'stderr': stderr,

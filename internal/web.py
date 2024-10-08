@@ -1,22 +1,20 @@
 #!/usr/bin/env python
-import cartogram
-import settings
-
 import json
 import datetime
 import os
+import shutil
 from flask import Flask, request, Response, render_template
-from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
+import cartogram
+import settings
+from database import db
 from handler import CartogramHandler
 from asset import Asset
 from views import contact, tracking, custom_captcha
-
-db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
@@ -26,7 +24,7 @@ def create_app():
                     storage_uri='redis://{}:{}'.format(settings.CARTOGRAM_REDIS_HOST, settings.CARTOGRAM_REDIS_PORT))
 
     app.app_context().push()
-    app.secret_key = 'LTTNWg8luqfWKfDxjFaeC3vYoGrC2r2f5mtXo5IE/jt1GcY7/JaSq8V/tB'
+    app.secret_key = settings.SECRET_KEY
     app.config['SQLALCHEMY_DATABASE_URI'] = settings.DATABASE_URI
     # This gets rid of an annoying Flask error message. We don't need this feature anyway.
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -37,20 +35,15 @@ def create_app():
     # flask db migrate -m "Migration log."
     # flask db upgrade
     if settings.USE_DATABASE:
+        from database import db
+        from models import CartogramEntry
         db.init_app(app)
         migrate = Migrate(app, db)
-
-        class CartogramEntry(db.Model):
-            id = db.Column(db.Integer, primary_key=True)
-            string_key = db.Column(db.String(32), unique=True, nullable=False)
-            date_created = db.Column(db.DateTime(), nullable=False)
-            date_accessed = db.Column(db.DateTime(), server_default='0001-01-01 00:00:00')        
-            handler = db.Column(db.String(100), nullable=False)
-
-            def __repr__(self):
-                return '<CartogramEntry {}>'.format(self.string_key)
-            
-        db.create_all()
+        
+        try:
+            db.create_all()
+        except Exception as err:
+            print(err)
 
     default_cartogram_handler = 'usa'
     cartogram_handler = CartogramHandler()
@@ -122,8 +115,9 @@ def create_app():
         if cartogram_entry is None or not cartogram_handler.has_handler(cartogram_entry.handler):
             return Response('Error', status=500)
         
-        cartogram_entry.date_accessed = datetime.datetime.now(datetime.UTC)
-        db.session.commit()    
+        if mode != 'preview':
+            cartogram_entry.date_accessed = datetime.datetime.now(datetime.UTC)
+            db.session.commit()    
 
         return render_template(template, page_active='cartogram', 
                             maps=cartogram_handler.get_sorted_handler_names(),
@@ -175,6 +169,23 @@ def create_app():
             print(e)
             return Response('{"error": "The data may be invalid or the process has timed out. Please try again later."}', status=400, content_type='application/json')
 
+    @app.route('/cleanup', methods=['GET'])
+    def cleanup():
+        num_records = 0
+        year_ago = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=366)
+        if settings.USE_DATABASE:
+            records = CartogramEntry.query.filter(CartogramEntry.date_accessed < year_ago).all()
+            num_records = len(records)
+            for record in records:
+                folder_path = f'static/userdata/{record.string_key}'
+                if os.path.exists(folder_path):
+                    shutil.rmtree(folder_path)
+                db.session.delete(record)
+
+            db.session.commit()
+            
+        return "{} ({} records)".format(year_ago.strftime('%d %B %Y - %H:%M:%S'), num_records)
+                    
     @app.route('/cart/<key>', methods=['GET'])
     @app.route('/embed/map/<key>', methods=['GET'])
     @app.route('/embed/cart/<key>', methods=['GET'])

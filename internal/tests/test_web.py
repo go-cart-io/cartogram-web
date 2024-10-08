@@ -30,3 +30,7 @@ def test_cartogram_post(client):
     response = client.post("/api/v1/cartogram", data={"data": json.dumps(testdata)})
     print(response.data)
     assert response.status_code == 200
+
+def test_cleanup(client):
+    response = client.get("/cleanup")
+    print(response)

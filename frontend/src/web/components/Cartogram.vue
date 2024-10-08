@@ -129,7 +129,7 @@ async function getGeneratedCartogram() {
         store.loadingProgress = 100
         window.clearInterval(progressUpdater)
         resolve(response)
-        window.location.href = '/cartogram/key/' + response.stringKey
+        window.location.href = '/cartogram/key/' + response.stringKey + '/preview'
       },
       function (error: any) {
         store.loadingProgress = 100
