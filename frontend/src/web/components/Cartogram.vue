@@ -11,8 +11,7 @@ import CPanel from '../../common/components/CPanel.vue'
 import CChart from './CChart.vue'
 import CProgressBar from './CProgressBar.vue'
 import HTTP from '../lib/http'
-import CartMap from '../../common/lib/cartMap'
-import type { MapHandlers, Mappack } from '../../common/lib/interface'
+import type { MapHandlers } from '../../common/lib/interface'
 import type { DataTable } from '../lib/interface'
 
 import { useCartogramStore } from '../stores/cartogram'
@@ -36,9 +35,7 @@ const state = reactive({
 // Elements
 const chartEl = ref()
 // Vars
-var map: CartMap = new CartMap()
 var tempDataTable: any = null
-var mappack: Mappack | null = null
 
 onBeforeMount(() => {
   store.currentMapName = props.mapName
@@ -47,16 +44,10 @@ onBeforeMount(() => {
 
 /**
  * Switchs the current map in the application (e.g., From Singapore to Thailand).
- * It initializes the new map, updates the current version, and triggers a redraw of the map.
- * @param {Mappack} newmappack The new map pack to switch to.
+ * It triggers a redraw of the map.
  */
-async function switchMap(newmappack: Mappack) {
-  mappack = newmappack
-  map = new CartMap()
-  store.currentVersionName = map.init(mappack)
-  store.versions = map.versions
+async function switchMap() {
   state.mapkey = Date.now()
-
   redraw()
 }
 
@@ -66,23 +57,7 @@ async function switchMap(newmappack: Mappack) {
  */
 async function redraw() {
   state.currentComponent = 'map'
-
-  await nextTick()
-  map.drawVersion('0-base', 'map-area', ['map-area', 'cartogram-area'])
-  map.drawVersion(store.currentVersionName, 'cartogram-area', ['map-area', 'cartogram-area'])
   tempDataTable = null
-}
-
-/**
- * Switchs the current version of the map in the application (e.g., from Area to Population).
- * It takes a version parameter and updates the current version name in the store.
- * It also calls the switchVersion method of the CartMap instance to switch the version of the map being displayed.
- * @param {String} version The new version of the map to switch to.
- */
-function switchVersion(version: string) {
-  if (!version) return
-  map.switchVersion(store.currentVersionName, version, 'cartogram-area')
-  store.currentVersionName = version
 }
 
 /**
@@ -117,7 +92,7 @@ async function getGeneratedCartogram() {
   }
 
   var stringKey = generateShareKey(32)
-  var newmappack = await new Promise<Mappack>(function (resolve, reject) {
+  await new Promise<any>(function (resolve, reject) {
     var req_body =
       'data=' +
       JSON.stringify({
@@ -154,6 +129,7 @@ async function getGeneratedCartogram() {
         store.loadingProgress = 100
         window.clearInterval(progressUpdater)
         resolve(response)
+        window.location.href = '/cartogram/key/' + response.stringKey + '/preview'
       },
       function (error: any) {
         store.loadingProgress = 100
@@ -169,12 +145,6 @@ async function getGeneratedCartogram() {
     redraw()
     return
   })
-
-  state.currentComponent = 'map'
-  if (newmappack) store.stringKey = newmappack.stringKey
-  await nextTick()
-  if (newmappack) switchMap(newmappack)
-  tempDataTable = null
 }
 </script>
 
@@ -182,9 +152,8 @@ async function getGeneratedCartogram() {
   <c-menu-bar
     v-bind:isEmbed="props.mode === 'embed'"
     v-bind:maps="props.maps"
-    v-bind:map="map"
     v-on:map_changed="switchMap"
-    v-on:version_changed="switchVersion"
+    v-on:version_changed="(version: string) => (store.currentVersionName = version)"
     v-on:confirm_data="confirmData"
   ></c-menu-bar>
   <c-progress-bar v-on:change="(isLoading: boolean) => (state.isLoading = isLoading)" />
@@ -199,9 +168,9 @@ async function getGeneratedCartogram() {
     <c-panel
       v-else
       v-bind:key="state.mapkey"
-      v-bind:map="map"
       v-bind:currentMapName="store.currentMapName"
-      v-bind:currentVersionName="store.currentVersionName"
+      v-bind:currentVersionKey="store.currentVersionName"
+      v-bind:versions="store.versions"
       v-bind:stringKey="store.stringKey"
       v-bind:showBase="store.options.showBase"
       v-bind:showGrid="store.options.showGrid"

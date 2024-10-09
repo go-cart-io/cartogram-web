@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { reactive } from 'vue'
 import type { DataTable } from '../lib/interface'
 import type { MapHandlers } from '../../common/lib/interface'
-import type CartMap from '../../common/lib/cartMap'
 import CMenuSelectMap from './CMenuSelectMap.vue'
 import CMenuSelectVersion from '../../common/components/CMenuSelectVersion.vue'
 import CMenuBtnUpload from './CMenuBtnUpload.vue'
@@ -14,7 +14,6 @@ const props = withDefaults(
   defineProps<{
     isEmbed: boolean
     maps: MapHandlers
-    map: CartMap
   }>(),
   {
     isEmbed: false
@@ -22,6 +21,15 @@ const props = withDefaults(
 )
 
 const emit = defineEmits(['map_changed', 'version_changed', 'loading_progress', 'confirm_data'])
+
+const state = reactive({
+  csvdata: [] as any
+})
+
+function onMapChanged(data: any) {
+  state.csvdata = data
+  emit('map_changed', data)
+}
 
 function confirmData(data: DataTable) {
   emit('confirm_data', data)
@@ -38,7 +46,7 @@ function confirmData(data: DataTable) {
       <c-menu-select-map
         v-bind:maps="props.maps"
         v-bind:isEmbed="props.isEmbed"
-        v-on:map_changed="(mappack) => emit('map_changed', mappack)"
+        v-on:map_changed="onMapChanged"
       />
 
       <c-menu-select-version
@@ -50,10 +58,10 @@ function confirmData(data: DataTable) {
       <!-- Menu -->
       <div class="py-2 d-flex flex-nowrap">
         <span v-if="!props.isEmbed" class="text-nowrap">
-          <c-menu-btn-upload v-bind:map="props.map" v-on:change="confirmData" />
+          <c-menu-btn-upload v-on:change="confirmData" />
           <c-menu-btn-edit
             v-bind:maps="props.maps"
-            v-bind:map="props.map"
+            v-bind:csvdata="state.csvdata"
             v-on:change="confirmData"
           />
         </span>
@@ -107,4 +115,3 @@ button.version {
   white-space: nowrap;
 }
 </style>
-../common/lib/cartMap

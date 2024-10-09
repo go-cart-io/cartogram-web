@@ -14,7 +14,10 @@ const state = reactive({
 function generateSVGDownloadLinks(area: string, geojson: any) {
   var svg_header = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'
 
-  let mapAreaSVG = document.getElementById(area + '-svg')!.cloneNode(true) as SVGSVGElement
+  let mapAreaSVG = document
+    .getElementById(area + '-vis')!
+    .querySelector('svg')!
+    .cloneNode(true) as SVGSVGElement
 
   // Add SVG xml namespace to SVG element, so that the file can be opened with any web browser.
   mapAreaSVG.setAttribute('xmlns', 'http://www.w3.org/2000/svg')

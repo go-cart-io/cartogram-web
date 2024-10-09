@@ -7,24 +7,30 @@ testdata = {
     "handler": "singaporeRe",
     "values": {
         "fields": [
-            {"key":"area","label":"Region"},
-            {"key":"color","label":"Color"},
-            {"key":"1","label":"Population (people)"},
-            {"key":"2","label":"Test (unit)"}
+            {"key":"0","label":"Region"},
+            {"key":"1","label":"Abbreviation"},
+            {"key":"2","label":"Color"},
+            {"key":"3","label":"Land Area (km sq.)"},
+            {"key":"4","label":"Population (people)"},
+            {"key":"5","label":"Number of Landed Properties (Landed Properties)"}
         ],
         "items": {
-            "1":["CENTRAL REGION","#1b9e77",922580,10],
-            "2":["EAST REGION","#e7298a",685940,20],
-            "3":["NORTH REGION","#d95f02",582330,30],
-            "4":["NORTH-EAST REGION","#7570b3",930860,40],
-            "5":["WEST REGION","#66a61e",922540,50]
+            "1":["CENTRAL REGION","CR","#1b9e77",133.0,922580.0,84950],
+            "2":["EAST REGION","ER","#e7298a",93.0,685940.0,58390],
+            "3":["NORTH REGION","NR","#d95f02",135.0,582330.0,10990],
+            "4":["NORTH-EAST REGION","NER","#7570b3",104.0,930860.0,76100],
+            "5":["WEST REGION","WR","#66a61e",201.0,922540.0,20960]
         }
     },
     "stringKey": time.time(),
-    "persist":"true"
+    "persist": "true"
 }
 
 def test_cartogram_post(client):
     response = client.post("/api/v1/cartogram", data={"data": json.dumps(testdata)})
     print(response.data)
     assert response.status_code == 200
+
+def test_cleanup(client):
+    response = client.get("/cleanup")
+    print(response)

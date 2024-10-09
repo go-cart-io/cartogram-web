@@ -1,0 +1,27 @@
+Region,Abbreviation,Color,Land Area (km sq.),Population (people)
+Aargau,AG,#e6ab02,1404.0,678207.0
+Appenzell Ausserrhoden,AR,#d95f02,243.0,55234.0
+Appenzell Innerrhoden,AI,#e7298a,172.0,16145.0
+Basel-Landschaft,BL,#d95f02,518.0,289527.0
+Basel-Stadt,BS,#66a61e,37.0,200298.0
+Bern,BE,#1b9e77,5960.0,1034977.0
+Fribourg,FR,#e6ab02,1671.0,318714.0
+Geneva,GE,#1b9e77,282.0,499480.0
+Glarus,GL,#e7298a,685.0,40403.0
+Graubunden,GR,#e6ab02,7105.0,198379.0
+Jura,JU,#e6ab02,839.0,73419.0
+Lucerne,LU,#7570b3,1494.0,409557.0
+Neuchatel,NE,#7570b3,802.0,176850.0
+Nidwalden,NW,#e6ab02,276.0,43223.0
+Obwalden,OW,#66a61e,491.0,37841.0
+Sankt Gallen,SG,#1b9e77,2031.0,507697.0
+Schaffhausen,SH,#e7298a,298.0,81991.0
+Schwyz,SZ,#d95f02,908.0,159165.0
+Solothurn,SO,#e7298a,790.0,273194.0
+Thurgau,TG,#7570b3,992.0,276472.0
+Ticino,TI,#66a61e,2812.0,353343.0
+Uri,UR,#7570b3,1077.0,36433.0
+Valais,VS,#e6ab02,5224.0,343955.0
+Vaud,VD,#66a61e,3212.0,799145.0
+Zug,ZG,#e7298a,239.0,126837.0
+Zurich,ZH,#66a61e,1729.0,1520968.0

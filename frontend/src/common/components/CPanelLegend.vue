@@ -3,35 +3,46 @@
  * Legend wrapper for map with functions for managing grid size.
  */
 
+import { onMounted, nextTick, reactive, watch } from 'vue'
 import * as d3 from 'd3'
-import { nextTick, onMounted, reactive, watch } from 'vue'
-import type CartMap from '../lib/cartMap'
+// @ts-ignore
+import { geoCylindricalEqualArea } from "d3-geo-projection"
+import * as vega from 'vega'
+import embed, { type VisualizationSpec } from 'vega-embed'
+
 import * as util from '../lib/util'
 
+import spec from '../../assets/template.vg.json' with { type: "json" }
+
 var numGridOptions = 3
-var versionArea: number
-var versionTotalValue: number
 const locale =
   navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language
 var defaultOpacity = 0.3
+var versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
+var visEl: any
+var offscreenEl: any
+var visView: any
+var totalArea: number
+var totalValue: number
 
 const props = withDefaults(
   defineProps<{
     mapID: string
-    map: CartMap
-    sysname: string
-    showGrid: boolean
+    currentMapName: string
+    stringKey: string
+    versionKey: string
+    versions: { [key: string]: any }
+    showGrid?: boolean
     affineScale?: any
   }>(),
   {
+    showGrid: true,
     affineScale: [1, 1]
   }
 )
 
 const state = reactive({
-  actualWidth: 100 as number,
-  actualHeight: 100 as number,
-  unit: 'km sq.' as string,
+  version: props.versions[props.versionKey],
   legendUnit: '' as string,
   legendTotal: '' as string,
 
@@ -45,14 +56,14 @@ const state = reactive({
   },
   handlePosition: 0 as number,
   handleTouchPosition: 0 as number,
-  scalePowerOf10: 1 as number,
-  versionTotalValue: 1 as number
+  scalePowerOf10: 1 as number
 })
 
 watch(
-  () => props.sysname,
+  () => props.versionKey,
   (type, prevType) => {
-    update()
+    state.version = props.versions[props.versionKey]
+    switchVersion()
   }
 )
 
@@ -65,65 +76,111 @@ watch(
 )
 
 defineExpose({
+  updateView: resizeViewWidth,
+  getData,
   getCurrentScale,
-  updateGridIndex
+  updateGridIndex,
+  highlight
 })
 
-const emit = defineEmits(['gridChanged'])
+const emit = defineEmits(['gridChanged', 'highlight'])
 
-onMounted(() => {
-  const resizeObserver = new ResizeObserver(function () {
-    const element = document.getElementById(props.mapID + '-svg')! as HTMLElement
-    if (!element) return
-    const actual_size = element.getBoundingClientRect()
-    if (!actual_size.width || !actual_size.height) return
-    state.actualWidth = actual_size.width || element.offsetWidth
-    state.actualHeight = actual_size.height || element.offsetHeight
+onMounted(async () => {
+  if (!state.version) return
 
+  versionSpec.data[0].url = util.getGeojsonURL(props.currentMapName, props.stringKey, 'data.csv')
+  versionSpec.data[1].url = util.getGeojsonURL(props.currentMapName, props.stringKey, state.version.name + '.json')
+  const headers = Object.values(props.versions).map(item => item.header.replace('.', '\\.'))
+  versionSpec.data[2].transform[1].values.push(...headers)
+
+  const tooltipFormat = Object.values(props.versions).map(item => `"${item.name}": datum["${item.header}"] + " ${item.unit}"`).join(', ');
+  versionSpec.marks[1].encode.update.tooltip.signal =
+    '{title: datum.Region + " (" + datum.Abbreviation + ")", ' + tooltipFormat + '}'
+
+  if (props.currentMapName === "world") {
+    // Gall–Peters projection
+    vega.projection('cylindricalEqualArea', geoCylindricalEqualArea)
+    versionSpec.projections[0].type = versionSpec.projections[1].type = "cylindricalEqualArea"
+    versionSpec.projections[0].reflectY = versionSpec.projections[1].reflectY = false
+    versionSpec.projections[0].parallel = versionSpec.projections[1].parallel = 45
+  }
+
+  visEl = d3.select('#' + props.mapID + '-vis')
+  offscreenEl = d3.select('#' + props.mapID + '-offscreen')
+  let container = await embed('#' + props.mapID + '-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
+  visView = container.view
+  let [area, sum] = util.getTotalAreasAndValuesForVersion(state.version.header, visView.data('geo_1'), visView.data('source_csv'))
+  totalArea = area
+  totalValue = sum
+
+  visView.addResizeListener(function() {
+    totalArea = util.getTotalAreas(visView.data('geo_1'))
     update()
   })
-  resizeObserver.observe(document.getElementById(props.mapID + '-svg')!)
+
+  visView.addSignalListener('active', function(name: string, value: any) {
+    emit('highlight', { 'mapID': props.mapID, 'highlightID': value })
+  })
+
+  update()
 })
 
+async function switchVersion() {
+  versionSpec.data[1].url = util.getGeojsonURL(props.currentMapName, props.stringKey, state.version.name + '.json')
+
+  let container = await embed('#' + props.mapID + '-offscreen', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
+  var transitions = 0
+
+  function finalize() {
+    container.view.initialize('#' + props.mapID + '-vis').runAsync()
+    visView = container.view
+    update()
+  }
+
+  visEl.selectAll('path[aria-roledescription="geoshape"]').each(function (this: any) {
+    let geoID = d3.select(this).attr('aria-label')
+    let labelID = geoID.replace("geoshape", "geolabel")
+
+    let newD = offscreenEl.select('path[aria-label="' + geoID + '"]').attr('d')
+    d3.select(this).transition().ease(d3.easeCubic).duration(1000).attr('d', newD)
+      .on("start", function() { transitions++ })
+      .on( "end", function() { if( --transitions === 0 ) finalize() })
+
+    let labelEl =  offscreenEl.select('text[aria-label="' + labelID + '"]')
+    let newLabelPos = labelEl.attr('transform')
+    let newLabelOpacity = labelEl.attr('opacity')
+    visEl.select('text[aria-label="' + labelID + '"]').transition().ease(d3.easeCubic).duration(1000)
+      .attr('transform', newLabelPos).attr('opacity', newLabelOpacity)
+      .on("start", function() { transitions++ })
+      .on( "end", function() { if( --transitions === 0 ) finalize() })
+  })
+}
+
+async function resizeViewWidth() {
+  await visView.resize()
+  await visView.width(visView.container().offsetWidth).runAsync()
+  update()
+}
+
 async function update() {
-  if (!props.map || !props.map.versions[props.sysname]) return
-  state.unit = Object.values(props.map.regions)[0].getVersion(props.sysname)?.unit
-  versionArea = props.map.versions[props.sysname].legendData.versionOriginalArea || 0
-  versionTotalValue = props.map.versions[props.sysname].legendData.versionTotalValue || 0
+  if (!state.version) return
 
   getLegendData()
   await nextTick()
   changeTo(state.currentGridIndex)
-  const totalScalePowerOfTen = Math.floor(Math.log10(versionTotalValue))
-  const totalNiceNumber = versionTotalValue / Math.pow(10, totalScalePowerOfTen)
+  const totalScalePowerOfTen = Math.floor(Math.log10(totalValue))
+  const totalNiceNumber = totalValue / Math.pow(10, totalScalePowerOfTen)
   state.legendTotal = formatLegendText(totalNiceNumber, totalScalePowerOfTen)
-
   drawGridLines()
-}
-
-/**
- * Returns the scaling factors of map of current version.
- * @returns {number} The scaling factors of map of current version.
- */
-function getVersionPolygonScale(): number {
-  var scale_x: number, scale_y: number
-  if (state.actualWidth === 0 || state.actualHeight === 0) return 1
-
-  scale_x = state.actualWidth / props.map.max_width
-  scale_y = state.actualHeight / props.map.max_height
-
-  return Math.min(scale_x, scale_y) // viewBox maintains the ratio, thus scale using min factor
 }
 
 /**
  * Calculates legend information of the map version
  */
 function getLegendData() {
-  // Obtain the scaling factors, area and total value for this map version.
-  const scale = getVersionPolygonScale()
-  const valuePerPixel = versionTotalValue / (versionArea * scale * scale)
-  // Each square to be in the whereabouts of 1% of versionTotalValue.
-  let valuePerSquare = versionTotalValue / 100
+  const valuePerPixel = totalValue / totalArea
+  // Each square to be in the whereabouts of 1% of totalValue.
+  let valuePerSquare = totalValue / 100
   let baseWidth = Math.sqrt(valuePerSquare / valuePerPixel)
   // If width is too small, we increment the percentage.
   while (baseWidth < 20) {
@@ -140,12 +197,10 @@ function getLegendData() {
     beginIndex--
   }
   let scaleNiceNumber = util.NICE_NUMBERS.slice(beginIndex, endIndex)
-
   for (let i = 0; i <= numGridOptions; i++) {
     width[i] =
       baseWidth * Math.sqrt((scaleNiceNumber[i] * Math.pow(10, scalePowerOf10)) / valuePerSquare)
   }
-
   // Store legend Information
   for (let i = 0; i <= numGridOptions; i++) {
     state.gridData[i] = {
@@ -153,14 +208,16 @@ function getLegendData() {
       scaleNiceNumber: scaleNiceNumber[i]
     }
   }
-
   // if (props.isLegendResizable) {
   //   state.gridDataKeys = [3, 2, 1, 0]
   // } else {
   state.gridDataKeys = [state.currentGridIndex]
   // }
   state.scalePowerOf10 = scalePowerOf10
-  state.versionTotalValue = versionTotalValue
+}
+
+function getData(dataname: string): any {
+  return visView.data(dataname)
 }
 
 function getCurrentScale() {
@@ -172,10 +229,8 @@ function getCurrentScale() {
 
 async function changeTo(key: number) {
   state.currentGridIndex = key
-  // if (!props.isLegendResizable) {
   state.gridDataKeys = [state.currentGridIndex]
   await nextTick()
-  // }
 
   for (let i = 0; i <= numGridOptions; i++) {
     if (i <= key) {
@@ -213,20 +268,17 @@ function resizeGrid(event: any) {
 function formatLegendValue() {
   let value = state.gridData[state.currentGridIndex].scaleNiceNumber
   value = value / (props.affineScale[0] * props.affineScale[1])
-
   state.legendUnit = formatLegendText(value, state.scalePowerOf10)
 }
 
-function formatLegendText(value: number, scalePowerOf10: number) {
+function formatLegendText(value: number, scalePowerOf10: number): string {
   let originalValue = value * Math.pow(10, scalePowerOf10)
   const formatter = Intl.NumberFormat(locale, {
     notation: 'compact',
     compactDisplay: 'short'
   })
-
   let formated = ''
   formated += formatter.format(originalValue)
-
   return formated
 }
 
@@ -243,7 +295,6 @@ function updateGridLines(gridWidth: number) {
     .select('path')
     .attr('stroke-opacity', stroke_opacity)
     .attr('d', 'M ' + gridWidth * 5 + ' 0 L 0 0 0 ' + gridWidth * 5) // *5 for pretty transition when resize grid
-
   if (gridPattern.attr('width')) {
     // To prevent transition from 0
     gridPattern
@@ -255,7 +306,6 @@ function updateGridLines(gridWidth: number) {
   } else {
     gridPattern.attr('width', gridWidth).attr('height', gridWidth)
   }
-
   state.handlePosition = gridWidth
 }
 
@@ -264,10 +314,14 @@ function updateGridIndex(change: number) {
   if (newIndex < 0 || newIndex > numGridOptions) return
   changeTo(newIndex)
 }
+
+function highlight(itemID: any) {
+  visView.signal("active", itemID).runAsync()
+}
 </script>
 
 <template>
-  <div>
+  <div class="d-flex flex-column card-body p-0">
     <div class="d-flex position-absolute z-1">
       <svg
         v-if="state.gridData[numGridOptions]"
@@ -316,28 +370,49 @@ function updateGridIndex(change: number) {
       </svg>
       <div v-bind:id="props.mapID + '-legend-num'" class="flex-fill p-1">
         <span v-html="state.legendUnit"></span>
-        {{ state.unit }}
+        {{ state.version?.unit }}
         <div>Total: <span v-html="state.legendTotal"></span></div>
       </div>
     </div>
-  </div>
 
-  <div v-bind:id="props.mapID" class="flex-fill" data-grid-visibility="off">
-    <slot></slot>
-    <svg width="100%" height="100%" v-bind:id="props.mapID + '-grid-area'">
-      <defs>
-        <pattern v-bind:id="props.mapID + '-grid'" patternUnits="userSpaceOnUse">
-          <path fill="none" stroke="#5A5A5A" stroke-width="2" stroke-opacity="0.3"></path>
-        </pattern>
-      </defs>
-      <rect
-        v-if="props.showGrid"
-        width="100%"
-        height="100%"
-        v-bind:fill="'url(#' + props.mapID + '-grid)'"
-      ></rect>
-    </svg>
+    <div v-bind:id="props.mapID" class="d-flex flex-fill">
+      <div>
+        <div v-bind:id="props.mapID + '-offscreen'" class="vis-area offscreen"></div>
+        <div v-bind:id="props.mapID + '-vis'" class="vis-area"></div>
+        <slot></slot>
+      </div>
+      <svg width="100%" height="100%" v-bind:id="props.mapID + '-grid-area'">
+        <defs>
+          <pattern v-bind:id="props.mapID + '-grid'" patternUnits="userSpaceOnUse">
+            <path fill="none" stroke="#5A5A5A" stroke-width="2" stroke-opacity="0.3"></path>
+          </pattern>
+        </defs>
+        <rect
+          v-if="props.showGrid"
+          width="100%"
+          height="100%"
+          v-bind:fill="'url(#' + props.mapID + '-grid)'"
+        ></rect>
+      </svg>
+    </div>
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.vis-area {
+  position: absolute !important;
+  width: 100%;
+  height: 100%;
+  min-height: 100px;
+}
+
+.vis-area.offscreen {
+  opacity: 0;
+}
+</style>
+
+<style>
+path {
+  mix-blend-mode: multiply;
+}
+</style>

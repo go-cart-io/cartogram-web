@@ -1,0 +1,14 @@
+Region,Abbreviation,Color,Land Area (km sq.),Population (people)
+Auvergne-Rhone-Alpes,AR,#d95f02,69711.0,8026685.0
+Bourgogne-Franche-Comte,BF,#1b9e77,47784.0,2795301.0
+Brittany,BT,#d95f02,27208.0,3329395.0
+Centre-Val de Loire,CN,#e7298a,39151.0,2566759.0
+Corsica,CE,#e6ab02,8680.0,339178.0
+Grand Est,AO,#66a61e,57441.0,5518188.0
+Hauts-de-France,NC,#7570b3,31806.0,5978266.0
+Ile-de-France,IF,#e6ab02,12012.0,12213364.0
+Normandy,ND,#1b9e77,29907.0,3319067.0
+Nouvelle-Aquitaine,AC,#66a61e,84036.0,5987014.0
+Occitanie,LP,#e7298a,72724.0,5892817.0
+Pays de la Loire,PL,#7570b3,32082.0,3786545.0
+Provence-Alpes-Cote d'Azur,PR,#7570b3,31400.0,5059473.0

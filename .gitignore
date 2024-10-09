@@ -2,14 +2,9 @@
 **/__pycache__
 .idea/
 *.DS_Store
-envsettings.sh
-data/*.csv
-internal/*landarea.csv
-internal/*population.csv
-internal/*.svg
+tools/envsettings.sh
 internal/assets/node_modules
 internal/handler.py.bak
 
-data/test*
 internal/static/cartdata/test*
 .Rhistory

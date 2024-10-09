@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
 
-import type CartMap from '../../common/lib/cartMap'
 import type { MapHandlers } from '../../common/lib/interface'
 import type { DataTable } from '../lib/interface'
 
@@ -10,7 +9,7 @@ const store = useCartogramStore()
 
 const props = defineProps<{
   maps: MapHandlers
-  map: CartMap
+  csvdata: any
 }>()
 
 const state = reactive({
@@ -27,15 +26,15 @@ const emit = defineEmits<{
 function generateTable() {
   state.data.fields = []
   state.data.items = {}
-  if (!props.map || !props.map.versions) return
+  if (!props.csvdata.length) return
 
   // Header
   state.data.fields = [
-    { key: 'area', label: props.maps[store.currentMapName].region_identifier, editable: false },
-    { key: 'color', label: 'Color', editable: true, type: 'color' }
+    { key: '0', label: 'Region', editable: false },
+    { key: '1', label: 'Abbreviation', editable: true, type: 'text' },
+    { key: '2', label: 'Color', editable: true, type: 'color' }
   ]
-  for (const [versionKey, version] of Object.entries(props.map.versions)) {
-    if (versionKey === '0-base') continue
+  for (const [versionKey, version] of Object.entries(store.versions)) {
     state.data.fields.push({
       key: versionKey,
       label: version.name + ' (' + version.unit + ')',
@@ -46,13 +45,12 @@ function generateTable() {
   }
 
   // Content
-  for (const [regionKey, region] of Object.entries(props.map.regions)) {
-    var data: any = [region.name, props.map.colors[regionKey]]
-    for (const [versionKey, version] of Object.entries(region.versions)) {
-      if (versionKey === '0-base') continue
-      data.push(version.value)
+  for (let i = 0; i < props.csvdata.length; i++) {
+    var data: any = [props.csvdata[i].Region, props.csvdata[i].Abbreviation, props.csvdata[i].Color]
+    for (const [versionKey, version] of Object.entries(store.versions)) {
+      data.push(props.csvdata[i][version.header])
     }
-    state.data.items[regionKey] = data
+    state.data.items[i] = data
   }
 }
 
@@ -145,4 +143,3 @@ input {
   z-index: 1055;
 }
 </style>
-../common/lib/cartMap

@@ -1,0 +1,33 @@
+Region,Abbreviation,Color,Land Area (km sq.),Population (people)
+Aguascalientes,AG,#66a61e,5190.0,1342.6
+Baja California,BN,#e7298a,73040.0,3648.1
+Baja California Sur,BS,#1b9e77,70574.0,839.7
+Campeche,CM,#66a61e,57302.0,952.3
+Chiapas,CP,#1b9e77,73835.0,5463.3
+Chihuahua,CH,#1b9e77,239990.0,3826.9
+Coahuila,CA,#7570b3,154311.0,3073.5
+Colima,CL,#d95f02,5582.0,763.3
+Mexico City,DF,#7570b3,1588.0,8781.3
+Durango,DU,#66a61e,124132.0,1820.7
+Guanajuato,GJ,#e7298a,30875.0,5965.0
+Guerrero,GR,#e7298a,65032.0,3629.0
+Hidalgo,HI,#d95f02,22414.0,2990.3
+Jalisco,JA,#1b9e77,76108.0,8222.7
+Mexico State,EM,#1b9e77,23237.0,17666.8
+Michoacan,MC,#e6ab02,59180.0,4695.3
+Morelos,MR,#d95f02,5111.0,1994.1
+Nayarit,NA,#7570b3,27031.0,1296.9
+Nuevo Leon,NL,#1b9e77,64984.0,5321.3
+Oaxaca,OA,#e6ab02,91033.0,4091.4
+Puebla,PU,#7570b3,33651.0,6388.1
+Queretaro,QE,#7570b3,11498.0,2100.0
+Quintana Roo,QR,#d95f02,43968.0,1722.6
+San Luis Potosi,SL,#66a61e,62940.0,2831.9
+Sinaloa,SI,#e6ab02,54142.0,3066.4
+Sonora,SO,#66a61e,184682.0,3062.0
+Tabasco,TB,#d95f02,23824.0,2460.9
+Tamaulipas,TM,#e6ab02,79410.0,3672.3
+Tlaxcala,TL,#e7298a,4176.0,1334.8
+Veracruz,VE,#e7298a,68619.0,8236.7
+Yucatan,YU,#e6ab02,37968.0,2207.2
+Zacatecas,ZA,#d95f02,75861.0,1615.0

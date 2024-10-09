@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import * as d3 from 'd3'
 import { onMounted } from 'vue'
-import HTTP from '../lib/http'
-import type { MapHandlers, Mappack } from '../../common/lib/interface'
+
+import type { MapHandlers } from '../../common/lib/interface'
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
@@ -11,26 +12,40 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['map_changed'])
-let mappackURL: string | null
+
+let mapDataURL: string | null
+const DATA_COL = 3
 
 onMounted(async () => {
   const urlParams = new URLSearchParams(window.location.search)
-  mappackURL = null //urlParams.get('url') //TODO: enable only when there is schema verification
+  mapDataURL = null //urlParams.get('url') //TODO: enable only when there is schema verification
   switchMap()
 })
 
 async function switchMap() {
-  var url = mappackURL
-    ? mappackURL
+  var url = mapDataURL
+    ? mapDataURL
     : store.stringKey
-    ? '/api/v1/mappack/' + store.stringKey
-    : '/static/cartdata/' + store.currentMapName + '/mappack.json'
+    ? '/static/userdata/' + store.stringKey + '/data.csv'
+    : '/static/cartdata/' + store.currentMapName + '/data.csv'
 
-  var mappack = (await HTTP.get(url, null, function (e: any) {
-    store.loadingProgress = Math.floor((e.loaded / e.total) * 100)
-  })) as Mappack
+  let csvdata = await d3.csv(url)
+  store.versions = {}
+  for (let i = DATA_COL; i < csvdata.columns.length; i++) {
+    let unitMatch = csvdata.columns[i].match(/\(([^)]+)\)$/)
+    let unit = unitMatch ? unitMatch[1].trim() : ''
+    let name = csvdata.columns[i].replace('(' + unit + ')', '').trim()
+    store.versions[i.toString()] = {
+      key: i.toString(),
+      header: csvdata.columns[i],
+      name: name,
+      unit: unit
+    }
+  }
+  store.currentVersionName = (csvdata.columns.length - 1).toString()
+  store.loadingProgress = 100
 
-  emit('map_changed', mappack)
+  emit('map_changed', csvdata)
 }
 </script>
 
@@ -49,7 +64,7 @@ async function switchMap() {
     <a
       class="btn btn-primary ms-2"
       title="Download template"
-      v-bind:href="'/static/cartdata/' + store.currentMapName + '/template.csv'"
+      v-bind:href="'/static/cartdata/' + store.currentMapName + '/data.csv'"
     >
       <i class="fas fa-file-download"></i>
     </a>
