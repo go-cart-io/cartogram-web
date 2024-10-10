@@ -3,7 +3,11 @@ import os
 import re
 import redis
 import uuid
+import geopandas
+import mapclassify
+import pandas as pd
 from math import log
+from io import StringIO
 
 import settings
 import util
@@ -11,8 +15,12 @@ from cartogram_package import cartwrap
 from shapely.geometry import shape
 
 def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = False, flags = ''):
-    datacsv = util.get_csv(data)
-    datasets, is_area_as_base = util.get_data_string(data)
+    if 'csv' in data:
+        datacsv = data['csv']
+    else:
+        datacsv = util.get_csv(data)
+    
+    datacsv, datasets, is_area_as_base = process_data(datacsv, gen_file)
     data_length = len(datasets)
 
     with open(gen_file, 'r') as gen_fp:
@@ -69,6 +77,36 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
             gen_file = '{}/{}.json'.format(folder, name)
 
     return
+
+def process_data(csv_string, geojson_file):
+    df = pd.read_csv(StringIO(csv_string))
+    df.columns = [util.sanitize_filename(col) for col in df.columns]
+    is_empty_color = df['Color'].isna().all()
+
+    datasets = []
+    is_area_as_base = False
+    for column in df.columns:
+        if column.startswith('Land Area'):
+            is_area_as_base = True
+        if column not in ['Region', 'Color', 'Abbreviation'] and not column.startswith('Land Area'):
+            m = re.match(r'(.+)\s?\((.+)\)$', column)
+            if m:
+                name = m.group(1).strip()      
+            else:
+                name = column.strip()
+            
+            df[column] = pd.to_numeric(df[column], errors='coerce')
+            dataset = df[["Region", column, "Color"]]
+            datasets.append({'label': name, 'datastring': 'name,Data,Color\n{}'.format(dataset.to_csv(header=False, index=False))})
+
+    if is_empty_color:
+        geo_data = geopandas.read_file(geojson_file)
+        df.rename(columns={"Color": "ColorGroup"}, inplace=True)
+        df["ColorGroup"] = mapclassify.greedy(geo_data)
+    else:
+        df['Color'] = df['Color'].fillna('#fff')
+
+    return df.to_csv(index=False), datasets, is_area_as_base
    
 def local_function(params, data_index = 0, data_length = 1, print_progress = False):
     stdout = ''

@@ -47,11 +47,11 @@
           "from": "source_csv",
           "key": "Region",
           "fields": ["Region"],
-          "values": ["Abbreviation", "Color"]
+          "values": ["Abbreviation", "Color", "ColorGroup"]
         },
         {
           "type": "formula",
-          "expr": "geoArea('projectionSource', datum.geometry)",
+          "expr": "geoArea('source_projection', datum.geometry)",
           "as": "Area"
         },
         {
@@ -69,18 +69,19 @@
   ],
   "projections": [
     {
-      "name": "projectionSource",
+      "name": "source_projection",
       "size": { "signal": "[width, height]" },
       "fit": { "signal": "data('source_geojson')" },
       "type": "identity",
       "reflectY": true
-    },
+    }
+  ],
+  "scales": [
     {
-      "name": "projectionFinal",
-      "size": { "signal": "[width, height]" },
-      "fit": { "signal": "data('geo_1')" },
-      "type": "identity",
-      "reflectY": true
+      "name": "color_group",
+      "type": "ordinal",
+      "domain": { "data": "source_csv", "field": "ColorGroup" },
+      "range": { "scheme": "pastel1" }
     }
   ],
   "marks": [
@@ -105,7 +106,7 @@
           "ariaRoleDescription": { "value": "geolabel" }
         }
       },
-      "transform": [{ "type": "geopoint", "fields": ["x", "y"], "projection": "projectionFinal" }]
+      "transform": [{ "type": "geopoint", "fields": ["x", "y"], "projection": "source_projection" }]
     },
     {
       "name": "polygon_marks",
@@ -122,11 +123,17 @@
             "signal": "datum[\"properties\"][\"cartogram_id\"] == active? 1 : 0.2"
           },
           "tooltip": { "signal": "datum" },
-          "fill": { "field": "Color" },
+          "fill": [
+            {
+              "test": "isValid(datum.Color)",
+              "field": "Color"
+            },
+            { "scale": "color_group", "field": "ColorGroup" }
+          ],
           "ariaRoleDescription": { "value": "geoshape" }
         }
       },
-      "transform": [{ "type": "geoshape", "projection": "projectionFinal" }]
+      "transform": [{ "type": "geoshape", "projection": "source_projection" }]
     }
   ]
 }

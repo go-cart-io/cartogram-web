@@ -39,8 +39,3 @@ EAST REGION,ER,#e7298a,93.0,685940.0
 NORTH REGION,NR,#d95f02,135.0,582330.0
 NORTH-EAST REGION,NER,#7570b3,104.0,930860.0
 WEST REGION,WR,#66a61e,201.0,922540.0'''
-
-def test_get_data_string():
-    datasets, is_area_as_base = util.get_data_string(testdata)
-    assert datasets == [{'label': 'Population', 'index': 4, 'datastring': 'name,Data,Color\nCENTRAL REGION,922580.0,#1b9e77\nEAST REGION,685940.0,#e7298a\nNORTH REGION,582330.0,#d95f02\nNORTH-EAST REGION,930860.0,#7570b3\nWEST REGION,922540.0,#66a61e\n'}]
-    assert is_area_as_base == True
