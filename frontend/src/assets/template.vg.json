@@ -78,6 +78,12 @@
   ],
   "scales": [
     {
+      "name": "font_size",
+      "type": "band",
+      "domain": { "data": "geo_1", "field": "Area", "sort": true },
+      "range": [8, 12]
+    },
+    {
       "name": "color_group",
       "type": "ordinal",
       "domain": { "data": "source_csv", "field": "ColorGroup" },
@@ -102,6 +108,14 @@
           },
           "align": { "value": "center" },
           "baseline": { "value": "middle" },
+          "fontSize": [
+            {
+              "test": "datum.Area < 1000",
+              "scale": "font_size",
+              "field": "Area"
+            },
+            { "value": 12 }
+          ],
           "opacity": { "signal": "datum.Area < 400 ? 0:1" },
           "ariaRoleDescription": { "value": "geolabel" }
         }

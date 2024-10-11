@@ -80,8 +80,11 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
 
 def process_data(csv_string, geojson_file):
     df = pd.read_csv(StringIO(csv_string))
-    df.columns = [util.sanitize_filename(col) for col in df.columns]
+    df.columns = [util.sanitize_filename(col) for col in df.columns]    
     is_empty_color = df['Color'].isna().all()
+
+    df = df.sort_values(by='Region')
+    util.sort_geojson(geojson_file)
 
     datasets = []
     is_area_as_base = False
@@ -102,7 +105,7 @@ def process_data(csv_string, geojson_file):
     if is_empty_color:
         geo_data = geopandas.read_file(geojson_file)
         df.rename(columns={"Color": "ColorGroup"}, inplace=True)
-        df["ColorGroup"] = mapclassify.greedy(geo_data)
+        df["ColorGroup"] = mapclassify.greedy(geo_data, min_colors=6, balance="distance")
     else:
         df['Color'] = df['Color'].fillna('#fff')
 
