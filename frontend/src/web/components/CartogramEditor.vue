@@ -93,6 +93,7 @@ async function uploadGeoJson(event: Event) {
 }
 
 function initDataTable() {
+  // TODO Ask for confirmation before clearing data or closing page
   // TODO Check if the csv data match with map data
   state.dataTable.fields = []
   var keys = Object.keys(state.csvData[0])
@@ -267,10 +268,11 @@ async function getGeneratedCartogram() {
       <div class="p-2">
         <div class="badge text-bg-secondary">3. Specify visualization</div>
 
+        <!-- TODO Save title in database
         <div class="p-2">
           Title
-          <input class="form-control" type="text" v-model="state.title" />
-        </div>
+          <input class="form-control" type="text" v-model="state.title" maxlength="100" />
+        </div> -->
 
         <div class="p-2">
           Select data
@@ -293,6 +295,13 @@ async function getGeneratedCartogram() {
 
         <div class="row p-2">
           <div class="col-auto p-2">
+            <p class="bg-warning-subtle p-1 rounded">
+              <!-- TODO: Auto extend the link validity when hit share button -->
+              <span class="badge text-bg-warning">Important</span> The data will be pruned from our
+              server within 1-2 days, unless you share and access a non-preview link. We strongly
+              advise you to back up your original data in a safe place so you can regenerate the
+              cartogram if needed.
+            </p>
             <button class="btn btn-primary" v-on:click="getGeneratedCartogram">Generate</button>
           </div>
         </div>
@@ -301,6 +310,9 @@ async function getGeneratedCartogram() {
 
     <div class="card w-75 m-2">
       <div class="p-2"><span class="badge text-bg-secondary">Preview</span></div>
+      <div class="p-2" v-if="state.dataTable.fields.length < 1">
+        Please follow steps on the left-hand panel.
+      </div>
       <div class="p-2 table-responsive">
         <table class="table table-bordered">
           <thead>

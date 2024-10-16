@@ -57,14 +57,15 @@ function confirmData(data: DataTable) {
 
       <!-- Menu -->
       <div class="py-2 d-flex flex-nowrap">
+        <!-- TODO Bring back edit capibility
         <span v-if="!props.isEmbed" class="text-nowrap">
           <c-menu-btn-upload v-on:change="confirmData" />
-          <!-- <c-menu-btn-edit
+          <c-menu-btn-edit
             v-bind:maps="props.maps"
             v-bind:csvdata="state.csvdata"
             v-on:change="confirmData"
-          /> -->
-        </span>
+          />
+        </span> -->
 
         <div class="dropdown me-2">
           <button
