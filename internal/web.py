@@ -112,7 +112,7 @@ def create_app():
 
         cartogram_entry = CartogramEntry.query.filter_by(string_key=string_key).first_or_404()
 
-        if cartogram_entry is None or not cartogram_handler.has_handler(cartogram_entry.handler):
+        if cartogram_entry is None or (not cartogram_handler.has_handler(cartogram_entry.handler) and cartogram_entry.handler != 'custom'):
             return Response('Error', status=500)
         
         if mode != 'preview':
@@ -132,6 +132,12 @@ def create_app():
 
     def cartogram_rate_limit():
         return settings.CARTOGRAM_RATE_LIMIT
+    
+    @app.route('/editor', methods=['GET'])
+    def edit_cartogram():
+        return render_template('editor.html', page_active='editor', 
+                            maps=cartogram_handler.get_sorted_handler_names(),
+                            tracking=tracking.determine_tracking_action(request))
 
     @app.route('/api/v1/cartogram', methods=['POST'])
     @limiter.limit(cartogram_rate_limit)
@@ -139,7 +145,7 @@ def create_app():
         data = json.loads(request.form['data'])
         handler = data['handler']
 
-        if 'handler' not in data or not cartogram_handler.has_handler(handler):
+        if 'handler' not in data or (not cartogram_handler.has_handler(handler) and handler != 'custom'):
             return Response('{"error":"The handler was invaild."}', status=400, content_type='application/json')
 
         if 'stringKey' not in data:
@@ -152,7 +158,7 @@ def create_app():
             os.mkdir(folder_path)
 
         try:
-            cartogram.generate_cartogram(data, cartogram_handler.get_gen_file(handler), string_key, folder_path)
+            cartogram.generate_cartogram(data, cartogram_handler.get_gen_file(handler, string_key), string_key, folder_path)
                         
             if 'persist' in data and settings.USE_DATABASE:
                     new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
@@ -170,7 +176,8 @@ def create_app():
         except Exception as e:
             if 'persist' in data and os.path.exists(folder_path):
                 shutil.rmtree(folder_path)
-
+                
+            print(e)
             return Response('{"error": "The data may be invalid or the process has timed out. Please try again later."}', status=400, content_type='application/json')
 
     @app.route('/cleanup', methods=['GET'])
