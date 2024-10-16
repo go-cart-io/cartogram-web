@@ -20,7 +20,9 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
         datacsv = data['csv']
     else:
         datacsv = util.get_csv(data)
-    
+
+    util.sort_geojson(gen_file, data['geojson'])
+
     datacsv, datasets, is_area_as_base = process_data(datacsv, gen_file)
     data_length = len(datasets)
 
@@ -74,8 +76,7 @@ def process_data(csv_string, geojson_file):
     df.columns = [util.sanitize_filename(col) for col in df.columns]    
     is_empty_color = df['Color'].isna().all()
 
-    df = df.sort_values(by='Region')
-    util.sort_geojson(geojson_file)
+    df = df.sort_values(by='Region')    
 
     datasets = []
     is_area_as_base = False

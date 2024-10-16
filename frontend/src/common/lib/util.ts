@@ -139,7 +139,8 @@ export function getGeojsonURL(currentMapName: string, stringKey: string, dataKey
       ? '/static/userdata/' + stringKey + '/'
       : '/static/cartdata/' + currentMapName + '/'
 
-  if (dataKey === 'Land Area.json')
+  if (currentMapName === 'custom' && dataKey === 'Land Area.json') return baseURL + 'Original.json'
+  else if (dataKey === 'Land Area.json')
     return '/static/cartdata/' + currentMapName + '/' + 'Original.json'
   else return baseURL + dataKey
 }
