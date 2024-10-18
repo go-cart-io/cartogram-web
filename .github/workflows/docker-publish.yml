@@ -1,34 +1,24 @@
 name: Publish Docker Image and Deploy
 
-on: [push]
+on:
+  # when a push is made to the main branch (like when a pull request is merged, or something is pushed directly)
+  workflow_dispatch:
+  push:
+    branches: [ "main", "add-instructions-to-pull-binary" ]
 
 jobs:
-  Publish:
-    if: github.ref == 'refs/heads/master'
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Publish to Registry
-        uses: elgohr/Publish-Docker-Github-Action@2.18
-        env:
-          CARTOGRAM_VERSION: ${{ github.sha }}
-        with:
-          name: janskyd/cartogram-web
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          buildargs: CARTOGRAM_VERSION
-  Deploy:
-    needs: Publish
-    if: github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy
-        uses: appleboy/ssh-action@v0.1.2
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: ./deploy.sh
-          
-    
-    
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Pull Executable
+      run: bash pull-executable.sh
+
+    - name: Build Docker image
+      run: docker build -t cartogram-web:latest .
