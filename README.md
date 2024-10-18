@@ -9,7 +9,21 @@ This project uses the cartogram generation algorithm written by Gastner et. al. 
 
 We recommend Docker for running this project. See https://github.com/go-cart-io/cartogram-docker.
 
-To get the python website running locally on your computer, you may want to refer to the [Linux](docs/setup-ubuntu.md) or [Mac OS X](docs/setup-osx.md) setup guide. However, please note that the guide may not up-to-date. To add a map to the website, please follow the Add Map Wizard guide at [here](docs/addmap/addmap.md).
+For local development, and updating the docker image, please run
+
+```
+bash tools/pull-executable.sh
+```
+
+before following the [Linux](docs/setup-ubuntu.md) or [Mac OS X](docs/setup-osx.md) setup guide to get your local python environment up and running. Please note that the guide may not up-to-date, so reach out to a team member if you can!
+
+To update the cartogram-cpp binary, use the `--latest` flag with the previous command like so:
+```
+bash tools/pull-executable.sh --latest
+```
+Then, get your development environment up and running like before, and make sure you test everything thoroughly before submitting a pull request to main.
+
+To add a map to the website, please follow the Add Map Wizard guide at [here](docs/addmap/addmap.md).
 
 # Contact
 
