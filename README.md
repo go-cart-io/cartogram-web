@@ -21,7 +21,7 @@ To update the cartogram-cpp binary, use the `--latest` flag with the previous co
 ```
 bash tools/pull-executable.sh --latest
 ```
-Then, get your development environment up and running like before, and make sure you test everything thoroughly before submitting a pull request to main.
+Then, get your development environment up and running like before, and make sure you test everything thoroughly before submitting a pull request to main. Once your pull request is approved, a new image will automatically be created and pushed to docker hub with the release-tag specified in `/internal/executable/release-tag.txt`. When you run `bash tools/pull-executable.sh --latest`, this file will be automatically updated.
 
 To add a map to the website, please follow the Add Map Wizard guide at [here](docs/addmap/addmap.md).
 
