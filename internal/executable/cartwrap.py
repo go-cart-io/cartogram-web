@@ -22,44 +22,26 @@ def reader(pipe, pipe_name, queue):
 # area_data:            A string containing appropriately formated area data
 # gen_file:             A string containing the path to the appropriate .gen file
 # cartogram_executable: A string containg the path to the C code executable
-def generate_cartogram(area_data, gen_file, cartogram_executable, world=False, custom_flags=''):
-    
-    cart_exec_name = cartogram_executable.rsplit('/', 1)[-1]
-    
+def generate_cartogram(area_data, gen_file, cartogram_executable, world=False, custom_flags=''):    
     # o flag for output to stdout
-    if cart_exec_name == "cartogram":
-        flag = '-oQ'
-    else:
-        flag = '-s'
+    flag = '--output_to_stdout'
         
     if world == True:
-        flag += 'w'
+        flag += '--world'
 
     flag += custom_flags
 
-    if cart_exec_name == "cartogram":
-        cartogram_process = subprocess.Popen([
-            cartogram_executable,
-            gen_file,
-            area_data,
-            flag
-        ],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    else:
-        cartogram_process = subprocess.Popen([
-            cartogram_executable,
-            '-g',
-            gen_file,
-            flag
-        ], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    cartogram_process = subprocess.Popen([
+        cartogram_executable,
+        gen_file,
+        area_data,
+        flag
+    ],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 
     q = Queue()
 
     threading.Thread(target=reader,args=[cartogram_process.stdout, "stdout", q]).start()
     threading.Thread(target=reader,args=[cartogram_process.stderr, "stderr", q]).start()
-
-    if cart_exec_name != "cartogram":
-        cartogram_process.stdin.write(str.encode(area_data))
-        cartogram_process.stdin.close()
 
     timer = threading.Timer(300, cartogram_process.terminate)  # Terminate after 300 seconds
     timer.start()

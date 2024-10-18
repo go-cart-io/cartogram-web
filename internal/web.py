@@ -171,6 +171,7 @@ def create_app():
             if 'persist' in data and os.path.exists(folder_path):
                 shutil.rmtree(folder_path)
 
+            print(e)
             return Response('{"error": "The data may be invalid or the process has timed out. Please try again later."}', status=400, content_type='application/json')
 
     @app.route('/cleanup', methods=['GET'])

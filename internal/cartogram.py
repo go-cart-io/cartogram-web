@@ -6,12 +6,13 @@ import uuid
 import geopandas
 import mapclassify
 import pandas as pd
+from pathlib import Path
 from math import log
 from io import StringIO
 
 import settings
 import util
-from cartogram_package import cartwrap
+from executable import cartwrap
 from shapely.geometry import shape
 
 def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = False, flags = ''):
@@ -57,12 +58,13 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
         lambda_result = local_function(lambda_event, i, data_length, print_progress)
         
         cartogram_gen_output = lambda_result['stdout']
+        print('44444444444')
+        print(cartogram_gen_output)
+        print('5555555')
         cartogram_json = json.loads(cartogram_gen_output)
+        print('666666666')
 
-        if world == False:
-            cartogram_json = cartogram_json['Original']
-        else:
-            cartogram_json['extent'] = 'world'
+        cartogram_json = cartogram_json[Path(gen_file).stem + "_cartogram"]["Original"]
 
         for feature in cartogram_json["features"]:
             geom = shape(feature["geometry"])
@@ -135,7 +137,7 @@ def local_function(params, data_index = 0, data_length = 1, print_progress = Fal
     else:
         flags = ''
 
-    for source, line in cartwrap.generate_cartogram(area_data_path, params['gen_file'], 'cartogram_package/{}'.format(cartogram_exec), params['world'], flags):
+    for source, line in cartwrap.generate_cartogram(area_data_path, params['gen_file'], 'executable/{}'.format(cartogram_exec), params['world'], flags):
 
         if source == 'stdout':
             stdout += line.decode()
