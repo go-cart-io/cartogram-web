@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Directory to copy the executable
-TAG="8095809"
+TAG=$(<./internal/executable/release-tag.txt)
 
 # Function to pull a specific release
 pull_release() {
