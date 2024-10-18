@@ -18,7 +18,7 @@ jobs:
       uses: docker/setup-buildx-action@v1
 
     - name: Pull Executable
-      run: bash ./internal/executable/pull-executable.sh
+      run: bash ${{github.workspace}}/internal/executable/pull-executable.sh
 
     - name: Build Docker image
       run: docker build -t cartogram-web:latest .
