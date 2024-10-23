@@ -14,11 +14,23 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
+    # - name: Set up Docker Buildx
+    #   uses: docker/setup-buildx-action@v1
 
     - name: Pull Executable
-      run: bash ${{github.workspace}}/tools/pull-executable.sh
+      run: |
+        bash ${{github.workspace}}/tools/pull-executable.sh
+        echo "VERSION=$(cat ${{ github.workspace }}/internal/executable/release-tag.txt)" >> $GITHUB_ENV
 
-    - name: Build Docker image
-      run: docker build -t cartogram-web:latest .
+    - name: Build and Publish Docker Image
+      uses: elgohr/Publish-Docker-Github-Action@2.18
+      env:
+        CARTOGRAM_VERSION: ${{ env.VERSION }}
+      with:
+          name: adisidev/go-cart-io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          buildargs: CARTOGRAM_VERSION
+
+    # - name: Build Docker image
+    #   run: docker build -t cartogram-web:latest .
