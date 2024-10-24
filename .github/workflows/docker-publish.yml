@@ -32,5 +32,9 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           buildargs: CARTOGRAM_VERSION
 
+    - name: Setup tmate session
+      if: success() || failure()
+      uses: mxschmitt/action-tmate@v3
+      
     # - name: Build Docker image
     #   run: docker build -t cartogram-web:latest .
