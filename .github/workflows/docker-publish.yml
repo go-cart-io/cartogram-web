@@ -16,6 +16,10 @@ jobs:
 
     # - name: Set up Docker Buildx
     #   uses: docker/setup-buildx-action@v1
+    - name: Install Dependencies
+      run: |
+        apt update -y
+        apt install -y g++ gcc build-essential
 
     - name: Pull Executable
       run: |
@@ -35,6 +39,6 @@ jobs:
     - name: Setup tmate session
       if: success() || failure()
       uses: mxschmitt/action-tmate@v3
-      
+
     # - name: Build Docker image
     #   run: docker build -t cartogram-web:latest .
