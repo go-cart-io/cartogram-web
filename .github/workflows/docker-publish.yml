@@ -7,24 +7,29 @@ on:
     branches: [ "main", "add-instructions-to-pull-binary" ]
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Calculate short_sha
+      id: vars
+      run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+    # note: we don't use the --latest flag. this way, a particular short_sha
+    # of cartogram-web can be used to identify the version of the executable
+    # as internal/executable/release-tag.txt will specify version
     - name: Pull Executable
       run: |
         bash ${{github.workspace}}/tools/pull-executable.sh
-        echo "VERSION=$(cat ${{ github.workspace }}/internal/executable/release-tag.txt)" >> $GITHUB_ENV
 
     - name: Build and Publish Docker Image
       uses: elgohr/Publish-Docker-Github-Action@2.18
-      env:
-        CARTOGRAM_VERSION: ${{ env.VERSION }}
       with:
-          name: adisidev/go-cart-io
+          name: adisidev/cartogram-web
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           buildargs: CARTOGRAM_VERSION
+          tags: "$${{ steps.vars.outputs.short_sha }}"
