@@ -32,4 +32,4 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           buildargs: CARTOGRAM_VERSION
-          tags: "$${{ steps.vars.outputs.short_sha }}"
+          tags: "${{ steps.vars.outputs.short_sha }}"
