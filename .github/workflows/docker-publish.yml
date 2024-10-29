@@ -39,12 +39,12 @@ jobs:
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git tag ${{ needs.set-outputs.outputs.short_sha }}
-        git push origin ${{ needs.set-outputs.outputs.short_sha }}
+        git tag ${{ steps.vars.outputs.short_sha }}
+        git push origin ${{ steps.vars.outputs.short_sha }}
 
     - name: Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ needs.set-outputs.outputs.short_sha }}
+        tag_name: ${{ steps.vars.outputs.short_sha }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
