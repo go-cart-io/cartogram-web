@@ -47,7 +47,7 @@ jobs:
       with:
         tag_name: ${{ steps.vars.outputs.short_sha }}
         body: |
-        This release includes the Docker image available at:
-        https://hub.docker.com/r/gocartio/cartogram-web/tags?name=${{ steps.vars.outputs.short_sha }}
+          This release includes the Docker image available at:
+          https://hub.docker.com/r/gocartio/cartogram-web/tags?name=${{ steps.vars.outputs.short_sha }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
