@@ -1,4 +1,4 @@
-name: Publish Docker Image and Deploy
+name: Publish Docker Image on DockerHub, Create GitHub Release
 
 on:
   # when a push is made to the main branch (like when a pull request is merged, or something is pushed directly)
@@ -7,7 +7,7 @@ on:
     branches: [ "main", "add-instructions-to-pull-binary" ]
 
 jobs:
-  build-and-publish:
+  build-publish-release:
     runs-on: ubuntu-latest
 
     steps:
@@ -32,7 +32,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           # DOCKER_PASSWORD should not be your actual password, but a docker access token
           password: ${{ secrets.DOCKER_PASSWORD }}
-          tags: "${{ steps.vars.outputs.short_sha }}"
+          tags: "latest,${{ steps.vars.outputs.short_sha }}"
 
 
     - name: Push tag
@@ -46,5 +46,8 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.vars.outputs.short_sha }}
+        body: |
+        This release includes the Docker image available at:
+        https://hub.docker.com/r/gocartio/cartogram-web/tags?name=${{ steps.vars.outputs.short_sha }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
