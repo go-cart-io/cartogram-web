@@ -28,8 +28,23 @@ jobs:
     - name: Build and Publish Docker Image
       uses: elgohr/Publish-Docker-Github-Action@2.18
       with:
-          name: adisidev/cartogram-web
+          name: gocartio/cartogram-web
           username: ${{ secrets.DOCKER_USERNAME }}
+          # DOCKER_PASSWORD should not be your actual password, but a docker access token
           password: ${{ secrets.DOCKER_PASSWORD }}
-          buildargs: CARTOGRAM_VERSION
           tags: "${{ steps.vars.outputs.short_sha }}"
+
+
+    - name: Push tag
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git tag ${{ needs.set-outputs.outputs.short_sha }}
+        git push origin ${{ needs.set-outputs.outputs.short_sha }}
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ needs.set-outputs.outputs.short_sha }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
