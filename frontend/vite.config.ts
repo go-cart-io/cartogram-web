@@ -1,15 +1,15 @@
+/// <reference types="vitest" />
 import { fileURLToPath, URL } from 'node:url'
-
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig, loadEnv, UserConfig, UserConfigExport } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd())
-  const SERVER_PORT = `${env.VITE_SERVER_PORT ?? '5173'}`
+export default ({ mode }: UserConfig): UserConfigExport => {
+  const env = loadEnv(mode || 'development', process.cwd())
+  const SERVER_PORT = Number(env.VITE_SERVER_PORT ?? '5173')
   const SERVER_ORIGIN = `${env.VITE_SERVER_ORIGIN ?? 'http://localhost:5173'}`
 
-  return {
+  return defineConfig({
     plugins: [
       vue({
         // This is needed, or else Vite will try to find image paths (which it wont be able to find because this will be called on the web, not directly)
@@ -26,6 +26,10 @@ export default defineConfig(({ mode }) => {
         vue: 'vue/dist/vue.esm-bundler.js'
       }
     },
+    test: {
+      globals: true,
+      environment: 'jsdom'
+    },
     build: {
       manifest: true,
       outDir: '../internal/static/dist',
@@ -39,5 +43,5 @@ export default defineConfig(({ mode }) => {
       port: SERVER_PORT,
       origin: SERVER_ORIGIN
     }
-  }
-})
+  })
+}
