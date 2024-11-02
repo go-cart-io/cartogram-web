@@ -133,9 +133,9 @@ def create_app():
     def cartogram_rate_limit():
         return settings.CARTOGRAM_RATE_LIMIT
     
-    @app.route('/editor', methods=['GET'])
-    def edit_cartogram():
-        return render_template('editor.html', page_active='editor', 
+    @app.route('/cartogram/make', methods=['GET'])
+    def make_cartogram():
+        return render_template('maker.html', page_active='maker', 
                             maps=cartogram_handler.get_sorted_handler_names(),
                             tracking=tracking.determine_tracking_action(request))
 

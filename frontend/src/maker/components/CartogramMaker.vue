@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx'
 import { Toast, Modal } from 'bootstrap'
 import { ref, reactive, onBeforeMount } from 'vue'
 
-import HTTP from '../lib/http'
+import HTTP from '../../web/lib/http'
 import type { MapHandlers } from '../../common/lib/interface'
 
 const geojsonInput = ref<HTMLInputElement>()

@@ -5,7 +5,7 @@ import '../assets/main.css'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './components/Cartogram.vue'
-import CartogramEditor from './components/CartogramEditor.vue'
+import CartogramMaker from '../maker/components/CartogramMaker.vue'
 import '../assets/styles.scss'
 
 if (document.getElementById('cartogram-app')) {
@@ -21,8 +21,8 @@ if (document.getElementById('cartogram-app')) {
   app.mount('#cartogram-app')
 }
 
-if (document.getElementById('cartogram-editor')) {
-  const editor = createApp(CartogramEditor, { maps })
-  editor.use(createPinia())
-  editor.mount('#cartogram-editor')
+if (document.getElementById('cartogram-maker')) {
+  const maker = createApp(CartogramMaker, { maps })
+  maker.use(createPinia())
+  maker.mount('#cartogram-maker')
 }
