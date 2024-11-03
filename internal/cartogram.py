@@ -21,7 +21,7 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
     else:
         datacsv = util.get_csv(data)
 
-    util.sort_geojson(gen_file, data['geojson'])
+    util.sort_geojson(gen_file, data.get('geojson', None))
 
     datacsv, datasets, is_area_as_base = process_data(datacsv, gen_file)
     data_length = len(datasets)
@@ -73,7 +73,8 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
 
 def process_data(csv_string, geojson_file):
     df = pd.read_csv(StringIO(csv_string))
-    df.columns = [util.sanitize_filename(col) for col in df.columns]    
+    df.columns = [util.sanitize_filename(col) for col in df.columns]
+    df['Color'] = df['Color'] if 'Color' in df else None
     is_empty_color = df['Color'].isna().all()
 
     df = df.sort_values(by='Region')    
@@ -108,7 +109,6 @@ def local_function(params, data_index = 0, data_length = 1, print_progress = Fal
     stderr = 'Dataset {}/{}\n'.format(data_index + 1, data_length)
     order = 0
 
-    # We run C++ executable for most maps and old C excutable (named 'cartogram_c') only for the World Map
     cartogram_exec = 'cartogram'
     temp_filename = str(uuid.uuid4())
    
@@ -135,14 +135,8 @@ def local_function(params, data_index = 0, data_length = 1, print_progress = Fal
             
             s = re.search(r'Progress: (.+)', line.decode())
 
-            if cartogram_exec == 'cartogram_c':
-                s = re.search(r'max\. abs\. area error: (.+)', line.decode())
-
             if s != None:
                 current_progress = float(s.groups(1)[0])
-
-                if cartogram_exec == 'cartogram_c':
-                    current_progress = 1 / max(1 , log((current_progress/0.01), 5))
 
                 if current_progress == 1 and data_index == data_length - 1: # To prevent stucking at 0.99999
                     current_progress = 1

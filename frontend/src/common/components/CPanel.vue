@@ -278,7 +278,7 @@ function highlight(item: { mapID: string; highlightID: string }) {
           mapID="map-area"
           v-bind:currentMapName="props.currentMapName"
           v-bind:stringKey="props.stringKey"
-          v-bind:versionKey="DATA_COL.toString()"
+          v-bind:versionKey="Object.keys(props.versions)[0]"
           v-bind:versions="props.versions"
           v-bind:showGrid="props.showGrid"
           v-on:highlight="highlight"

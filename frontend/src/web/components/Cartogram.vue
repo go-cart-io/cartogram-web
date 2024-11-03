@@ -10,7 +10,7 @@ import CMenuBar from './CMenuBar.vue'
 import CPanel from '../../common/components/CPanel.vue'
 import CChart from './CChart.vue'
 import CProgressBar from './CProgressBar.vue'
-import HTTP from '../lib/http'
+import HTTP from '../../common/lib/http'
 import type { MapHandlers } from '../../common/lib/interface'
 import type { DataTable } from '../lib/interface'
 

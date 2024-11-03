@@ -2,6 +2,7 @@
 import * as d3 from 'd3'
 import { onMounted } from 'vue'
 
+import { RESERVE_FIELDS } from '../../common/lib/config'
 import type { MapHandlers } from '../../common/lib/interface'
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
@@ -14,7 +15,6 @@ const props = defineProps<{
 const emit = defineEmits(['map_changed'])
 
 let mapDataURL: string | null
-const DATA_COL = 3
 
 onMounted(async () => {
   const urlParams = new URLSearchParams(window.location.search)
@@ -31,7 +31,9 @@ async function switchMap() {
 
   let csvdata = await d3.csv(url)
   store.versions = {}
-  for (let i = DATA_COL; i < csvdata.columns.length; i++) {
+  for (let i = 0; i < csvdata.columns.length; i++) {
+    if (RESERVE_FIELDS.includes(csvdata.columns[i])) continue
+
     let unitMatch = csvdata.columns[i].match(/\(([^)]+)\)$/)
     let unit = unitMatch ? unitMatch[1].trim() : ''
     let name = csvdata.columns[i].replace('(' + unit + ')', '').trim()
@@ -41,8 +43,8 @@ async function switchMap() {
       name: name,
       unit: unit
     }
+    store.currentVersionName = i.toString()
   }
-  store.currentVersionName = (csvdata.columns.length - 1).toString()
   store.loadingProgress = 100
 
   emit('map_changed', csvdata)
