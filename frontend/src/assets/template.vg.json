@@ -81,7 +81,7 @@
     {
       "name": "color_group",
       "type": "ordinal",
-      "domain": { "data": "source_csv", "field": "" },
+      "domain": { "data": "source_csv", "field": "ColorGroup" },
       "range": { "scheme": "pastel1" }
     }
   ],
