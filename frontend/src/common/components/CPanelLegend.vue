@@ -90,12 +90,6 @@ onMounted(async () => {
 
   versionSpec.data[0].url = util.getGeojsonURL(props.currentMapName, props.stringKey, 'data.csv')
   versionSpec.data[1].url = util.getGeojsonURL(props.currentMapName, props.stringKey, state.version.name + '.json')
-  const headers = Object.values(props.versions).map(item => item.header.replace('.', '\\.'))
-  versionSpec.data[2].transform[1].values.push(...headers)
-
-  const tooltipFormat = Object.values(props.versions).map(item => `"${item.name}": datum["${item.header}"] + " ${item.unit}"`).join(', ');
-  versionSpec.marks[1].encode.update.tooltip.signal =
-    '{title: datum.Region + " (" + datum.Abbreviation + ")", ' + tooltipFormat + '}'
 
   if (props.currentMapName === "world" && state.version.name === 'Land Area') {
     // Gall–Peters projection
@@ -149,8 +143,9 @@ async function switchVersion() {
     let labelEl =  offscreenEl.select('text[aria-label="' + labelID + '"]')
     let newLabelPos = labelEl.attr('transform')
     let newLabelOpacity = labelEl.attr('opacity')
+    let newLabelSize = labelEl.attr('font-size')
     visEl.select('text[aria-label="' + labelID + '"]').transition().ease(d3.easeCubic).duration(1000)
-      .attr('transform', newLabelPos).attr('opacity', newLabelOpacity)
+      .attr('transform', newLabelPos).attr('opacity', newLabelOpacity).attr('font-size', newLabelSize)
       .on("start", function() { transitions++ })
       .on( "end", function() { if( --transitions === 0 ) finalize() })
   })
