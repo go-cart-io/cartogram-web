@@ -35,6 +35,36 @@ export function renameKeyInArray(
   })
 }
 
+export function filterNumberInArray(data: KeyValueArray, except: Array<string>): KeyValueArray {
+  return data.map((item) => {
+    return Object.keys(item).reduce((accumulator: { [key: string]: any }, key: string) => {
+      if (except.includes(key)) accumulator[key] = item[key]
+      else if (typeof item[key] === 'number' || !isNaN(parseFloat(item[key])))
+        accumulator[key] = parseFloat(item[key])
+      return accumulator
+    }, {})
+  })
+}
+
+export function arrangeKeysInArray(
+  data: KeyValueArray,
+  templateKeys: Array<string>
+): KeyValueArray {
+  return data.map((item) => {
+    const orderedKeys = [
+      ...templateKeys,
+      ...Object.keys(item).filter((key) => !templateKeys.includes(key))
+    ]
+
+    // Rebuild object with ordered keys
+    return orderedKeys.reduce((orderedItem: { [key: string]: any }, key: string) => {
+      if (key in item) orderedItem[key] = item[key]
+      else orderedItem[key] = null
+      return orderedItem
+    }, {})
+  })
+}
+
 export function tableToArray(dataTable: DataTable): KeyValueArray {
   var data = [] as KeyValueArray
   for (var i = 0; i < dataTable.items.length; i++) {

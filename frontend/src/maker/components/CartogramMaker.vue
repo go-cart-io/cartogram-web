@@ -3,15 +3,19 @@ import * as d3 from 'd3'
 import type { FeatureCollection, Feature } from 'geojson'
 import { Toast, Modal } from 'bootstrap'
 import { reactive, onBeforeMount } from 'vue'
+import embed, { type VisualizationSpec } from 'vega-embed'
 
+import spec from '../../assets/template.vg.json' with { type: "json" }
 import * as util from '../lib/util'
 import HTTP from '../../common/lib/http'
-import { RESERVE_FIELDS } from '../../common/lib/config'
+import { RESERVE_FIELDS, RESERVE_FIELDS_CSV } from '../../common/lib/config'
 import type { KeyValueArray, DataTable } from '../lib/interface'
 import type { MapHandlers } from '../../common/lib/interface'
 
 import CFormGeojson from './CFormGeojson.vue'
 import CFormCsv from './CFormCsv.vue'
+
+var versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
 
 const props = defineProps<{
   maps: MapHandlers
@@ -52,21 +56,15 @@ function initDataTableWGeojson(handler: string, geojsonData: FeatureCollection, 
   // Transform geojson to data fields
   var geoProperties = util.propertiesToArray(geojsonData)
   if (geoProperties.length === 0) return
+  geoProperties = util.renameKeyInArray(geoProperties, state.geojsonRegionCol, 'Region')
 
   initDataTableWArray(geoProperties)
 }
 
-function initDataTableWArray(data: KeyValueArray) {
-  state.dataTable.items = data.map((item) => {
-    return Object.keys(item).reduce((accumulator: { [key: string]: any }, key: string) => {
-      if (key === state.geojsonRegionCol) {
-        accumulator['Region'] = item[key]
-      } else if (typeof item[key] === 'number') {
-        accumulator[key] = item[key]
-      }
-      return accumulator
-    }, {})
-  })
+async function initDataTableWArray(data: KeyValueArray) {
+  data = util.filterNumberInArray(data, RESERVE_FIELDS_CSV)
+  data = util.arrangeKeysInArray(data, RESERVE_FIELDS_CSV)
+  state.dataTable.items = data
   state.dataTable.items.sort((a, b) => a.Region.localeCompare(b.Region))
 
   state.dataTable.fields = [
@@ -74,13 +72,19 @@ function initDataTableWArray(data: KeyValueArray) {
     { label: 'Abbreviation', type: 'text', editable: true, show: true, required: true },
     { label: 'Color', type: 'text', editable: true, show: false }
   ]
+  var headers = [] as Array<string>
   var keys = Object.keys(state.dataTable.items[0])
   for (var i = 0; i < keys.length; i++) {
     if (!RESERVE_FIELDS.includes(keys[i]))
       state.dataTable.fields.push({ label: keys[i], type: 'number', editable: true, show: true })
+      headers.push(keys[i])
   }
 
-  console.log(state.dataTable)
+  versionSpec.data[0].values = state.dataTable.items
+  versionSpec.data[0].format = 'json'
+  versionSpec.data[1].values = state.geojsonData
+  // versionSpec.data[2].transform[1].values.push(...headers)
+  let container = await embed('#map-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
 }
 
 function updateDataTable(csvData: KeyValueArray, isReplace: boolean) {
@@ -179,7 +183,6 @@ async function getGeneratedCartogram() {
   }).catch(function (error: any) {
     state.error = error
     progressModal.hide()
-    console.log('22222222222222')
     Toast.getOrCreateInstance(document.getElementById('errorToast')!).show()
     return
   })
@@ -190,10 +193,21 @@ async function getGeneratedCartogram() {
   <div class="d-flex flex-fill">
     <div class="card w-25 m-2">
       <c-form-geojson v-bind:maps="props.maps" v-on:changed="initDataTableWGeojson" />
-      <c-form-csv v-on:changed="updateDataTable" v-on:request-template="getGeneratedCSV" />
 
       <div class="p-2">
-        <div class="badge text-bg-secondary">3. Specify visualization</div>
+        <div class="badge text-bg-secondary">2. Download data (optional)</div>
+        <div class="p-2">
+          <button class="btn btn-outline-secondary" v-on:click="getGeneratedCSV">
+            Download data
+          </button>
+          for editing on your device.
+        </div>
+      </div>
+
+      <c-form-csv v-on:changed="updateDataTable" />
+
+      <div class="p-2">
+        <div class="badge text-bg-secondary">4. Specify visualization</div>
 
         <div class="p-2">
           Title
@@ -201,7 +215,7 @@ async function getGeneratedCartogram() {
         </div>
 
         <div class="p-2">
-          Select data
+          <span v-if="state.dataTable.fields.length > 0">Select data</span>
           <div class="form-check" v-for="(item, index) in state.dataTable.fields">
             <input
               class="form-check-input"
@@ -235,11 +249,12 @@ async function getGeneratedCartogram() {
     </div>
 
     <div class="card w-75 m-2">
-      <div class="p-2"><span class="badge text-bg-secondary">Preview</span></div>
+      <div class="p-2"><span class="badge text-bg-secondary">Input Overview</span></div>
       <div class="p-2" v-if="state.dataTable.fields.length < 1">
         Please follow steps on the left-hand side panel.
       </div>
-      <div class="p-2 table-responsive">
+      <div id="map-vis" class="vis-area p-2"></div>
+      <div class="p-2">
         <table class="table table-bordered">
           <thead>
             <tr class="table-light">
@@ -294,6 +309,11 @@ async function getGeneratedCartogram() {
 </template>
 
 <style scoped>
+.vis-area {
+  width: 100%;
+  height: 300px;
+}
+
 table input {
   border: 0;
   box-sizing: border-box;

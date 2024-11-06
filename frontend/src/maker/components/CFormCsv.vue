@@ -9,7 +9,7 @@ const state = reactive({
   isReplace: true
 })
 
-const emit = defineEmits(['changed', 'requestTemplate'])
+const emit = defineEmits(['changed'])
 
 async function uploadCsvData(event: Event) {
   const files = (event.target as HTMLInputElement).files
@@ -39,16 +39,10 @@ async function uploadCsvData(event: Event) {
 
 <template>
   <div class="p-2">
-    <div class="badge text-bg-secondary">2. Input your data</div>
-    <div class="p-2">Input your data in the data table on the right-hand side panel.</div>
+    <div class="badge text-bg-secondary">3. Input your data</div>
+    <div class="p-2">Input your data on the right-hand side panel.</div>
     <div class="p-2">
-      Alternatively, download the csv templete to edit the data on your device.
-      <button class="btn btn-outline-secondary" v-on:click="emit('requestTemplate')">
-        Download CSV
-      </button>
-    </div>
-    <div class="p-2">
-      After finish editing, re-upload the data in CSV or Excel format.
+      Alternatively, upload your data in CSV or Excel format.
       <input
         ref="csvInput"
         type="file"
@@ -56,7 +50,7 @@ async function uploadCsvData(event: Event) {
         accept="text/csv,.csv,.xlsx,.xls"
         v-on:change="uploadCsvData"
       />
-      <div class="form-check">
+      <!-- <div class="form-check">
         <input
           class="form-check-input"
           type="checkbox"
@@ -64,7 +58,7 @@ async function uploadCsvData(event: Event) {
           v-model="state.isReplace"
         />
         <label class="form-check-label" for="check-replace"> Replace exiting data table </label>
-      </div>
+      </div> -->
     </div>
 
     <!-- TODO: Allow custom field name
