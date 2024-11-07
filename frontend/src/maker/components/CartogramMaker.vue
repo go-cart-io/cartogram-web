@@ -248,13 +248,13 @@ async function getGeneratedCartogram() {
       </div>
     </div>
 
-    <div class="card w-75 m-2">
+    <div class="card w-75 m-2 border-0">
       <div class="p-2"><span class="badge text-bg-secondary">Input Overview</span></div>
       <div class="p-2" v-if="state.dataTable.fields.length < 1">
-        Please follow steps on the left-hand side panel.
+        Please follow steps on the left panel.
       </div>
       <div id="map-vis" class="vis-area p-2"></div>
-      <div class="p-2">
+      <div class="d-table p-2">
         <table class="table table-bordered">
           <thead>
             <tr class="table-light">

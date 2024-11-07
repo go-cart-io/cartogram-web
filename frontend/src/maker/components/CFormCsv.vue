@@ -40,7 +40,7 @@ async function uploadCsvData(event: Event) {
 <template>
   <div class="p-2">
     <div class="badge text-bg-secondary">3. Input your data</div>
-    <div class="p-2">Input your data on the right-hand side panel.</div>
+    <div class="p-2">Input your data to the table on the right panel.</div>
     <div class="p-2">
       Alternatively, upload your data in CSV or Excel format.
       <input
