@@ -1,63 +1,77 @@
 <script setup lang="ts">
 import type { FeatureCollection, Feature } from 'geojson'
-import { reactive } from 'vue'
+import { ref, reactive } from 'vue'
 
 import HTTP from '../../common/lib/http'
 import type { MapHandlers } from '../../common/lib/interface'
-import * as util from '../lib/util'
 
 const props = defineProps<{
   maps: MapHandlers
 }>()
 
 const emit = defineEmits(['changed'])
+const fileEl = ref()
+var geojsonData = {} as FeatureCollection
 
 const state = reactive({
+  isLoading: false,
   error: '',
   handler: '',
-  geojsonData: {} as FeatureCollection,
+  geojsonUniqueProperties: [] as Array<string>,
   geojsonRegionCol: ''
 })
 
 async function loadGeoJson(event: Event) {
+  fileEl.value.value = null
+  geojsonData = {} as FeatureCollection
+  state.geojsonUniqueProperties = []
+  if (!state.handler) return
+
   HTTP.get('/static/cartdata/' + state.handler + '/Original.json').then(function (response: any) {
     state.geojsonRegionCol = 'name'
-    state.geojsonData = {} as FeatureCollection
     emit('changed', state.handler, response, state.geojsonRegionCol)
   })
 }
 
 async function uploadGeoJson(event: Event) {
-  state.geojsonData = {} as FeatureCollection
+  geojsonData = {} as FeatureCollection
+  state.geojsonUniqueProperties = []
   const files = (event.target as HTMLInputElement).files
   if (!files || files.length == 0) return
 
-  try {
-    var data = await util.readFile(files[0])
-    var geojson = JSON.parse(data)
-  } catch (err) {
-    state.error = 'Invalid GeoJSON object'
-    return
-  }
+  state.isLoading = true
+  const formData = new FormData()
+  formData.append('file', files[0])
 
+  var response = await new Promise<any>(function (resolve, reject) {
+    HTTP.post('/api/v1/cartogram/preprocess', formData).then(
+      function (response: any) {
+        resolve(response)
+      },
+      function (error: any) {
+        reject(error)
+      }
+    )
+  }).catch(function (error: any) {
+    state.error = error
+    state.isLoading = false
+    return
+  })
+
+  var geojson = JSON.parse(response.geojson)
   // Check whether the GeoJSON contains any polygons or multipolygons and remove all other objects.
   if (!geojson || !geojson.features) {
-    state.error = 'Invalid GeoJSON object'
+    state.error = 'Invalid geospatial file'
+    state.isLoading = false
     return
   }
 
-  const filteredFeatures = geojson.features.filter((feature: Feature) => {
-    return (
-      feature.geometry &&
-      (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon')
-    )
-  })
-  var filteredGeojson = { ...geojson, features: filteredFeatures }
-
   state.error = ''
-  state.geojsonData = filteredGeojson
+  geojsonData = geojson
+  state.geojsonUniqueProperties = response.unique
   state.geojsonRegionCol = ''
   state.handler = 'custom'
+  state.isLoading = false
 
   emit('changed', state.handler, {}, '')
 }
@@ -79,25 +93,31 @@ function updateRegionCol() {}
       </select>
     </div>
     <div class="p-2">
-      OR upload your map in GeoJson format.
+      OR upload your GeoJSONs or Shapefiles (.shp, .shx, and .dbf in zip).
       <input
+        ref="fileEl"
         class="form-control"
         v-bind:class="{ 'is-invalid': state.error }"
         type="file"
-        accept="application/json,.json,.geojson"
+        accept=".geojson,.json,.zip"
         v-on:change="uploadGeoJson"
       />
       <div class="invalid-feedback">{{ state.error }}</div>
     </div>
-    <div class="p-2" v-if="state.geojsonData.features && state.geojsonData.features[0]">
+    <div class="d-flex justify-content-center" v-if="state.isLoading">
+      <div class="p-2 spinner-border" role="status">
+        <span class="visually-hi dden">Loading...</span>
+      </div>
+    </div>
+    <div class="p-2" v-if="state.geojsonUniqueProperties.length > 0">
       Which column contain region names (e.g., country names)?
       <!-- TODO Only show column name with unique value -->
       <select
         class="form-select"
         v-model="state.geojsonRegionCol"
-        v-on:change="emit('changed', state.handler, state.geojsonData, state.geojsonRegionCol)"
+        v-on:change="emit('changed', state.handler, geojsonData, state.geojsonRegionCol)"
       >
-        <option v-for="(index, item) in state.geojsonData.features[0].properties">
+        <option v-for="(item, index) in state.geojsonUniqueProperties">
           {{ item }}
         </option>
       </select>

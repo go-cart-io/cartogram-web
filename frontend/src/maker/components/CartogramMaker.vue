@@ -47,6 +47,7 @@ function reset() {
 
 function initDataTableWGeojson(handler: string, geojsonData: FeatureCollection, regionCol: string) {
   // TODO Ask for confirmation before clearing data or closing page
+  document.getElementById("map-vis")!.innerHTML = ""
   state.dataTable = { fields: [], items: [] } as DataTable
 
   state.handler = handler
@@ -64,8 +65,9 @@ function initDataTableWGeojson(handler: string, geojsonData: FeatureCollection, 
 async function initDataTableWArray(data: KeyValueArray) {
   data = util.filterNumberInArray(data, RESERVE_FIELDS_CSV)
   data = util.arrangeKeysInArray(data, RESERVE_FIELDS_CSV)
+  // data.sort((a, b) => a.Region.localeCompare(b.Region))
+  data = data.map((item, index) => ({...item, cartogram_id: index}))
   state.dataTable.items = data
-  state.dataTable.items.sort((a, b) => a.Region.localeCompare(b.Region))
 
   state.dataTable.fields = [
     { label: 'Region', type: 'text', editable: false, show: true, required: true },
@@ -83,7 +85,8 @@ async function initDataTableWArray(data: KeyValueArray) {
   versionSpec.data[0].values = state.dataTable.items
   versionSpec.data[0].format = 'json'
   versionSpec.data[1].values = state.geojsonData
-  // versionSpec.data[2].transform[1].values.push(...headers)
+  versionSpec.data[2].transform[0].fields = [ "properties." + state.geojsonRegionCol ]
+
   let container = await embed('#map-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
 }
 

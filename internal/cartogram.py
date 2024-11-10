@@ -15,6 +15,41 @@ import util
 from executable import cartwrap
 from shapely.geometry import shape
 
+def get_representative_point(geometry):
+    point = geometry.representative_point()
+    return {'x': point.x, 'y': point.y}
+
+def preprocess(file):
+    if isinstance(file, str):
+        gdf = geopandas.read_file(file)    
+    else:
+        file_path = os.path.join('/tmp', file.filename)
+        file.save(file_path)
+        gdf = geopandas.read_file(file_path)    
+        os.remove(file_path)
+
+    gdf = gdf[gdf.geometry.type.isin(['Polygon', 'MultiPolygon'])]
+    properties_df = pd.DataFrame(gdf.drop(columns='geometry'))
+    unique_columns = []
+    for column in properties_df.columns:
+        if properties_df[column].is_unique:
+            unique_columns.append(column)
+
+    minx, miny, maxx, maxy = gdf.total_bounds
+    # The map is not projected so project it
+    if minx >= -180.0 and maxx <= 180.0 and miny >= -90.0 and maxy <= 90.0:
+        gdf = gdf.to_crs("epsg:6933")
+        gdf['Land Area (sq.km.)'] = gdf.area
+    else:
+        gdf['Land Area (sq.km.)'] = None
+    
+    gdf['ColorGroup'] = mapclassify.greedy(gdf, min_colors=6)
+    gdf['cartogram_id'] = range(1, len(gdf) + 1)
+    gdf['label'] = gdf.geometry.apply(get_representative_point)
+
+    return { 'geojson': gdf.to_json(), 'unique': unique_columns }
+
+
 def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = False, flags = ''):
     if 'csv' in data:
         datacsv = data['csv']
@@ -95,11 +130,12 @@ def process_data(csv_string, geojson_file):
             dataset = df[["Region", column, "Color"]]
             datasets.append({'label': name, 'datastring': 'name,Data,Color\n{}'.format(dataset.to_csv(header=False, index=False))})
 
-    if is_empty_color:
+    if is_empty_color and not 'ColorGroup' in df:
         geo_data = geopandas.read_file(geojson_file)
+        geo_data = geo_data.to_crs("epsg:6933")
         df.rename(columns={"Color": "ColorGroup"}, inplace=True)
         df["ColorGroup"] = mapclassify.greedy(geo_data, min_colors=6, balance="distance")
-    else:
+    elif not 'ColorGroup' in df:
         df['Color'] = df['Color'].fillna('#fff')
 
     return df.to_csv(index=False), datasets, is_area_as_base
