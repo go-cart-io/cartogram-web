@@ -30,3 +30,10 @@ def sort_geojson(path, geojson_data = None):
     with open(path, 'w') as sorted_geojson_file:
         geojson_data['features'] = sorted_geojson_features
         json.dump(geojson_data, sorted_geojson_file)
+
+def convert_col_to_serializable(value):
+    try:
+        json.dumps(value)
+        return value
+    except (TypeError, OverflowError):
+        return value.astype(str)

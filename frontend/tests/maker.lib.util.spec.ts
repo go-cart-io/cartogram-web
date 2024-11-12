@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import type { FeatureCollection } from 'geojson'
 import * as util from '../src/maker/lib/util'
 
 describe('maker.lib.util', () => {
@@ -19,6 +20,30 @@ describe('maker.lib.util', () => {
       const data = []
       const result = util.renameKeyInArray(data, 'oldKey', 'newKey')
       expect(result).toEqual([])
+    })
+  })
+
+  describe('addKeyInArray', () => {
+    it('should add a new key with the default value to each object in the array', () => {
+      const data = [{ name: 'Alice' }, { name: 'Bob' }]
+      const keyName = 'age'
+      const defaultValue = 30
+      const result = util.addKeyInArray(data, keyName, defaultValue)
+      expect(result).toEqual([
+        { name: 'Alice', age: 30 },
+        { name: 'Bob', age: 30 }
+      ])
+    })
+
+    it('should not add a new key if the key already exists in an object in the array', () => {
+      const data = [{ name: 'Alice' }, { name: 'Bob', age: 50 }]
+      const keyName = 'age'
+      const defaultValue = 30
+      const result = util.addKeyInArray(data, keyName, defaultValue)
+      expect(result).toEqual([
+        { name: 'Alice', age: 30 },
+        { name: 'Bob', age: 50 }
+      ])
     })
   })
 
@@ -67,6 +92,55 @@ describe('maker.lib.util', () => {
       ]
       const result = util.arrangeKeysInArray(data, templateKeys)
       expect(result).toEqual(expected)
+    })
+  })
+
+  describe('arrangeKeysInArray', () => {
+    it('should extract unit from label when enclosed in parentheses', () => {
+      const label = 'Temperature (Celsius)'
+      const [name, unit] = util.getNameUnit(label)
+      expect(name).toBe('Temperature')
+      expect(unit).toBe('Celsius')
+    })
+
+    it('should return the label when unit is empty', () => {
+      const label = 'Temperature'
+      const [name, unit] = util.getNameUnit(label)
+      expect(name).toBe('Temperature')
+      expect(unit).toBe('')
+    })
+  })
+
+  describe('arrangeKeysInArray', () => {
+    it('should filter properties of each feature in a GeoJSON object', () => {
+      const geojson = {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {
+              cartogram_id: 1,
+              region: 'Feature 1',
+              label: 'Label 1',
+              other_property: 'value'
+            },
+            geometry: {
+              type: 'Point',
+              coordinates: [102.0, 0.5]
+            }
+          }
+        ]
+      } as FeatureCollection
+      const result = util.filterGeoJSONProperties(
+        geojson,
+        ['cartogram_id', 'region', 'label'],
+        ['cartogram_id', 'name', 'label']
+      )
+      expect(result.features[0].properties).toEqual({
+        cartogram_id: 1,
+        name: 'Feature 1',
+        label: 'Label 1'
+      })
     })
   })
 })

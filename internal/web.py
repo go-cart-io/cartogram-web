@@ -148,7 +148,7 @@ def create_app():
             processed_geojson = cartogram.preprocess(request.files['file'])
             return Response(json.dumps(processed_geojson), status=200, content_type='application/json')
         except Exception as e:
-            return Response(json.dumps({"error": e}), status=400, content_type='application/json')
+            return Response(json.dumps({"error": repr(e)}), status=400, content_type='application/json')
 
     @app.route('/api/v1/cartogram', methods=['POST'])
     @limiter.limit(cartogram_rate_limit)

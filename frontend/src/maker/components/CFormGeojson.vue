@@ -53,11 +53,13 @@ async function uploadGeoJson(event: Event) {
       }
     )
   }).catch(function (error: any) {
-    state.error = error
+    console.log(error)
+    state.error = 'Unable to processs your geospatial file(s)'
     state.isLoading = false
     return
   })
 
+  if (!response || !response.geojson) return
   var geojson = JSON.parse(response.geojson)
   // Check whether the GeoJSON contains any polygons or multipolygons and remove all other objects.
   if (!geojson || !geojson.features) {
@@ -81,7 +83,7 @@ function updateRegionCol() {}
 
 <template>
   <div class="p-2 text-bg-light">
-    <div class="badge text-bg-secondary">1. Select map</div>
+    <div class="badge text-bg-secondary">2. Select map</div>
     <div class="p-2">
       Select an appropriate map for your data.
 
@@ -106,7 +108,7 @@ function updateRegionCol() {}
     </div>
     <div class="d-flex justify-content-center" v-if="state.isLoading">
       <div class="p-2 spinner-border" role="status">
-        <span class="visually-hi dden">Loading...</span>
+        <span class="visually-hidden">Loading...</span>
       </div>
     </div>
     <div class="p-2" v-if="state.geojsonUniqueProperties.length > 0">

@@ -8,7 +8,7 @@ import embed, { type VisualizationSpec } from 'vega-embed'
 import spec from '../../assets/template.vg.json' with { type: "json" }
 import * as util from '../lib/util'
 import HTTP from '../../common/lib/http'
-import { RESERVE_FIELDS, RESERVE_FIELDS_CSV } from '../../common/lib/config'
+import { RESERVE_FIELDS, RESERVE_FIELDS_W_INIT_NAMES } from '../../common/lib/config'
 import type { KeyValueArray, DataTable } from '../lib/interface'
 import type { MapHandlers } from '../../common/lib/interface'
 
@@ -31,6 +31,17 @@ const state = reactive({
   dataTable: { fields: [], items: [] } as DataTable
 })
 
+const NUM_RESERVED_FILEDS = 4
+const COL_COLOR = 2
+const COL_INSET = 3
+const OPTIONS_INSET = [
+  { text: 'Center', value: 'C' },
+  { text: 'Left', value: 'L' },
+  { text: 'Right', value: 'R' },
+  { text: 'Top', value: 'T' },
+  { text: 'Down', value: 'D' }
+]
+
 onBeforeMount(() => {
   reset()
 })
@@ -42,13 +53,20 @@ function reset() {
   state.title = ''
   state.geojsonData = {} as FeatureCollection
   state.geojsonRegionCol = ''
-  state.dataTable = { fields: [], items: [] } as DataTable
+  state.dataTable.items = []
+  state.dataTable.fields = [
+    { label: 'Region', name: 'Region', type: 'text', editable: false, show: true, required: true },
+    { label: 'Abbreviation', name: 'Abbreviation', type: 'text', editable: true, show: true, required: true },
+    { label: 'Color', name: 'Color', type: 'color', editable: true, show: false },
+    { label: 'Inset', name: 'Inset', type: 'select', options: OPTIONS_INSET, editable: true, show: false }
+  ]
 }
 
 function initDataTableWGeojson(handler: string, geojsonData: FeatureCollection, regionCol: string) {
   // TODO Ask for confirmation before clearing data or closing page
   document.getElementById("map-vis")!.innerHTML = ""
-  state.dataTable = { fields: [], items: [] } as DataTable
+  state.dataTable.fields.splice(NUM_RESERVED_FILEDS)
+  state.dataTable.items = []
 
   state.handler = handler
   state.geojsonRegionCol = regionCol
@@ -58,28 +76,25 @@ function initDataTableWGeojson(handler: string, geojsonData: FeatureCollection, 
   var geoProperties = util.propertiesToArray(geojsonData)
   if (geoProperties.length === 0) return
   geoProperties = util.renameKeyInArray(geoProperties, state.geojsonRegionCol, 'Region')
+  geoProperties = util.addKeyInArray(geoProperties, 'Land Area (sq.km.)', null)
+  geoProperties = util.addKeyInArray(geoProperties, 'Population (people)', null)
 
   initDataTableWArray(geoProperties)
 }
 
 async function initDataTableWArray(data: KeyValueArray) {
-  data = util.filterNumberInArray(data, RESERVE_FIELDS_CSV)
-  data = util.arrangeKeysInArray(data, RESERVE_FIELDS_CSV)
+  data = util.filterNumberInArray(data, RESERVE_FIELDS_W_INIT_NAMES)
+  data = util.arrangeKeysInArray(data, RESERVE_FIELDS_W_INIT_NAMES)
   // data.sort((a, b) => a.Region.localeCompare(b.Region))
   data = data.map((item, index) => ({...item, cartogram_id: index}))
   state.dataTable.items = data
 
-  state.dataTable.fields = [
-    { label: 'Region', type: 'text', editable: false, show: true, required: true },
-    { label: 'Abbreviation', type: 'text', editable: true, show: true, required: true },
-    { label: 'Color', type: 'text', editable: true, show: false }
-  ]
-  var headers = [] as Array<string>
   var keys = Object.keys(state.dataTable.items[0])
   for (var i = 0; i < keys.length; i++) {
-    if (!RESERVE_FIELDS.includes(keys[i]))
-      state.dataTable.fields.push({ label: keys[i], type: 'number', editable: true, show: true })
-      headers.push(keys[i])
+    if (!RESERVE_FIELDS.includes(keys[i])) {
+      var [fieldname, unit] = util.getNameUnit(keys[i])
+      state.dataTable.fields.push({ label: keys[i], name: fieldname, unit: unit, type: 'number', editable: true, editableHead: true, show: true })
+    }
   }
 
   versionSpec.data[0].values = state.dataTable.items
@@ -87,7 +102,7 @@ async function initDataTableWArray(data: KeyValueArray) {
   versionSpec.data[1].values = state.geojsonData
   versionSpec.data[2].transform[0].fields = [ "properties." + state.geojsonRegionCol ]
 
-  let container = await embed('#map-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
+  await embed('#map-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
 }
 
 function updateDataTable(csvData: KeyValueArray, isReplace: boolean) {
@@ -95,6 +110,8 @@ function updateDataTable(csvData: KeyValueArray, isReplace: boolean) {
 
   // TODO Check if the csv data match with map data
   if (isReplace) {
+    state.dataTable.fields.splice(NUM_RESERVED_FILEDS)
+    state.dataTable.items = []
     initDataTableWArray(csvData)
   } else {
     // Merge csv data to exiting table
@@ -102,7 +119,8 @@ function updateDataTable(csvData: KeyValueArray, isReplace: boolean) {
     var existingKeys = Object.keys(state.dataTable.items[0])
     for (var i = 0; i < keys.length; i++) {
       if (!RESERVE_FIELDS.includes(keys[i]) && !existingKeys.includes(keys[i])) {
-        state.dataTable.fields.push({ label: keys[i], type: 'number', editable: true, show: true })
+        var [fieldname, unit] = util.getNameUnit(keys[i])
+        state.dataTable.fields.push({ label: keys[i], name: fieldname, unit: unit, type: 'number', editable: true, editableHead: true, show: true })
       }
     }
 
@@ -133,7 +151,9 @@ async function getGeneratedCartogram() {
   })
   progressModal.show()
 
-  // TODO Rename property of geojson
+  var geojsonData = state.handler === 'custom' ?
+    util.filterGeoJSONProperties(state.geojsonData, ['cartogram_id', state.geojsonRegionCol, 'label'],  ['cartogram_id', 'name', 'label']) :
+    undefined
   var data = util.tableToArray(state.dataTable)
   var csvData = d3.csvFormat(data)
   var stringKey = util.generateShareKey(32)
@@ -143,7 +163,7 @@ async function getGeneratedCartogram() {
       JSON.stringify({
         handler: state.handler,
         csv: csvData,
-        geojson: state.handler === 'custom' ? state.geojsonData : undefined,
+        geojson: geojsonData,
         stringKey: stringKey,
         persist: true
       })
@@ -195,10 +215,40 @@ async function getGeneratedCartogram() {
 <template>
   <div class="d-flex flex-fill">
     <div class="card w-25 m-2">
+      <div class="p-2">
+        <div class="badge text-bg-secondary">1. Specify visualization</div>
+
+        <div class="p-2">
+          Title
+          <input class="form-control" type="text" v-model="state.title" maxlength="100" />
+        </div>
+
+        <div class="p-2">
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              v-model="state.dataTable.fields[COL_COLOR].show"
+              id="chk-color"
+            />
+            <label class="form-check-label" for="chk-color"> Customize color </label>
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              v-model="state.dataTable.fields[COL_INSET].show"
+              id="chk-inset"
+            />
+            <label class="form-check-label" for="chk-inset"> Customize inset </label>
+          </div>
+        </div>
+      </div>
+
       <c-form-geojson v-bind:maps="props.maps" v-on:changed="initDataTableWGeojson" />
 
       <div class="p-2">
-        <div class="badge text-bg-secondary">2. Download data (optional)</div>
+        <div class="badge text-bg-secondary">3. Download data (optional)</div>
         <div class="p-2">
           <button class="btn btn-outline-secondary" v-on:click="getGeneratedCSV">
             Download data
@@ -210,31 +260,7 @@ async function getGeneratedCartogram() {
       <c-form-csv v-on:changed="updateDataTable" />
 
       <div class="p-2">
-        <div class="badge text-bg-secondary">4. Specify visualization</div>
-
-        <div class="p-2">
-          Title
-          <input class="form-control" type="text" v-model="state.title" maxlength="100" />
-        </div>
-
-        <div class="p-2">
-          <span v-if="state.dataTable.fields.length > 0">Select data</span>
-          <div class="form-check" v-for="(item, index) in state.dataTable.fields">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              v-model="state.dataTable.fields[index].show"
-              v-bind:id="index.toString()"
-              v-bind:disabled="state.dataTable.fields[index].required"
-            />
-            <label class="form-check-label" v-bind:for="index.toString()">
-              {{ item.label }}
-            </label>
-          </div>
-        </div>
-      </div>
-      <div class="p-2">
-        <div class="badge text-bg-secondary">4. Generate cartogram</div>
+        <div class="badge text-bg-secondary">5. Generate cartogram</div>
 
         <div class="row p-2">
           <div class="col-auto p-2">
@@ -253,22 +279,47 @@ async function getGeneratedCartogram() {
 
     <div class="card w-75 m-2 border-0">
       <div class="p-2"><span class="badge text-bg-secondary">Input Overview</span></div>
-      <div class="p-2" v-if="state.dataTable.fields.length < 1">
+      <div class="p-2" v-if="state.dataTable.items.length < 1">
         Please follow steps on the left panel.
       </div>
       <div id="map-vis" class="vis-area p-2"></div>
-      <div class="d-table p-2">
+      <div class="d-table p-2" v-if="state.dataTable.items.length > 0">
         <table class="table table-bordered">
           <thead>
             <tr class="table-light">
               <th v-for="(field, index) in state.dataTable.fields" v-show="field.show">
-                {{ field.label }}
+                <span v-if="!field.editableHead">{{ field.label }}</span>
+                <div class="position-relative" v-else>
+                  <i
+                    class="position-absolute top-0 end-0 btn-icon text-secondary fas fa-minus-circle"
+                    v-on:click="state.dataTable.fields[index].show = false"
+                    v-bind:title="'Remove ' + state.dataTable.fields[index].name + ' column'"
+                  ></i>
+                  <input
+                    v-model="state.dataTable.fields[index]['name']"
+                    v-bind:type="field.name"
+                    placeholder="Data name"
+                  />
+                  <input
+                    v-model="state.dataTable.fields[index]['unit']"
+                    v-bind:type="field.unit"
+                    placeholder="Unit"
+                  />
+                </div>
               </th>
             </tr>
           </thead>
           <tr v-for="(row, rIndex) in state.dataTable.items">
             <td v-for="(field, index) in state.dataTable.fields" v-show="field.show">
               <span v-if="!field.editable">{{ row[field.label] }}</span>
+              <select
+                v-model="state.dataTable.items[rIndex][field.label]"
+                v-else-if="field.type === 'select'"
+              >
+                <option v-for="option in field.options" v-bind:value="option.value">
+                  {{ option.text }}
+                </option>
+              </select>
               <input
                 v-else
                 v-model="state.dataTable.items[rIndex][field.label]"
@@ -317,17 +368,21 @@ async function getGeneratedCartogram() {
   height: 300px;
 }
 
-table input {
+table input,
+table select {
   border: 0;
   box-sizing: border-box;
   display: block;
-}
-
-table input[type='text'] {
   width: 100%;
+  min-width: 100px;
 }
 
 table input[type='color'] {
   padding: 0;
+  min-width: 60px;
+}
+
+.btn-icon {
+  cursor: pointer;
 }
 </style>

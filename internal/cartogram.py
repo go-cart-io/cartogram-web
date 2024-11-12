@@ -6,7 +6,6 @@ import uuid
 import geopandas
 import mapclassify
 import pandas as pd
-from pathlib import Path
 from math import log
 from io import StringIO
 
@@ -28,11 +27,13 @@ def preprocess(file):
         gdf = geopandas.read_file(file_path)    
         os.remove(file_path)
 
-    gdf = gdf[gdf.geometry.type.isin(['Polygon', 'MultiPolygon'])]
-    properties_df = pd.DataFrame(gdf.drop(columns='geometry'))
     unique_columns = []
-    for column in properties_df.columns:
-        if properties_df[column].is_unique:
+    gdf = gdf[gdf.geometry.type.isin(['Polygon', 'MultiPolygon'])]
+    for column in gdf.columns:
+        if column == 'geometry':
+            continue
+        gdf[column] = util.convert_col_to_serializable(gdf[column])
+        if gdf[column].is_unique:
             unique_columns.append(column)
 
     minx, miny, maxx, maxy = gdf.total_bounds
@@ -40,8 +41,6 @@ def preprocess(file):
     if minx >= -180.0 and maxx <= 180.0 and miny >= -90.0 and maxy <= 90.0:
         gdf = gdf.to_crs("epsg:6933")
         gdf['Land Area (sq.km.)'] = gdf.area
-    else:
-        gdf['Land Area (sq.km.)'] = None
     
     gdf['ColorGroup'] = mapclassify.greedy(gdf, min_colors=6)
     gdf['cartogram_id'] = range(1, len(gdf) + 1)
@@ -110,6 +109,7 @@ def process_data(csv_string, geojson_file):
     df = pd.read_csv(StringIO(csv_string))
     df.columns = [util.sanitize_filename(col) for col in df.columns]
     df['Color'] = df['Color'] if 'Color' in df else None
+    df['Inset'] = df['Inset'] if 'Inset' in df else None
     is_empty_color = df['Color'].isna().all()
 
     df = df.sort_values(by='Region')    
@@ -119,7 +119,7 @@ def process_data(csv_string, geojson_file):
     for column in df.columns:
         if column.startswith('Land Area'):
             is_area_as_base = True
-        if column not in ['Region', 'Color', 'Abbreviation'] and not column.startswith('Land Area'):
+        if column not in ['Region', 'Abbreviation', 'Color', 'ColorGroup', 'Inset'] and not column.startswith('Land Area'):
             m = re.match(r'(.+)\s?\((.+)\)$', column)
             if m:
                 name = m.group(1).strip()      
@@ -127,15 +127,15 @@ def process_data(csv_string, geojson_file):
                 name = column.strip()
             
             df[column] = pd.to_numeric(df[column], errors='coerce')
-            dataset = df[["Region", column, "Color"]]
-            datasets.append({'label': name, 'datastring': 'name,Data,Color\n{}'.format(dataset.to_csv(header=False, index=False))})
+            dataset = df[["Region", column, "Color", "Inset"]]
+            datasets.append({'label': name, 'datastring': 'name,Data,Color,Inset\n{}'.format(dataset.to_csv(header=False, index=False))})
 
     if is_empty_color and not 'ColorGroup' in df:
         geo_data = geopandas.read_file(geojson_file)
         geo_data = geo_data.to_crs("epsg:6933")
         df.rename(columns={"Color": "ColorGroup"}, inplace=True)
         df["ColorGroup"] = mapclassify.greedy(geo_data, min_colors=6, balance="distance")
-    elif not 'ColorGroup' in df:
+    elif not is_empty_color:
         df['Color'] = df['Color'].fillna('#fff')
 
     return df.to_csv(index=False), datasets, is_area_as_base

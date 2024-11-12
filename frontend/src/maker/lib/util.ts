@@ -35,6 +35,18 @@ export function renameKeyInArray(
   })
 }
 
+export function addKeyInArray(data: KeyValueArray, keyName: string, defaultValue: any) {
+  return data.map((item) => {
+    if (!item.hasOwnProperty(keyName)) {
+      return {
+        ...item,
+        [keyName]: defaultValue
+      }
+    }
+    return item
+  })
+}
+
 export function filterNumberInArray(data: KeyValueArray, except: Array<string>): KeyValueArray {
   return data.map((item) => {
     return Object.keys(item).reduce((accumulator: { [key: string]: any }, key: string) => {
@@ -71,7 +83,10 @@ export function tableToArray(dataTable: DataTable): KeyValueArray {
     data[i] = {}
     for (var j = 0; j < dataTable.fields.length; j++) {
       if (dataTable.fields[j].show) {
-        data[i][dataTable.fields[j].label] = dataTable.items[i][dataTable.fields[j].label]
+        let label = dataTable.fields[j].unit
+          ? dataTable.fields[j].name + ' (' + dataTable.fields[j].unit + ')'
+          : dataTable.fields[j].name
+        data[i][label] = dataTable.items[i][label]
       }
     }
   }
@@ -85,4 +100,33 @@ export function propertiesToArray(geojsonData: FeatureCollection): KeyValueArray
     const { properties, ...rest } = item
     return properties ? properties : []
   }) as KeyValueArray
+}
+
+export function getNameUnit(label: string): [string, string] {
+  let unitMatch = label.match(/\(([^)]+)\)$/)
+  let unit = unitMatch ? unitMatch[1].trim() : ''
+  let name = label.replace('(' + unit + ')', '').trim()
+  return [name, unit]
+}
+
+export function filterGeoJSONProperties(
+  geojson: FeatureCollection,
+  fromProperties: Array<string>,
+  toProperties: Array<string>
+) {
+  return {
+    ...geojson,
+    features: geojson.features.map((feature) => {
+      let filteredProperties = {} as any
+      for (let i = 0; i <= fromProperties.length; i++) {
+        if (feature.properties?.hasOwnProperty(fromProperties[i])) {
+          filteredProperties[toProperties[i]] = feature.properties[fromProperties[i]]
+        }
+      }
+      return {
+        ...feature,
+        properties: filteredProperties
+      }
+    })
+  }
 }

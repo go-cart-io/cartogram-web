@@ -23,5 +23,5 @@ WEST REGION,WR,,201.0,922540.0'''
 
     datacsv, datasets, is_area_as_base = cartogram.process_data(testdata, "static/cartdata/singaporeRe/original.json")
     assert isinstance(datacsv, str)
-    assert datasets == [{'label': 'Population', 'datastring': 'name,Data,Color\nCENTRAL REGION,922580.0,\nEAST REGION,685940.0,\nNORTH REGION,582330.0,\nNORTH-EAST REGION,930860.0,\nWEST REGION,922540.0,\n'}]
+    assert datasets == [{'label': 'Population', 'datastring': 'name,Data,Color,Inset\nCENTRAL REGION,922580.0,,\nEAST REGION,685940.0,,\nNORTH REGION,582330.0,,\nNORTH-EAST REGION,930860.0,,\nWEST REGION,922540.0,,\n'}]
     assert is_area_as_base == True

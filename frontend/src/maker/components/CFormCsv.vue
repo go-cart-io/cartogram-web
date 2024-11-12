@@ -12,6 +12,8 @@ const state = reactive({
 const emit = defineEmits(['changed'])
 
 async function uploadCsvData(event: Event) {
+  // TODO check region values as well as color and inset format
+  // TODO disable custom color and inset if the user has deleted the fields
   const files = (event.target as HTMLInputElement).files
   if (!files || files.length == 0) return
 
@@ -39,7 +41,7 @@ async function uploadCsvData(event: Event) {
 
 <template>
   <div class="p-2">
-    <div class="badge text-bg-secondary">3. Input your data</div>
+    <div class="badge text-bg-secondary">4. Input your data</div>
     <div class="p-2">Input your data to the table on the right panel.</div>
     <div class="p-2">
       Alternatively, upload your data in CSV or Excel format.
