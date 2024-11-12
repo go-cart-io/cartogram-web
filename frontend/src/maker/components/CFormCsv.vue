@@ -5,6 +5,15 @@ import { reactive } from 'vue'
 
 import * as util from '../lib/util'
 
+const props = withDefaults(
+  defineProps<{
+    disabled: boolean
+  }>(),
+  {
+    disabled: false
+  }
+)
+
 const state = reactive({
   isReplace: true
 })
@@ -50,6 +59,7 @@ async function uploadCsvData(event: Event) {
         type="file"
         class="form-control"
         accept="text/csv,.csv,.xlsx,.xls"
+        v-bind:disabled="props.disabled"
         v-on:change="uploadCsvData"
       />
       <!-- <div class="form-check">
