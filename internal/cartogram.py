@@ -111,15 +111,18 @@ def process_data(csv_string, geojson_file):
     df['Color'] = df['Color'] if 'Color' in df else None
     df['Inset'] = df['Inset'] if 'Inset' in df else None
     is_empty_color = df['Color'].isna().all()
-
-    df = df.sort_values(by='Region')    
+    is_empty_inset = df['Inset'].isna().all()    
 
     datasets = []
+    cols_order = ['Region', 'Abbreviation', 'Color', 'ColorGroup', 'Inset']
     is_area_as_base = False
     for column in df.columns:
         if column.startswith('Land Area'):
+            cols_order.insert(5, column)
             is_area_as_base = True
-        if column not in ['Region', 'Abbreviation', 'Color', 'ColorGroup', 'Inset'] and not column.startswith('Land Area'):
+
+        elif column not in ['Region', 'Abbreviation', 'Color', 'ColorGroup', 'Inset'] and not column.startswith('Land Area'):
+            cols_order.append(column)
             m = re.match(r'(.+)\s?\((.+)\)$', column)
             if m:
                 name = m.group(1).strip()      
@@ -130,13 +133,19 @@ def process_data(csv_string, geojson_file):
             dataset = df[["Region", column, "Color", "Inset"]]
             datasets.append({'label': name, 'datastring': 'name,Data,Color,Inset\n{}'.format(dataset.to_csv(header=False, index=False))})
 
-    if is_empty_color and not 'ColorGroup' in df:
+    if not 'ColorGroup' in df:
         geo_data = geopandas.read_file(geojson_file)
         geo_data = geo_data.to_crs("epsg:6933")
-        df.rename(columns={"Color": "ColorGroup"}, inplace=True)
         df["ColorGroup"] = mapclassify.greedy(geo_data, min_colors=6, balance="distance")
-    elif not is_empty_color:
-        df['Color'] = df['Color'].fillna('#fff')
+    
+    df = df.sort_values(by='Region')
+    df = df.reindex(columns=cols_order)
+
+    if is_empty_color:
+        df.drop(columns = 'Color', inplace=True)
+    
+    if is_empty_inset:
+        df.drop(columns = 'Inset', inplace=True)
 
     return df.to_csv(index=False), datasets, is_area_as_base
    
