@@ -9,6 +9,9 @@
 
 {% block javascript %}
 <script>
-	var maps = {{ (maps | safe) or '{}' }}
+	var mapName = "{{ map_name }}";
+	var maps = JSON.parse('{{ maps | default({}) | tojson | safe }}');
+	var geoUrl = "{{ geo_url }}";
+	var csvUrl = "{{ csv_url }}";
 </script>
 {% endblock javascript %}

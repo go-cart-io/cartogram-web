@@ -133,11 +133,38 @@ def create_app():
     def cartogram_rate_limit():
         return settings.CARTOGRAM_RATE_LIMIT
     
-    @app.route('/cartogram/make', methods=['GET'])
-    def make_cartogram():
+    @app.route('/cartogram/create', methods=['GET'])
+    def create_cartogram():
         return render_template('maker.html', page_active='maker', 
                             maps=cartogram_handler.get_sorted_handler_names(),
                             tracking=tracking.determine_tracking_action(request))
+    
+    @app.route('/cartogram/edit/<type>/<name_or_key>', methods=['GET'])
+    def edit_cartogram(type, name_or_key):
+        if type == 'map':
+            handler = name_or_key
+            csv_url = f'/static/cartdata/{handler}/data.csv'
+
+        elif type == 'key':
+            if not settings.USE_DATABASE:
+                return Response('Not found', status=404)
+
+            cartogram_entry = CartogramEntry.query.filter_by(string_key=name_or_key).first_or_404()
+            if cartogram_entry is None or (not cartogram_handler.has_handler(cartogram_entry.handler) and cartogram_entry.handler != 'custom'):
+                return Response('Error', status=500)
+
+            handler = cartogram_entry.handler
+            csv_url = f'/static/userdata/{name_or_key}/data.csv'
+
+        else:
+            return Response('Not found', status=404)
+        
+        geo_url = cartogram_handler.get_gen_file(handler, name_or_key)[1:]
+        
+        return render_template('maker.html', page_active='maker', 
+                maps=cartogram_handler.get_sorted_handler_names(),
+                map_name=handler, geo_url=geo_url, csv_url=csv_url,
+                tracking=tracking.determine_tracking_action(request))
     
     @app.route('/api/v1/cartogram/preprocess', methods=['POST'])
     def cartogram_preprocess():

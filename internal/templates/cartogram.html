@@ -10,7 +10,7 @@
 {% block javascript %}
 <script>
   var mapName = "{{ map_name }}";
-  var maps = {{ (maps | safe) or '{}' }};
+  var maps = JSON.parse('{{ maps | default({}) | tojson | safe }}');
   var mapDataKey = "{{ map_data_key }}";
   var mode = null;
 </script>

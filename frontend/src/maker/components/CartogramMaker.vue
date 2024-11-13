@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import * as d3 from 'd3'
-import type { FeatureCollection, Feature } from 'geojson'
+import type { FeatureCollection } from 'geojson'
 import { Toast, Modal } from 'bootstrap'
-import { reactive, onBeforeMount } from 'vue'
+import { reactive, onBeforeMount, onMounted } from 'vue'
 import embed, { type VisualizationSpec } from 'vega-embed'
 
 import spec from '../../assets/template.vg.json' with { type: "json" }
@@ -19,6 +19,9 @@ var versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
 
 const props = defineProps<{
   maps: MapHandlers
+  mapName?: string
+  geoUrl?: string
+  csvUrl?: string
 }>()
 
 const state = reactive({
@@ -45,6 +48,26 @@ const OPTIONS_INSET = [
 
 onBeforeMount(() => {
   reset()
+})
+
+onMounted(() => {
+  if (!props.mapName || !props.geoUrl || !props.csvUrl) return
+
+  HTTP.get(props.geoUrl).then(function (response: any) {
+    initDataTableWGeojson(props.mapName!, response, 'name')
+
+    d3.csv(props.csvUrl!)
+    .then((csvData) => {
+      if (!csvData || !Array.isArray(csvData)) {
+        console.error('Invalid CSV data')
+        return
+      }
+      updateDataTable(csvData, true)
+    })
+    .catch((error) => {
+      console.error('Error loading CSV:', error)
+    })
+  })
 })
 
 function reset() {
@@ -261,7 +284,11 @@ async function getGeneratedCartogram() {
         </div>
       </div>
 
-      <c-form-geojson v-bind:maps="props.maps" v-on:changed="initDataTableWGeojson" />
+      <c-form-geojson
+        v-bind:maps="props.maps"
+        v-bind:geoUrl="props.geoUrl"
+        v-on:changed="initDataTableWGeojson"
+      />
 
       <div class="p-2">
         <div class="badge text-bg-secondary">3. Download data (optional)</div>
@@ -274,8 +301,8 @@ async function getGeneratedCartogram() {
       </div>
 
       <c-form-csv
-        v-on:changed="updateDataTable"
         v-bind:disabled="!('features' in state.geojsonData)"
+        v-on:changed="updateDataTable"
       />
 
       <div class="p-2">

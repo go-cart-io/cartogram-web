@@ -22,7 +22,7 @@ if (document.getElementById('cartogram-app')) {
 }
 
 if (document.getElementById('cartogram-maker')) {
-  const maker = createApp(CartogramMaker, { maps })
+  const maker = createApp(CartogramMaker, { maps, mapName, geoUrl, csvUrl })
   maker.use(createPinia())
   maker.mount('#cartogram-maker')
 }
