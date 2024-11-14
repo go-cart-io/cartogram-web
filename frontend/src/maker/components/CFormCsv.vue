@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import * as d3 from 'd3'
 import * as XLSX from 'xlsx'
-import { reactive } from 'vue'
 
 import * as util from '../lib/util'
 
@@ -13,10 +12,6 @@ const props = withDefaults(
     disabled: false
   }
 )
-
-const state = reactive({
-  isReplace: true
-})
 
 const emit = defineEmits(['changed'])
 
@@ -44,12 +39,12 @@ async function uploadCsvData(event: Event) {
   //   }
   //   console.log(state.csvData)
 
-  emit('changed', csvData, state.isReplace)
+  emit('changed', csvData)
 }
 </script>
 
 <template>
-  <div class="p-2">
+  <div class="p-2 text-bg-light">
     <div class="badge text-bg-secondary">4. Input your data</div>
     <div class="p-2">Input your data to the table on the right panel.</div>
     <div class="p-2">
@@ -62,15 +57,6 @@ async function uploadCsvData(event: Event) {
         v-bind:disabled="props.disabled"
         v-on:change="uploadCsvData"
       />
-      <!-- <div class="form-check">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          id="check-replace"
-          v-model="state.isReplace"
-        />
-        <label class="form-check-label" for="check-replace"> Replace exiting data table </label>
-      </div> -->
     </div>
 
     <!-- TODO: Allow custom field name

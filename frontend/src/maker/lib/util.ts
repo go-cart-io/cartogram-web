@@ -47,11 +47,18 @@ export function addKeyInArray(data: KeyValueArray, keyName: string, defaultValue
   })
 }
 
-export function filterNumberInArray(data: KeyValueArray, except: Array<string>): KeyValueArray {
+export function filterKeyValueInArray(
+  data: KeyValueArray,
+  except: Array<string>,
+  allow: string | null = 'number'
+): KeyValueArray {
   return data.map((item) => {
     return Object.keys(item).reduce((accumulator: { [key: string]: any }, key: string) => {
       if (except.includes(key)) accumulator[key] = item[key]
-      else if (typeof item[key] === 'number' || !isNaN(parseFloat(item[key])))
+      else if (
+        allow === 'number' &&
+        (typeof item[key] === 'number' || !isNaN(parseFloat(item[key])))
+      )
         accumulator[key] = parseFloat(item[key])
       return accumulator
     }, {})
@@ -74,6 +81,13 @@ export function arrangeKeysInArray(
       else orderedItem[key] = null
       return orderedItem
     }, {})
+  })
+}
+
+export function mergeObjInArray(baseData: KeyValueArray, newData: KeyValueArray, mergeKey: string) {
+  return baseData.map((item) => {
+    const csvItems = newData.find((c) => c[mergeKey] === item[mergeKey])
+    return csvItems ? { ...item, ...csvItems } : item
   })
 }
 

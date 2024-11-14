@@ -47,7 +47,7 @@ describe('maker.lib.util', () => {
     })
   })
 
-  describe('filterNumberInArray', () => {
+  describe('filterKeyValueInArray', () => {
     it('should filter objects to only include properties of the Number type and of the except', () => {
       const data = [
         { name: 'Alice', age: 30, active: true },
@@ -56,12 +56,24 @@ describe('maker.lib.util', () => {
       ]
       const type = 'number'
       const except = ['name']
-      const result = util.filterNumberInArray(data, except)
+      const result = util.filterKeyValueInArray(data, except)
       expect(result).toEqual([
         { name: 'Alice', age: 30 },
         { name: 'Bob' },
         { name: 'Cat', age: 25 }
       ])
+    })
+
+    it('should filter objects to only include properties of the except', () => {
+      const data = [
+        { name: 'Alice', age: 30, active: true },
+        { name: 'Bob', age: 'unknown', active: false },
+        { name: 'Cat', age: '25', active: false }
+      ]
+      const type = 'number'
+      const except = ['name']
+      const result = util.filterKeyValueInArray(data, except, null)
+      expect(result).toEqual([{ name: 'Alice' }, { name: 'Bob' }, { name: 'Cat' }])
     })
   })
 
@@ -95,7 +107,28 @@ describe('maker.lib.util', () => {
     })
   })
 
-  describe('arrangeKeysInArray', () => {
+  describe('mergeObjInArray', () => {
+    it('should merge objects from baseData and newData when keys match', () => {
+      const baseData = [
+        { Region: 'North', value: 10 },
+        { Region: 'South', value: 20 },
+        { Region: 'West', value: 30 }
+      ]
+      const newData = [
+        { Region: 'North', additionalValue: 5 },
+        { Region: 'East', additionalValue: 15 },
+        { Region: 'West', value: 50, additionalValue: 25 }
+      ]
+      const result = util.mergeObjInArray(baseData, newData, 'Region')
+      expect(result).toEqual([
+        { Region: 'North', value: 10, additionalValue: 5 },
+        { Region: 'South', value: 20 },
+        { Region: 'West', value: 50, additionalValue: 25 }
+      ])
+    })
+  })
+
+  describe('getNameUnit', () => {
     it('should extract unit from label when enclosed in parentheses', () => {
       const label = 'Temperature (Celsius)'
       const [name, unit] = util.getNameUnit(label)
@@ -111,7 +144,7 @@ describe('maker.lib.util', () => {
     })
   })
 
-  describe('arrangeKeysInArray', () => {
+  describe('filterGeoJSONProperties', () => {
     it('should filter properties of each feature in a GeoJSON object', () => {
       const geojson = {
         type: 'FeatureCollection',

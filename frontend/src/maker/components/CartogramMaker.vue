@@ -8,7 +8,7 @@ import embed, { type VisualizationSpec } from 'vega-embed'
 import spec from '../../assets/template.vg.json' with { type: "json" }
 import * as util from '../lib/util'
 import HTTP from '../../common/lib/http'
-import { RESERVE_FIELDS } from '../../common/lib/config'
+import * as config from '../../common/lib/config'
 import type { KeyValueArray, DataTable } from '../lib/interface'
 import type { MapHandlers } from '../../common/lib/interface'
 
@@ -34,18 +34,6 @@ const state = reactive({
   dataTable: { fields: [], items: [] } as DataTable
 })
 
-const NUM_RESERVED_FILEDS = 5
-const COL_COLOR = 2
-const COL_INSET = 3
-const COL_AREA = 4
-const OPTIONS_INSET = [
-  { text: 'Center', value: 'C' },
-  { text: 'Left', value: 'L' },
-  { text: 'Right', value: 'R' },
-  { text: 'Top', value: 'T' },
-  { text: 'Down', value: 'D' }
-]
-
 onBeforeMount(() => {
   reset()
 })
@@ -62,7 +50,7 @@ onMounted(() => {
         console.error('Invalid CSV data')
         return
       }
-      updateDataTable(csvData, true)
+      updateDataTable(csvData)
     })
     .catch((error) => {
       console.error('Error loading CSV:', error)
@@ -82,7 +70,8 @@ function reset() {
     { label: 'Region', name: 'Region', type: 'text', editable: false, show: true },
     { label: 'Abbreviation', name: 'Abbreviation', type: 'text', editable: true, show: true },
     { label: 'Color', name: 'Color', type: 'color', editable: true, show: false },
-    { label: 'Inset', name: 'Inset', type: 'select', options: OPTIONS_INSET, editable: true, show: false },
+    { label: 'ColorGroup', name: 'ColorGroup', type: 'number', editable: false, show: false },
+    { label: 'Inset', name: 'Inset', type: 'select', options: config.OPTIONS_INSET, editable: true, show: false },
     { label: 'Land Area (sq.km.)', name: 'Land Area', unit: 'sq.km.', type: 'text', editable: true, editableHead: true, show: true }
   ]
 }
@@ -90,7 +79,7 @@ function reset() {
 function initDataTableWGeojson(handler: string, geojsonData: FeatureCollection, regionCol: string) {
   // TODO Ask for confirmation before clearing data or closing page
   document.getElementById("map-vis")!.innerHTML = ""
-  state.dataTable.fields.splice(NUM_RESERVED_FILEDS)
+  state.dataTable.fields.splice(config.NUM_RESERVED_FILEDS)
   state.dataTable.items = []
 
   state.handler = handler
@@ -103,18 +92,22 @@ function initDataTableWGeojson(handler: string, geojsonData: FeatureCollection, 
   geoProperties = util.renameKeyInArray(geoProperties, state.geojsonRegionCol, 'Region')
   geoProperties = util.addKeyInArray(geoProperties, 'Land Area (sq.km.)', null)
   geoProperties = util.addKeyInArray(geoProperties, 'Population (people)', 0)
-  geoProperties = util.arrangeKeysInArray(geoProperties, [...RESERVE_FIELDS, 'Population (people)'])
+  geoProperties = util.arrangeKeysInArray(geoProperties, [...config.RESERVE_FIELDS, 'Population (people)'])
 
   initDataTableWArray(geoProperties)
 }
 
-async function initDataTableWArray(data: KeyValueArray) {
-  data = util.filterNumberInArray(data, RESERVE_FIELDS)
-  state.dataTable.items = data
+async function initDataTableWArray(data: KeyValueArray, isReplace = true) {
+  data = util.filterKeyValueInArray(data, config.RESERVE_FIELDS)
+  if (isReplace) {
+    state.dataTable.items = data
+  } else {
+    state.dataTable.items = util.mergeObjInArray(state.dataTable.items, data, 'Region')
+  }
 
   var keys = Object.keys(state.dataTable.items[0])
   for (var i = 0; i < keys.length; i++) {
-    if (!RESERVE_FIELDS.includes(keys[i])) {
+    if (!config.RESERVE_FIELDS.includes(keys[i])) {
       var [fieldname, unit] = util.getNameUnit(keys[i])
       state.dataTable.fields.push({ label: keys[i], name: fieldname, unit: unit, type: 'number', editable: true, editableHead: true, show: true })
     }
@@ -128,35 +121,15 @@ async function initDataTableWArray(data: KeyValueArray) {
   await embed('#map-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
 }
 
-function updateDataTable(csvData: KeyValueArray, isReplace: boolean) {
+function updateDataTable(csvData: KeyValueArray) {
   if (csvData.length === 0) return
 
-  // TODO Check if the csv data match with map data
-  if (isReplace) {
-    state.dataTable.fields.splice(NUM_RESERVED_FILEDS)
-    state.dataTable.items = []
-
-    state.dataTable.fields[COL_AREA].show = Object.keys(csvData[0]).some(key => key.startsWith('Land Area'))
-    state.dataTable.fields[COL_COLOR].show = csvData[0].hasOwnProperty("Color")
-    state.dataTable.fields[COL_INSET].show = csvData[0].hasOwnProperty("Inset")
-    csvData = util.arrangeKeysInArray(csvData, RESERVE_FIELDS)
-    initDataTableWArray(csvData)
-  } else {
-    // Merge csv data to exiting table
-    var keys = Object.keys(csvData[0])
-    var existingKeys = Object.keys(state.dataTable.items[0])
-    for (var i = 0; i < keys.length; i++) {
-      if (!RESERVE_FIELDS.includes(keys[i]) && !existingKeys.includes(keys[i])) {
-        var [fieldname, unit] = util.getNameUnit(keys[i])
-        state.dataTable.fields.push({ label: keys[i], name: fieldname, unit: unit, type: 'number', editable: true, editableHead: true, show: true })
-      }
-    }
-
-    state.dataTable.items = state.dataTable.items.map((item) => {
-      const csvItems = csvData.find((c) => c.Region === item.Region)
-      return { ...item, ...csvItems }
-    })
-  }
+  state.dataTable.items = util.filterKeyValueInArray(state.dataTable.items, config.RESERVE_FIELDS, null)
+  state.dataTable.fields.splice(config.NUM_RESERVED_FILEDS)
+  state.dataTable.fields[config.COL_AREA].show = Object.keys(csvData[0]).some(key => key.startsWith('Land Area'))
+  state.dataTable.fields[config.COL_COLOR].show = csvData[0].hasOwnProperty("Color")
+  state.dataTable.fields[config.COL_INSET].show = csvData[0].hasOwnProperty("Inset")
+  initDataTableWArray(csvData, false)
 }
 
 async function getGeneratedCSV() {
@@ -256,7 +229,7 @@ async function getGeneratedCartogram() {
             <input
               class="form-check-input"
               type="checkbox"
-              v-model="state.dataTable.fields[COL_AREA].show"
+              v-model="state.dataTable.fields[config.COL_AREA].show"
               id="chk-area"
             />
             <label class="form-check-label" for="chk-area">
@@ -267,7 +240,7 @@ async function getGeneratedCartogram() {
             <input
               class="form-check-input"
               type="checkbox"
-              v-model="state.dataTable.fields[COL_COLOR].show"
+              v-model="state.dataTable.fields[config.COL_COLOR].show"
               id="chk-color"
             />
             <label class="form-check-label" for="chk-color"> Customize color </label>
@@ -276,7 +249,7 @@ async function getGeneratedCartogram() {
             <input
               class="form-check-input"
               type="checkbox"
-              v-model="state.dataTable.fields[COL_INSET].show"
+              v-model="state.dataTable.fields[config.COL_INSET].show"
               id="chk-inset"
             />
             <label class="form-check-label" for="chk-inset"> Define inset </label>
