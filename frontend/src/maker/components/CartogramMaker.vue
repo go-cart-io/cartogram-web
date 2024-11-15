@@ -20,6 +20,7 @@ var versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
 const props = defineProps<{
   maps: MapHandlers
   mapName?: string
+  mapTitle?: string
   geoUrl?: string
   csvUrl?: string
 }>()
@@ -50,7 +51,7 @@ function reset() {
   state.loadingProgress = 0
   state.error = ''
   state.handler = ''
-  state.title = ''
+  state.title = props.mapTitle ? props.mapTitle : ''
   state.geojsonData = {} as FeatureCollection
   state.geojsonRegionCol = ''
   state.dataTable.items = []

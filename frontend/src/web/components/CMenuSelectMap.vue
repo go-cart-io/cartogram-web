@@ -10,6 +10,7 @@ const store = useCartogramStore()
 const props = defineProps<{
   isEmbed: boolean
   maps: MapHandlers | null
+  mapTitle?: string
 }>()
 
 const emit = defineEmits(['map_changed'])
@@ -54,21 +55,15 @@ async function switchMap() {
 <template>
   <div v-if="!props.isEmbed" class="d-flex p-2" style="max-width: 30%">
     <select
+      v-if="!store.stringKey"
       class="form-select"
       v-model="store.currentMapName"
       v-on:change="switchMap"
-      v-bind:disabled="store.stringKey.length > 0"
     >
       <option v-for="(mapItem, mapKey) in props.maps" v-bind:value="mapKey">
         {{ mapItem.name }}
       </option>
     </select>
-    <a
-      class="btn btn-primary ms-2"
-      title="Download template"
-      v-bind:href="'/static/cartdata/' + store.currentMapName + '/data.csv'"
-    >
-      <i class="fas fa-file-download"></i>
-    </a>
+    <span v-else>{{ props.mapTitle }}</span>
   </div>
 </template>

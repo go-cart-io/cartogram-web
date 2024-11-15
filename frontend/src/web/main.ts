@@ -10,8 +10,9 @@ import '../assets/styles.scss'
 
 if (document.getElementById('cartogram-app')) {
   const app = createApp(App, {
-    mapName,
     maps,
+    mapName,
+    mapTitle,
     mapDataKey,
     mode
   })
@@ -22,7 +23,7 @@ if (document.getElementById('cartogram-app')) {
 }
 
 if (document.getElementById('cartogram-maker')) {
-  const maker = createApp(CartogramMaker, { maps, mapName, geoUrl, csvUrl })
+  const maker = createApp(CartogramMaker, { maps, mapName, mapTitle, geoUrl, csvUrl })
   maker.use(createPinia())
   maker.mount('#cartogram-maker')
 }

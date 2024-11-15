@@ -118,6 +118,7 @@ def create_app():
         return render_template(template, page_active='cartogram', 
                             maps=cartogram_handler.get_sorted_handler_names(),
                             map_name=cartogram_entry.handler, map_data_key=string_key,
+                            map_title=cartogram_entry.title,
                             mode=mode, tracking=tracking.determine_tracking_action(request))
 
     @app.route('/api/v1/getprogress', methods=['GET'])
@@ -160,6 +161,7 @@ def create_app():
         return render_template('maker.html', page_active='maker', 
                 maps=cartogram_handler.get_sorted_handler_names(),
                 map_name=handler, geo_url=geo_url, csv_url=csv_url,
+                map_title=cartogram_entry.title,
                 tracking=tracking.determine_tracking_action(request))
     
     @app.route('/api/v1/cartogram/preprocess', methods=['POST'])

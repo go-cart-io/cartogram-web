@@ -13,10 +13,11 @@ import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
 const props = defineProps<{
-  mapName: string
   maps: MapHandlers
-  mapDataKey: string
-  mode: string | null
+  mapName?: string
+  mapTitle?: string
+  mapDataKey?: string
+  mode?: string
 }>()
 
 const state = reactive({
@@ -24,8 +25,8 @@ const state = reactive({
 })
 
 onBeforeMount(() => {
-  store.currentMapName = props.mapName
-  store.stringKey = props.mapDataKey
+  store.currentMapName = props.mapName ? props.mapName : ''
+  store.stringKey = props.mapDataKey ? props.mapDataKey : ''
 })
 
 /**
@@ -41,6 +42,7 @@ async function switchMap() {
   <c-menu-bar
     v-bind:isEmbed="props.mode === 'embed'"
     v-bind:maps="props.maps"
+    v-bind:map-title="props.mapTitle"
     v-on:map_changed="switchMap"
     v-on:version_changed="(version: string) => (store.currentVersionName = version)"
   ></c-menu-bar>

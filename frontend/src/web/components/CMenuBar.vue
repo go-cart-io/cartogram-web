@@ -10,6 +10,7 @@ const props = withDefaults(
   defineProps<{
     isEmbed: boolean
     maps: MapHandlers
+    mapTitle?: string
   }>(),
   {
     isEmbed: false
@@ -32,6 +33,7 @@ function onMapChanged(data: any) {
 
       <c-menu-select-map
         v-bind:maps="props.maps"
+        v-bind:map-title="props.mapTitle"
         v-bind:isEmbed="props.isEmbed"
         v-on:map_changed="onMapChanged"
       />
@@ -47,7 +49,6 @@ function onMapChanged(data: any) {
         <a
           class="btn btn-primary me-2"
           title="Edit"
-          v-bind:class="{ disabled: store.isLoading }"
           v-bind:href="
             store.stringKey
               ? '/cartogram/edit/key/' + store.stringKey
