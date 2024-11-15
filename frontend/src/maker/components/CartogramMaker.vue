@@ -42,19 +42,7 @@ onMounted(() => {
   if (!props.mapName || !props.geoUrl || !props.csvUrl) return
 
   HTTP.get(props.geoUrl).then(function (response: any) {
-    initDataTableWGeojson(props.mapName!, response, 'name')
-
-    d3.csv(props.csvUrl!)
-    .then((csvData) => {
-      if (!csvData || !Array.isArray(csvData)) {
-        console.error('Invalid CSV data')
-        return
-      }
-      updateDataTable(csvData)
-    })
-    .catch((error) => {
-      console.error('Error loading CSV:', error)
-    })
+    initDataTableWGeojson(props.mapName!, response, 'name', props.csvUrl)
   })
 })
 
@@ -76,7 +64,7 @@ function reset() {
   ]
 }
 
-function initDataTableWGeojson(handler: string, geojsonData: FeatureCollection, regionCol: string) {
+function initDataTableWGeojson(handler: string, geojsonData: FeatureCollection, regionCol: string, csvFile = '') {
   // TODO Ask for confirmation before clearing data or closing page
   document.getElementById("map-vis")!.innerHTML = ""
   state.dataTable.fields.splice(config.NUM_RESERVED_FILEDS)
@@ -99,6 +87,21 @@ function initDataTableWGeojson(handler: string, geojsonData: FeatureCollection, 
   geoProperties = util.arrangeKeysInArray(geoProperties, [...config.RESERVE_FIELDS, 'Population (people)'])
 
   initDataTableWArray(geoProperties)
+
+  // Immediately populate data if a CSV file is supplied
+  if (csvFile) {
+    d3.csv(csvFile)
+    .then((csvData) => {
+      if (!csvData || !Array.isArray(csvData)) {
+        console.error('Invalid CSV data')
+        return
+      }
+      updateDataTable(csvData)
+    })
+    .catch((error) => {
+      console.error('Error loading CSV:', error)
+    })
+  }
 }
 
 async function initDataTableWArray(data: KeyValueArray, isReplace = true) {
@@ -141,19 +144,6 @@ function updateDataTable(csvData: KeyValueArray) {
   state.dataTable.fields[config.COL_COLOR].show = csvData[0].hasOwnProperty("Color")
   state.dataTable.fields[config.COL_INSET].show = csvData[0].hasOwnProperty("Inset")
   initDataTableWArray(csvData, false)
-}
-
-async function getGeneratedCSV() {
-  var data = util.tableToArray(state.dataTable)
-  var csv = d3.csvFormat(data)
-  const blob = new Blob([csv], { type: 'text/csv' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'data.csv'
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
 }
 
 async function getGeneratedCartogram() {
@@ -278,7 +268,10 @@ async function getGeneratedCartogram() {
       <div class="p-2">
         <div class="badge text-bg-secondary">3. Download data (optional)</div>
         <div class="p-2">
-          <button class="btn btn-outline-secondary" v-on:click="getGeneratedCSV">
+          <button
+            class="btn btn-outline-secondary"
+            v-on:click="util.getGeneratedCSV(state.dataTable)"
+          >
             Download data
           </button>
           for editing on your device.

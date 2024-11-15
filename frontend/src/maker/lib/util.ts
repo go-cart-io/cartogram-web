@@ -1,3 +1,4 @@
+import * as d3 from 'd3'
 import type { KeyValueArray, DataTable } from './interface'
 import type { FeatureCollection, Feature } from 'geojson'
 
@@ -143,4 +144,17 @@ export function filterGeoJSONProperties(
       }
     })
   }
+}
+
+export async function getGeneratedCSV(dataTable: DataTable) {
+  var data = tableToArray(dataTable)
+  var csv = d3.csvFormat(data)
+  const blob = new Blob([csv], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'data.csv'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
 }
