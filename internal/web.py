@@ -64,11 +64,6 @@ def create_app():
         return render_template('faq.html', page_active='faq', tracking=tracking.determine_tracking_action(request))
 
 
-    @app.route('/tutorial', methods=['GET'])
-    def tutorial():
-        return render_template('tutorial.html', page_active='tutorial', tracking=tracking.determine_tracking_action(request))
-
-
     app.add_url_rule('/contact', methods=['GET', 'POST'], view_func=contact.contact)
     app.add_url_rule('/api/v1/consent', methods=['POST'], view_func=tracking.consent)
     app.add_url_rule('/api/v1/gencaptcha', methods=['GET'], view_func=custom_captcha.gencaptcha)
