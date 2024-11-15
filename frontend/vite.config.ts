@@ -36,7 +36,7 @@ export default ({ mode }: UserConfig): UserConfigExport => {
       emptyOutDir: true,
       cssCodeSplit: false,
       rollupOptions: {
-        input: './src/web/main.ts'
+        input: './src/main.ts'
       }
     },
     server: {

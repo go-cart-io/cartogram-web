@@ -1,12 +1,12 @@
 // @ts-nocheck
 import 'vite/modulepreload-polyfill'
-import '../assets/main.css'
+import './assets/main.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import App from './components/Cartogram.vue'
-import CartogramMaker from '../maker/components/CartogramMaker.vue'
-import '../assets/styles.scss'
+import App from './viewer/components/Cartogram.vue'
+import CartogramMaker from './maker/components/CartogramMaker.vue'
+import './assets/styles.scss'
 
 if (document.getElementById('cartogram-app')) {
   const app = createApp(App, {
