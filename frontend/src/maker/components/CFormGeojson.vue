@@ -2,8 +2,8 @@
 import type { FeatureCollection } from 'geojson'
 import { ref, reactive } from 'vue'
 
-import HTTP from '../../common/lib/http'
-import type { MapHandlers } from '../../common/lib/interface'
+import HTTP from '../lib/http'
+import type { MapHandlers } from '../../common/interface'
 
 const props = defineProps<{
   maps: MapHandlers

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { MapHandlers } from '../../common/lib/interface'
+import type { MapHandlers } from '../../common/interface'
 import CMenuSelectMap from './CMenuSelectMap.vue'
-import CMenuSelectVersion from '../../common/components/CMenuSelectVersion.vue'
+import CMenuSelectVersion from './CMenuSelectVersion.vue'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()

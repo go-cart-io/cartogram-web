@@ -7,10 +7,10 @@ import embed, { type VisualizationSpec } from 'vega-embed'
 
 import spec from '../../assets/template.vg.json' with { type: "json" }
 import * as util from '../lib/util'
-import HTTP from '../../common/lib/http'
-import * as config from '../../common/lib/config'
+import HTTP from '../lib/http'
+import * as config from '../../common/config'
 import type { KeyValueArray, DataTable } from '../lib/interface'
-import type { MapHandlers } from '../../common/lib/interface'
+import type { MapHandlers } from '../../common/interface'
 
 import CFormGeojson from './CFormGeojson.vue'
 import CFormCsv from './CFormCsv.vue'

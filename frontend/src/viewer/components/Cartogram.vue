@@ -6,8 +6,8 @@
 import { reactive, onBeforeMount } from 'vue'
 
 import CMenuBar from './CMenuBar.vue'
-import CPanel from '../../common/components/CPanel.vue'
-import type { MapHandlers } from '../../common/lib/interface'
+import CPanel from './CPanel.vue'
+import type { MapHandlers } from '../../common/interface'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
