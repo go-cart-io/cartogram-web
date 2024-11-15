@@ -86,9 +86,12 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
             'world': world
         }
 
-        lambda_result = local_function(lambda_event, i, data_length, print_progress)
+        cartogram_result = local_function(lambda_event, i, data_length, print_progress)
+
+        if (cartogram_result['stdout'] == ''):
+            raise RuntimeError(f'Cannot generate cartogram for {name} - {cartogram_result['error_msg']}')
         
-        cartogram_gen_output = lambda_result['stdout']
+        cartogram_gen_output = cartogram_result['stdout']
         cartogram_json = json.loads(cartogram_gen_output)
 
         cartogram_json = cartogram_json["Original"]
@@ -154,6 +157,7 @@ def process_data(csv_string, geojson_file):
 def local_function(params, data_index = 0, data_length = 1, print_progress = False):
     stdout = ''
     stderr = 'Dataset {}/{}\n'.format(data_index + 1, data_length)
+    error_msg = ''
     order = 0
 
     cartogram_exec = 'cartogram'
@@ -201,11 +205,16 @@ def local_function(params, data_index = 0, data_length = 1, print_progress = Fal
                 })
 
                 order += 1
+
+            else:
+                e = re.search(r'ERROR: (.+)', line.decode())
+                if e != None:
+                    error_msg = e.groups(1)[0]
     
     if os.path.exists('/tmp/{}.csv'.format(temp_filename)):
         os.remove('/tmp/{}.csv'.format(temp_filename))
 
-    return {'stderr': stderr, 'stdout': stdout}
+    return {'stderr': stderr, 'stdout': stdout, 'error_msg': error_msg}
 
 def setprogress(params):
     redis_conn = redis.Redis(host=settings.CARTOGRAM_REDIS_HOST, port=settings.CARTOGRAM_REDIS_PORT, db=0)

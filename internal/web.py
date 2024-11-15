@@ -175,7 +175,7 @@ def create_app():
             processed_geojson = cartogram.preprocess(request.files['file'])
             return Response(json.dumps(processed_geojson), status=200, content_type='application/json')
         except Exception as e:
-            return Response(json.dumps({"error": repr(e)}), status=400, content_type='application/json')
+            return Response(json.dumps({"error": str(e)}), status=400, content_type='application/json')
 
     @app.route('/api/v1/cartogram', methods=['POST'])
     @limiter.limit(cartogram_rate_limit)
@@ -184,7 +184,7 @@ def create_app():
         handler = data['handler']
 
         if 'handler' not in data or (not cartogram_handler.has_handler(handler) and handler != 'custom'):
-            return Response('{"error":"The handler was invaild."}', status=400, content_type='application/json')
+            return Response('{"error":"Invalid map."}', status=400, content_type='application/json')
 
         if 'stringKey' not in data:
             return Response('{"error":"Missing sharing key."}', status=404, content_type='application/json')
@@ -214,9 +214,8 @@ def create_app():
         except Exception as e:
             if 'persist' in data and os.path.exists(folder_path):
                 shutil.rmtree(folder_path)
-                
-            print(e)
-            return Response('{"error": "The data may be invalid or the process has timed out. Please try again later."}', status=400, content_type='application/json')
+
+            return Response(json.dumps({"error": str(e)}), status=400, content_type='application/json')
 
     @app.route('/cleanup', methods=['GET'])
     def cleanup():
