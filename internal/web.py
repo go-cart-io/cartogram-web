@@ -30,10 +30,6 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['ENV'] = 'development' if settings.DEBUG else 'production'
 
-    # Whenever you make changes to the DB models, you must run commands as follows:
-    # export FLASK_APP=web.py
-    # flask db migrate -m "Migration log."
-    # flask db upgrade
     if settings.USE_DATABASE:
         from database import db
         from models import CartogramEntry
@@ -201,7 +197,7 @@ def create_app():
             if 'persist' in data and settings.USE_DATABASE:
                     new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
                                             date_accessed=datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=365),
-                                            handler=handler)
+                                            title=data['title'],handler=handler)
                     db.session.add(new_cartogram_entry)
                     db.session.commit()        
             else:

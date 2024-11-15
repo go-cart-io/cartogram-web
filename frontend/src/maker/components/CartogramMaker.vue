@@ -173,6 +173,7 @@ async function getGeneratedCartogram() {
     var req_body =
       'data=' +
       JSON.stringify({
+        title: state.title,
         handler: state.handler,
         csv: csvData,
         geojson: geojsonData,
