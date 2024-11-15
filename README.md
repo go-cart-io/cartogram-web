@@ -15,7 +15,7 @@ For local development, and updating the docker image, please run
 bash tools/pull-executable.sh
 ```
 
-before following the [Linux](docs/setup-ubuntu.md) or [Mac OS X](docs/setup-osx.md) setup guide to get your local python environment up and running. Please note that the guide may not up-to-date, so reach out to a team member if you can!
+before following the [Linux](docs/setup-linux.md) or [macOS](docs/setup-macos.md) setup guide to get your local python environment up and running. Please note that the guide may not up-to-date, so reach out to a team member if you can!
 
 To update the cartogram-cpp binary, use the `--latest` flag with the previous command like so:
 
