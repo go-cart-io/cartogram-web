@@ -1,11 +1,7 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
-import type { DataTable } from '../lib/interface'
 import type { MapHandlers } from '../../common/lib/interface'
 import CMenuSelectMap from './CMenuSelectMap.vue'
 import CMenuSelectVersion from '../../common/components/CMenuSelectVersion.vue'
-import CMenuBtnUpload from './CMenuBtnUpload.vue'
-import CMenuBtnEdit from './CMenuBtnEdit.vue'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
@@ -22,17 +18,8 @@ const props = withDefaults(
 
 const emit = defineEmits(['map_changed', 'version_changed', 'loading_progress', 'confirm_data'])
 
-const state = reactive({
-  csvdata: [] as any
-})
-
 function onMapChanged(data: any) {
-  state.csvdata = data
   emit('map_changed', data)
-}
-
-function confirmData(data: DataTable) {
-  emit('confirm_data', data)
 }
 </script>
 
