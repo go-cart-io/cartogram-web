@@ -72,7 +72,7 @@ function reset() {
     { label: 'Color', name: 'Color', type: 'color', editable: true, show: false },
     { label: 'ColorGroup', name: 'ColorGroup', type: 'number', editable: false, show: false },
     { label: 'Inset', name: 'Inset', type: 'select', options: config.OPTIONS_INSET, editable: true, show: false },
-    { label: 'Land Area (sq.km.)', name: 'Land Area', unit: 'sq.km.', type: 'text', editable: true, editableHead: true, show: true }
+    { label: 'Land Area', name: 'Land Area', unit: 'sq.km.', type: 'text', editable: true, editableHead: true, show: true }
   ]
 }
 
@@ -89,9 +89,13 @@ function initDataTableWGeojson(handler: string, geojsonData: FeatureCollection, 
   // Transform geojson to data fields
   var geoProperties = util.propertiesToArray(geojsonData)
   if (geoProperties.length === 0) return
+
+  if (!Object.keys(geoProperties[0]).some(key => key.startsWith('Population')))
+    geoProperties = util.addKeyInArray(geoProperties, 'Population (people)', 0)
+
+  const areaKey = Object.keys(geoProperties[0]).find(key => key.startsWith('Land Area'))
+  if (areaKey) geoProperties = util.renameKeyInArray(geoProperties, areaKey, 'Land Area')
   geoProperties = util.renameKeyInArray(geoProperties, state.geojsonRegionCol, 'Region')
-  geoProperties = util.addKeyInArray(geoProperties, 'Land Area (sq.km.)', null)
-  geoProperties = util.addKeyInArray(geoProperties, 'Population (people)', 0)
   geoProperties = util.arrangeKeysInArray(geoProperties, [...config.RESERVE_FIELDS, 'Population (people)'])
 
   initDataTableWArray(geoProperties)
@@ -124,9 +128,16 @@ async function initDataTableWArray(data: KeyValueArray, isReplace = true) {
 function updateDataTable(csvData: KeyValueArray) {
   if (csvData.length === 0) return
 
+  const areaKey = Object.keys(csvData[0]).find(key => key.startsWith('Land Area'))
+  if (areaKey) {
+    var [fieldname, unit] = util.getNameUnit(areaKey)
+    state.dataTable.fields[config.COL_AREA].unit = unit
+    csvData = util.renameKeyInArray(csvData, areaKey, 'Land Area')
+  }
+
   state.dataTable.items = util.filterKeyValueInArray(state.dataTable.items, config.RESERVE_FIELDS, null)
   state.dataTable.fields.splice(config.NUM_RESERVED_FILEDS)
-  state.dataTable.fields[config.COL_AREA].show = Object.keys(csvData[0]).some(key => key.startsWith('Land Area'))
+  state.dataTable.fields[config.COL_AREA].show = csvData[0].hasOwnProperty("Land Area")
   state.dataTable.fields[config.COL_COLOR].show = csvData[0].hasOwnProperty("Color")
   state.dataTable.fields[config.COL_INSET].show = csvData[0].hasOwnProperty("Inset")
   initDataTableWArray(csvData, false)

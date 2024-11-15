@@ -6,7 +6,7 @@ export const RESERVE_FIELDS = [
   'cartogram_id',
   'ColorGroup',
   'label',
-  'Land Area (sq.km.)'
+  'Land Area'
 ]
 export const NUM_RESERVED_FILEDS = 6
 export const COL_COLOR = 2

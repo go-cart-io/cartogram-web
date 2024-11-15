@@ -40,8 +40,10 @@ def preprocess(file):
     # The map is not projected so project it
     if minx >= -180.0 and maxx <= 180.0 and miny >= -90.0 and maxy <= 90.0:
         gdf = gdf.to_crs("epsg:6933")
+        
+    if not any(gdf.columns.str.startswith('Land Area')):
         gdf['Land Area (sq.km.)'] = gdf.area
-    
+
     gdf['ColorGroup'] = mapclassify.greedy(gdf, min_colors=6)
     gdf['cartogram_id'] = range(1, len(gdf) + 1)
     gdf['label'] = gdf.geometry.apply(get_representative_point)

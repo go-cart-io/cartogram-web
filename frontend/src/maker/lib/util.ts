@@ -97,10 +97,10 @@ export function tableToArray(dataTable: DataTable): KeyValueArray {
     data[i] = {}
     for (var j = 0; j < dataTable.fields.length; j++) {
       if (dataTable.fields[j].show) {
-        let label = dataTable.fields[j].unit
+        let newLabel = dataTable.fields[j].unit
           ? dataTable.fields[j].name + ' (' + dataTable.fields[j].unit + ')'
           : dataTable.fields[j].name
-        data[i][label] = dataTable.items[i][label]
+        data[i][newLabel] = dataTable.items[i][dataTable.fields[j].label]
       }
     }
   }
