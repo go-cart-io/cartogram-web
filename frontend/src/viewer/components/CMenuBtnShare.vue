@@ -38,7 +38,7 @@ function access() {
 <template>
   <!-- Button trigger modal -->
   <button
-    class="btn btn-primary mx-1"
+    class="btn btn-primary me-2"
     data-bs-toggle="modal"
     data-bs-target="#shareModal"
     title="Share cartogram"

@@ -11,7 +11,6 @@ import * as util from '../lib/util'
 import CTouchVis from './CTouchVis.vue'
 import CPanelLegend from './CPanelLegend.vue'
 import CPanelModalDownload from './CPanelModalDownload.vue'
-import CPanelBtnShare from './CPanelBtnShare.vue'
 
 let touchInfo = new TouchInfo()
 var pointerangle: number | boolean, // (A)
@@ -378,10 +377,6 @@ function highlight(item: { mapID: string; highlightID: string }) {
             >
               <i class="fas fa-download"></i>
             </button>
-            <c-panel-btn-share
-              v-bind:stringKey="props.stringKey"
-              v-bind:currentMapName="props.currentMapName"
-            />
           </span>
         </div>
       </div>
