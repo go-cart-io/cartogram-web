@@ -10,7 +10,7 @@ import TouchInfo from '../lib/touchInfo'
 import * as util from '../lib/util'
 import CTouchVis from './CTouchVis.vue'
 import CPanelLegend from './CPanelLegend.vue'
-import CPanelModalDownload from './CPanelModalDownload.vue'
+import CPanelBtnDownload from './CPanelBtnDownload.vue'
 
 let touchInfo = new TouchInfo()
 var pointerangle: number | boolean, // (A)
@@ -282,7 +282,7 @@ function highlight(item: { mapID: string; highlightID: string }) {
         >
         </c-panel-legend>
         <div class="position-absolute end-0" style="width: 2.5rem">
-          <c-panel-modal-download
+          <c-panel-btn-download
             v-bind:current-map-name="props.currentMapName"
             v-bind:string-key="props.stringKey"
             v-bind:versions="props.versions"
@@ -344,7 +344,7 @@ function highlight(item: { mapID: string; highlightID: string }) {
           >
             <i class="fas fa-crosshairs"></i>
           </button>
-          <c-panel-modal-download
+          <c-panel-btn-download
             v-bind:current-map-name="props.currentMapName"
             v-bind:string-key="props.stringKey"
             v-bind:versions="props.versions"
