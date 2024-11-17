@@ -2,7 +2,7 @@
 import type { MapHandlers } from '../../common/interface'
 import CMenuSelectMap from './CMenuSelectMap.vue'
 import CMenuSelectVersion from './CMenuSelectVersion.vue'
-import CPanelBtnShare from './CMenuBtnShare.vue'
+import CMenuBtnShare from './CMenuBtnShare.vue'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
@@ -59,9 +59,9 @@ function onMapChanged(data: any) {
           <i class="far fa-edit"></i>
         </a>
 
-        <c-panel-btn-share
-          v-bind:stringKey="store.stringKey"
+        <c-menu-btn-share
           v-bind:currentMapName="store.currentMapName"
+          v-bind:stringKey="store.stringKey"
         />
 
         <div class="dropdown me-2">

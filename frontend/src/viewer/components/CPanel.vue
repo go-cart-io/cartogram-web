@@ -20,11 +20,9 @@ var lastTouch = 0
 var currentHighlight: string | null = null
 const DELAY_THRESHOLD = 300
 const SUPPORT_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints
-const DATA_COL = 3
 
 const mapLegendEl = ref()
 const cartogramLegendEl = ref()
-const modalDownloadEl = ref()
 
 const props = withDefaults(
   defineProps<{
@@ -274,7 +272,7 @@ function highlight(item: { mapID: string; highlightID: string }) {
       <div class="d-flex flex-column card-body">
         <c-panel-legend
           ref="mapLegendEl"
-          mapID="map-area"
+          mapID="c-area0"
           v-bind:currentMapName="props.currentMapName"
           v-bind:stringKey="props.stringKey"
           v-bind:versionKey="Object.keys(props.versions)[0]"
@@ -283,28 +281,19 @@ function highlight(item: { mapID: string; highlightID: string }) {
           v-on:highlight="highlight"
         >
         </c-panel-legend>
+        <div class="position-absolute end-0" style="width: 2.5rem">
+          <c-panel-modal-download
+            v-bind:current-map-name="props.currentMapName"
+            v-bind:string-key="props.stringKey"
+            v-bind:versions="props.versions"
+            v-bind:version-key="Object.keys(props.versions)[0]"
+            mapID="c-area0"
+          />
+        </div>
       </div>
 
       <div class="card-footer d-flex justify-content-between">
         <div class="text-nowrap overflow-hidden">Equal-Area Map</div>
-        <div class="text-nowrap">
-          <button
-            v-if="mode !== 'embed'"
-            class="btn btn-primary mx-1"
-            id="map-download"
-            v-on:click="
-              modalDownloadEl.generateSVGDownloadLinks(
-                'map-area',
-                JSON.stringify(mapLegendEl.getData('geo_1'))
-              )
-            "
-            data-bs-toggle="modal"
-            data-bs-target="#downloadModal"
-            title="Download map"
-          >
-            <i class="fas fa-download"></i>
-          </button>
-        </div>
       </div>
     </div>
 
@@ -312,7 +301,7 @@ function highlight(item: { mapID: string; highlightID: string }) {
       <div class="d-flex flex-column card-body">
         <c-panel-legend
           ref="cartogramLegendEl"
-          mapID="cartogram-area"
+          mapID="c-area1"
           v-bind:currentMapName="props.currentMapName"
           v-bind:stringKey="props.stringKey"
           v-bind:versionKey="props.currentVersionKey"
@@ -355,34 +344,20 @@ function highlight(item: { mapID: string; highlightID: string }) {
           >
             <i class="fas fa-crosshairs"></i>
           </button>
+          <c-panel-modal-download
+            v-bind:current-map-name="props.currentMapName"
+            v-bind:string-key="props.stringKey"
+            v-bind:versions="props.versions"
+            v-bind:version-key="props.currentVersionKey"
+            mapID="c-area1"
+          />
         </div>
       </div>
 
       <div class="card-footer d-flex justify-content-between">
         <div class="d-none d-sm-block text-nowrap overflow-hidden">Cartogram</div>
-        <div class="text-nowrap">
-          <span v-if="mode !== 'embed'">
-            <button
-              class="btn btn-primary mx-1"
-              id="cartogram-download"
-              v-on:click="
-                modalDownloadEl.generateSVGDownloadLinks(
-                  'cartogram-area',
-                  JSON.stringify(cartogramLegendEl.getData('geo_1'))
-                )
-              "
-              data-bs-toggle="modal"
-              data-bs-target="#downloadModal"
-              title="Download cartogram"
-            >
-              <i class="fas fa-download"></i>
-            </button>
-          </span>
-        </div>
       </div>
     </div>
-
-    <c-panel-modal-download ref="modalDownloadEl" />
   </div>
 </template>
 

@@ -3,7 +3,7 @@ import * as d3 from 'd3'
 import { onMounted } from 'vue'
 
 import { RESERVE_FIELDS } from '../../common/config'
-import type { MapHandlers } from '../../common/lib/interface'
+import type { MapHandlers } from '../../common/interface'
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
