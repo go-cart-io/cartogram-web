@@ -136,6 +136,7 @@ def create_app():
         if type == 'map':
             handler = name_or_key
             csv_url = f'/static/cartdata/{handler}/data.csv'
+            title = name_or_key
 
         elif type == 'key':
             if not settings.USE_DATABASE:
@@ -147,6 +148,7 @@ def create_app():
 
             handler = cartogram_entry.handler
             csv_url = f'/static/userdata/{name_or_key}/data.csv'
+            title = cartogram_entry.title
 
         else:
             return Response('Not found', status=404)
@@ -156,7 +158,7 @@ def create_app():
         return render_template('maker.html', page_active='maker', 
                 maps=cartogram_handler.get_sorted_handler_names(),
                 map_name=handler, geo_url=geo_url, csv_url=csv_url,
-                map_title=cartogram_entry.title,
+                map_title=title,
                 tracking=tracking.determine_tracking_action(request))
     
     @app.route('/api/v1/cartogram/preprocess', methods=['POST'])
