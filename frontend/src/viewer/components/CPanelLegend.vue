@@ -14,6 +14,9 @@ import * as util from '../lib/util'
 
 import spec from '../../assets/template.vg.json' with { type: "json" }
 
+import { useCartogramStore } from '../stores/cartogram'
+const store = useCartogramStore()
+
 var numGridOptions = 3
 const locale =
   navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language
@@ -28,21 +31,17 @@ var totalValue: number
 const props = withDefaults(
   defineProps<{
     panelID: string
-    currentMapName: string
     stringKey: string
     versionKey: string
-    versions: { [key: string]: any }
-    showGrid?: boolean
     affineScale?: any
   }>(),
   {
-    showGrid: true,
     affineScale: [1, 1]
   }
 )
 
 const state = reactive({
-  version: props.versions[props.versionKey],
+  version: store.versions[props.versionKey],
   legendUnit: '' as string,
   legendTotal: '' as string,
 
@@ -63,17 +62,30 @@ defineExpose({
   updateView: resizeViewWidth,
   getData,
   getCurrentScale,
-  updateGridIndex,
-  highlight
+  updateGridIndex
 })
 
-const emit = defineEmits(['gridChanged', 'versionUpdated', 'highlight'])
+const emit = defineEmits(['gridChanged', 'versionUpdated'])
 
 watch(
   () => props.versionKey,
   (type, prevType) => {
-    state.version = props.versions[props.versionKey]
+    state.version = store.versions[props.versionKey]
     switchVersion()
+  }
+)
+
+watch(
+  () => store.highlightedRegionID,
+  (id, prevID) => {
+    highlight(id)
+  }
+)
+
+watch(
+  () => store.options.numberOfPanels,
+  (id, prevID) => {
+    resizeViewWidth()
   }
 )
 
@@ -88,10 +100,10 @@ watch(
 onMounted(async () => {
   if (!state.version) return
 
-  versionSpec.data[0].url = util.getGeojsonURL(props.currentMapName, props.stringKey, 'data.csv')
-  versionSpec.data[1].url = util.getGeojsonURL(props.currentMapName, props.stringKey, state.version.name + '.json')
+  versionSpec.data[0].url = util.getGeojsonURL(store.currentMapName, props.stringKey, 'data.csv')
+  versionSpec.data[1].url = util.getGeojsonURL(store.currentMapName, props.stringKey, state.version.name + '.json')
 
-  if (props.currentMapName === "world" && state.version.name === 'Land Area') {
+  if (store.currentMapName === "world" && state.version.name === 'Land Area') {
     // Gall–Peters projection
     vega.projection('cylindricalEqualArea', geoCylindricalEqualArea)
     versionSpec.projections[0].type = "cylindricalEqualArea"
@@ -114,14 +126,14 @@ onMounted(async () => {
   })
 
   visView.addSignalListener('active', function(name: string, value: any) {
-    emit('highlight', { 'mapID': props.panelID, 'highlightID': value })
+    store.highlightedRegionID = value
   })
 
   update()
 })
 
 async function switchVersion() {
-  versionSpec.data[1].url = util.getGeojsonURL(props.currentMapName, props.stringKey, state.version.name + '.json')
+  versionSpec.data[1].url = util.getGeojsonURL(store.currentMapName, props.stringKey, state.version.name + '.json')
 
   var transitions = 0
   let container = await embed('#' + props.panelID + '-offscreen', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
@@ -286,7 +298,7 @@ function drawGridLines() {
 
 function updateGridLines(gridWidth: number) {
   if (isNaN(gridWidth)) return
-  let stroke_opacity = props.showGrid ? defaultOpacity : 0
+  let stroke_opacity = store.options.showGrid ? defaultOpacity : 0
   const gridPattern = d3.select('#' + props.panelID + '-grid')
   gridPattern
     .select('path')
@@ -385,7 +397,7 @@ function highlight(itemID: any) {
           </pattern>
         </defs>
         <rect
-          v-if="props.showGrid"
+          v-if="store.options.showGrid"
           width="100%"
           height="100%"
           v-bind:fill="'url(#' + props.panelID + '-grid)'"

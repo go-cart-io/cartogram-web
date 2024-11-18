@@ -3,23 +3,24 @@ import { computed } from 'vue'
 import * as util from '../lib/util'
 import CTextCitation from './CTextCitation.vue'
 
+import { useCartogramStore } from '../stores/cartogram'
+const store = useCartogramStore()
+
 const props = defineProps<{
-  currentMapName: string
   stringKey: string
-  versions: { [key: string]: any }
   versionKey: string
-  mapID: string
+  panelID: string
 }>()
 
 const version = computed(() => {
-  return props.versions[props.versionKey]
+  return store.versions[props.versionKey]
 })
 
 const geolink = computed(() => {
   return util.getGeojsonURL(
-    props.currentMapName,
+    store.currentMapName,
     props.stringKey,
-    props.versions[props.versionKey].name + '.json'
+    store.versions[props.versionKey].name + '.json'
   )
 })
 
@@ -32,17 +33,17 @@ function downloadSVG() {
   var svg_header = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'
 
   let mapAreaSVG = document
-    .getElementById(props.mapID + '-vis')!
+    .getElementById(props.panelID + '-vis')!
     .querySelector('svg')!
     .cloneNode(true) as SVGSVGElement
 
   // Add SVG xml namespace to SVG element, so that the file can be opened with any web browser.
   mapAreaSVG.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
 
-  let legendSVG = document.getElementById(props.mapID + '-legend')!.cloneNode(true) as HTMLElement
+  let legendSVG = document.getElementById(props.panelID + '-legend')!.cloneNode(true) as HTMLElement
   mapAreaSVG.appendChild(legendSVG)
 
-  let legendNumber = document.getElementById(props.mapID + '-legend-num')!.textContent || ''
+  let legendNumber = document.getElementById(props.panelID + '-legend-num')!.textContent || ''
   let legendNumberSVG = document.createElement('text')
   let legendNumberX = 2 + parseFloat(legendSVG.getAttribute('width')!)
   legendNumberSVG.innerHTML = legendNumber
@@ -51,13 +52,13 @@ function downloadSVG() {
   legendNumberSVG.setAttribute('x', legendNumberX.toString())
   legendNumberSVG.setAttribute('y', '20')
   mapAreaSVG.appendChild(legendNumberSVG)
-  mapAreaSVG.appendChild(document.getElementById(props.mapID + '-grid-area')!.cloneNode(true))
+  mapAreaSVG.appendChild(document.getElementById(props.panelID + '-grid-area')!.cloneNode(true))
 
   const a = document.createElement('a')
   a.href =
     'data:image/svg+xml;base64,' +
     window.btoa(svg_header + mapAreaSVG.outerHTML.replace(/×/g, '&#xD7;'))
-  a.download = props.versions[props.versionKey].name + '.svg'
+  a.download = store.versions[props.versionKey].name + '.svg'
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)

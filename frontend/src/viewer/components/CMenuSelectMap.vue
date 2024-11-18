@@ -11,6 +11,7 @@ const props = defineProps<{
   isEmbed: boolean
   maps: MapHandlers | null
   mapTitle?: string
+  mapDBKey?: string
 }>()
 
 const emit = defineEmits(['map_changed'])
@@ -26,8 +27,8 @@ onMounted(async () => {
 async function switchMap() {
   var url = mapDataURL
     ? mapDataURL
-    : store.stringKey
-    ? '/static/userdata/' + store.stringKey + '/data.csv'
+    : props.mapDBKey
+    ? '/static/userdata/' + props.mapDBKey + '/data.csv'
     : '/static/cartdata/' + store.currentMapName + '/data.csv'
 
   let csvdata = await d3.csv(url)
@@ -46,14 +47,14 @@ async function switchMap() {
     }
   }
 
-  emit('map_changed', csvdata)
+  emit('map_changed')
 }
 </script>
 
 <template>
-  <div v-if="!props.isEmbed" class="d-flex p-2" style="max-width: 30%">
+  <div v-if="!props.isEmbed" class="d-flex p-2">
     <select
-      v-if="!store.stringKey"
+      v-if="!props.mapDBKey"
       class="form-select"
       v-model="store.currentMapName"
       v-on:change="switchMap"

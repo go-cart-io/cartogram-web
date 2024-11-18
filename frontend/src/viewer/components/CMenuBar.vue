@@ -11,6 +11,7 @@ const props = withDefaults(
     isEmbed: boolean
     maps: MapHandlers
     mapTitle?: string
+    mapDBKey?: string
   }>(),
   {
     isEmbed: false
@@ -26,14 +27,15 @@ function onMapChanged(data: any) {
 
 <template>
   <nav class="navbar bg-light p-0">
-    <div class="w-100 mw-100 d-flex align-items-start">
+    <div class="w-100 mw-100 d-flex justify-content-between">
       <div class="p-2" v-if="props.isEmbed">
         <img src="/static/img/gocart_final.svg" width="80" alt="go-cart.io logo" />
       </div>
 
       <c-menu-select-map
         v-bind:maps="props.maps"
-        v-bind:map-title="props.mapTitle"
+        v-bind:mapTitle="props.mapTitle"
+        v-bind:mapDBKey="props.mapDBKey"
         v-bind:isEmbed="props.isEmbed"
         v-on:map_changed="onMapChanged"
       />
@@ -44,18 +46,15 @@ function onMapChanged(data: any) {
           class="btn btn-primary me-2"
           title="Edit"
           v-bind:href="
-            store.stringKey
-              ? '/cartogram/edit/key/' + store.stringKey
+            props.mapDBKey
+              ? '/cartogram/edit/key/' + props.mapDBKey
               : '/cartogram/edit/map/' + store.currentMapName
           "
         >
           <i class="far fa-edit"></i>
         </a>
 
-        <c-menu-btn-share
-          v-bind:currentMapName="store.currentMapName"
-          v-bind:stringKey="store.stringKey"
-        />
+        <c-menu-btn-share v-bind:stringKey="props.mapDBKey" />
 
         <div class="dropdown me-2">
           <button
@@ -67,26 +66,30 @@ function onMapChanged(data: any) {
           >
             <i class="fas fa-cog"></i>
           </button>
-          <div class="dropdown-menu dropdown-menu-end p-2 container" style="width: 220px">
+          <div class="dropdown-menu dropdown-menu-end p-2 container" style="width: 250px">
             <div class="row">
-              <div class="col-auto">
+              <div class="col-8">
                 <label class="form-check-label" for="gridline-toggle-cartogram"
                   >Show grid lines</label
                 >
               </div>
-              <div class="col text-end">
+              <div class="col-4 text-end">
                 <input type="checkbox" class="form-check-input" v-model="store.options.showGrid" />
               </div>
             </div>
 
             <div class="row">
-              <div class="col-auto">
+              <div class="col-8">
                 <label class="form-check-label" for="gridline-toggle-cartogram"
-                  >Show base map</label
+                  >Number of panels</label
                 >
               </div>
-              <div class="col text-end">
-                <input type="checkbox" class="form-check-input" v-model="store.options.showBase" />
+              <div class="col-4 text-end">
+                <select class="form-select" v-model="store.options.numberOfPanels">
+                  <option v-for="number in [1, 2, 3, 4, 5]" :key="number" :value="number">
+                    {{ number }}
+                  </option>
+                </select>
               </div>
             </div>
           </div>
@@ -95,14 +98,3 @@ function onMapChanged(data: any) {
     </div>
   </nav>
 </template>
-
-<style scoped>
-button.version {
-  min-width: 0;
-  padding: 0.4rem 1px;
-  margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-</style>

@@ -16,20 +16,17 @@ const props = defineProps<{
   maps: MapHandlers
   mapName?: string
   mapTitle?: string
-  mapDataKey?: string
+  mapDBKey?: string
   mode?: string
 }>()
 
 const state = reactive({
   mapkey: -1,
-  numberOfPanels: 2,
-  versionKeys: [] as Array<string>,
-  highlightedRegionID: null as string | null
+  versionKeys: [] as Array<string>
 })
 
 onBeforeMount(() => {
   store.currentMapName = props.mapName ? props.mapName : ''
-  store.stringKey = props.mapDataKey ? props.mapDataKey : ''
 })
 
 /**
@@ -46,7 +43,8 @@ async function switchMap() {
   <c-menu-bar
     v-bind:isEmbed="props.mode === 'embed'"
     v-bind:maps="props.maps"
-    v-bind:map-title="props.mapTitle"
+    v-bind:mapTitle="props.mapTitle"
+    v-bind:mapDBKey="props.mapDBKey"
     v-on:map_changed="switchMap"
   ></c-menu-bar>
 
@@ -57,17 +55,12 @@ async function switchMap() {
     v-bind:key="state.mapkey"
   >
     <c-panel
-      v-for="index in state.numberOfPanels"
+      v-for="index in store.options.numberOfPanels"
       v-bind:panelID="'c-area' + index.toString()"
-      v-bind:currentMapName="store.currentMapName"
       v-bind:defaultVersionKey="
         index === 1 ? state.versionKeys[0] : state.versionKeys[state.versionKeys.length - 1]
       "
-      v-bind:versions="store.versions"
-      v-bind:stringKey="store.stringKey"
-      v-bind:highlightedRegionID="state.highlightedRegionID"
-      v-bind:showGrid="store.options.showGrid"
-      v-on:highlight="(item) => (state.highlightedRegionID = item.highlightID)"
+      v-bind:stringKey="props.mapDBKey"
     />
   </div>
 </template>

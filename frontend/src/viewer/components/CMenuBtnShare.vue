@@ -3,16 +3,18 @@ import { computed, reactive, ref } from 'vue'
 import * as util from '../lib/util'
 import CTextCitation from './CTextCitation.vue'
 
+import { useCartogramStore } from '../stores/cartogram'
+const store = useCartogramStore()
+
 const props = defineProps<{
   stringKey?: string
-  currentMapName: string
 }>()
 
 const socialURL = computed(() => {
   if (props.stringKey && props.stringKey !== '')
     return location.protocol + '//' + location.host + '/cartogram/key/' + props.stringKey
 
-  return location.protocol + '//' + location.host + '/cartogram/map/' + props.currentMapName
+  return location.protocol + '//' + location.host + '/cartogram/map/' + store.currentMapName
 })
 
 const socialURLEncoded = computed(() => {

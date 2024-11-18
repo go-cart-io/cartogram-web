@@ -13,7 +13,7 @@ if (document.getElementById('cartogram-app')) {
     maps,
     mapName,
     mapTitle,
-    mapDataKey,
+    mapDBKey,
     mode
   })
   app.use(createPinia())

@@ -27,16 +27,11 @@ const legendEl = ref()
 const props = withDefaults(
   defineProps<{
     panelID: string
-    currentMapName: string
     defaultVersionKey: string
-    versions: { [key: string]: any }
-    highlightedRegionID?: string | number | null
     stringKey?: string
-    showGrid?: boolean
   }>(),
   {
-    stringKey: '',
-    showGrid: true
+    stringKey: ''
   }
 )
 
@@ -50,16 +45,6 @@ const state = reactive({
   affineMatrix: util.getOriginalMatrix(),
   affineScale: [1, 1] // Keep track of scale for scaling grid easily
 })
-
-const emit = defineEmits(['highlight'])
-
-watch(
-  () => props.highlightedRegionID,
-  (id, prevID) => {
-    nextTick()
-    legendEl.value.highlight(id)
-  }
-)
 
 // https://observablehq.com/@d3/multitouch
 function onTouchstart(event: any) {
@@ -266,11 +251,8 @@ function snapToBetterNumber() {
       <c-panel-legend
         ref="legendEl"
         v-bind:panelID="props.panelID"
-        v-bind:currentMapName="props.currentMapName"
         v-bind:stringKey="props.stringKey"
         v-bind:versionKey="state.versionKey"
-        v-bind:versions="props.versions"
-        v-bind:showGrid="props.showGrid"
         v-bind:affineScale="state.affineScale"
         v-on:gridChanged="snapToBetterNumber"
         v-bind:style="{ cursor: state.cursor }"
@@ -282,7 +264,6 @@ function snapToBetterNumber() {
         v-on:touchend="onTouchend"
         v-on:wheel="onWheel"
         v-on:versionUpdated="transformVersion(state.affineMatrix, util.getOriginalMatrix())"
-        v-on:highlight="(item) => emit('highlight', item)"
       >
         <img class="position-absolute bottom-0 end-0 z-3" src="/static/img/by.svg" alt="cc-by" />
       </c-panel-legend>
@@ -314,16 +295,13 @@ function snapToBetterNumber() {
 
     <div class="card-footer d-flex justify-content-between">
       <c-menu-select-version
-        v-bind:versions="props.versions"
         v-bind:currentVersionName="state.versionKey"
         v-on:version_changed="(version) => (state.versionKey = version)"
       />
       <c-panel-btn-download
-        v-bind:current-map-name="props.currentMapName"
         v-bind:string-key="props.stringKey"
-        v-bind:versions="props.versions"
         v-bind:version-key="state.versionKey"
-        v-bind:mapID="props.panelID"
+        v-bind:panelID="props.panelID"
       />
     </div>
   </div>
