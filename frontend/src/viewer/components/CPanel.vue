@@ -10,7 +10,7 @@ import TouchInfo from '../lib/touchInfo'
 import * as util from '../lib/util'
 import CTouchVis from './CTouchVis.vue'
 import CPanelLegend from './CPanelLegend.vue'
-import CMenuSelectVersion from './CMenuSelectVersion.vue'
+import CPanelSelectVersion from './CPanelSelectVersion.vue'
 import CPanelBtnDownload from './CPanelBtnDownload.vue'
 
 let touchInfo = new TouchInfo()
@@ -294,7 +294,7 @@ function snapToBetterNumber() {
     </div>
 
     <div class="card-footer d-flex justify-content-between">
-      <c-menu-select-version
+      <c-panel-select-version
         v-bind:currentVersionName="state.versionKey"
         v-on:version_changed="(version) => (state.versionKey = version)"
       />
