@@ -59,10 +59,7 @@ const state = reactive({
 })
 
 defineExpose({
-  updateView: resizeViewWidth,
-  getData,
-  getCurrentScale,
-  updateGridIndex
+  getCurrentScale
 })
 
 const emit = defineEmits(['gridChanged', 'versionUpdated'])
@@ -111,7 +108,6 @@ onMounted(async () => {
     versionSpec.projections[0].parallel = 45
   }
 
-  // TODO: move this to switch version?
   visEl = d3.select('#' + props.panelID + '-vis')
   offscreenEl = d3.select('#' + props.panelID + '-offscreen')
   let container = await embed('#' + props.panelID + '-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
@@ -225,10 +221,6 @@ function getLegendData() {
   state.scalePowerOf10 = scalePowerOf10
 }
 
-function getData(dataname: string): any {
-  return visView.data(dataname)
-}
-
 function getCurrentScale() {
   return (
     state.gridData[state.currentGridIndex].scaleNiceNumber /
@@ -316,12 +308,6 @@ function updateGridLines(gridWidth: number) {
     gridPattern.attr('width', gridWidth).attr('height', gridWidth)
   }
   state.handlePosition = gridWidth
-}
-
-function updateGridIndex(change: number) {
-  var newIndex = state.currentGridIndex + change
-  if (newIndex < 0 || newIndex > numGridOptions) return
-  changeTo(newIndex)
 }
 
 function highlight(itemID: any) {
