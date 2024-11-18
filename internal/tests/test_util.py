@@ -21,7 +21,7 @@ testdata = {
             "5":["WEST REGION","WR","#66a61e",201.0,922540.0]
         }
     },
-    "stringKey": time.time(),
+    "mapDBKey": time.time(),
     "persist": "true"
 }
 

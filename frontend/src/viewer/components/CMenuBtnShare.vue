@@ -7,12 +7,12 @@ import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
 const props = defineProps<{
-  stringKey?: string
+  mapDBKey?: string
 }>()
 
 const socialURL = computed(() => {
-  if (props.stringKey && props.stringKey !== '')
-    return location.protocol + '//' + location.host + '/cartogram/key/' + props.stringKey
+  if (props.mapDBKey && props.mapDBKey !== '')
+    return location.protocol + '//' + location.host + '/cartogram/key/' + props.mapDBKey
 
   return location.protocol + '//' + location.host + '/cartogram/map/' + store.currentMapName
 })

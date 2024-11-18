@@ -28,10 +28,10 @@ const props = withDefaults(
   defineProps<{
     panelID: string
     defaultVersionKey: string
-    stringKey?: string
+    mapDBKey?: string
   }>(),
   {
-    stringKey: ''
+    mapDBKey: ''
   }
 )
 
@@ -251,7 +251,7 @@ function snapToBetterNumber() {
       <c-panel-legend
         ref="legendEl"
         v-bind:panelID="props.panelID"
-        v-bind:stringKey="props.stringKey"
+        v-bind:mapDBKey="props.mapDBKey"
         v-bind:versionKey="state.versionKey"
         v-bind:affineScale="state.affineScale"
         v-on:gridChanged="snapToBetterNumber"
@@ -299,8 +299,8 @@ function snapToBetterNumber() {
         v-on:version_changed="(version) => (state.versionKey = version)"
       />
       <c-panel-btn-download
-        v-bind:string-key="props.stringKey"
-        v-bind:version-key="state.versionKey"
+        v-bind:mapDBKey="props.mapDBKey"
+        v-bind:versionKey="state.versionKey"
         v-bind:panelID="props.panelID"
       />
     </div>

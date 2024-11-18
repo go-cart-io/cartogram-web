@@ -31,7 +31,7 @@ var totalValue: number
 const props = withDefaults(
   defineProps<{
     panelID: string
-    stringKey: string
+    mapDBKey: string
     versionKey: string
     affineScale?: any
   }>(),
@@ -100,8 +100,8 @@ watch(
 onMounted(async () => {
   if (!state.version) return
 
-  versionSpec.data[0].url = util.getGeojsonURL(store.currentMapName, props.stringKey, 'data.csv')
-  versionSpec.data[1].url = util.getGeojsonURL(store.currentMapName, props.stringKey, state.version.name + '.json')
+  versionSpec.data[0].url = util.getGeojsonURL(store.currentMapName, props.mapDBKey, 'data.csv')
+  versionSpec.data[1].url = util.getGeojsonURL(store.currentMapName, props.mapDBKey, state.version.name + '.json')
 
   if (store.currentMapName === "world" && state.version.name === 'Land Area') {
     // Gall–Peters projection
@@ -133,7 +133,7 @@ onMounted(async () => {
 })
 
 async function switchVersion() {
-  versionSpec.data[1].url = util.getGeojsonURL(store.currentMapName, props.stringKey, state.version.name + '.json')
+  versionSpec.data[1].url = util.getGeojsonURL(store.currentMapName, props.mapDBKey, state.version.name + '.json')
 
   var transitions = 0
   let container = await embed('#' + props.panelID + '-offscreen', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })

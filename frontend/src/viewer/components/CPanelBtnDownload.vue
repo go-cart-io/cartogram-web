@@ -7,7 +7,7 @@ import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
 const props = defineProps<{
-  stringKey: string
+  mapDBKey: string
   versionKey: string
   panelID: string
 }>()
@@ -19,7 +19,7 @@ const version = computed(() => {
 const geolink = computed(() => {
   return util.getGeojsonURL(
     store.currentMapName,
-    props.stringKey,
+    props.mapDBKey,
     store.versions[props.versionKey].name + '.json'
   )
 })

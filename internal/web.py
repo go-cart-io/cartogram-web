@@ -181,10 +181,10 @@ def create_app():
         if 'handler' not in data or (not cartogram_handler.has_handler(handler) and handler != 'custom'):
             return Response('{"error":"Invalid map."}', status=400, content_type='application/json')
 
-        if 'stringKey' not in data:
+        if 'mapDBKey' not in data:
             return Response('{"error":"Missing sharing key."}', status=404, content_type='application/json')
         
-        string_key = data['stringKey']
+        string_key = data['mapDBKey']
         folder_path = None
         if 'persist' in data:
             folder_path = f"static/userdata/{string_key}"
@@ -202,7 +202,7 @@ def create_app():
             else:
                 string_key = None
 
-            return Response(json.dumps({"stringKey": string_key}), status=200, content_type='application/json')
+            return Response(json.dumps({"mapDBKey": string_key}), status=200, content_type='application/json')
         
         # except (KeyError, csv.Error, ValueError, UnicodeDecodeError):
         #     return Response('{"error":"The data was invalid."}', status=400, content_type='application/json')

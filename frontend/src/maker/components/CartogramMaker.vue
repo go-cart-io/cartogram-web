@@ -159,7 +159,7 @@ async function getGeneratedCartogram() {
     undefined
   var data = util.tableToArray(state.dataTable)
   var csvData = d3.csvFormat(data)
-  var stringKey = util.generateShareKey(32)
+  var mapDBKey = util.generateShareKey(32)
   await new Promise<any>(function (resolve, reject) {
     var req_body =
       'data=' +
@@ -168,7 +168,7 @@ async function getGeneratedCartogram() {
         handler: state.handler,
         csv: csvData,
         geojson: geojsonData,
-        stringKey: stringKey,
+        mapDBKey: mapDBKey,
         persist: true
       })
 
@@ -188,7 +188,7 @@ async function getGeneratedCartogram() {
             console.log(progress.stderr)
           })
         }
-      })(stringKey),
+      })(mapDBKey),
       500
     )
 
@@ -199,7 +199,7 @@ async function getGeneratedCartogram() {
         state.loadingProgress = 100
         window.clearInterval(progressUpdater)
         resolve(response)
-        window.location.href = '/cartogram/key/' + response.stringKey + '/preview'
+        window.location.href = '/cartogram/key/' + response.mapDBKey + '/preview'
       },
       function (error: any) {
         state.loadingProgress = 100

@@ -54,7 +54,7 @@ function onMapChanged(data: any) {
           <i class="far fa-edit"></i>
         </a>
 
-        <c-menu-btn-share v-bind:stringKey="props.mapDBKey" />
+        <c-menu-btn-share v-bind:mapDBKey="props.mapDBKey" />
 
         <div class="dropdown me-2">
           <button

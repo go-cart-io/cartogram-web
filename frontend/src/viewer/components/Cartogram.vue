@@ -60,7 +60,7 @@ async function switchMap() {
       v-bind:defaultVersionKey="
         index === 1 ? state.versionKeys[0] : state.versionKeys[state.versionKeys.length - 1]
       "
-      v-bind:stringKey="props.mapDBKey"
+      v-bind:mapDBKey="props.mapDBKey"
     />
   </div>
 </template>
