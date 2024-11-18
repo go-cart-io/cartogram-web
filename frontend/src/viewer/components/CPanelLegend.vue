@@ -27,7 +27,7 @@ var totalValue: number
 
 const props = withDefaults(
   defineProps<{
-    mapID: string
+    panelID: string
     currentMapName: string
     stringKey: string
     versionKey: string
@@ -59,6 +59,16 @@ const state = reactive({
   scalePowerOf10: 1 as number
 })
 
+defineExpose({
+  updateView: resizeViewWidth,
+  getData,
+  getCurrentScale,
+  updateGridIndex,
+  highlight
+})
+
+const emit = defineEmits(['gridChanged', 'versionUpdated', 'highlight'])
+
 watch(
   () => props.versionKey,
   (type, prevType) => {
@@ -75,16 +85,6 @@ watch(
   { deep: true }
 )
 
-defineExpose({
-  updateView: resizeViewWidth,
-  getData,
-  getCurrentScale,
-  updateGridIndex,
-  highlight
-})
-
-const emit = defineEmits(['gridChanged', 'highlight'])
-
 onMounted(async () => {
   if (!state.version) return
 
@@ -99,9 +99,10 @@ onMounted(async () => {
     versionSpec.projections[0].parallel = 45
   }
 
-  visEl = d3.select('#' + props.mapID + '-vis')
-  offscreenEl = d3.select('#' + props.mapID + '-offscreen')
-  let container = await embed('#' + props.mapID + '-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
+  // TODO: move this to switch version?
+  visEl = d3.select('#' + props.panelID + '-vis')
+  offscreenEl = d3.select('#' + props.panelID + '-offscreen')
+  let container = await embed('#' + props.panelID + '-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
   visView = container.view
   let [area, sum] = util.getTotalAreasAndValuesForVersion(state.version.header, visView.data('geo_1'), visView.data('source_csv'))
   totalArea = area
@@ -113,7 +114,7 @@ onMounted(async () => {
   })
 
   visView.addSignalListener('active', function(name: string, value: any) {
-    emit('highlight', { 'mapID': props.mapID, 'highlightID': value })
+    emit('highlight', { 'mapID': props.panelID, 'highlightID': value })
   })
 
   update()
@@ -122,13 +123,17 @@ onMounted(async () => {
 async function switchVersion() {
   versionSpec.data[1].url = util.getGeojsonURL(props.currentMapName, props.stringKey, state.version.name + '.json')
 
-  let container = await embed('#' + props.mapID + '-offscreen', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
   var transitions = 0
+  let container = await embed('#' + props.panelID + '-offscreen', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
+  let [area, sum] = util.getTotalAreasAndValuesForVersion(state.version.header, container.view.data('geo_1'), container.view.data('source_csv'))
+  totalArea = area
+  totalValue = sum
+  update()
 
   function finalize() {
-    container.view.initialize('#' + props.mapID + '-vis').runAsync()
+    container.view.runAfter(() => emit('versionUpdated'))
+    container.view.initialize('#' + props.panelID + '-vis').runAsync()
     visView = container.view
-    update()
   }
 
   visEl.selectAll('path[aria-roledescription="geoshape"]').each(function (this: any) {
@@ -203,11 +208,8 @@ function getLegendData() {
       scaleNiceNumber: scaleNiceNumber[i]
     }
   }
-  // if (props.isLegendResizable) {
-  //   state.gridDataKeys = [3, 2, 1, 0]
-  // } else {
+
   state.gridDataKeys = [state.currentGridIndex]
-  // }
   state.scalePowerOf10 = scalePowerOf10
 }
 
@@ -229,8 +231,8 @@ async function changeTo(key: number) {
 
   for (let i = 0; i <= numGridOptions; i++) {
     if (i <= key) {
-      d3.select('#' + props.mapID + '-legend' + i + ' rect').attr('fill', '#EEEEEE')
-    } else d3.select('#' + props.mapID + '-legend' + i + ' rect').attr('fill', '#D6D6D6')
+      d3.select('#' + props.panelID + '-legend' + i + ' rect').attr('fill', '#EEEEEE')
+    } else d3.select('#' + props.panelID + '-legend' + i + ' rect').attr('fill', '#D6D6D6')
   }
   formatLegendValue()
   updateGridLines(state.gridData[key].width)
@@ -285,7 +287,7 @@ function drawGridLines() {
 function updateGridLines(gridWidth: number) {
   if (isNaN(gridWidth)) return
   let stroke_opacity = props.showGrid ? defaultOpacity : 0
-  const gridPattern = d3.select('#' + props.mapID + '-grid')
+  const gridPattern = d3.select('#' + props.panelID + '-grid')
   gridPattern
     .select('path')
     .attr('stroke-opacity', stroke_opacity)
@@ -320,7 +322,7 @@ function highlight(itemID: any) {
     <div class="d-flex position-absolute z-1">
       <svg
         v-if="state.gridData[numGridOptions]"
-        v-bind:id="props.mapID + '-slider'"
+        v-bind:id="props.panelID + '-slider'"
         v-bind:width="state.gridData[numGridOptions].width + 15"
         height="30px"
         style="cursor: pointer; top: -15px"
@@ -335,22 +337,22 @@ function highlight(itemID: any) {
         <line
           v-for="grid in state.gridData"
           v-bind:x1="grid.width"
-          y1="10"
+          y1="8"
           v-bind:x2="grid.width"
-          y2="20"
+          y2="16"
         ></line>
         <circle id="handle" r="5" v-bind:cx="state.handlePosition" cy="15" stroke-width="0px" />
       </svg>
       <svg
         v-if="state.gridData[numGridOptions]"
-        v-bind:id="props.mapID + '-legend'"
+        v-bind:id="props.panelID + '-legend'"
         style="cursor: pointer; opacity: 0.5"
         v-bind:width="state.gridData[state.currentGridIndex].width + 2"
         v-bind:height="state.gridData[state.currentGridIndex].width + 2"
       >
         <g
           v-for="key in state.gridDataKeys"
-          v-bind:id="props.mapID + '-legend' + key"
+          v-bind:id="props.panelID + '-legend' + key"
           stroke-width="2px"
           fill="#EEEEEE"
           stroke="#AAAAAA"
@@ -363,22 +365,22 @@ function highlight(itemID: any) {
           ></rect>
         </g>
       </svg>
-      <div v-bind:id="props.mapID + '-legend-num'" class="flex-fill p-1">
+      <div v-bind:id="props.panelID + '-legend-num'" class="flex-fill p-1">
         <span v-html="state.legendUnit"></span>
         {{ state.version?.unit }}
         <div>Total: <span v-html="state.legendTotal"></span></div>
       </div>
     </div>
 
-    <div v-bind:id="props.mapID" class="d-flex flex-fill">
+    <div v-bind:id="props.panelID" class="d-flex flex-fill position-relative">
       <div>
-        <div v-bind:id="props.mapID + '-offscreen'" class="vis-area offscreen"></div>
-        <div v-bind:id="props.mapID + '-vis'" class="vis-area"></div>
+        <div v-bind:id="props.panelID + '-offscreen'" class="vis-area offscreen"></div>
+        <div v-bind:id="props.panelID + '-vis'" class="vis-area"></div>
         <slot></slot>
       </div>
-      <svg width="100%" height="100%" v-bind:id="props.mapID + '-grid-area'">
+      <svg width="100%" height="100%" v-bind:id="props.panelID + '-grid-area'">
         <defs>
-          <pattern v-bind:id="props.mapID + '-grid'" patternUnits="userSpaceOnUse">
+          <pattern v-bind:id="props.panelID + '-grid'" patternUnits="userSpaceOnUse">
             <path fill="none" stroke="#5A5A5A" stroke-width="2" stroke-opacity="0.3"></path>
           </pattern>
         </defs>
@@ -386,7 +388,7 @@ function highlight(itemID: any) {
           v-if="props.showGrid"
           width="100%"
           height="100%"
-          v-bind:fill="'url(#' + props.mapID + '-grid)'"
+          v-bind:fill="'url(#' + props.panelID + '-grid)'"
         ></rect>
       </svg>
     </div>

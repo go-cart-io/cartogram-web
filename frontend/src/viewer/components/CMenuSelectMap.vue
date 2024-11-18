@@ -44,9 +44,7 @@ async function switchMap() {
       name: name,
       unit: unit
     }
-    store.currentVersionName = i.toString()
   }
-  store.loadingProgress = 100
 
   emit('map_changed', csvdata)
 }

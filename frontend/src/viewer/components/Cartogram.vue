@@ -21,7 +21,10 @@ const props = defineProps<{
 }>()
 
 const state = reactive({
-  mapkey: -1
+  mapkey: -1,
+  numberOfPanels: 2,
+  versionKeys: [] as Array<string>,
+  highlightedRegionID: null as string | null
 })
 
 onBeforeMount(() => {
@@ -35,6 +38,7 @@ onBeforeMount(() => {
  */
 async function switchMap() {
   state.mapkey = Date.now()
+  state.versionKeys = Object.keys(store.versions)
 }
 </script>
 
@@ -44,18 +48,26 @@ async function switchMap() {
     v-bind:maps="props.maps"
     v-bind:map-title="props.mapTitle"
     v-on:map_changed="switchMap"
-    v-on:version_changed="(version: string) => (store.currentVersionName = version)"
   ></c-menu-bar>
 
-  <c-panel
-    v-if="store.versions && store.currentVersionName"
+  <div
+    id="cartogram"
+    class="d-flex flex-fill card-group"
+    v-if="state.versionKeys.length > 0"
     v-bind:key="state.mapkey"
-    v-bind:currentMapName="store.currentMapName"
-    v-bind:currentVersionKey="store.currentVersionName"
-    v-bind:versions="store.versions"
-    v-bind:stringKey="store.stringKey"
-    v-bind:showBase="store.options.showBase"
-    v-bind:showGrid="store.options.showGrid"
-    v-bind:mode="props.mode"
-  />
+  >
+    <c-panel
+      v-for="index in state.numberOfPanels"
+      v-bind:panelID="'c-area' + index.toString()"
+      v-bind:currentMapName="store.currentMapName"
+      v-bind:defaultVersionKey="
+        index === 1 ? state.versionKeys[0] : state.versionKeys[state.versionKeys.length - 1]
+      "
+      v-bind:versions="store.versions"
+      v-bind:stringKey="store.stringKey"
+      v-bind:highlightedRegionID="state.highlightedRegionID"
+      v-bind:showGrid="store.options.showGrid"
+      v-on:highlight="(item) => (state.highlightedRegionID = item.highlightID)"
+    />
+  </div>
 </template>

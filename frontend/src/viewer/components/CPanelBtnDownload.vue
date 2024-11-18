@@ -66,7 +66,7 @@ function downloadSVG() {
 
 <template>
   <button
-    class="btn btn-primary me-2"
+    class="btn btn-primary"
     data-bs-toggle="modal"
     v-bind:data-bs-target="'#downloadModal' + version.key"
     v-bind:title="'Download ' + version.name"

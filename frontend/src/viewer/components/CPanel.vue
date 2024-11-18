@@ -10,6 +10,7 @@ import TouchInfo from '../lib/touchInfo'
 import * as util from '../lib/util'
 import CTouchVis from './CTouchVis.vue'
 import CPanelLegend from './CPanelLegend.vue'
+import CMenuSelectVersion from './CMenuSelectVersion.vue'
 import CPanelBtnDownload from './CPanelBtnDownload.vue'
 
 let touchInfo = new TouchInfo()
@@ -17,32 +18,30 @@ var pointerangle: number | boolean, // (A)
   pointerposition: number[] | null, // (B)
   pointerdistance: number | boolean // (C)
 var lastTouch = 0
-var currentHighlight: string | null = null
+
 const DELAY_THRESHOLD = 300
 const SUPPORT_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints
 
-const mapLegendEl = ref()
-const cartogramLegendEl = ref()
+const legendEl = ref()
 
 const props = withDefaults(
   defineProps<{
+    panelID: string
     currentMapName: string
-    currentVersionKey: string
+    defaultVersionKey: string
     versions: { [key: string]: any }
+    highlightedRegionID?: string | number | null
     stringKey?: string
-    showBase?: boolean
     showGrid?: boolean
-    mode?: string | null
   }>(),
   {
     stringKey: '',
-    showBase: false,
-    showGrid: true,
-    mode: 'full'
+    showGrid: true
   }
 )
 
 const state = reactive({
+  versionKey: props.defaultVersionKey,
   cursor: 'grab',
   isLockRatio: true,
   touchLenght: 0,
@@ -52,16 +51,18 @@ const state = reactive({
   affineScale: [1, 1] // Keep track of scale for scaling grid easily
 })
 
+const emit = defineEmits(['highlight'])
+
 watch(
-  () => props.showBase,
-  (type, prevType) => {
+  () => props.highlightedRegionID,
+  (id, prevID) => {
     nextTick()
-    cartogramLegendEl.value.updateView()
+    legendEl.value.highlight(id)
   }
 )
 
 // https://observablehq.com/@d3/multitouch
-function onTouchstart(event: any, id: string) {
+function onTouchstart(event: any) {
   touchInfo.set(event)
   state.touchLenght = touchInfo.length
   var now = new Date().getTime()
@@ -102,7 +103,7 @@ function onTouchend(event: any) {
   if (event.cancelable) event.preventDefault()
 }
 
-function onTouchmove(event: any, id: string) {
+function onTouchmove(event: any) {
   touchInfo.update(event)
   if (touchInfo.length < 1 || touchInfo.length > 3 || !pointerposition) return
 
@@ -214,7 +215,7 @@ function switchMode() {
 function transformVersion(matrix1: Array<Array<number>>, matrix2: Array<Array<number>>) {
   state.affineMatrix = util.multiplyMatrix(matrix1, matrix2)
 
-  d3.selectAll('#cartogram-area g.root').attr(
+  d3.selectAll('#' + props.panelID + ' g.root').attr(
     'transform',
     'matrix(' +
       state.affineMatrix[0][0] +
@@ -239,7 +240,7 @@ function transformReset() {
 }
 
 function snapToBetterNumber() {
-  let value = cartogramLegendEl.value.getCurrentScale()
+  let value = legendEl.value.getCurrentScale()
   let [scaleNiceNumber, scalePowerOf10] = util.findNearestNiceNumber(value)
   let targetValue = scaleNiceNumber * Math.pow(10, scalePowerOf10)
   let adjustedScale = Math.sqrt(value / targetValue)
@@ -248,13 +249,6 @@ function snapToBetterNumber() {
   state.affineScale[1] *= adjustedScale
   var matrix = util.getScaleMatrix(adjustedScale, adjustedScale)
   transformVersion(matrix, state.affineMatrix)
-}
-
-function highlight(item: { mapID: string; highlightID: string }) {
-  if (currentHighlight === item.highlightID) return
-  if (item.mapID === 'map-area') cartogramLegendEl.value.highlight(item.highlightID)
-  else if (item.mapID === 'cartogram-area') mapLegendEl.value.highlight(item.highlightID)
-  currentHighlight = item.highlightID
 }
 </script>
 
@@ -267,103 +261,70 @@ function highlight(item: { mapID: string; highlightID: string }) {
     />
   </div>
 
-  <div id="cartogram" class="d-flex flex-fill card-group">
-    <div class="card w-100" v-if="props.showBase">
-      <div class="d-flex flex-column card-body">
-        <c-panel-legend
-          ref="mapLegendEl"
-          mapID="c-area0"
-          v-bind:currentMapName="props.currentMapName"
-          v-bind:stringKey="props.stringKey"
-          v-bind:versionKey="Object.keys(props.versions)[0]"
-          v-bind:versions="props.versions"
-          v-bind:showGrid="props.showGrid"
-          v-on:highlight="highlight"
+  <div class="card w-100">
+    <div class="d-flex flex-column card-body">
+      <c-panel-legend
+        ref="legendEl"
+        v-bind:panelID="props.panelID"
+        v-bind:currentMapName="props.currentMapName"
+        v-bind:stringKey="props.stringKey"
+        v-bind:versionKey="state.versionKey"
+        v-bind:versions="props.versions"
+        v-bind:showGrid="props.showGrid"
+        v-bind:affineScale="state.affineScale"
+        v-on:gridChanged="snapToBetterNumber"
+        v-bind:style="{ cursor: state.cursor }"
+        v-on:mousedown="onTouchstart($event)"
+        v-on:touchstart="onTouchstart($event)"
+        v-on:mousemove="onTouchmove($event)"
+        v-on:touchmove="onTouchmove($event)"
+        v-on:mouseup="onTouchend"
+        v-on:touchend="onTouchend"
+        v-on:wheel="onWheel"
+        v-on:versionUpdated="transformVersion(state.affineMatrix, util.getOriginalMatrix())"
+        v-on:highlight="(item) => emit('highlight', item)"
+      >
+        <img class="position-absolute bottom-0 end-0 z-3" src="/static/img/by.svg" alt="cc-by" />
+      </c-panel-legend>
+      <div class="position-absolute end-0" style="width: 2.5rem">
+        <button
+          class="btn btn-primary w-100 my-1"
+          v-on:click="switchMode()"
+          v-bind:title="state.isLockRatio ? 'Switch to free transform' : 'Switch to lock ratio'"
         >
-        </c-panel-legend>
-        <div class="position-absolute end-0" style="width: 2.5rem">
-          <c-panel-btn-download
-            v-bind:current-map-name="props.currentMapName"
-            v-bind:string-key="props.stringKey"
-            v-bind:versions="props.versions"
-            v-bind:version-key="Object.keys(props.versions)[0]"
-            mapID="c-area0"
-          />
-        </div>
-      </div>
-
-      <div class="card-footer d-flex justify-content-between">
-        <div class="text-nowrap overflow-hidden">Equal-Area Map</div>
+          <i v-if="state.touchLenght === 3" class="fas fa-unlock"></i>
+          <i v-else-if="state.isLockRatio" class="fas fa-lock"></i>
+          <i v-else-if="SUPPORT_TOUCH" class="fas fa-unlock"></i>
+          <i v-else-if="state.stretchDirection === 'x'" class="fas fa-arrows-alt-h"></i>
+          <i v-else class="fas fa-arrows-alt-v"></i>
+        </button>
+        <button
+          class="btn btn-primary w-100 my-1"
+          v-on:click="
+            () => {
+              transformReset()
+            }
+          "
+          title="Reset"
+        >
+          <i class="fas fa-crosshairs"></i>
+        </button>
       </div>
     </div>
 
-    <div class="card w-100">
-      <div class="d-flex flex-column card-body">
-        <c-panel-legend
-          ref="cartogramLegendEl"
-          mapID="c-area1"
-          v-bind:currentMapName="props.currentMapName"
-          v-bind:stringKey="props.stringKey"
-          v-bind:versionKey="props.currentVersionKey"
-          v-bind:versions="props.versions"
-          v-bind:showGrid="props.showGrid"
-          v-bind:affineScale="state.affineScale"
-          v-on:gridChanged="snapToBetterNumber"
-          v-bind:style="{ cursor: state.cursor }"
-          v-on:mousedown="onTouchstart($event, 'cartogram-area')"
-          v-on:touchstart="onTouchstart($event, 'cartogram-area')"
-          v-on:mousemove="onTouchmove($event, 'cartogram-area')"
-          v-on:touchmove="onTouchmove($event, 'cartogram-area')"
-          v-on:mouseup="onTouchend"
-          v-on:touchend="onTouchend"
-          v-on:wheel="onWheel"
-          v-on:highlight="highlight"
-        >
-          <img class="position-absolute bottom-0 end-0 z-3" src="/static/img/by.svg" alt="cc-by" />
-        </c-panel-legend>
-        <div class="position-absolute end-0" style="width: 2.5rem">
-          <button
-            class="btn btn-primary w-100 my-1"
-            v-on:click="switchMode()"
-            v-bind:title="state.isLockRatio ? 'Switch to free transform' : 'Switch to lock ratio'"
-          >
-            <i v-if="state.touchLenght === 3" class="fas fa-unlock"></i>
-            <i v-else-if="state.isLockRatio" class="fas fa-lock"></i>
-            <i v-else-if="SUPPORT_TOUCH" class="fas fa-unlock"></i>
-            <i v-else-if="state.stretchDirection === 'x'" class="fas fa-arrows-alt-h"></i>
-            <i v-else class="fas fa-arrows-alt-v"></i>
-          </button>
-          <button
-            class="btn btn-primary w-100 my-1"
-            v-on:click="
-              () => {
-                transformReset()
-              }
-            "
-            title="Reset"
-          >
-            <i class="fas fa-crosshairs"></i>
-          </button>
-          <c-panel-btn-download
-            v-bind:current-map-name="props.currentMapName"
-            v-bind:string-key="props.stringKey"
-            v-bind:versions="props.versions"
-            v-bind:version-key="props.currentVersionKey"
-            mapID="c-area1"
-          />
-        </div>
-      </div>
-
-      <div class="card-footer d-flex justify-content-between">
-        <div class="d-none d-sm-block text-nowrap overflow-hidden">Cartogram</div>
-      </div>
+    <div class="card-footer d-flex justify-content-between">
+      <c-menu-select-version
+        v-bind:versions="props.versions"
+        v-bind:currentVersionName="state.versionKey"
+        v-on:version_changed="(version) => (state.versionKey = version)"
+      />
+      <c-panel-btn-download
+        v-bind:current-map-name="props.currentMapName"
+        v-bind:string-key="props.stringKey"
+        v-bind:versions="props.versions"
+        v-bind:version-key="state.versionKey"
+        v-bind:mapID="props.panelID"
+      />
     </div>
   </div>
 </template>
-
-<style>
-#map-area,
-#cartogram-area {
-  position: relative;
-}
-</style>

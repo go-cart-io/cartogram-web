@@ -29,7 +29,7 @@ function playVersions() {
 
 <template>
   <div
-    class="btn-group d-flex flex-shrink-1 p-2"
+    class="btn-group d-flex flex-shrink-1"
     style="min-width: 40px"
     role="group"
     aria-label="Data"
@@ -37,8 +37,8 @@ function playVersions() {
     <button
       v-if="Object.keys(props.versions).length > 2"
       class="btn btn-primary"
-      v-on:click="playVersions()"
       v-bind:disabled="state.isPlaying"
+      v-on:click="playVersions()"
     >
       <i class="fas fa-play"></i>
     </button>
@@ -61,3 +61,14 @@ function playVersions() {
     </button>
   </div>
 </template>
+
+<style scoped>
+button.version {
+  min-width: 0;
+  padding: 0.4rem 0.2rem;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+</style>

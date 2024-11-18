@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { MapHandlers } from '../../common/interface'
 import CMenuSelectMap from './CMenuSelectMap.vue'
-import CMenuSelectVersion from './CMenuSelectVersion.vue'
 import CMenuBtnShare from './CMenuBtnShare.vue'
 
 import { useCartogramStore } from '../stores/cartogram'
@@ -18,7 +17,7 @@ const props = withDefaults(
   }
 )
 
-const emit = defineEmits(['map_changed', 'version_changed', 'loading_progress', 'confirm_data'])
+const emit = defineEmits(['map_changed'])
 
 function onMapChanged(data: any) {
   emit('map_changed', data)
@@ -37,12 +36,6 @@ function onMapChanged(data: any) {
         v-bind:map-title="props.mapTitle"
         v-bind:isEmbed="props.isEmbed"
         v-on:map_changed="onMapChanged"
-      />
-
-      <c-menu-select-version
-        v-bind:versions="store.versions"
-        v-bind:currentVersionName="store.currentVersionName"
-        v-on:version_changed="(version) => emit('version_changed', version)"
       />
 
       <!-- Menu -->
