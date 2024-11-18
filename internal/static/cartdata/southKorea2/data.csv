@@ -1,18 +1,18 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Busan,PU,#7570b3,824.0,3400000.0
-Chungcheongbuk-do,GB,#1b9e77,9319.0,1620000.0
-Chungcheongnam-do,GN,#e7298a,9950.0,2180000.0
-Daegu,TG,#1b9e77,1035.0,2440000.0
-Daejeon,TJ,#d95f02,609.0,510000.0
-Gangwon-do,KW,#e7298a,22478.0,1520000.0
-Gwangju,KJ,#e7298a,518.0,1490000.0
-Gyeonggi-do,KG,#66a61e,12754.0,13100000.0
-Gyeongsangbuk-do,KB,#7570b3,23941.0,2670000.0
-Gyeongsangnam-do,KN,#d95f02,12109.0,3350000.0
-Incheon,IN,#d95f02,1092.0,2940000.0
-Jeju,CJ,#e6ab02,2230.0,660000.0
-Jeollabuk-do,CB,#e6ab02,10290.0,1820000.0
-Jeollanam-do,CN,#66a61e,14658.0,1790000.0
-Sejong,SJ,#7570b3,417.0,310000.0
-Seoul,SO,#e6ab02,760.0,9670000.0
-Ulsan,UL,#1b9e77,1002.0,1150000.0
+Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Busan,PU,4,824.0,3400000.0
+Chungcheongbuk-do,GB,3,9319.0,1620000.0
+Chungcheongnam-do,GN,2,9950.0,2180000.0
+Daegu,TG,3,1035.0,2440000.0
+Daejeon,TJ,6,609.0,510000.0
+Gangwon-do,KW,2,22478.0,1520000.0
+Gwangju,KJ,2,518.0,1490000.0
+Gyeonggi-do,KG,1,12754.0,13100000.0
+Gyeongsangbuk-do,KB,4,23941.0,2670000.0
+Gyeongsangnam-do,KN,6,12109.0,3350000.0
+Incheon,IN,6,1092.0,2940000.0
+Jeju,CJ,5,2230.0,660000.0
+Jeollabuk-do,CB,5,10290.0,1820000.0
+Jeollanam-do,CN,1,14658.0,1790000.0
+Sejong,SJ,4,417.0,310000.0
+Seoul,SO,5,760.0,9670000.0
+Ulsan,UL,3,1002.0,1150000.0

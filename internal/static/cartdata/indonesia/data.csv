@@ -1,34 +1,34 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Aceh,AC,#e7298a,51937.0,4486570.0
-Bali,BA,#e7298a,5633.0,3891428.0
-Bangka Belitung,BB,#7570b3,16171.0,1223048.0
-Banten,BT,#d95f02,8651.0,10644030.0
-Bengkulu,BE,#1b9e77,19789.0,1713393.0
-Gorontalo,GO,#e7298a,12215.0,50380687.0
-Jakarta Raya,JK,#e6ab02,664.0,2202599.0
-Jambi,JA,#d95f02,53437.0,2633420.0
-Jawa Barat,JR,#7570b3,34597.0,37476011.0
-Jawa Tengah,JT,#d95f02,32549.0,3550586.0
-Jawa Timur,JI,#e6ab02,47922.0,4679316.0
-Kalimantan Barat,KB,#66a61e,146807.0,1038585.0
-Kalimantan Selatan,KS,#d95f02,43546.0,9588198.0
-Kalimantan Tengah,KT,#1b9e77,153564.0,3088618.0
-Kalimantan Timur,KM,#e6ab02,230277.0,7596115.0
-Kepulauan Riau,KR,#d95f02,8202.0,1531402.0
-Lampung,LA,#7570b3,35384.0,1035478.0
-Maluku,MA,#7570b3,46975.0,2265937.0
-Maluku Utara,MU,#e6ab02,30895.0,12985075.0
-Nusa Tenggara Barat,NB,#66a61e,20153.0,2851999.0
-Nusa Tenggara Timur,NT,#1b9e77,47351.0,5543031.0
-Papua,PA,#66a61e,365466.0,1685698.0
-Papua Barat,IB,#e7298a,102946.0,3626119.0
-Riau,RI,#e6ab02,94560.0,8032551.0
-Sulawesi Barat,SR,#1b9e77,16937.0,7446401.0
-Sulawesi Selatan,SE,#66a61e,62365.0,2230569.0
-Sulawesi Tengah,ST,#7570b3,63678.0,43021826.0
-Sulawesi Tenggara,SG,#1b9e77,38140.0,4393239.0
-Sulawesi Utara,SW,#d95f02,15273.0,4496855.0
-Sumatera Barat,SB,#e7298a,42899.0,760855.0
-Sumatera Selatan,SL,#e7298a,93083.0,1158336.0
-Sumatera Utara,SU,#66a61e,73587.0,4845998.0
-Yogyakarta,YO,#1b9e77,3186.0,3452390.0
+Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Aceh,AC,2,51937.0,4486570.0
+Bali,BA,2,5633.0,3891428.0
+Bangka Belitung,BB,4,16171.0,1223048.0
+Banten,BT,6,8651.0,10644030.0
+Bengkulu,BE,3,19789.0,1713393.0
+Gorontalo,GO,2,12215.0,50380687.0
+Jakarta Raya,JK,5,664.0,2202599.0
+Jambi,JA,6,53437.0,2633420.0
+Jawa Barat,JR,4,34597.0,37476011.0
+Jawa Tengah,JT,6,32549.0,3550586.0
+Jawa Timur,JI,5,47922.0,4679316.0
+Kalimantan Barat,KB,1,146807.0,1038585.0
+Kalimantan Selatan,KS,6,43546.0,9588198.0
+Kalimantan Tengah,KT,3,153564.0,3088618.0
+Kalimantan Timur,KM,5,230277.0,7596115.0
+Kepulauan Riau,KR,6,8202.0,1531402.0
+Lampung,LA,4,35384.0,1035478.0
+Maluku,MA,4,46975.0,2265937.0
+Maluku Utara,MU,5,30895.0,12985075.0
+Nusa Tenggara Barat,NB,1,20153.0,2851999.0
+Nusa Tenggara Timur,NT,3,47351.0,5543031.0
+Papua,PA,1,365466.0,1685698.0
+Papua Barat,IB,2,102946.0,3626119.0
+Riau,RI,5,94560.0,8032551.0
+Sulawesi Barat,SR,3,16937.0,7446401.0
+Sulawesi Selatan,SE,1,62365.0,2230569.0
+Sulawesi Tengah,ST,4,63678.0,43021826.0
+Sulawesi Tenggara,SG,3,38140.0,4393239.0
+Sulawesi Utara,SW,6,15273.0,4496855.0
+Sumatera Barat,SB,2,42899.0,760855.0
+Sumatera Selatan,SL,2,93083.0,1158336.0
+Sumatera Utara,SU,1,73587.0,4845998.0
+Yogyakarta,YO,3,3186.0,3452390.0

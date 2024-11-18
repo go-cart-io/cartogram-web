@@ -1,19 +1,19 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Alto Paraguay,AG,#d95f02,82349.0,17900.0
-Alto Parana,AA,#7570b3,14895.0,819600.0
-Amambay,AM,#7570b3,12933.0,169600.0
-Asuncion,AS,#66a61e,117.0,522300.0
-Boqueron,BQ,#e6ab02,91669.0,65600.0
-Caaguazu,CG,#d95f02,11474.0,557700.0
-Caazapa,CZ,#66a61e,9496.0,189500.0
-Canindeyu,CY,#1b9e77,14667.0,230600.0
-Central,CE,#e6ab02,2465.0,2158200.0
-Concepcion,CN,#e6ab02,18051.0,251300.0
-Cordillera,CR,#66a61e,4948.0,307300.0
-Guaira,GU,#e7298a,3846.0,225400.0
-Itapua,IT,#e7298a,16525.0,608200.0
-Misiones,MI,#d95f02,9556.0,126500.0
-Neembucu,NE,#1b9e77,12147.0,89800.0
-Paraguari,PG,#7570b3,8705.0,257600.0
-Presidente Hayes,PH,#1b9e77,72907.0,125700.0
-San Pedro,SP,#e7298a,20002.0,430000.0
+Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Alto Paraguay,AG,6,82349.0,17900.0
+Alto Parana,AA,4,14895.0,819600.0
+Amambay,AM,4,12933.0,169600.0
+Asuncion,AS,1,117.0,522300.0
+Boqueron,BQ,5,91669.0,65600.0
+Caaguazu,CG,6,11474.0,557700.0
+Caazapa,CZ,1,9496.0,189500.0
+Canindeyu,CY,3,14667.0,230600.0
+Central,CE,5,2465.0,2158200.0
+Concepcion,CN,5,18051.0,251300.0
+Cordillera,CR,1,4948.0,307300.0
+Guaira,GU,2,3846.0,225400.0
+Itapua,IT,2,16525.0,608200.0
+Misiones,MI,6,9556.0,126500.0
+Neembucu,NE,3,12147.0,89800.0
+Paraguari,PG,4,8705.0,257600.0
+Presidente Hayes,PH,3,72907.0,125700.0
+San Pedro,SP,2,20002.0,430000.0

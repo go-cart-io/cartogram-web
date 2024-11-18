@@ -1,19 +1,19 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Attapeu,AT,#e6ab02,10320.0,156800.0
-Bokeo,BK,#1b9e77,6196.0,200100.0
-Borikhamxai,BL,#d95f02,14863.0,309500.0
-Champasak,CH,#66a61e,15415.0,743200.0
-Houaphanh,HO,#d95f02,16500.0,308700.0
-Khammouane,KH,#7570b3,16315.0,427400.0
-Luang Namtha,LM,#d95f02,9325.0,195800.0
-Luang Prabang,LP,#1b9e77,16875.0,463300.0
-Oudomxay,OU,#e7298a,15370.0,340100.0
-Phongsaly,PH,#e6ab02,16270.0,191500.0
-Salavan,SL,#d95f02,10691.0,434700.0
-Savannakhet,SV,#e7298a,21774.0,1053900.0
-Vientiane [Prefecture],VI,#7570b3,3920.0,927700.0
-Vientiane,VT,#1b9e77,15610.0,456400.0
-Xaignabouli,XA,#e6ab02,16389.0,417800.0
-Xaisomboun,XS,#e7298a,8551.0,105000.0
-Sekong,XE,#7570b3,7665.0,127000.0
-Xiangkhouang,XI,#66a61e,14751.0,264500.0
+Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Attapeu,AT,5,10320.0,156800.0
+Bokeo,BK,3,6196.0,200100.0
+Borikhamxai,BL,6,14863.0,309500.0
+Champasak,CH,1,15415.0,743200.0
+Houaphanh,HO,6,16500.0,308700.0
+Khammouane,KH,4,16315.0,427400.0
+Luang Namtha,LM,6,9325.0,195800.0
+Luang Prabang,LP,3,16875.0,463300.0
+Oudomxay,OU,2,15370.0,340100.0
+Phongsaly,PH,5,16270.0,191500.0
+Salavan,SL,6,10691.0,434700.0
+Savannakhet,SV,2,21774.0,1053900.0
+Vientiane [Prefecture],VI,4,3920.0,927700.0
+Vientiane,VT,3,15610.0,456400.0
+Xaignabouli,XA,5,16389.0,417800.0
+Xaisomboun,XS,2,8551.0,105000.0
+Sekong,XE,4,7665.0,127000.0
+Xiangkhouang,XI,1,14751.0,264500.0

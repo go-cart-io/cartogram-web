@@ -1,22 +1,22 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Dalarna,KO,#d95f02,28189.0,286165.0
-Gavleborg,GV,#7570b3,18199.0,285637.0
-Gotland,GT,#1b9e77,3151.0,58595.0
-Halland,HA,#1b9e77,5461.0,324825.0
-Jamtland,JA,#1b9e77,49341.0,129806.0
-Jonkoping,JO,#e6ab02,10495.0,357237.0
-Kalmar,KA,#7570b3,11218.0,243536.0
-Kronoberg,KR,#e7298a,8466.0,197519.0
-Norrbotten,NB,#e7298a,98245.0,251295.0
-Orebro,OR,#1b9e77,8546.0,298907.0
-Ostergotland,OG,#66a61e,10602.0,457496.0
-Blekinge,BL,#e6ab02,2946.0,159371.0
-Sodermanland,SD,#e7298a,6102.0,291341.0
-Skane,SN,#66a61e,11035.0,1344689.0
-Stockholm,ST,#d95f02,6519.0,2308143.0
-Uppsala,UP,#66a61e,8207.0,368971.0
-Varmland,VR,#e7298a,17591.0,280399.0
-Vasterbotten,VB,#66a61e,55186.0,268465.0
-Vasternorrland,VN,#e6ab02,21684.0,245968.0
-Vastmanland,VM,#e6ab02,5146.0,271095.0
-Vastra Gotaland,VG,#7570b3,23949.0,1690782.0
+Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Dalarna,KO,6,28189.0,286165.0
+Gavleborg,GV,4,18199.0,285637.0
+Gotland,GT,3,3151.0,58595.0
+Halland,HA,3,5461.0,324825.0
+Jamtland,JA,3,49341.0,129806.0
+Jonkoping,JO,5,10495.0,357237.0
+Kalmar,KA,4,11218.0,243536.0
+Kronoberg,KR,2,8466.0,197519.0
+Norrbotten,NB,2,98245.0,251295.0
+Orebro,OR,3,8546.0,298907.0
+Ostergotland,OG,1,10602.0,457496.0
+Blekinge,BL,5,2946.0,159371.0
+Sodermanland,SD,2,6102.0,291341.0
+Skane,SN,1,11035.0,1344689.0
+Stockholm,ST,6,6519.0,2308143.0
+Uppsala,UP,1,8207.0,368971.0
+Varmland,VR,2,17591.0,280399.0
+Vasterbotten,VB,1,55186.0,268465.0
+Vasternorrland,VN,5,21684.0,245968.0
+Vastmanland,VM,5,5146.0,271095.0
+Vastra Gotaland,VG,4,23949.0,1690782.0

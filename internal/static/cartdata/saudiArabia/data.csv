@@ -1,14 +1,14 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-'Asir,AS,#e7298a,82227.0,2261618.0
-Al Bahah,BA,#d95f02,11044.0,487108.0
-Al Hudud ash Shamaliyah,HS,#e6ab02,135700.0,375310.0
-Al Jawf,JF,#1b9e77,135077.0,520737.0
-Al Madinah,MD,#66a61e,159643.0,2188138.0
-Al Quassim,QS,#e7298a,60798.0,1455693.0
-Ar Riyad,RI,#1b9e77,412672.0,8446866.0
-Ash Sharqiyah,SH,#d95f02,606624.0,5028753.0
-Ha'il,HA,#d95f02,137045.0,716021.0
-Jizan,JZ,#66a61e,16369.0,1603659.0
-Makkah,MK,#e6ab02,149035.0,8803545.0
-Najran,NJ,#7570b3,93498.0,595705.0
-Tabuk,TB,#7570b3,111823.0,930507.0
+Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+'Asir,AS,2,82227.0,2261618.0
+Al Bahah,BA,6,11044.0,487108.0
+Al Hudud ash Shamaliyah,HS,5,135700.0,375310.0
+Al Jawf,JF,3,135077.0,520737.0
+Al Madinah,MD,1,159643.0,2188138.0
+Al Quassim,QS,2,60798.0,1455693.0
+Ar Riyad,RI,3,412672.0,8446866.0
+Ash Sharqiyah,SH,6,606624.0,5028753.0
+Ha'il,HA,6,137045.0,716021.0
+Jizan,JZ,1,16369.0,1603659.0
+Makkah,MK,5,149035.0,8803545.0
+Najran,NJ,4,93498.0,595705.0
+Tabuk,TB,4,111823.0,930507.0

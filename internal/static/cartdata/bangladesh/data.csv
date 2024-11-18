@@ -1,9 +1,9 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Barisal,BA,#e6ab02,9610.0,9145000.0
-Chittagong,CG,#e7298a,31051.0,31980000.0
-Dhaka,DH,#d95f02,20413.0,40171000.0
-Khulna,KH,#66a61e,20762.0,17252000.0
-Mymensingh,DH,#e6ab02,10542.0,12368000.0
-Rajshahi,RS,#7570b3,18211.0,20412000.0
-Rangpur,RP,#1b9e77,16211.0,17602000.0
-Sylhet,SY,#66a61e,12354.0,11291000.0
+Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Barisal,BA,5,9610.0,9145000.0
+Chittagong,CG,2,31051.0,31980000.0
+Dhaka,DH,6,20413.0,40171000.0
+Khulna,KH,1,20762.0,17252000.0
+Mymensingh,DH,5,10542.0,12368000.0
+Rajshahi,RS,4,18211.0,20412000.0
+Rangpur,RP,3,16211.0,17602000.0
+Sylhet,SY,1,12354.0,11291000.0

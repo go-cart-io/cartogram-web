@@ -1,9 +1,9 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Al Daayen,DY,#7570b3,249.0,54339.0
-Al Khor,KR,#d95f02,1568.0,202031.0
-Al Rayyan,RY,#e6ab02,2520.0,605712.0
-Al Shamal,MS,#e7298a,886.0,8794.0
-Al Wakrah,WA,#1b9e77,2559.0,299037.0
-Al-Shahaniya,SH,#e7298a,3324.0,187571.0
-Doha,DA,#d95f02,222.0,956457.0
-Umm Salal,SL,#66a61e,306.0,90835.0
+Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Al Daayen,DY,4,249.0,54339.0
+Al Khor,KR,6,1568.0,202031.0
+Al Rayyan,RY,5,2520.0,605712.0
+Al Shamal,MS,2,886.0,8794.0
+Al Wakrah,WA,3,2559.0,299037.0
+Al-Shahaniya,SH,2,3324.0,187571.0
+Doha,DA,6,222.0,956457.0
+Umm Salal,SL,1,306.0,90835.0

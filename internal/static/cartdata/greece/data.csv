@@ -1,15 +1,15 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Attica,AT,#7570b3,3817.0,3828434.0
-Central Greece,GC,#e6ab02,15552.0,547390.0
-Central Macedonia,MC,#7570b3,18902.0,1880297.0
-Crete,CR,#e6ab02,8343.0,623065.0
-East Macedonia and Thrace,MT,#d95f02,14186.0,608182.0
-Epirus,EP,#7570b3,9244.0,336856.0
-Ionian Islands,II,#66a61e,2289.0,207855.0
-Mount Athos,MA,#e7298a,337.0,1811.0
-North Aegean,AN,#66a61e,3862.0,199231.0
-Peloponnese,PP,#e7298a,15515.0,577903.0
-South Aegean,AS,#d95f02,5255.0,309015.0
-Thessaly,TS,#1b9e77,14080.0,732762.0
-West Greece,GW,#d95f02,11288.0,679796.0
-West Macedonia,MW,#e7298a,9523.0,283689.0
+Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Attica,AT,4,3817.0,3828434.0
+Central Greece,GC,5,15552.0,547390.0
+Central Macedonia,MC,4,18902.0,1880297.0
+Crete,CR,5,8343.0,623065.0
+East Macedonia and Thrace,MT,6,14186.0,608182.0
+Epirus,EP,4,9244.0,336856.0
+Ionian Islands,II,1,2289.0,207855.0
+Mount Athos,MA,2,337.0,1811.0
+North Aegean,AN,1,3862.0,199231.0
+Peloponnese,PP,2,15515.0,577903.0
+South Aegean,AS,6,5255.0,309015.0
+Thessaly,TS,3,14080.0,732762.0
+West Greece,GW,6,11288.0,679796.0
+West Macedonia,MW,2,9523.0,283689.0

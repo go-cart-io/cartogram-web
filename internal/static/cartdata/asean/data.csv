@@ -1,11 +1,11 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-BRN,Brunei,#66a61e,5787.0,447000.0
-IDN,Indonesia,#e7298a,1864453.0,266998000.0
-KHM,Cambodia,#66a61e,186564.0,16494000.0
-LAO,Laos,#e7298a,245875.0,7163000.0
-MMR,Myanmar,#1b9e77,722052.0,53019000.0
-MYS,Malaysia,#7570b3,330620.0,32801000.0
-PHL,Philippines,#e6ab02,287132.0,108307000.0
-SGP,Singapore,#1b9e77,600.0,5670000.0
-THA,Thailand,#e6ab02,531279.0,67913000.0
-VNM,Vietnam,#d95f02,348337.0,95494000.0
+Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Brunei,BRN,1,5787,447000
+Indonesia,IDN,2,1864453,266998000
+Cambodia,KHM,1,186564,16494000
+Laos,LAO,2,245875,7163000
+Myanmar,MMR,3,722052,53019000
+Malaysia,MYS,4,330620,32801000
+Philippines,PHL,5,287132,108307000
+Singapore,SGP,3,600,5670000
+Thailand,THA,5,531279,67913000
+Vietnam,VNM,6,348337,95494000

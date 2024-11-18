@@ -1,8 +1,8 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Andorra la Vella,AN,#e6ab02,12.0,23279.75
-Canillo,CA,#e6ab02,121.0,4816.5
-Encamp,EN,#7570b3,74.0,12041.25
-Escaldes-Engordany,EE,#d95f02,47.0,15252.25
-La Massana,MA,#e7298a,61.0,10435.75
-Ordino,OR,#66a61e,89.0,4816.5
-Sant Julia de Loria,JL,#1b9e77,60.0,9633.0
+Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Andorra la Vella,AN,5,12.0,23279.75
+Canillo,CA,5,121.0,4816.5
+Encamp,EN,4,74.0,12041.25
+Escaldes-Engordany,EE,6,47.0,15252.25
+La Massana,MA,2,61.0,10435.75
+Ordino,OR,1,89.0,4816.5
+Sant Julia de Loria,JL,3,60.0,9633.0

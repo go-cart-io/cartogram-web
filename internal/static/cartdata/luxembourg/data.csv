@@ -1,13 +1,13 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Capellen,CA,#e6ab02,186.0,50094.0
-Clervaux,CL,#7570b3,329.0,18936.0
-Diekirch,DI,#1b9e77,223.0,33782.0
-Echternach,EC,#e7298a,185.0,19189.0
-Esch-sur-Alzette,ES,#1b9e77,251.0,183364.0
-Grevenmacher,GR,#66a61e,213.0,30887.0
-Luxembourg,LU,#7570b3,237.0,190671.0
-Mersch,ME,#d95f02,233.0,33326.0
-Redange,RD,#e7298a,259.0,19473.0
-Remich,RM,#d95f02,128.0,23244.0
-Vianden,VI,#e6ab02,74.0,5510.0
-Wiltz,WI,#66a61e,263.0,17632.0
+Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Capellen,CA,5,186.0,50094.0
+Clervaux,CL,4,329.0,18936.0
+Diekirch,DI,3,223.0,33782.0
+Echternach,EC,2,185.0,19189.0
+Esch-sur-Alzette,ES,3,251.0,183364.0
+Grevenmacher,GR,1,213.0,30887.0
+Luxembourg,LU,4,237.0,190671.0
+Mersch,ME,6,233.0,33326.0
+Redange,RD,2,259.0,19473.0
+Remich,RM,6,128.0,23244.0
+Vianden,VI,5,74.0,5510.0
+Wiltz,WI,1,263.0,17632.0

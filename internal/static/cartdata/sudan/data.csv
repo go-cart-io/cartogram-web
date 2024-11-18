@@ -1,19 +1,19 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Al Jazirah,GZ,#66a61e,23373.0,5096920.0
-Al Qadarif,GD,#d95f02,75263.0,2208385.0
-Blue Nile,BN,#1b9e77,45844.0,1108391.0
-Central Darfur,CD,#66a61e,38224.0,2499000.0
-East Darfur,ED,#7570b3,56517.0,1119451.0
-Kassala,KA,#7570b3,36710.0,2519071.0
-Khartoum,KH,#1b9e77,22142.0,7993851.0
-North Darfur,ND,#d95f02,296420.0,2304950.0
-North Kurdufan,KN,#7570b3,185302.0,3174029.0
-Northern,NO,#66a61e,348765.0,936255.0
-Red Sea,RS,#d95f02,218887.0,1482053.0
-River Nile,RN,#e7298a,122123.0,1511442.0
-Sennar,SI,#e6ab02,37844.0,1918692.0
-South Darfur,SD,#e7298a,127300.0,5353025.0
-South Kurdufan,KS,#e6ab02,79470.0,2107623.0
-West Darfur,WD,#e6ab02,79460.0,1775945.0
-West Kurdufan,KW,#1b9e77,111373.0,1178537.0
-White Nile,WN,#e7298a,30411.0,2493880.0
+Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Al Jazirah,GZ,1,23373.0,5096920.0
+Al Qadarif,GD,6,75263.0,2208385.0
+Blue Nile,BN,3,45844.0,1108391.0
+Central Darfur,CD,1,38224.0,2499000.0
+East Darfur,ED,4,56517.0,1119451.0
+Kassala,KA,4,36710.0,2519071.0
+Khartoum,KH,3,22142.0,7993851.0
+North Darfur,ND,6,296420.0,2304950.0
+North Kurdufan,KN,4,185302.0,3174029.0
+Northern,NO,1,348765.0,936255.0
+Red Sea,RS,6,218887.0,1482053.0
+River Nile,RN,2,122123.0,1511442.0
+Sennar,SI,5,37844.0,1918692.0
+South Darfur,SD,2,127300.0,5353025.0
+South Kurdufan,KS,5,79470.0,2107623.0
+West Darfur,WD,5,79460.0,1775945.0
+West Kurdufan,KW,3,111373.0,1178537.0
+White Nile,WN,2,30411.0,2493880.0
