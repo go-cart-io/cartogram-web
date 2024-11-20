@@ -102,19 +102,22 @@ export default class TouchInfo {
     return []
   }
 
-  getThumb(): Array<number> {
-    return [this.touches[this.thumbIndex].pageX, this.touches[this.thumbIndex].pageY]
+  getThumb(ofsetX = 0, ofsetY = 0): Array<number> {
+    return [
+      this.touches[this.thumbIndex].pageX - ofsetX,
+      this.touches[this.thumbIndex].pageY - ofsetY
+    ]
   }
 
-  getOthers(): Array<number> {
+  getOthers(ofsetX = 0, ofsetY = 0): Array<number> {
     if (this.length < 2) return []
 
     let x = 0,
       y = 0
     for (const identifier in this.touches) {
       if (identifier === this.thumbIndex.toString()) continue
-      x += this.touches[identifier].pageX
-      y += this.touches[identifier].pageY
+      x += this.touches[identifier].pageX - ofsetX
+      y += this.touches[identifier].pageY - ofsetY
     }
     return [x / (this.length - 1), y / (this.length - 1)]
   }

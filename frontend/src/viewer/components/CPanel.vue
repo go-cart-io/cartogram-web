@@ -4,7 +4,7 @@
  */
 
 import * as d3 from 'd3'
-import { ref, reactive, watch, nextTick } from 'vue'
+import { ref, reactive } from 'vue'
 
 import TouchInfo from '../lib/touchInfo'
 import * as util from '../lib/util'
@@ -238,13 +238,11 @@ function snapToBetterNumber() {
 </script>
 
 <template>
-  <div class="pointervis">
-    <c-touch-vis
-      v-bind:key="state.lastMove"
-      v-bind:touchInfo="touchInfo"
-      v-bind:touchLenght="state.touchLenght"
-    />
-  </div>
+  <!-- <c-touch-vis
+    v-bind:key="state.lastMove"
+    v-bind:touchInfo="touchInfo"
+    v-bind:touchLenght="state.touchLenght"
+  /> -->
 
   <div class="card w-100">
     <div class="d-flex flex-column card-body">
@@ -257,14 +255,12 @@ function snapToBetterNumber() {
         v-on:gridChanged="snapToBetterNumber"
         v-bind:style="{ cursor: state.cursor }"
         v-on:mousedown="onTouchstart($event)"
-        v-on:touchstart="onTouchstart($event)"
         v-on:mousemove="onTouchmove($event)"
-        v-on:touchmove="onTouchmove($event)"
         v-on:mouseup="onTouchend"
-        v-on:touchend="onTouchend"
         v-on:wheel="onWheel"
         v-on:versionUpdated="transformVersion(state.affineMatrix, util.getOriginalMatrix())"
-      >
+        ><!-- TODO add v-on:touchstart="onTouchstart($event)" 
+        v-on:touchmove="onTouchmove($event)" v-on:touchend="onTouchend" -->
         <img class="position-absolute bottom-0 end-0 z-3" src="/static/img/by.svg" alt="cc-by" />
       </c-panel-legend>
       <div class="position-absolute end-0" style="width: 2.5rem">

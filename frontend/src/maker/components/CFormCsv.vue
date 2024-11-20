@@ -17,7 +17,6 @@ const emit = defineEmits(['changed'])
 
 async function uploadCsvData(event: Event) {
   // TODO check region values as well as color and inset format
-  // TODO disable custom color and inset if the user has deleted the fields
   const files = (event.target as HTMLInputElement).files
   if (!files || files.length == 0) return
 
@@ -58,15 +57,5 @@ async function uploadCsvData(event: Event) {
         v-on:change="uploadCsvData"
       />
     </div>
-
-    <!-- TODO: Allow custom field name
-        <div class="p-2" v-if="state.csvData && state.csvData[0]">
-          Which column contain region names (e.g., country names)?
-          <select class="form-select" v-model="state.csvRegionCol">
-            <option v-for="(index, item) in state.csvData[0]">
-              {{ item }}
-            </option>
-          </select>
-        </div> -->
   </div>
 </template>
