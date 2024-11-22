@@ -44,7 +44,7 @@ def preprocess(file):
     if not any(gdf.columns.str.startswith('Land Area')):
         gdf['Land Area (sq.km.)'] = gdf.area
 
-    gdf['ColorGroup'] = mapclassify.greedy(gdf, min_colors=6)
+    gdf['ColorGroup'] = mapclassify.greedy(gdf, min_colors=6, balance="distance")
     gdf['cartogram_id'] = range(1, len(gdf) + 1)
     gdf['label'] = gdf.geometry.apply(get_representative_point)
 

@@ -97,7 +97,7 @@ export function tableToArray(dataTable: DataTable): KeyValueArray {
   for (var i = 0; i < dataTable.items.length; i++) {
     data[i] = {}
     for (var j = 0; j < dataTable.fields.length; j++) {
-      if (dataTable.fields[j].show) {
+      if (dataTable.fields[j].show || dataTable.fields[j].name === 'ColorGroup') {
         let newLabel = dataTable.fields[j].unit
           ? dataTable.fields[j].name + ' (' + dataTable.fields[j].unit + ')'
           : dataTable.fields[j].name

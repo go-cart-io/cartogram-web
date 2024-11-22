@@ -86,6 +86,7 @@ function initDataTableWGeojson(handler: string, geojsonData: FeatureCollection, 
   if (areaKey) geoProperties = util.renameKeyInArray(geoProperties, areaKey, 'Land Area')
   geoProperties = util.renameKeyInArray(geoProperties, state.geojsonRegionCol, 'Region')
   geoProperties = util.arrangeKeysInArray(geoProperties, [...config.RESERVE_FIELDS, 'Population (people)'])
+  geoProperties.sort((a, b) => a.Region.localeCompare(b.Region))
 
   initDataTableWArray(geoProperties)
 
