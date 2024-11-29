@@ -43,27 +43,29 @@ function onMapChanged(data: any) {
       <!-- Menu -->
       <div class="py-2 d-flex flex-nowrap">
         <a
-          class="btn btn-primary me-2"
-          title="Edit"
+          class="btn btn-primary me-2 d-flex align-items-center"
+          title="Edit cartogram"
           v-bind:href="
             props.mapDBKey
               ? '/cartogram/edit/key/' + props.mapDBKey
               : '/cartogram/edit/map/' + store.currentMapName
           "
         >
+          <span class="d-none d-md-block me-2">Edit</span>
           <i class="far fa-edit"></i>
         </a>
 
         <c-menu-btn-share v-bind:mapDBKey="props.mapDBKey" />
 
-        <div class="dropdown me-2">
+        <div class="dropdown me-2 d-flex">
           <button
-            class="btn btn-primary dropdown-toggle"
+            class="btn btn-primary dropdown-toggle d-flex align-items-center"
             type="button"
             data-bs-toggle="dropdown"
             aria-expanded="false"
-            title="Customization"
+            title="Customize cartogram viewer"
           >
+            <span class="d-none d-md-block me-2">Customize</span>
             <i class="fas fa-cog"></i>
           </button>
           <div class="dropdown-menu dropdown-menu-end p-2 container" style="width: 250px">
