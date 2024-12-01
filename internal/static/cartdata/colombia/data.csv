@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Amazonas,AM,3,108131.0,76589.0
 Antioquia,AN,3,64064.0,6407102.0
 Arauca,AR,2,25670.0,262174.0

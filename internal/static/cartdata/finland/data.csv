@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Eastern Finland,IS,1,48726.0,582781.0
 Lapland,LP,2,98946.0,186917.0
 Oulu,OU,5,57000.0,458504.0

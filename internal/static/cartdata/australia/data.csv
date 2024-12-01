@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Australian Capital Territory,ACT,1,2280.0,397397.0
 New South Wales,NSW,2,800628.0,7955900.0
 Northern Territory,NT,1,1349129.0,246700.0

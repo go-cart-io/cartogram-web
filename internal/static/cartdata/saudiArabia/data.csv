@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 'Asir,AS,2,82227.0,2261618.0
 Al Bahah,BA,6,11044.0,487108.0
 Al Hudud ash Shamaliyah,HS,5,135700.0,375310.0

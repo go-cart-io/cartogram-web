@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Banteay Meanchey,OM,2,6679.0,859545.0
 Battambang,BA,1,11702.0,987400.0
 Kampong Cham,KM,6,4549.0,895763.0

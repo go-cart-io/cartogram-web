@@ -14,7 +14,7 @@ def test_processes():
     assert result['unique'] == ['prop_unique']
 
 def test_process_data_with_no_color_no_inset(mocker):
-    csv_string = "Region,Abbreviation,Color,Land Area (sq km)\nRegion1,R1,,1000\nRegion2,R2,,2000"
+    csv_string = "Region,RegionLabel,Color,Land Area (sq km)\nRegion1,R1,,1000\nRegion2,R2,,2000"
     geojson_file = "path/to/geojson/file"
 
     mocker.patch('geopandas.read_file', return_value=mocker.Mock(to_crs=lambda x: mocker.Mock()))
@@ -22,12 +22,12 @@ def test_process_data_with_no_color_no_inset(mocker):
 
     formatted_csv, datasets, is_area_as_base = cartogram.process_data(csv_string, geojson_file)
 
-    assert formatted_csv == "Region,Abbreviation,ColorGroup,Land Area (sq km)\nRegion1,R1,1,1000\nRegion2,R2,2,2000\n"
+    assert formatted_csv == "Region,RegionLabel,ColorGroup,Land Area (sq km)\nRegion1,R1,1,1000\nRegion2,R2,2,2000\n"
     assert len(datasets) == 0
     assert is_area_as_base is True
 
 def test_process_data_with_color_inset(mocker):
-    csv_string = "Region,Abbreviation,Color,Inset,Population (people)\nRegion1,R1,#fff,C,1000\nRegion2,R2,,C,2000"
+    csv_string = "Region,RegionLabel,Color,Inset,Population (people)\nRegion1,R1,#fff,C,1000\nRegion2,R2,,C,2000"
     geojson_file = "path/to/geojson/file"
 
     mocker.patch('geopandas.read_file', return_value=mocker.Mock(to_crs=lambda x: mocker.Mock()))
@@ -35,6 +35,6 @@ def test_process_data_with_color_inset(mocker):
 
     formatted_csv, datasets, is_area_as_base = cartogram.process_data(csv_string, geojson_file)
 
-    assert formatted_csv == "Region,Abbreviation,Color,ColorGroup,Inset,Population (people)\nRegion1,R1,#fff,1,C,1000\nRegion2,R2,,2,C,2000\n"
+    assert formatted_csv == "Region,RegionLabel,Color,ColorGroup,Inset,Population (people)\nRegion1,R1,#fff,1,C,1000\nRegion2,R2,,2,C,2000\n"
     assert datasets == [{'label': 'Population', 'datastring': 'name,Data,Color,Inset\nRegion1,1000,#fff,C\nRegion2,2000,,C\n'}]
     assert is_area_as_base is False

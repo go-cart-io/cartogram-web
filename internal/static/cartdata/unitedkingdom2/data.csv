@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 England,ENG,5,130395.0,54786327.0
 Northern Ireland,NIR,6,13843.0,1851621.0
 Scotland,SCT,3,78772.0,5373000.0

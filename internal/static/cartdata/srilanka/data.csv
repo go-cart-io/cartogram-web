@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Ampara,APR,4,2984.0,649402.0
 Anuradhapura,AD,6,7128.0,860575.0
 Badulla,BD,2,2818.0,815405.0

@@ -9,7 +9,7 @@ testdata = {
     "values": {
         "fields": [
             {"key":"0","label":"Region"},
-            {"key":"1","label":"Abbreviation"},
+            {"key":"1","label":"RegionLabel"},
             {"key":"2","label":"Color"},
             {"key":"3","label":"Land Area (km sq.)"},
             {"key":"4","label":"Population (people)"},

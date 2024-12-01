@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Adygey,AD,4,7792.0,454485.0
 Altay,AL,3,167996.0,2333762.0
 Amur,AM,2,361908.0,793627.0

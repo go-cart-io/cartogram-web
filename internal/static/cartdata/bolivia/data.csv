@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Chuquisaca,CQ,6,51524.0,637013.0
 Cochabamba,CB,4,55631.0,2028639.0
 Beni,EB,1,213564.0,480308.0

@@ -57,7 +57,7 @@ function reset() {
   state.dataTable.items = []
   state.dataTable.fields = [
     { label: 'Region', name: 'Region', type: 'text', editable: false, show: true },
-    { label: 'Abbreviation', name: 'Abbreviation', type: 'text', editable: true, show: true },
+    { label: 'RegionLabel', name: 'RegionLabel', type: 'text', editable: true, show: true },
     { label: 'Color', name: 'Color', type: 'color', editable: true, show: false },
     { label: 'ColorGroup', name: 'ColorGroup', type: 'number', editable: false, show: false },
     { label: 'Inset', name: 'Inset', type: 'select', options: config.OPTIONS_INSET, editable: true, show: false },
@@ -322,11 +322,13 @@ async function getGeneratedCartogram() {
                     v-bind:title="'Remove ' + state.dataTable.fields[index].name + ' column'"
                   ></i>
                   <input
+                    class="form-control"
                     v-model="state.dataTable.fields[index]['name']"
                     v-bind:type="field.name"
                     placeholder="Data name"
                   />
                   <input
+                    class="form-control"
                     v-model="state.dataTable.fields[index]['unit']"
                     v-bind:type="field.unit"
                     placeholder="Unit"
@@ -339,6 +341,7 @@ async function getGeneratedCartogram() {
             <td v-for="(field, index) in state.dataTable.fields" v-show="field.show">
               <span v-if="!field.editable">{{ row[field.label] }}</span>
               <select
+                class="form-control"
                 v-model="state.dataTable.items[rIndex][field.label]"
                 v-else-if="field.type === 'select'"
               >
@@ -348,6 +351,7 @@ async function getGeneratedCartogram() {
               </select>
               <input
                 v-else
+                class="form-control"
                 v-model="state.dataTable.items[rIndex][field.label]"
                 v-bind:type="field.type"
               />
@@ -396,9 +400,6 @@ async function getGeneratedCartogram() {
 
 table input,
 table select {
-  border: 0;
-  box-sizing: border-box;
-  display: block;
   width: 100%;
   min-width: 100px;
 }

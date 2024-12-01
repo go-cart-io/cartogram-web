@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Amazonas,AM,5,39249.0,379384.0
 Ancash,AN,2,35826.0,1083519.0
 Apurimac,AP,4,20896.0,405759.0

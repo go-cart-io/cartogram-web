@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Attapeu,AT,5,10320.0,156800.0
 Bokeo,BK,3,6196.0,200100.0
 Borikhamxai,BL,6,14863.0,309500.0

@@ -119,14 +119,14 @@ def process_data(csv_string, geojson_file):
     is_empty_inset = df['Inset'].isna().all()    
 
     datasets = []
-    cols_order = ['Region', 'Abbreviation', 'Color', 'ColorGroup', 'Inset']
+    cols_order = ['Region', 'RegionLabel', 'Color', 'ColorGroup', 'Inset']
     is_area_as_base = False
     for column in df.columns:
         if column.startswith('Land Area'):
             cols_order.insert(5, column)
             is_area_as_base = True
 
-        elif column not in ['Region', 'Abbreviation', 'Color', 'ColorGroup', 'Inset'] and not column.startswith('Land Area'):
+        elif column not in ['Region', 'RegionLabel', 'Color', 'ColorGroup', 'Inset'] and not column.startswith('Land Area'):
             cols_order.append(column)
             m = re.match(r'(.+)\s?\((.+)\)$', column)
             if m:

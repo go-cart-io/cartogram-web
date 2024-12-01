@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Aceh,AC,2,51937.0,4486570.0
 Bali,BA,2,5633.0,3891428.0
 Bangka Belitung,BB,4,16171.0,1223048.0

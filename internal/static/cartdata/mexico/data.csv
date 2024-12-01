@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Aguascalientes,AG,1,5190.0,1342.6
 Baja California,BN,2,73040.0,3648.1
 Baja California Sur,BS,3,70574.0,839.7

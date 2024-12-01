@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Akkar,AK,5,776.0,423596.0
 Baalbak-Hermel,BH,4,3009.0,457932.0
 Beirut,BA,6,18.0,433249.0

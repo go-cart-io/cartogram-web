@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Alba,AB,1,6242.0,325358.0
 Arad,AR,3,7754.0,417247.0
 Arges,AG,6,6826.0,579796.0

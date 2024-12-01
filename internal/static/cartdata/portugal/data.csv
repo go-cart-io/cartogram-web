@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Aveiro,AV,6,2747.0,695702.0
 Beja,BE,6,10292.0,141178.0
 Braga,BR,4,2704.0,828650.0

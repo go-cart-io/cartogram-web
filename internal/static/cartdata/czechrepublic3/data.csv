@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 South Moravian,BK,2,7195.0,1169788.0
 South Bohemian,CK,1,10057.0,637460.0
 Karlovy Vary,KK,2,3314.0,310245.0

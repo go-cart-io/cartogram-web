@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Cherkasy,CK,5,20034.0,1186848.0
 Chernihiv,CH,4,31865.0,986199.0
 Chernivtsi,CV,4,7359.0,899755.0

@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Aichi,AI,2,5165.0,7416336.0
 Akita,AK,4,11636.0,1074858.0
 Aomori,AO,6,9645.0,1362820.0

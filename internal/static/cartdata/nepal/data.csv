@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Bagmati Pradesh,TH,2,20300.0,6026600.0
 Gandaki Pradesh,FO,6,21504.0,2472500.0
 Karnali Pradesh,SI,4,27984.0,1701800.0

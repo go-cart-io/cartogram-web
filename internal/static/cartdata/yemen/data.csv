@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Aden,AD,6,760.0,925000.0
 Abyan,AB,4,16450.0,568000.0
 Al Bayda',BA,6,9270.0,760000.0

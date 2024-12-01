@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Brunei,BRN,1,5787,447000
 Indonesia,IDN,2,1864453,266998000
 Cambodia,KHM,1,186564,16494000

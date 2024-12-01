@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Harju,HA,4,4333.0,605027.0
 Hiiu,HI,4,1023.0,9315.0
 Ida-Viru,IV,5,3364.0,134259.0

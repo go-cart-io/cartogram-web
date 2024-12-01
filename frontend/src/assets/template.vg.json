@@ -125,7 +125,7 @@
       "from": { "data": "geo_1" },
       "encode": {
         "enter": {
-          "text": { "field": "cartogram_data.Abbreviation" }
+          "text": { "field": "cartogram_data.RegionLabel" }
         },
         "update": {
           "x": { "field": "x" },

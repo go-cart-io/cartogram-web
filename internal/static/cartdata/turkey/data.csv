@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Adana,AA,6,15852.0,2237940.0
 Adiyaman,AD,6,7415.0,626465.0
 Afyon,AF,3,14743.0,729483.0

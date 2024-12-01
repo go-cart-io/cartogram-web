@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 CENTRAL REGION,CR,3,133.0,922580.0
 EAST REGION,ER,2,93.0,685940.0
 NORTH REGION,NR,6,135.0,582330.0

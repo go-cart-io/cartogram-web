@@ -1,6 +1,6 @@
 export const RESERVE_FIELDS = [
   'Region',
-  'Abbreviation',
+  'RegionLabel',
   'Color',
   'Inset',
   'cartogram_id',

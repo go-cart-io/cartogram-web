@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Ang Mo Kio,AM,#a6761d,13.94608,163950.0
 Bedok,BD,1,21.740894,279380.0
 Bishan,BS,4,7.605257,88010.0

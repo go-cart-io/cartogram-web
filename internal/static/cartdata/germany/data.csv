@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Baden-Wuerttemberg,BW,2,35752.0,10879618.0
 Bayern,BY,5,70549.0,12843514.0
 Berlin,BE,2,892.0,3520031.0

@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Barisal,BA,5,9610.0,9145000.0
 Chittagong,CG,2,31051.0,31980000.0
 Dhaka,DH,6,20413.0,40171000.0

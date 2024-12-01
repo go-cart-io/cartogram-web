@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Eastern Region,AL,6,22110.0,13173.0
 Northeastern Region,NE,1,22735.0,30600.0
 Capital Region,HO,6,1062.0,233034.0

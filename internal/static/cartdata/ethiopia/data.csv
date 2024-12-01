@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Addis Abeba,AA,1,530.0,3273000.0
 Afar,AF,6,94419.0,1723000.0
 Amhara,AM,4,159202.0,20401000.0

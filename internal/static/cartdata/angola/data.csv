@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Bengo,BO,1,31371.0,445700.0
 Benguela,BG,5,31788.0,2543500.0
 Bie,BI,3,70314.0,1709100.0

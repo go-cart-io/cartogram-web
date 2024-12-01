@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Drenthe,DR,6,2664.0,492167.0
 Flevoland,FL,5,1468.0,416546.0
 Friesland,FR,3,3578.0,647672.0

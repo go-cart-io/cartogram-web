@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Dalarna,KO,6,28189.0,286165.0
 Gavleborg,GV,4,18199.0,285637.0
 Gotland,GT,3,3151.0,58595.0

@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Abia,AB,2,6320.0,2845380.0
 Adamawa,AD,2,36917.0,3178950.0
 Akwa Ibom,AK,6,7081.0,3178950.0

@@ -1,4 +1,4 @@
-Region,Abbreviation,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Acre,AC,6,164123.0,790101.0
 Alagoas,AL,4,27779.0,3321730.0
 Amapa,AP,3,142829.0,750912.0
