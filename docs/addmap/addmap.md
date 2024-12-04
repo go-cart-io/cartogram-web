@@ -4,13 +4,21 @@ This guide will help you add a new map to the go-cart.io website. This guide ass
 
 ## Contents
 
-- [1. What You'll Need](#1-what-youll-need)
-- [2. Preparing Your Data](#2-preparing-your-data)
-- [3. Initializing Your Map](#3-initializing-your-map)
-- [4. Adding the Rest of Your Data](#4-adding-the-rest-of-your-data)
-  - [Adding Colors and Labels Using a Python Script (and Inkscape)](#adding-colors-and-labels-using-a-python-script-and-inkscape)
-  - [Adding Colors and Labels Using Inkscape](#adding-colors-and-labels-using-inkscape)
-- [5. Saving Your Changes](#5-saving-your-changes)
+- [Adding a Map](#adding-a-map)
+  - [Contents](#contents)
+  - [1. What You'll Need](#1-what-youll-need)
+  - [2. Preparing Your Data](#2-preparing-your-data)
+    - [2.1 Generating a GeoJSON file (`_processedmap.json`)](#21-generating-a-geojson-file-_processedmapjson)
+    - [2.2 Generating csv file and edit the data:](#22-generating-csv-file-and-edit-the-data)
+    - [(For a world map) Adding "extent":"world" and adjusting bbox values.](#for-a-world-map-adding-extentworld-and-adjusting-bbox-values)
+  - [3. Initializing Your Map](#3-initializing-your-map)
+  - [4. (Optional) Adding Colors and Labels Using SVG](#4-optional-adding-colors-and-labels-using-svg)
+    - [Adding Colors](#adding-colors)
+      - [Importing the ColorBrewer Color Palette Into Inkscape](#importing-the-colorbrewer-color-palette-into-inkscape)
+      - [Coloring the Map Regions](#coloring-the-map-regions)
+    - [Adding Labels](#adding-labels)
+    - [Finishing Up](#finishing-up)
+  - [5a. Saving Your Changes](#5a-saving-your-changes)
 
 \* [Left/Right Map Display](#leftright-map-display)<br/> \* [Exporting the cartogram animation to a gif](create_cart_animation_gif.md)
 
@@ -80,8 +88,8 @@ Change the value for the `"bbox"` key to `[ -180, -90, 180, 90 ]` to accurately 
 
 From here on, you will be making use of the Add Map Wizard. Before you can use this wizard to initialize your new map, you must start the Docker containers for the go-cart.io website. To do this, run
 
-    $ cd cartogram-docker/
-    $ docker-compose up
+    cd cartogram-docker/
+    docker-compose up
 
 Now you can run the Add Map Wizard. You will need to pick a name for your map to be used by the website code (this is different from the user-friendly name seen by website users). This name **must not** include spaces, hyphens, underscores, or any punctuation. Below are some example names for your reference:
 
@@ -94,11 +102,14 @@ This map name must be unique. The Add Map Wizard will let you know if your choic
 
 Once you have chosen a map name, you can open a new terminal window and run the Add Map Wizard.
 
-    $ ./addmap.sh init your-map-name
+    ./addmap.sh init your-map-name
 
-The wizard will then ask you a series of questions about your map, and generate files needed to complete the map addition process.
+The wizard will then ask you a series of questions about your map, and generate files needed to complete the map addition process. For instance, running
 
-    $ ./addmap.sh init asean2
+    ./addmap.sh init asean2
+
+Should output something like this:
+
     Welcome to the Add Map Wizard!
 
     Enter a user friendly name for this map (asean2): Asean (5 years)
@@ -218,19 +229,17 @@ Once you have finished adding all of your labels, you should save your SVG file 
 
 At this point, you're now ready to finish the map addition process. Open a Terminal window and navigate to the `cartogram-docker/` directory of the repository. Run the Add Map Wizard again:
 
-    $ ./addmap.sh update your-map-name
+    ./addmap.sh update your-map-name
 
-## 5. Saving Your Changes
+## 5a. Saving Your Changes
 
-Change directories to `cartogram-web/`. You should now commit your changes to your Git branch, and push these changes to GitHub.
+Change directories to `cartogram-web/`. You should now commit your changes to a new Git branch, and push these changes to GitHub.
 
-    $ cd cartogram-web/
-    $ git add internal/handler.py
-    $ git add internal/static
-    $ git add data/[map_name].geojson
-    $ git commit -a -m "added map New Map Name"
-    $ git push origin master
+    git add internal/handler.py
+    git add internal/static
+    git add data/[map_name].geojson
+    git commit -a -m "added map [New Map Name]"
 
-You should also create a pull request on GitHub to let me know that you have finished adding the new map, so I can deploy it to the website. Navigate to your forked repository and click 'Create pull request'.
+Then, create a pull request on GitHub, and follow the instructions on [go-cart-io/carotgram-docker](https://github.com/go-cart-io/cartogram-docker)'s "Making changes to `cartogram-web`" section.
 
 ![Pull Request](pull-request.png)
