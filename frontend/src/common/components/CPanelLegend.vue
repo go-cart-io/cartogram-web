@@ -97,13 +97,13 @@ onMounted(async () => {
   versionSpec.marks[1].encode.update.tooltip.signal =
     '{title: datum.Region + " (" + datum.Abbreviation + ")", ' + tooltipFormat + '}'
 
-  // if (props.currentMapName === "world") {
-  //   // Gall–Peters projection
-  //   vega.projection('cylindricalEqualArea', geoCylindricalEqualArea)
-  //   versionSpec.projections[0].type = versionSpec.projections[1].type = "cylindricalEqualArea"
-  //   versionSpec.projections[0].reflectY = versionSpec.projections[1].reflectY = false
-  //   versionSpec.projections[0].parallel = versionSpec.projections[1].parallel = 45
-  // }
+  if (props.currentMapName === "world" && state.version.name === 'Land Area') {
+    // Gall–Peters projection
+    vega.projection('cylindricalEqualArea', geoCylindricalEqualArea)
+    versionSpec.projections[0].type = "cylindricalEqualArea"
+    versionSpec.projections[0].reflectY = false
+    versionSpec.projections[0].parallel = 45
+  }
 
   visEl = d3.select('#' + props.mapID + '-vis')
   offscreenEl = d3.select('#' + props.mapID + '-offscreen')

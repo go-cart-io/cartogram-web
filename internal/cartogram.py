@@ -24,15 +24,12 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
     datacsv, datasets, is_area_as_base = process_data(datacsv, gen_file)
     data_length = len(datasets)
 
+    world = False
     with open(gen_file, 'r') as gen_fp:
-        gen_file_contents = gen_fp.read()
-
-    try:
-        conventional_json = json.loads(gen_file_contents)
-        if 'extent' in conventional_json.keys() and conventional_json['extent'] == 'world':
+        gen_file_contents = gen_fp.read()       
+        conventional_json = json.loads(gen_file_contents)        
+        if 'extent' in conventional_json and conventional_json['extent'] == 'world':
             world = True
-    finally:
-        world = False
 
     if 'persist' in data:
         with open('{}/data.csv'.format(folder), 'w') as outfile:
@@ -41,11 +38,7 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
     for i, dataset in enumerate(datasets):
         datastring = dataset['datastring']
         name = dataset['label']
-        data_flags = flags
-
-        # TODO fix bug in C++?
-        if is_area_as_base == False and i == 0:
-            data_flags = data_flags + 'ts'
+        data_flags = flags        
             
         lambda_event = {
             'gen_file': gen_file,
@@ -58,13 +51,9 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
         lambda_result = local_function(lambda_event, i, data_length, print_progress)
         
         cartogram_gen_output = lambda_result['stdout']
-        print('44444444444')
-        print(cartogram_gen_output)
-        print('5555555')
         cartogram_json = json.loads(cartogram_gen_output)
-        print('666666666')
 
-        cartogram_json = cartogram_json[Path(gen_file).stem + "_cartogram"]["Original"]
+        cartogram_json = cartogram_json["Original"]
 
         for feature in cartogram_json["features"]:
             geom = shape(feature["geometry"])
@@ -122,15 +111,9 @@ def local_function(params, data_index = 0, data_length = 1, print_progress = Fal
     cartogram_exec = 'cartogram'
     temp_filename = str(uuid.uuid4())
    
-    if params['world'] == True:
-        cartogram_exec = 'cartogram_c'
-
-    if cartogram_exec == 'cartogram':
-        area_data_path = '/tmp/{}.csv'.format(temp_filename)
-        with open(area_data_path, 'w') as areas_file:
-            areas_file.write(params['area_data'])        
-    else:
-        area_data_path = params['area_data']
+    area_data_path = '/tmp/{}.csv'.format(temp_filename)
+    with open(area_data_path, 'w') as areas_file:
+        areas_file.write(params['area_data'])
 
     if 'flags' in params.keys():
         flags = params['flags']

@@ -71,7 +71,7 @@ export default class HTTP {
     url: string,
     form_data: any,
     headers: { [key: string]: any } = {},
-    timeout: number = 30000
+    timeout: number = 180000 // 3 minutes
   ): Promise<Object | string> {
     return new Promise(function (resolve, reject) {
       var xhttp = new XMLHttpRequest()

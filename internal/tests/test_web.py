@@ -1,6 +1,7 @@
 import pytest
 import json
 import time
+import csv
 from tests.conftest import client
 
 testdata = {
@@ -26,8 +27,24 @@ testdata = {
     "persist": "true"
 }
 
+testworlddata = {
+    "handler": "world",
+    "stringKey": time.time(),
+    "persist": "true"
+}
+
 def test_cartogram_post(client):
     response = client.post("/api/v1/cartogram", data={"data": json.dumps(testdata)})
+    print(response.data)
+    assert response.status_code == 200
+
+def test_cartogram_post_world(client):
+    with open('static/cartdata/world/data.csv', mode='r', newline='') as file:
+        reader = csv.reader(file)
+        csv_string = '\n'.join([','.join(row) for row in reader])
+    testworlddata['csv'] = csv_string
+
+    response = client.post("/api/v1/cartogram", data={"data": json.dumps(testworlddata)})
     print(response.data)
     assert response.status_code == 200
 
