@@ -11,7 +11,7 @@ We recommend Docker for running this project. See https://github.com/go-cart-io/
 
 For local development, and updating the docker image, please run
 
-```
+```shell script
 bash tools/pull-executable.sh
 ```
 
@@ -19,7 +19,7 @@ before following the [Linux](docs/setup-linux.md) or [macOS](docs/setup-macos.md
 
 To update the cartogram-cpp binary, use the `--latest` flag with the previous command like so:
 
-```
+```shell script
 bash tools/pull-executable.sh --latest
 ```
 

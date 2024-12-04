@@ -42,12 +42,23 @@ jobs:
         git tag ${{ steps.vars.outputs.short_sha }}
         git push origin ${{ steps.vars.outputs.short_sha }}
 
+    - name: Set release URLs
+      id: release-urls
+      run: |
+        echo "gh_release_url=https://github.com/${{ github.repository }}/releases/tag/${{ steps.vars.outputs.short_sha }}" >> $GITHUB_ENV
+        echo "https://hub.docker.com/r/gocartio/cartogram-web/tags?name=${{ steps.vars.outputs.short_sha }}" >> $GITHUB_ENV
+
     - name: Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.vars.outputs.short_sha }}
         body: |
           This release includes the Docker image available at:
-          https://hub.docker.com/r/gocartio/cartogram-web/tags?name=${{ steps.vars.outputs.short_sha }}
+          ${{ steps.release-urls.outputs.dh_release_url }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Display Release URLs in GitHub Actions Job Summary
+      run: |
+        echo "GitHub Release URL: ${{ steps.release-urls.outputs.gh_release_url }}" >> $GITHUB_STEP_SUMMARY
+        echo "DockerHub Release URL: ${{ steps.release-urls.outputs.dh_release_url }}" >> $GITHUB_STEP_SUMMARY
