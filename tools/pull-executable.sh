@@ -1,7 +1,10 @@
 #!/bin/bash
 
+# Change to the directory where the script is located
+cd "$(dirname "$0")"
+
 # Directory to copy the executable
-TAG=$(<./internal/executable/release-tag.txt)
+TAG=$(<../internal/executable/release-tag.txt)
 
 # Define the ANSI color code for red and escape code to reset color
 RED='\033[31m'
@@ -10,10 +13,10 @@ RESET='\033[0m'
 # Function to pull a specific release
 pull_release() {
     printf "\nPulling release tag: ${RED}$1${RESET}\n\n"
-    wget https://github.com/mgastner/cartogram-cpp/releases/download/$1/cartogram -O ./internal/executable/cartogram
+    wget https://github.com/mgastner/cartogram-cpp/releases/download/$1/cartogram -O ../internal/executable/cartogram
 
     # Overwrite version.txt with the release tag
-    echo $1 > ./internal/executable/release-tag.txt
+    echo $1 > ../internal/executable/release-tag.txt
 }
 
 # Function to pull the latest release
