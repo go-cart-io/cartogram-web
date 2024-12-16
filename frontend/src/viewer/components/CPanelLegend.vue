@@ -3,7 +3,7 @@
  * Legend wrapper for map with functions for managing grid size.
  */
 
-import { onMounted, nextTick, reactive, watch } from 'vue'
+import { onMounted, nextTick, reactive, ref, watch } from 'vue'
 import * as d3 from 'd3'
 // @ts-ignore
 import { geoCylindricalEqualArea } from "d3-geo-projection"
@@ -17,16 +17,20 @@ import spec from '../../assets/template.vg.json' with { type: "json" }
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
-var numGridOptions = 3
-const locale =
+const NUM_GRID_OPTIONS = 3
+const LOCALE =
   navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language
-var defaultOpacity = 0.3
+const DEFAULT_OPACITY = 0.3
+
 var versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
+const legendSvgEl = ref()
 var visEl: any
 var offscreenEl: any
 var visView: any
 var totalArea: number
 var totalValue: number
+var handlePointerId = -1
+var handlePointerPosition = 0
 
 const props = withDefaults(
   defineProps<{
@@ -54,7 +58,6 @@ const state = reactive({
     }
   },
   handlePosition: 0 as number,
-  handleTouchPosition: 0 as number,
   scalePowerOf10: 1 as number
 })
 
@@ -123,6 +126,11 @@ onMounted(async () => {
 
   visView.addSignalListener('active', function(name: string, value: any) {
     store.highlightedRegionID = value
+  })
+
+  visView.addEventListener('pointerup', function(event: any, item: any) {
+    let value = item?.datum.cartogram_data
+    visView.tooltip()(visView, event, item, value)
   })
 
   update()
@@ -199,18 +207,18 @@ function getLegendData() {
   let [scaleNiceNumber0, scalePowerOf10] = util.findNearestNiceNumber(valuePerSquare)
   let niceIndex = util.NICE_NUMBERS.indexOf(scaleNiceNumber0)
   let beginIndex = niceIndex === 0 ? niceIndex : niceIndex - 1
-  let endIndex = beginIndex + numGridOptions + 1
+  let endIndex = beginIndex + NUM_GRID_OPTIONS + 1
   while (endIndex >= util.NICE_NUMBERS.length && beginIndex > 0) {
     endIndex--
     beginIndex--
   }
   let scaleNiceNumber = util.NICE_NUMBERS.slice(beginIndex, endIndex)
-  for (let i = 0; i <= numGridOptions; i++) {
+  for (let i = 0; i <= NUM_GRID_OPTIONS; i++) {
     width[i] =
       baseWidth * Math.sqrt((scaleNiceNumber[i] * Math.pow(10, scalePowerOf10)) / valuePerSquare)
   }
   // Store legend Information
-  for (let i = 0; i <= numGridOptions; i++) {
+  for (let i = 0; i <= NUM_GRID_OPTIONS; i++) {
     state.gridData[i] = {
       width: width[i],
       scaleNiceNumber: scaleNiceNumber[i]
@@ -233,7 +241,7 @@ async function changeTo(key: number) {
   state.gridDataKeys = [state.currentGridIndex]
   await nextTick()
 
-  for (let i = 0; i <= numGridOptions; i++) {
+  for (let i = 0; i <= NUM_GRID_OPTIONS; i++) {
     if (i <= key) {
       d3.select('#' + props.panelID + '-legend' + i + ' rect').attr('fill', '#EEEEEE')
     } else d3.select('#' + props.panelID + '-legend' + i + ' rect').attr('fill', '#D6D6D6')
@@ -242,21 +250,31 @@ async function changeTo(key: number) {
   updateGridLines(state.gridData[key].width)
 }
 
-function handleMove(event: TouchEvent) {
-  if (!event.target) return
-  var direction = event.touches[0].pageX - state.handleTouchPosition
-  var pos = state.handlePosition + direction
-  state.handlePosition = Math.max(0, Math.min(pos, state.gridData[numGridOptions].width))
-  state.handleTouchPosition = event.touches[0].pageX
-  event.preventDefault()
+function onHandleDown(event: PointerEvent) {
+  if (!event.isPrimary) return
+  legendSvgEl.value.setPointerCapture(event.pointerId)
+  handlePointerId = event.pointerId
+  state.handlePosition = event.offsetX
 }
 
-function resizeGrid(event: any) {
+function onHandleMove(event: PointerEvent) {
+  if (handlePointerId !== event.pointerId) return
+
+  var direction = event.pageX - handlePointerPosition
+  var pos = state.handlePosition + direction
+  state.handlePosition = Math.max(0, Math.min(pos, state.gridData[NUM_GRID_OPTIONS].width))
+  handlePointerPosition = event.pageX
+}
+
+function onHandleUp(event: any) {
+  if (handlePointerId !== event.pointerId) return
+  legendSvgEl.value.releasePointerCapture(event.pointerId)
+  handlePointerId = -1
+
   var key = 0
   var minDiff = Number.MAX_VALUE
-  var pos = event.offsetX ? event.offsetX : state.handlePosition
-  for (let i = 0; i <= numGridOptions; i++) {
-    var diff = Math.abs(pos - state.gridData[i]['width'])
+  for (let i = 0; i <= NUM_GRID_OPTIONS; i++) {
+    var diff = Math.abs(state.handlePosition - state.gridData[i]['width'])
     if (diff < minDiff) {
       minDiff = diff
       key = i
@@ -274,7 +292,7 @@ function formatLegendValue() {
 
 function formatLegendText(value: number, scalePowerOf10: number): string {
   let originalValue = value * Math.pow(10, scalePowerOf10)
-  const formatter = Intl.NumberFormat(locale, {
+  const formatter = Intl.NumberFormat(LOCALE, {
     notation: 'compact',
     compactDisplay: 'short'
   })
@@ -290,7 +308,7 @@ function drawGridLines() {
 
 function updateGridLines(gridWidth: number) {
   if (isNaN(gridWidth)) return
-  let stroke_opacity = store.options.showGrid ? defaultOpacity : 0
+  let stroke_opacity = store.options.showGrid ? DEFAULT_OPACITY : 0
   const gridPattern = d3.select('#' + props.panelID + '-grid')
   gridPattern
     .select('path')
@@ -311,7 +329,7 @@ function updateGridLines(gridWidth: number) {
 }
 
 function highlight(itemID: any) {
-  visView.signal("active", itemID).runAsync()
+  visView.signal('active', itemID).runAsync()
 }
 </script>
 
@@ -319,19 +337,20 @@ function highlight(itemID: any) {
   <div class="d-flex flex-column card-body p-0">
     <div class="d-flex position-absolute z-1">
       <svg
-        v-if="state.gridData[numGridOptions]"
-        v-bind:id="props.panelID + '-slider'"
-        v-bind:width="state.gridData[numGridOptions].width + 15"
+        v-if="state.gridData[NUM_GRID_OPTIONS]"
+        ref="legendSvgEl"
+        class="d-flex position-absolute z-2"
+        style="cursor: pointer; top: -15px; touch-action: none"
         height="30px"
-        style="cursor: pointer; top: -15px"
         stroke="#AAAAAA"
         stroke-width="2px"
-        v-on:pointerup="resizeGrid"
-        v-on:touchmove="handleMove"
-        v-on:touchend="resizeGrid"
-        class="d-flex position-absolute z-2"
+        v-bind:id="props.panelID + '-slider'"
+        v-bind:width="state.gridData[NUM_GRID_OPTIONS].width + 15"
+        v-on:pointerdown.stop.prevent="onHandleDown"
+        v-on:pointermove.stop.prevent="onHandleMove"
+        v-on:pointerup.stop.prevent="onHandleUp"
       >
-        <line x1="0" y1="15" v-bind:x2="state.gridData[numGridOptions].width" y2="15"></line>
+        <line x1="0" y1="15" v-bind:x2="state.gridData[NUM_GRID_OPTIONS].width" y2="15"></line>
         <line
           v-for="grid in state.gridData"
           v-bind:x1="grid.width"
@@ -342,7 +361,7 @@ function highlight(itemID: any) {
         <circle id="handle" r="5" v-bind:cx="state.handlePosition" cy="15" stroke-width="0px" />
       </svg>
       <svg
-        v-if="state.gridData[numGridOptions]"
+        v-if="state.gridData[NUM_GRID_OPTIONS]"
         v-bind:id="props.panelID + '-legend'"
         style="cursor: pointer; opacity: 0.5"
         v-bind:width="state.gridData[state.currentGridIndex].width + 2"

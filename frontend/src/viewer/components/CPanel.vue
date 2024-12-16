@@ -47,16 +47,17 @@ const state = reactive({
 })
 
 // https://observablehq.com/@d3/multitouch
-function onTouchstart(event: any) {
+function onPointerdown(event: any) {
   touchInfo.set(event)
-  state.touchLenght = touchInfo.length
+  state.touchLenght = touchInfo.length()
+
   var now = new Date().getTime()
   var timesince = now - lastTouch
-  if (touchInfo.length === 1 && timesince < DELAY_THRESHOLD && timesince > 0) {
+  if (touchInfo.length() === 1 && timesince < DELAY_THRESHOLD && timesince > 0) {
     // Double tap
     transformReset()
   } else {
-    const t = touchInfo.getPoints()
+    const t = touchInfo.getMergedPoints()
     if (t.length > 0) {
       pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
       pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
@@ -66,35 +67,35 @@ function onTouchstart(event: any) {
 
   lastTouch = new Date().getTime()
   state.lastMove = lastTouch
-  if (event.cancelable) event.preventDefault()
 }
 
-function onTouchend(event: any) {
+function onPointerup(event: any) {
+  legendEl.value.$el.releasePointerCapture(event.pointerId)
   touchInfo.clear(event)
-  state.touchLenght = touchInfo.length
+  state.touchLenght = touchInfo.length()
 
   snapToBetterNumber()
-  if (touchInfo.length === 0) {
+  if (touchInfo.length() === 0) {
     pointerposition = null // signals mouse up
   } else {
-    const t = touchInfo.getPoints()
+    const t = touchInfo.getMergedPoints()
     if (t.length > 0) {
       pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
       pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
       pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
     }
   }
-
-  if (event.cancelable) event.preventDefault()
 }
 
-function onTouchmove(event: any) {
+function onPointermove(event: any) {
   touchInfo.update(event)
-  if (touchInfo.length < 1 || touchInfo.length > 3 || !pointerposition) return
+  if (touchInfo.length() < 1 || touchInfo.length() > 3 || !pointerposition) return
 
-  const t = touchInfo.getPoints()
-  if (t.length < 1) return
+  // Capture pointer so gesture can be beyond the panel
+  document.getElementById('vg-tooltip-element')?.classList.remove('visible')
+  legendEl.value.$el.setPointerCapture(event.pointerId)
 
+  const t = touchInfo.getMergedPoints()
   var matrix = util.getOriginalMatrix()
   var angle = 0
   var position = [0, 0]
@@ -103,7 +104,10 @@ function onTouchmove(event: any) {
 
   // Order should be rotate, scale, translate
   // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
-  if (t.length > 1 && (touchInfo.length === 3 || (touchInfo.length === 2 && !state.isLockRatio))) {
+  if (
+    t.length > 1 &&
+    (touchInfo.length() === 3 || (touchInfo.length() === 2 && !state.isLockRatio))
+  ) {
     // rotate
     var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
     if (pointerangle && typeof pointerangle === 'number') angle = pointerangle2 - pointerangle
@@ -145,7 +149,7 @@ function onTouchmove(event: any) {
   }
 
   var timesince = now - lastTouch
-  if (touchInfo.length > 1 || (touchInfo.length === 1 && timesince > DELAY_THRESHOLD)) {
+  if (touchInfo.length() > 1 || (touchInfo.length() === 1 && timesince > DELAY_THRESHOLD)) {
     // (A) translate
     var pointerposition2 = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0]
     position[0] = pointerposition2[0] - pointerposition[0]
@@ -155,7 +159,6 @@ function onTouchmove(event: any) {
   }
 
   transformVersion(matrix, state.affineMatrix)
-  if (event.cancelable) event.preventDefault()
 
   state.lastMove = new Date().getTime()
 }
@@ -181,7 +184,6 @@ function onWheel(event: any) {
     matrix = util.getScaleMatrix(scales[0], scales[1])
   }
   transformVersion(matrix, state.affineMatrix)
-  if (event.cancelable) event.preventDefault()
 }
 
 function switchMode() {
@@ -238,34 +240,28 @@ function snapToBetterNumber() {
 </script>
 
 <template>
-  <!-- <c-touch-vis
-    v-bind:key="state.lastMove"
-    v-bind:touchInfo="touchInfo"
-    v-bind:touchLenght="state.touchLenght"
-  /> -->
-
   <div class="card w-100">
     <div class="d-flex flex-column card-body">
       <c-panel-legend
         ref="legendEl"
+        style="touch-action: none"
+        v-bind:style="{ cursor: state.cursor }"
         v-bind:panelID="props.panelID"
         v-bind:mapDBKey="props.mapDBKey"
         v-bind:versionKey="state.versionKey"
         v-bind:affineScale="state.affineScale"
         v-on:gridChanged="snapToBetterNumber"
-        v-bind:style="{ cursor: state.cursor }"
-        v-on:mousedown="onTouchstart($event)"
-        v-on:mousemove="onTouchmove($event)"
-        v-on:mouseup="onTouchend"
-        v-on:wheel="onWheel"
+        v-on:pointerdown.stop.prevent="onPointerdown"
+        v-on:pointermove.stop.prevent="onPointermove"
+        v-on:pointerup.stop.prevent="onPointerup"
+        v-on:wheel.stop.prevent="onWheel"
         v-on:versionUpdated="transformVersion(state.affineMatrix, util.getOriginalMatrix())"
-        ><!-- TODO add v-on:touchstart="onTouchstart($event)" 
-        v-on:touchmove="onTouchmove($event)" v-on:touchend="onTouchend" -->
+      >
         <img class="position-absolute bottom-0 end-0 z-3" src="/static/img/by.svg" alt="cc-by" />
       </c-panel-legend>
       <div class="position-absolute end-0" style="width: 2.5rem">
         <button
-          class="btn btn-primary w-100 my-1"
+          class="btn btn-secondary w-100 my-1"
           v-on:click="switchMode()"
           v-bind:title="state.isLockRatio ? 'Switch to free transform' : 'Switch to lock ratio'"
         >
@@ -275,15 +271,7 @@ function snapToBetterNumber() {
           <i v-else-if="state.stretchDirection === 'x'" class="fas fa-arrows-alt-h"></i>
           <i v-else class="fas fa-arrows-alt-v"></i>
         </button>
-        <button
-          class="btn btn-primary w-100 my-1"
-          v-on:click="
-            () => {
-              transformReset()
-            }
-          "
-          title="Reset"
-        >
+        <button class="btn btn-secondary w-100 my-1" v-on:click="transformReset()" title="Reset">
           <i class="fas fa-crosshairs"></i>
         </button>
       </div>
@@ -301,4 +289,10 @@ function snapToBetterNumber() {
       />
     </div>
   </div>
+
+  <c-touch-vis
+    v-bind:key="state.lastMove"
+    v-bind:touchInfo="touchInfo"
+    v-bind:touchLenght="state.touchLenght"
+  />
 </template>

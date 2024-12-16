@@ -50,7 +50,7 @@ async function switchMap() {
 
   <div
     id="cartogram"
-    class="d-flex flex-fill card-group"
+    class="d-flex flex-fill card-group position-relative mx-2"
     v-if="state.versionKeys.length > 0"
     v-bind:key="state.mapkey"
   >

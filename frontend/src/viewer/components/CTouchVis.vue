@@ -13,7 +13,7 @@ const props = defineProps<{
 
 const state = reactive({
   points: [] as number[][],
-  midPoint: [] as number[]
+  line: [] as number[][]
 })
 
 onMounted(() => {
@@ -32,19 +32,13 @@ watch(
 
 function updatePoints() {
   state.points = []
-  state.midPoint = []
+  state.line = []
 
   try {
-    if (props.touchInfo.length > 1) {
-      state.points = [props.touchInfo.getThumb(posX, posY)]
-      for (const identifier in props.touchInfo.touches) {
-        if (identifier === props.touchInfo.thumbIndex.toString()) continue
-        state.points.push([
-          props.touchInfo.touches[identifier].pageX - posX,
-          props.touchInfo.touches[identifier].pageY - posY
-        ])
-      }
-      state.midPoint = props.touchInfo.getOthers()
+    // Uncomment this code to visualize each pointer
+    // state.points = props.touchInfo.getAllPoints(posX, posY)
+    if (props.touchInfo.length() > 2) {
+      state.line = props.touchInfo.getMergedPoints(posX, posY)
     }
   } catch (err) {
     console.log(err)
@@ -53,21 +47,16 @@ function updatePoints() {
 </script>
 
 <template>
-  <svg ref="svgEl" class="w-100 h-100 position-absolute">
+  <svg ref="svgEl" class="w-100 h-100 position-absolute z-3" style="pointer-events: none">
     <g v-for="(point, index) in state.points">
-      <circle
-        v-bind:cx="point[0]"
-        v-bind:cy="point[1]"
-        v-bind:fill="index === 0 ? 'red' : 'blue'"
-        r="5"
-      />
+      <circle v-bind:cx="point[0]" v-bind:cy="point[1]" fill="blue" r="5" />
     </g>
-    <g v-if="state.points.length > 2 && state.midPoint.length > 0">
+    <g v-if="state.line.length > 0">
       <line
-        v-bind:x1="state.points[0][0]"
-        v-bind:y1="state.points[0][1]"
-        v-bind:x2="state.midPoint[0]"
-        v-bind:y2="state.midPoint[1]"
+        v-bind:x1="state.line[0][0]"
+        v-bind:y1="state.line[0][1]"
+        v-bind:x2="state.line[1][0]"
+        v-bind:y2="state.line[1][1]"
         style="stroke: rgb(255, 0, 0); stroke-width: 2"
       />
     </g>

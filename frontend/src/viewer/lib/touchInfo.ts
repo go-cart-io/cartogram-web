@@ -1,63 +1,45 @@
 export default class TouchInfo {
-  touches = {} as { [key: string]: any }
-  length = 0
-  thumbIndex = -1
+  private touches = new Map<number, PointerEvent>()
+  private touchIds = [] as Array<number>
+  private thumbIndex = -1
 
-  set(event: TouchEvent | MouseEvent): void {
-    if (event instanceof TouchEvent) this.setTouches(event.touches)
-    else this.setPointer(event)
-  }
+  set(event: PointerEvent): void {
+    if (this.touches.size >= 3 || !event.pointerId) return // We only process 1-3 points
 
-  setPointer(event: MouseEvent) {
-    this.updatePointer(event)
-    this.thumbIndex = 0
-  }
+    this.touchIds.push(event.pointerId)
+    this.touches.set(event.pointerId, event)
 
-  setTouches(touchlist: TouchList): void {
-    this.updateTouches(touchlist)
-
-    switch (touchlist.length) {
-      case 0:
-        this.thumbIndex = -1
-        return
-
+    switch (this.touches.size) {
       case 1:
-        this.thumbIndex = touchlist[0].identifier
+        this.thumbIndex = event.pointerId
         return
 
       case 2:
-        if (
-          this.thumbIndex === touchlist[0].identifier ||
-          this.thumbIndex === touchlist[1].identifier
-        ) {
-          return // same thumb
-        }
-        this.thumbIndex = touchlist[0].identifier
-        return
+        return // Just assume the first pointer as thumb
 
       case 3:
         let d01 = Math.hypot(
-          touchlist[1].pageY - touchlist[0].pageY,
-          touchlist[1].pageX - touchlist[0].pageX
+          this.getTouchId(this.touchIds[1]).pageY - this.getTouchId(this.touchIds[0]).pageY,
+          this.getTouchId(this.touchIds[1]).pageX - this.getTouchId(this.touchIds[0]).pageX
         )
         let d12 = Math.hypot(
-          touchlist[2].pageY - touchlist[1].pageY,
-          touchlist[2].pageX - touchlist[1].pageX
+          this.getTouchId(this.touchIds[2]).pageY - this.getTouchId(this.touchIds[1]).pageY,
+          this.getTouchId(this.touchIds[2]).pageX - this.getTouchId(this.touchIds[1]).pageX
         )
         let d20 = Math.hypot(
-          touchlist[0].pageY - touchlist[2].pageY,
-          touchlist[0].pageX - touchlist[2].pageX
+          this.getTouchId(this.touchIds[0]).pageY - this.getTouchId(this.touchIds[2]).pageY,
+          this.getTouchId(this.touchIds[0]).pageX - this.getTouchId(this.touchIds[2]).pageX
         )
 
         // Assume two smallest distance is index and middle finger
         if (d01 <= d12 && d01 <= d20)
           // d01 is the smallest
-          this.thumbIndex = touchlist[2].identifier
+          this.thumbIndex = this.getTouchId(this.touchIds[2]).pointerId
         else if (d01 > d12 && d12 <= d20)
           // d12 is the smallest
-          this.thumbIndex = touchlist[0].identifier
+          this.thumbIndex = this.getTouchId(this.touchIds[0]).pointerId
         // d20 is the smallest
-        else this.thumbIndex = touchlist[1].identifier
+        else this.thumbIndex = this.getTouchId(this.touchIds[1]).pointerId
         return
 
       default:
@@ -65,60 +47,78 @@ export default class TouchInfo {
     }
   }
 
-  update(event: TouchEvent | MouseEvent): void {
-    if (event instanceof TouchEvent) this.updateTouches(event.touches)
-    else this.updatePointer(event)
+  update(event: PointerEvent): void {
+    if (!this.touches.has(event.pointerId)) return
+    this.touches.set(event.pointerId, event)
   }
 
-  updatePointer(event: MouseEvent) {
-    this.touches = { 0: event }
-    this.length = 1
+  clear(event: PointerEvent): void {
+    this.touches.delete(event.pointerId)
+    this.touchIds = this.touchIds.filter((item) => item !== event.pointerId)
+    if (this.thumbIndex === event.pointerId) this.thumbIndex = this.touchIds[0]
   }
 
-  updateTouches(touchlist: TouchList): void {
-    this.touches = {}
-    this.length = touchlist.length
-    for (let i = 0; i < touchlist.length; i++) {
-      this.touches[touchlist[i].identifier] = touchlist[i]
+  length(): number {
+    return this.touches.size
+  }
+
+  getTouches(): Map<number, PointerEvent> {
+    return this.touches
+  }
+
+  getTouchId(id: number): CustomPointerEvent {
+    if (this.touches.has(id)) return this.touches.get(id)!
+
+    return {
+      pageX: -1,
+      pageY: -1,
+      pointerId: -1
     }
   }
 
-  clear(event: any) {
-    if (event instanceof TouchEvent) this.setTouches(event.touches)
-    else this.clearPointer()
+  getAllPoints(ofsetX: number = 0, ofsetY: number = 0): number[][] {
+    let points = [] as number[][]
+    this.touches.forEach((touch, key) => {
+      points.push([touch.pageX - ofsetX, touch.pageY - ofsetY])
+    })
+
+    return points
   }
 
-  clearPointer() {
-    this.touches = {}
-    this.length = 0
-    this.thumbIndex = 0
-  }
-
-  getPoints(): Array<any> {
+  getMergedPoints(ofsetX = 0, ofsetY = 0): Array<any> {
     try {
-      if (this.length === 1) return [this.getThumb()]
-      else if (this.length > 1) return [this.getThumb(), this.getOthers()]
+      if (this.touches.size === 1) return [this.getThumb(ofsetX, ofsetY)]
+      else if (this.touches.size > 1)
+        return [this.getThumb(ofsetX, ofsetY), this.getOthers(ofsetX, ofsetY)]
     } catch (err) {}
     return []
   }
 
   getThumb(ofsetX = 0, ofsetY = 0): Array<number> {
     return [
-      this.touches[this.thumbIndex].pageX - ofsetX,
-      this.touches[this.thumbIndex].pageY - ofsetY
+      this.getTouchId(this.thumbIndex).pageX - ofsetX,
+      this.getTouchId(this.thumbIndex).pageY - ofsetY
     ]
   }
 
   getOthers(ofsetX = 0, ofsetY = 0): Array<number> {
-    if (this.length < 2) return []
+    if (this.touches.size < 2) return []
 
     let x = 0,
       y = 0
-    for (const identifier in this.touches) {
-      if (identifier === this.thumbIndex.toString()) continue
-      x += this.touches[identifier].pageX - ofsetX
-      y += this.touches[identifier].pageY - ofsetY
-    }
-    return [x / (this.length - 1), y / (this.length - 1)]
+
+    this.touches.forEach((touch, key) => {
+      if (key !== this.thumbIndex) {
+        x += touch.pageX - ofsetX
+        y += touch.pageY - ofsetY
+      }
+    })
+    return [x / (this.touches.size - 1), y / (this.touches.size - 1)]
   }
+}
+
+interface CustomPointerEvent {
+  pageX: number
+  pageY: number
+  pointerId: number
 }
