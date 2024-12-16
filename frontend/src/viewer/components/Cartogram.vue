@@ -58,7 +58,11 @@ async function switchMap() {
       v-for="index in store.options.numberOfPanels"
       v-bind:panelID="'c-area' + index.toString()"
       v-bind:defaultVersionKey="
-        index === 1 ? state.versionKeys[0] : state.versionKeys[state.versionKeys.length - 1]
+        store.options.numberOfPanels === 1
+          ? state.versionKeys[state.versionKeys.length - 1]
+          : index === 1
+          ? state.versionKeys[0]
+          : state.versionKeys[state.versionKeys.length - 1]
       "
       v-bind:mapDBKey="props.mapDBKey"
     />

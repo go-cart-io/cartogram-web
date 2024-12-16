@@ -329,7 +329,7 @@ function updateGridLines(gridWidth: number) {
 }
 
 function highlight(itemID: any) {
-  visView.signal('active', itemID).runAsync()
+  visView?.signal('active', itemID).runAsync()
 }
 </script>
 
