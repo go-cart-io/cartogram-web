@@ -5,6 +5,7 @@ import csv
 from tests.conftest import client
 
 testdata = {
+    "title": '',
     "handler": "singaporeRe",
     "values": {
         "fields": [
@@ -28,6 +29,7 @@ testdata = {
 }
 
 testworlddata = {
+    "title": '',
     "handler": "world",
     "mapDBKey": time.time(),
     "persist": "true"

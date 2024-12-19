@@ -18,17 +18,40 @@ def get_representative_point(geometry):
     point = geometry.representative_point()
     return {'x': point.x, 'y': point.y}
 
-def preprocess(file):
-    if isinstance(file, str):
-        gdf = geopandas.read_file(file)    
-    else:
-        file_path = os.path.join('/tmp', file.filename)
-        file.save(file_path)
-        gdf = geopandas.read_file(file_path)    
+def preprocess(input):
+    # Input can be anything that is supported by geopandas.read_file
+    # Standardize input to geojson file path
+    if isinstance(input, str): # input is path
+        gdf = geopandas.read_file(input)    
+    else: # input is file object
+        file_path = os.path.join('/tmp', input.filename)
+        input.save(file_path)
+        gdf = geopandas.read_file(file_path)
         os.remove(file_path)
 
-    unique_columns = []
+    file_path = os.path.join('/tmp', f'{uuid.uuid4()}.json')
     gdf = gdf[gdf.geometry.type.isin(['Polygon', 'MultiPolygon'])]
+    with open(file_path, 'w') as outfile:
+        outfile.write(gdf.to_json())
+
+    # Get equal area map
+    result = local_function({
+        'gen_file': file_path,
+        'key': str(uuid.uuid4()),
+        'flags': '--output_equal_area',
+        'world': False
+    })
+    if result['error_msg'] != '' and result['error_msg'] != 'Input GeoJSON is not a longitude-latitude map. Therefore, it is not possible to produce an equal-area map.':
+        # os.remove(file_path)
+        raise RuntimeError(result['error_msg'])
+    elif result['stdout'] != '':
+        with open(file_path, 'w') as outfile:
+            outfile.write(result['stdout'])
+
+    # Get nesseary information
+    gdf = geopandas.read_file(file_path)
+    os.remove(file_path)
+    unique_columns = []
     for column in gdf.columns:
         if column == 'geometry':
             continue
@@ -36,14 +59,10 @@ def preprocess(file):
         if gdf[column].is_unique:
             unique_columns.append(column)
 
-    minx, miny, maxx, maxy = gdf.total_bounds
-    # The map is not projected so project it
-    if minx >= -180.0 and maxx <= 180.0 and miny >= -90.0 and maxy <= 90.0:
-        gdf = gdf.to_crs("epsg:6933")
-        
+    # TODO - Add Land Area calculation
     if not any(gdf.columns.str.startswith('Land Area')):
-        gdf['Land Area (sq.km.)'] = gdf.area
-
+        gdf['Land Area (sq.km.)'] = 0 #gdf.area / 10**6
+        
     gdf['ColorGroup'] = mapclassify.greedy(gdf, min_colors=6, balance="distance")
     gdf['cartogram_id'] = range(1, len(gdf) + 1)
     gdf['label'] = gdf.geometry.apply(get_representative_point)
@@ -161,11 +180,14 @@ def local_function(params, data_index = 0, data_length = 1, print_progress = Fal
     order = 0
 
     cartogram_exec = 'cartogram'
-    temp_filename = str(uuid.uuid4())
+    cartogram_key = params['key']
    
-    area_data_path = '/tmp/{}.csv'.format(temp_filename)
-    with open(area_data_path, 'w') as areas_file:
-        areas_file.write(params['area_data'])
+    if 'area_data' in params.keys():
+        area_data_path = '/tmp/{}.csv'.format(cartogram_key)
+        with open(area_data_path, 'w') as areas_file:
+            areas_file.write(params['area_data'])
+    else:
+        area_data_path = None
 
     if 'flags' in params.keys():
         flags = params['flags']
@@ -198,7 +220,7 @@ def local_function(params, data_index = 0, data_length = 1, print_progress = Fal
                     print('{}%'.format(current_progress * 100))
                                     
                 setprogress({
-                    'key': params['key'],
+                    'key': cartogram_key,
                     'progress': current_progress,
                     'stderr': stderr,
                     'order': order
@@ -211,8 +233,8 @@ def local_function(params, data_index = 0, data_length = 1, print_progress = Fal
                 if e != None:
                     error_msg = e.groups(1)[0]
     
-    if os.path.exists('/tmp/{}.csv'.format(temp_filename)):
-        os.remove('/tmp/{}.csv'.format(temp_filename))
+    if os.path.exists('/tmp/{}.csv'.format(cartogram_key)):
+        os.remove('/tmp/{}.csv'.format(cartogram_key))
 
     return {'stderr': stderr, 'stdout': stdout, 'error_msg': error_msg}
 
