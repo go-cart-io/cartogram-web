@@ -14,14 +14,17 @@ import type { MapHandlers } from '../../common/interface'
 
 import CFormGeojson from './CFormGeojson.vue'
 import CFormCsv from './CFormCsv.vue'
+import CSelectColor from './CSelectColor.vue'
 
 var versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
 var mapDBKey = util.generateShareKey(32)
+var visView: any
 
 const props = defineProps<{
   maps: MapHandlers
   mapName?: string
   mapTitle?: string
+  mapColorScheme?: string
   geoUrl?: string
   csvUrl?: string
 }>()
@@ -31,6 +34,7 @@ const state = reactive({
   error: '',
   handler: '',
   title: '',
+  colorScheme: 'pastel1',
   geojsonData: {} as FeatureCollection,
   geojsonRegionCol: '',
   dataTable: { fields: [], items: [] } as DataTable
@@ -53,6 +57,7 @@ function reset() {
   state.error = ''
   state.handler = ''
   state.title = props.mapTitle ? props.mapTitle : ''
+  state.colorScheme = props.mapColorScheme ? props.mapColorScheme : 'pastel1'
   state.geojsonData = {} as FeatureCollection
   state.geojsonRegionCol = ''
   state.dataTable.items = []
@@ -128,7 +133,9 @@ async function initDataTableWArray(data: KeyValueArray, isReplace = true) {
   versionSpec.data[1].values = state.geojsonData
   versionSpec.data[2].transform[0].fields = [ "properties." + state.geojsonRegionCol ]
 
-  await embed('#map-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
+  let container = await embed('#map-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
+  visView = container.view
+  visView.signal('colorScheme', state.colorScheme).runAsync()
 }
 
 function updateDataTable(csvData: KeyValueArray) {
@@ -167,6 +174,7 @@ async function getGeneratedCartogram() {
       'data=' +
       JSON.stringify({
         title: state.title,
+        scheme: state.colorScheme,
         handler: state.handler,
         csv: csvData,
         geojson: geojsonData,
@@ -216,17 +224,42 @@ async function getGeneratedCartogram() {
     return
   })
 }
+
+function onColorChanged(scheme: string) {
+  state.colorScheme = scheme
+  if (scheme === 'custom') {
+    state.dataTable.fields[config.COL_COLOR].show = true
+  } else {
+    state.dataTable.fields[config.COL_COLOR].show = false
+    visView.signal('colorScheme', scheme).runAsync()
+  }
+}
 </script>
 
 <template>
   <div class="d-flex flex-fill">
     <div class="card w-25 m-2">
+      <c-form-geojson
+        v-bind:mapDBKey="mapDBKey"
+        v-bind:maps="props.maps"
+        v-bind:geoUrl="props.geoUrl"
+        v-on:changed="initDataTableWGeojson"
+      />
+
       <div class="p-2">
-        <div class="badge text-bg-secondary">1. Specify visualization</div>
+        <div class="badge text-bg-secondary">2. Specify visualization</div>
 
         <div class="p-2">
           Title
           <input class="form-control" type="text" v-model="state.title" maxlength="100" />
+        </div>
+
+        <div class="p-2">
+          <c-select-color
+            v-bind:disabled="!('features' in state.geojsonData)"
+            v-bind:scheme="state.colorScheme"
+            v-on:changed="onColorChanged"
+          />
         </div>
 
         <div class="p-2">
@@ -245,15 +278,6 @@ async function getGeneratedCartogram() {
             <input
               class="form-check-input"
               type="checkbox"
-              v-model="state.dataTable.fields[config.COL_COLOR].show"
-              id="chk-color"
-            />
-            <label class="form-check-label" for="chk-color"> Customize color </label>
-          </div>
-          <div class="form-check">
-            <input
-              class="form-check-input"
-              type="checkbox"
               v-model="state.dataTable.fields[config.COL_INSET].show"
               id="chk-inset"
             />
@@ -262,18 +286,12 @@ async function getGeneratedCartogram() {
         </div>
       </div>
 
-      <c-form-geojson
-        v-bind:mapDBKey="mapDBKey"
-        v-bind:maps="props.maps"
-        v-bind:geoUrl="props.geoUrl"
-        v-on:changed="initDataTableWGeojson"
-      />
-
       <div class="p-2">
         <div class="badge text-bg-secondary">3. Download data (optional)</div>
         <div class="p-2">
           <button
             class="btn btn-outline-secondary"
+            v-bind:disabled="!('features' in state.geojsonData)"
             v-on:click="util.getGeneratedCSV(state.dataTable)"
           >
             Download data

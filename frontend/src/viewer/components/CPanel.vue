@@ -228,6 +228,8 @@ function transformReset() {
 
 function snapToBetterNumber() {
   let value = legendEl.value.getCurrentScale()
+  if (value === 0) return
+
   let [scaleNiceNumber, scalePowerOf10] = util.findNearestNiceNumber(value)
   let targetValue = scaleNiceNumber * Math.pow(10, scalePowerOf10)
   let adjustedScale = Math.sqrt(value / targetValue)

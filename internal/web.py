@@ -115,7 +115,7 @@ def create_app():
         return render_template(template, page_active='cartogram', 
                             maps=cartogram_handler.get_sorted_handler_names(),
                             map_name=cartogram_entry.handler, map_data_key=string_key,
-                            map_title=cartogram_entry.title,
+                            map_title=cartogram_entry.title, map_color_scheme=cartogram_entry.scheme,
                             mode=mode, tracking=tracking.determine_tracking_action(request))
 
     @app.route('/api/v1/getprogress', methods=['GET'])
@@ -151,6 +151,7 @@ def create_app():
             handler = cartogram_entry.handler
             csv_url = f'/static/userdata/{name_or_key}/data.csv'
             title = cartogram_entry.title
+            scheme = cartogram_entry.scheme
 
         else:
             return Response('Not found', status=404)
@@ -160,7 +161,7 @@ def create_app():
         return render_template('maker.html', page_active='maker', 
                 maps=cartogram_handler.get_sorted_handler_names(),
                 map_name=handler, geo_url=geo_url, csv_url=csv_url,
-                map_title=title,
+                map_title=title, map_color_scheme=scheme,
                 tracking=tracking.determine_tracking_action(request))
     
     @app.route('/api/v1/cartogram/preprocess/<mapDBKey>', methods=['POST'])
@@ -204,7 +205,7 @@ def create_app():
             if 'persist' in data and settings.USE_DATABASE:
                     new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
                                             date_accessed=datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=365),
-                                            title=data['title'],handler=handler)
+                                            title=data['title'],scheme=data['scheme'],handler=handler)
                     db.session.add(new_cartogram_entry)
                     db.session.commit()        
             else:

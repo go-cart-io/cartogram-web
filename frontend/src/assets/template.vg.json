@@ -20,6 +20,10 @@
         { "events": "shape:mouseover", "update": "datum[\"properties\"][\"cartogram_id\"]" },
         { "events": "mouseover[!event.item]", "update": "null" }
       ]
+    },
+    {
+      "name": "colorScheme",
+      "value": "pastel1"
     }
   ],
   "data": [
@@ -89,7 +93,7 @@
       "name": "color_group",
       "type": "ordinal",
       "domain": { "data": "source_csv", "field": "ColorGroup" },
-      "range": { "scheme": "pastel1" }
+      "range": { "scheme": { "signal": "colorScheme" } }
     }
   ],
   "marks": [

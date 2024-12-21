@@ -84,7 +84,7 @@ async function uploadGeoJson(event: Event) {
 
 <template>
   <div class="p-2 text-bg-light">
-    <div class="badge text-bg-secondary">2. Define a map</div>
+    <div class="badge text-bg-secondary">1. Define a map</div>
     <!-- TODO allow creating cartogram by url? -->
     <div v-if="props.geoUrl" class="p-2">
       <input type="text" v-bind:value="props.geoUrl" disabled />

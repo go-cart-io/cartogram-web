@@ -3,7 +3,7 @@
  * Legend wrapper for map with functions for managing grid size.
  */
 
-import { onMounted, nextTick, reactive, ref, watch } from 'vue'
+import { onMounted, nextTick, reactive, ref, watch, inject } from 'vue'
 import * as d3 from 'd3'
 // @ts-ignore
 import { geoCylindricalEqualArea } from "d3-geo-projection"
@@ -21,6 +21,7 @@ const NUM_GRID_OPTIONS = 3
 const LOCALE =
   navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language
 const DEFAULT_OPACITY = 0.3
+const COLOR_SCHEME = inject('colorScheme')
 
 var versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
 const legendSvgEl = ref()
@@ -115,6 +116,8 @@ onMounted(async () => {
   offscreenEl = d3.select('#' + props.panelID + '-offscreen')
   let container = await embed('#' + props.panelID + '-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
   visView = container.view
+  visView.signal('colorScheme', COLOR_SCHEME).runAsync()
+
   let [area, sum] = util.getTotalAreasAndValuesForVersion(state.version.header, visView.data('geo_1'), visView.data('source_csv'))
   totalArea = area
   totalValue = sum
@@ -161,6 +164,7 @@ async function switchVersion() {
       .on("start", function() { transitions++ })
       .on( "end", function() { if( --transitions === 0 ) finalize() })
 
+    if (!labelID || labelID === 'dividers') return
     let labelEl =  offscreenEl.select('text[aria-label="' + labelID + '"]')
     let newLabelPos = labelEl.attr('transform')
     let newLabelOpacity = labelEl.attr('opacity')
@@ -194,6 +198,8 @@ async function update() {
  * Calculates legend information of the map version
  */
 function getLegendData() {
+  if (totalValue === 0 || totalArea === 0) return
+
   const valuePerPixel = totalValue / totalArea
   // Each square to be in the whereabouts of 1% of totalValue.
   let valuePerSquare = totalValue / 100
@@ -231,7 +237,7 @@ function getLegendData() {
 
 function getCurrentScale() {
   return (
-    state.gridData[state.currentGridIndex].scaleNiceNumber /
+    state.gridData[state.currentGridIndex]?.scaleNiceNumber /
     (props.affineScale[0] * props.affineScale[1])
   )
 }
@@ -247,7 +253,7 @@ async function changeTo(key: number) {
     } else d3.select('#' + props.panelID + '-legend' + i + ' rect').attr('fill', '#D6D6D6')
   }
   formatLegendValue()
-  updateGridLines(state.gridData[key].width)
+  updateGridLines(state.gridData[key]?.width)
 }
 
 function onHandleDown(event: PointerEvent) {
@@ -285,6 +291,8 @@ function onHandleUp(event: any) {
 }
 
 function formatLegendValue() {
+  if (!state.gridData[NUM_GRID_OPTIONS]) return
+
   let value = state.gridData[state.currentGridIndex].scaleNiceNumber
   value = value / (props.affineScale[0] * props.affineScale[1])
   state.legendUnit = formatLegendText(value, state.scalePowerOf10)
@@ -302,6 +310,7 @@ function formatLegendText(value: number, scalePowerOf10: number): string {
 }
 
 function drawGridLines() {
+  if (!state.gridData[NUM_GRID_OPTIONS]) return
   const gridWidth = state.gridData[state.currentGridIndex]['width'] || 20
   updateGridLines(gridWidth)
 }
@@ -428,5 +437,8 @@ function highlight(itemID: any) {
 <style>
 path {
   mix-blend-mode: multiply;
+}
+path[aria-label='dividers'] {
+  mix-blend-mode: normal;
 }
 </style>

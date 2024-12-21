@@ -11,6 +11,7 @@ class CartogramEntry(db.Model):
     date_accessed = db.Column(db.DateTime(), server_default='0001-01-01 00:00:00')        
     handler = db.Column(db.String(100), nullable=False)
     title = db.Column(db.String(120))
+    scheme = db.Column(db.String(15))
 
     def __repr__(self):
         return '<CartogramEntry {}>'.format(self.string_key)
