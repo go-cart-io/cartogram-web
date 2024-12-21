@@ -29,6 +29,8 @@ def create_app():
     # This gets rid of an annoying Flask error message. We don't need this feature anyway.
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['ENV'] = 'development' if settings.DEBUG else 'production'
+    app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
+    app.config['MAX_FORM_MEMORY_SIZE'] = 10 * 1024 * 1024
 
     if settings.USE_DATABASE:
         from database import db

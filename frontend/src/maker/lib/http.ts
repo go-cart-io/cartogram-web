@@ -90,10 +90,14 @@ export default class HTTP {
             reject(Error('Too many requests within specify time. Please try again later.'))
           } else {
             console.log(url)
-            var response = JSON.parse(this.responseText)
-            const errorText = response.error
-              ? response.error
-              : 'Unable to fetch data from the server.'
+            try {
+              var response = JSON.parse(this.responseText)
+              var errorText = response.error
+                ? response.error
+                : 'Unable to fetch data from the server.'
+            } catch (e) {
+              errorText = this.responseText.replace(/<\/?[^>]+(>|$)/g, '')
+            }
             reject(Error(errorText))
           }
         }
