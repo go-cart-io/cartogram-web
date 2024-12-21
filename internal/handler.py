@@ -19,7 +19,7 @@ class CartogramHandler:
 
     def get_gen_file(self, handler, string_key = ''):
         if handler == 'custom':
-            return f"./static/userdata/{string_key}/Land Area.json"
+            return f"./static/userdata/{string_key}/Input.json"
         else:
             return f'./static/cartdata/{handler}/Land Area.json'
     

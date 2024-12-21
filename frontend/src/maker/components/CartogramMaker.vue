@@ -16,6 +16,7 @@ import CFormGeojson from './CFormGeojson.vue'
 import CFormCsv from './CFormCsv.vue'
 
 var versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
+var mapDBKey = util.generateShareKey(32)
 
 const props = defineProps<{
   maps: MapHandlers
@@ -160,7 +161,7 @@ async function getGeneratedCartogram() {
     undefined
   var data = util.tableToArray(state.dataTable)
   var csvData = d3.csvFormat(data)
-  var mapDBKey = util.generateShareKey(32)
+
   await new Promise<any>(function (resolve, reject) {
     var req_body =
       'data=' +
@@ -262,6 +263,7 @@ async function getGeneratedCartogram() {
       </div>
 
       <c-form-geojson
+        v-bind:mapDBKey="mapDBKey"
         v-bind:maps="props.maps"
         v-bind:geoUrl="props.geoUrl"
         v-on:changed="initDataTableWGeojson"

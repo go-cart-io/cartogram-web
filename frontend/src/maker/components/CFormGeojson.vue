@@ -6,6 +6,7 @@ import HTTP from '../lib/http'
 import type { MapHandlers } from '../../common/interface'
 
 const props = defineProps<{
+  mapDBKey: string
   maps: MapHandlers
   geoUrl?: string
 }>()
@@ -46,7 +47,7 @@ async function uploadGeoJson(event: Event) {
   formData.append('file', files[0])
 
   var response = await new Promise<any>(function (resolve, reject) {
-    HTTP.post('/api/v1/cartogram/preprocess', formData).then(
+    HTTP.post('/api/v1/cartogram/preprocess/' + props.mapDBKey, formData).then(
       function (response: any) {
         resolve(response)
       },

@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import shutil
 import redis
 import uuid
 import geopandas
@@ -18,39 +19,18 @@ def get_representative_point(geometry):
     point = geometry.representative_point()
     return {'x': point.x, 'y': point.y}
 
-def preprocess(input):
+def preprocess(mapDBKey, input):    
     # Input can be anything that is supported by geopandas.read_file
     # Standardize input to geojson file path
     if isinstance(input, str): # input is path
         gdf = geopandas.read_file(input)    
     else: # input is file object
-        file_path = os.path.join('/tmp', input.filename)
+        file_path = os.path.join("/tmp", f"{mapDBKey}.json")
         input.save(file_path)
         gdf = geopandas.read_file(file_path)
-        os.remove(file_path)
 
-    file_path = os.path.join('/tmp', f'{uuid.uuid4()}.json')
     gdf = gdf[gdf.geometry.type.isin(['Polygon', 'MultiPolygon'])]
-    with open(file_path, 'w') as outfile:
-        outfile.write(gdf.to_json())
-
-    # Get equal area map
-    result = local_function({
-        'gen_file': file_path,
-        'key': str(uuid.uuid4()),
-        'flags': '--output_equal_area',
-        'world': False
-    })
-    if result['error_msg'] != '' and result['error_msg'] != 'Input GeoJSON is not a longitude-latitude map. Therefore, it is not possible to produce an equal-area map.':
-        # os.remove(file_path)
-        raise RuntimeError(result['error_msg'])
-    elif result['stdout'] != '':
-        with open(file_path, 'w') as outfile:
-            outfile.write(result['stdout'])
-
     # Get nesseary information
-    gdf = geopandas.read_file(file_path)
-    os.remove(file_path)
     unique_columns = []
     for column in gdf.columns:
         if column == 'geometry':
@@ -59,15 +39,20 @@ def preprocess(input):
         if gdf[column].is_unique:
             unique_columns.append(column)
 
-    # TODO - Add Land Area calculation
+    # TODO - Project before preview and add Land Area calculation
+    # gdf.to_crs("EPSG:9822", inplace=True) # Albers Equal Area
     if not any(gdf.columns.str.startswith('Land Area')):
         gdf['Land Area (sq.km.)'] = 0 #gdf.area / 10**6
-        
+    
     gdf['ColorGroup'] = mapclassify.greedy(gdf, min_colors=6, balance="distance")
     gdf['cartogram_id'] = range(1, len(gdf) + 1)
     gdf['label'] = gdf.geometry.apply(get_representative_point)
+    geojson = gdf.to_json()
 
-    return { 'geojson': gdf.to_json(), 'unique': unique_columns }
+    with open(file_path, 'w') as outfile:
+        outfile.write(geojson)
+
+    return { 'geojson': geojson, 'unique': unique_columns }
 
 
 def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = False, flags = ''):
@@ -76,7 +61,7 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
     else:
         datacsv = util.get_csv(data)
 
-    util.sort_geojson(gen_file, data.get('geojson', None))
+    util.sort_geojson(gen_file, data.get('geojson', None))    
 
     datacsv, datasets, is_area_as_base = process_data(datacsv, gen_file)
     data_length = len(datasets)
@@ -92,6 +77,12 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
         with open('{}/data.csv'.format(folder), 'w') as outfile:
             outfile.write(datacsv)
 
+        if is_area_as_base is True:
+            equal_area_json = get_equal_area_map(cartogram_key, gen_file, datasets[0])
+            if equal_area_json is not None:
+                with open('{}/Land Area.json'.format(folder), 'w') as outfile:
+                    outfile.write(json.dumps(equal_area_json))
+    
     for i, dataset in enumerate(datasets):
         datastring = dataset['datastring']
         name = dataset['label']
@@ -111,19 +102,15 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
             raise RuntimeError(f'Cannot generate cartogram for {name} - {cartogram_result['error_msg']}')
         
         cartogram_gen_output = cartogram_result['stdout']
-        cartogram_json = json.loads(cartogram_gen_output)
-
-        cartogram_json = cartogram_json["Original"]
-
-        for feature in cartogram_json["features"]:
-            geom = shape(feature["geometry"])
-            point = geom.representative_point()
-            feature['properties']['label'] = {'x': point.x, 'y': point.y}
+        cartogram_gen_output_json = json.loads(cartogram_gen_output)
+        cartogram_json = cartogram_gen_output_json["Original"]
+        cartogram_json = postprocess_geojson(cartogram_json)
 
         if 'persist' in data:
             with open('{}/{}.json'.format(folder, name), 'w') as outfile:
                 outfile.write(json.dumps(cartogram_json))
 
+        # TODO check whether the code works properly if persist is false
         if is_area_as_base == False and i == 0:
             gen_file = '{}/{}.json'.format(folder, name)
 
@@ -172,6 +159,42 @@ def process_data(csv_string, geojson_file):
         df.drop(columns = 'Inset', inplace=True)
 
     return df.to_csv(index=False), datasets, is_area_as_base
+
+def get_equal_area_map(mapDBKey, file_path, dataset = None):
+    result = local_function({
+        'gen_file': file_path,
+        'area_data': dataset['datastring'] if dataset else None,
+        'key': mapDBKey,
+        'flags': '--output_equal_area',
+        'world': False
+    })
+    if result['error_msg'] != '' and result['error_msg'] != 'Input GeoJSON is not a longitude-latitude map. Therefore, it is not possible to produce an equal-area map.':
+        raise RuntimeError(result['error_msg'])
+    elif result['stdout'] == '':
+        return None
+    
+    return postprocess_geojson(json.loads(result['stdout']))    
+
+def postprocess_geojson(json_data):
+    for feature in json_data["features"]:
+        geom = shape(feature["geometry"])
+        point = geom.representative_point()
+        feature['properties']['label'] = {'x': point.x, 'y': point.y}
+
+    if 'divider_points' in json_data:
+        linestring = {
+            "geometry": {
+                "type": "MultiLineString",
+                "coordinates": []
+            },
+            "properties": { "name": "Dividers" },
+            "type": "Feature"
+        }
+        for line in json_data["divider_points"]:
+            linestring["geometry"]["coordinates"].append([[line[0], line[1]], [line[2], line[3]]])
+        json_data["features"].append(linestring)
+
+    return json_data
    
 def local_function(params, data_index = 0, data_length = 1, print_progress = False):
     stdout = ''
@@ -182,7 +205,7 @@ def local_function(params, data_index = 0, data_length = 1, print_progress = Fal
     cartogram_exec = 'cartogram'
     cartogram_key = params['key']
    
-    if 'area_data' in params.keys():
+    if 'area_data' in params.keys() and params['area_data'] != None:
         area_data_path = '/tmp/{}.csv'.format(cartogram_key)
         with open(area_data_path, 'w') as areas_file:
             areas_file.write(params['area_data'])

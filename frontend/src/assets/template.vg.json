@@ -37,12 +37,14 @@
       "name": "geo_1",
       "source": "source_geojson",
       "transform": [
+        { "type": "filter", "expr": "datum.properties.name != 'Dividers'" },
         {
           "type": "lookup",
           "from": "source_csv",
           "key": "Region",
           "fields": ["properties.name"],
-          "as": ["cartogram_data"]
+          "as": ["cartogram_data"],
+          "default": { "Color": "lightgrey", "ColorGroup": "-1" }
         },
         {
           "type": "formula",
@@ -60,6 +62,11 @@
           "as": "y"
         }
       ]
+    },
+    {
+      "name": "geo_1_dividers",
+      "source": "source_geojson",
+      "transform": [{ "type": "filter", "expr": "datum.properties.name == 'Dividers'" }]
     }
   ],
   "projections": [
@@ -113,6 +120,41 @@
             },
             { "value": "lightgrey" }
           ],
+          "ariaRoleDescription": { "value": "geoshape" }
+        }
+      },
+      "transform": [{ "type": "geoshape", "projection": "source_projection" }]
+    },
+    {
+      "name": "divider_marks",
+      "type": "shape",
+      "style": ["geoshape"],
+      "from": { "data": "geo_1_dividers" },
+      "encode": {
+        "update": {
+          "description": {
+            "value": "dividers"
+          },
+          "stroke": { "value": "white" },
+          "strokeWidth": { "value": 8 },
+          "strokeCap": { "value": "round" },
+          "ariaRoleDescription": { "value": "geoshape" }
+        }
+      },
+      "transform": [{ "type": "geoshape", "projection": "source_projection" }]
+    },
+    {
+      "name": "divider_marks_border",
+      "type": "shape",
+      "style": ["geoshape"],
+      "from": { "data": "geo_1_dividers" },
+      "encode": {
+        "update": {
+          "description": {
+            "value": "dividers"
+          },
+          "stroke": { "value": "black" },
+          "strokeWidth": { "value": 1 },
           "ariaRoleDescription": { "value": "geoshape" }
         }
       },

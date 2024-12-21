@@ -163,13 +163,16 @@ def create_app():
                 map_title=title,
                 tracking=tracking.determine_tracking_action(request))
     
-    @app.route('/api/v1/cartogram/preprocess', methods=['POST'])
-    def cartogram_preprocess():
+    @app.route('/api/v1/cartogram/preprocess/<mapDBKey>', methods=['POST'])
+    def cartogram_preprocess(mapDBKey):
+        if mapDBKey is None or mapDBKey == '':
+            return Response('{"error":"Missing sharing key."}', status=404, content_type='application/json')
+   
         if 'file' not in request.files or request.files['file'].filename == '':
             return Response('{"error": "No selected file"}', status=400, content_type='application/json')
     
         try:
-            processed_geojson = cartogram.preprocess(request.files['file'])
+            processed_geojson = cartogram.preprocess(mapDBKey, request.files['file'])
             return Response(json.dumps(processed_geojson), status=200, content_type='application/json')
         except Exception as e:
             return Response(json.dumps({"error": str(e)}), status=400, content_type='application/json')
@@ -191,6 +194,9 @@ def create_app():
         if 'persist' in data:
             folder_path = f"static/userdata/{string_key}"
             os.mkdir(folder_path)
+            # TODO can we simplify the code so that we don't need to keep Input.json?
+            if os.path.exists(f"/tmp/{string_key}.json"):
+                shutil.move(f"/tmp/{string_key}.json", f"{folder_path}/Input.json")
 
         try:
             cartogram.generate_cartogram(data, cartogram_handler.get_gen_file(handler, string_key), string_key, folder_path)
@@ -216,6 +222,7 @@ def create_app():
 
     @app.route('/cleanup', methods=['GET'])
     def cleanup():
+        # Delete records in the database and files that the accessed date is older than 1 year
         num_records = 0
         year_ago = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=366)
         if settings.USE_DATABASE:
@@ -228,6 +235,16 @@ def create_app():
                 db.session.delete(record)
 
             db.session.commit()
+
+        # Delete files in folder /tmp that the created date is older than 1 days
+        for file in os.listdir('/tmp'):
+            file_path = os.path.join('/tmp', file)
+            days_ago = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=1)
+            try:
+                if os.path.isfile(file_path) and os.stat(file_path).st_mtime < days_ago.timestamp():
+                    os.unlink(file_path)
+            except Exception as e:
+                print(e)
             
         return "{} ({} records)".format(year_ago.strftime('%d %B %Y - %H:%M:%S'), num_records)
                     
