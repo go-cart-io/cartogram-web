@@ -19,9 +19,9 @@ class CartogramHandler:
 
     def get_gen_file(self, handler, string_key = ''):
         if handler == 'custom':
-            return f"./static/userdata/{string_key}/Original.json"
+            return f"./static/userdata/{string_key}/Land Area.json"
         else:
-            return f'./static/cartdata/{handler}/Original.json'
+            return f'./static/cartdata/{handler}/Land Area.json'
     
     def remove_holes(self):
         return False

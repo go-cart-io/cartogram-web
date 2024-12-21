@@ -134,14 +134,13 @@ export function addClipboard(button_id: string, message: string) {
 }
 
 export function getGeojsonURL(currentMapName: string, mapDBKey: string, versionKey: string) {
+  if (currentMapName !== 'custom' && versionKey === 'Land Area.json')
+    return '/static/cartdata/' + currentMapName + '/Land Area.json'
+
   let baseURL =
     mapDBKey && mapDBKey !== ''
       ? '/static/userdata/' + mapDBKey + '/'
       : '/static/cartdata/' + currentMapName + '/'
 
-  if (currentMapName === 'custom' && versionKey === 'Land Area.json')
-    return baseURL + 'Original.json'
-  else if (versionKey === 'Land Area.json')
-    return '/static/cartdata/' + currentMapName + '/' + 'Original.json'
-  else return baseURL + versionKey
+  return baseURL + versionKey
 }

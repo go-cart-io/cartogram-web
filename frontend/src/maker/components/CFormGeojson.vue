@@ -29,7 +29,7 @@ async function loadGeoJson(event: Event) {
   if (!state.handler) return
 
   var basedUrl = '/static/cartdata/' + state.handler
-  HTTP.get(basedUrl + '/Original.json').then(function (response: any) {
+  HTTP.get(basedUrl + '/Land Area.json').then(function (response: any) {
     state.geojsonRegionCol = 'name'
     emit('changed', state.handler, response, state.geojsonRegionCol, basedUrl + '/data.csv')
   })

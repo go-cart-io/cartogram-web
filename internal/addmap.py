@@ -33,9 +33,9 @@ def init(map_name):
     folder = f"static/cartdata/{map_name}"
     if not os.path.exists(folder):
         os.mkdir(folder)
-        print("We create the folder {} for you. Please put Original.json and data.csv files in the folder.".format(folder))
+        print("We create the folder {} for you. Please put Land Area.json and data.csv files in the folder.".format(folder))
 
-    map_gen_path = "{}/Original.json".format(folder)
+    map_gen_path = "{}/Land Area.json".format(folder)
     map_dat_path = "{}/data.csv".format(folder)
 
     if not os.path.exists(map_gen_path):
