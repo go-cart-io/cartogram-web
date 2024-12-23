@@ -118,7 +118,7 @@ async function uploadGeoJson(event: Event) {
         </div>
       </div>
       <div class="p-2" v-if="state.geojsonUniqueProperties.length > 0">
-        Which column contain unique region names (e.g., country names)?
+        Which property contain unique region names (e.g., country names)?
         <select
           class="form-select"
           v-model="state.geojsonRegionCol"

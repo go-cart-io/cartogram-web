@@ -1,12 +1,12 @@
 {
-  "src/web/main.ts": {
-    "file": "assets/main-B-gJ-L9E.js",
+  "src/main.ts": {
+    "file": "assets/main-BVLsp0Qq.js",
     "name": "main",
-    "src": "src/web/main.ts",
+    "src": "src/main.ts",
     "isEntry": true
   },
   "style.css": {
-    "file": "assets/style-BXZczgrh.css",
+    "file": "assets/style--tyAJlDl.css",
     "src": "style.css"
   }
 }
