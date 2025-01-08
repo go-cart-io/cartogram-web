@@ -1,0 +1,23 @@
+name: Add GitHub issue to ClickUp task
+on:
+  issues:
+    types:
+      - labeled
+jobs:
+  add-task:
+    if: github.event.label.name == 'planned'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send issue to ClickUp
+        env:
+          CLICKUP_API_TOKEN: ${{ secrets.CLICKUP_API_TOKEN }}
+        run: |
+          LABELS=$(echo '${{ github.event.issue.labels }}' | jq -r '.[] | .name')
+          curl -X POST https://api.clickup.com/api/v2/list/{list_id}/task \
+          -H "Authorization: $CLICKUP_API_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{
+                "name": "${{ github.event.issue.title }}",
+                "description": "${{ github.event.issue.body }}\n\n${{ github.event.issue.html_url }}",
+                "tags": ['"${LABELS}"']
+              }'
