@@ -73,6 +73,8 @@ function reset() {
 
 function initDataTableWGeojson(handler: string, geojsonData: FeatureCollection, regionCol: string, csvFile = '') {
   // TODO Ask for confirmation before clearing data or closing page
+  reset()
+
   document.getElementById("map-vis")!.innerHTML = ""
   state.dataTable.fields.splice(config.NUM_RESERVED_FILEDS)
   state.dataTable.items = []
@@ -225,14 +227,32 @@ async function getGeneratedCartogram() {
   })
 }
 
-function onColorChanged(scheme: string) {
+function onColorOptionChanged(scheme: string) {
   state.colorScheme = scheme
   if (scheme === 'custom') {
+    // Copy color from Vega to data table
+    let colorScale = visView.scale('color_group')
+    for (let i = 0; i < state.dataTable.items.length; i++) {
+      state.dataTable.items[i]["Color"] = colorScale(state.dataTable.items[i]["ColorGroup"])
+    }
+
     state.dataTable.fields[config.COL_COLOR].show = true
   } else {
+    for (let i = 0; i < state.dataTable.items.length; i++) {
+      delete state.dataTable.items[i]["Color"]
+    }
+
     state.dataTable.fields[config.COL_COLOR].show = false
     visView.signal('colorScheme', scheme).runAsync()
   }
+}
+
+function onValueChange(rIndex: number, label: string, event: Event){
+  const target = (<HTMLInputElement> event.target)
+  state.dataTable.items[rIndex][label] = target.value
+  const changeset = visView.changeset()
+    .modify((item: any) => item.Region === state.dataTable.items[rIndex].Region, label, target.value)
+  visView.change('source_csv', changeset).run()
 }
 </script>
 
@@ -256,9 +276,10 @@ function onColorChanged(scheme: string) {
 
         <div class="p-2">
           <c-select-color
+            v-bind:key="state.colorScheme"
             v-bind:disabled="!('features' in state.geojsonData)"
             v-bind:scheme="state.colorScheme"
-            v-on:changed="onColorChanged"
+            v-on:changed="onColorOptionChanged"
           />
         </div>
 
@@ -361,19 +382,20 @@ function onColorChanged(scheme: string) {
             <td v-for="(field, index) in state.dataTable.fields" v-show="field.show">
               <span v-if="!field.editable">{{ row[field.label] }}</span>
               <select
+                v-else-if="field.type === 'select'"
                 class="form-control"
                 v-model="state.dataTable.items[rIndex][field.label]"
-                v-else-if="field.type === 'select'"
               >
                 <option v-for="option in field.options" v-bind:value="option.value">
                   {{ option.text }}
                 </option>
               </select>
               <input
-                v-else
+                v-else-if="field.show"
                 class="form-control"
-                v-model="state.dataTable.items[rIndex][field.label]"
                 v-bind:type="field.type"
+                v-bind:value="state.dataTable.items[rIndex][field.label]"
+                v-on:change="($event) => onValueChange(rIndex, field.label, $event)"
               />
             </td>
           </tr>
