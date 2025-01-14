@@ -7,6 +7,7 @@ def test_cartogram_post(client):
     testdata = {
         "title": '',
         "handler": "singaporeRe",
+        "scheme": "pastel1",
         "values": {
             "fields": [
                 {"key":"0","label":"Region"},
@@ -39,6 +40,7 @@ def test_cartogram_post_world(client):
     testdata = {
         "title": '',
         "handler": "world",
+        "scheme": "pastel1",
         "csv": csv_string,
         "mapDBKey": time.time(),
         "persist": "true"
@@ -58,6 +60,7 @@ def test_cartogram_post_inset(client):
     testdata = {
         "title": '',
         "handler": "custom",
+        "scheme": "pastel1",
         "csv": csv_string,
         "geojson": json_string,
         "mapDBKey": time.time(),

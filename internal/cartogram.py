@@ -19,17 +19,20 @@ def get_representative_point(geometry):
     point = geometry.representative_point()
     return {'x': point.x, 'y': point.y}
 
-def preprocess(mapDBKey, input):    
+def preprocess(input, mapDBKey='temp_filename'):    
     # Input can be anything that is supported by geopandas.read_file
     # Standardize input to geojson file path
+    file_path = os.path.join("/tmp", f"{mapDBKey}.json")
     if isinstance(input, str): # input is path
         gdf = geopandas.read_file(input)    
     else: # input is file object
-        file_path = os.path.join("/tmp", f"{mapDBKey}.json")
         input.save(file_path)
         gdf = geopandas.read_file(file_path)
 
-    gdf = gdf[gdf.geometry.type.isin(['Polygon', 'MultiPolygon'])]
+    gdf = gdf[gdf.is_valid]
+    gdf = gdf[gdf.geometry.notnull()]
+    gdf = gdf[gdf.geometry.type.isin(['Polygon', 'MultiPolygon'])].reset_index(drop=True)
+
     # Get nesseary information
     unique_columns = []
     for column in gdf.columns:

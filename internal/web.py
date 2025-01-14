@@ -173,7 +173,7 @@ def create_app():
             return Response('{"error": "No selected file"}', status=400, content_type='application/json')
     
         try:
-            processed_geojson = cartogram.preprocess(mapDBKey, request.files['file'])
+            processed_geojson = cartogram.preprocess(request.files['file'], mapDBKey)
             return Response(json.dumps(processed_geojson), status=200, content_type='application/json')
         except Exception as e:
             return Response(json.dumps({"error": str(e)}), status=400, content_type='application/json')
