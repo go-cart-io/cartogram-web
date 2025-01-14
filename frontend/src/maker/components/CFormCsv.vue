@@ -49,7 +49,6 @@ async function uploadCsvData(event: Event) {
     <div class="p-2">
       Alternatively, upload your data in CSV or Excel format.
       <input
-        ref="csvInput"
         type="file"
         class="form-control"
         accept="text/csv,.csv,.xlsx,.xls"

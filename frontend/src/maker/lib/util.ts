@@ -146,9 +146,11 @@ export function filterGeoJSONProperties(
   }
 }
 
-export async function getGeneratedCSV(dataTable: DataTable) {
+export async function getGeneratedCSV(dataTable: DataTable, isGetFile = false) {
   var data = tableToArray(dataTable)
   var csv = d3.csvFormat(data)
+  if (!isGetFile) return csv
+
   const blob = new Blob([csv], { type: 'text/csv' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
