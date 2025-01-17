@@ -29,11 +29,9 @@ def create_app():
     # This gets rid of an annoying Flask error message. We don't need this feature anyway.
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['ENV'] = 'development' if settings.DEBUG else 'production'
+    app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
+    app.config['MAX_FORM_MEMORY_SIZE'] = 10 * 1024 * 1024
 
-    # Whenever you make changes to the DB models, you must run commands as follows:
-    # export FLASK_APP=web.py
-    # flask db migrate -m "Migration log."
-    # flask db upgrade
     if settings.USE_DATABASE:
         from database import db
         from models import CartogramEntry
@@ -66,11 +64,6 @@ def create_app():
     @app.route('/faq', methods=['GET'])
     def faq():
         return render_template('faq.html', page_active='faq', tracking=tracking.determine_tracking_action(request))
-
-
-    @app.route('/tutorial', methods=['GET'])
-    def tutorial():
-        return render_template('tutorial.html', page_active='tutorial', tracking=tracking.determine_tracking_action(request))
 
 
     app.add_url_rule('/contact', methods=['GET', 'POST'], view_func=contact.contact)
@@ -112,7 +105,7 @@ def create_app():
 
         cartogram_entry = CartogramEntry.query.filter_by(string_key=string_key).first_or_404()
 
-        if cartogram_entry is None or not cartogram_handler.has_handler(cartogram_entry.handler):
+        if cartogram_entry is None or (not cartogram_handler.has_handler(cartogram_entry.handler) and cartogram_entry.handler != 'custom'):
             return Response('Error', status=500)
         
         if mode != 'preview':
@@ -122,6 +115,7 @@ def create_app():
         return render_template(template, page_active='cartogram', 
                             maps=cartogram_handler.get_sorted_handler_names(),
                             map_name=cartogram_entry.handler, map_data_key=string_key,
+                            map_title=cartogram_entry.title, map_color_scheme=cartogram_entry.scheme,
                             mode=mode, tracking=tracking.determine_tracking_action(request))
 
     @app.route('/api/v1/getprogress', methods=['GET'])
@@ -132,6 +126,57 @@ def create_app():
 
     def cartogram_rate_limit():
         return settings.CARTOGRAM_RATE_LIMIT
+    
+    @app.route('/cartogram/create', methods=['GET'])
+    def create_cartogram():
+        return render_template('maker.html', page_active='maker', 
+                            maps=cartogram_handler.get_sorted_handler_names(),
+                            tracking=tracking.determine_tracking_action(request))
+    
+    @app.route('/cartogram/edit/<type>/<name_or_key>', methods=['GET'])
+    def edit_cartogram(type, name_or_key):
+        if type == 'map':
+            handler = name_or_key
+            csv_url = f'/static/cartdata/{handler}/data.csv'
+            title = name_or_key
+
+        elif type == 'key':
+            if not settings.USE_DATABASE:
+                return Response('Not found', status=404)
+
+            cartogram_entry = CartogramEntry.query.filter_by(string_key=name_or_key).first_or_404()
+            if cartogram_entry is None or (not cartogram_handler.has_handler(cartogram_entry.handler) and cartogram_entry.handler != 'custom'):
+                return Response('Error', status=500)
+
+            handler = cartogram_entry.handler
+            csv_url = f'/static/userdata/{name_or_key}/data.csv'
+            title = cartogram_entry.title
+            scheme = cartogram_entry.scheme
+
+        else:
+            return Response('Not found', status=404)
+        
+        geo_url = cartogram_handler.get_gen_file(handler, name_or_key)[1:]
+        
+        return render_template('maker.html', page_active='maker', 
+                maps=cartogram_handler.get_sorted_handler_names(),
+                map_name=handler, geo_url=geo_url, csv_url=csv_url,
+                map_title=title, map_color_scheme=scheme,
+                tracking=tracking.determine_tracking_action(request))
+    
+    @app.route('/api/v1/cartogram/preprocess/<mapDBKey>', methods=['POST'])
+    def cartogram_preprocess(mapDBKey):
+        if mapDBKey is None or mapDBKey == '':
+            return Response('{"error":"Missing sharing key."}', status=404, content_type='application/json')
+   
+        if 'file' not in request.files or request.files['file'].filename == '':
+            return Response('{"error": "No selected file"}', status=400, content_type='application/json')
+    
+        try:
+            processed_geojson = cartogram.preprocess(mapDBKey, request.files['file'])
+            return Response(json.dumps(processed_geojson), status=200, content_type='application/json')
+        except Exception as e:
+            return Response(json.dumps({"error": str(e)}), status=400, content_type='application/json')
 
     @app.route('/api/v1/cartogram', methods=['POST'])
     @limiter.limit(cartogram_rate_limit)
@@ -139,31 +184,34 @@ def create_app():
         data = json.loads(request.form['data'])
         handler = data['handler']
 
-        if 'handler' not in data or not cartogram_handler.has_handler(handler):
-            return Response('{"error":"The handler was invaild."}', status=400, content_type='application/json')
+        if 'handler' not in data or (not cartogram_handler.has_handler(handler) and handler != 'custom'):
+            return Response('{"error":"Invalid map."}', status=400, content_type='application/json')
 
-        if 'stringKey' not in data:
+        if 'mapDBKey' not in data:
             return Response('{"error":"Missing sharing key."}', status=404, content_type='application/json')
         
-        string_key = data['stringKey']
+        string_key = data['mapDBKey']
         folder_path = None
         if 'persist' in data:
             folder_path = f"static/userdata/{string_key}"
             os.mkdir(folder_path)
+            # TODO can we simplify the code so that we don't need to keep Input.json?
+            if os.path.exists(f"/tmp/{string_key}.json"):
+                shutil.move(f"/tmp/{string_key}.json", f"{folder_path}/Input.json")
 
         try:
-            cartogram.generate_cartogram(data, cartogram_handler.get_gen_file(handler), string_key, folder_path)
+            cartogram.generate_cartogram(data, cartogram_handler.get_gen_file(handler, string_key), string_key, folder_path)
                         
             if 'persist' in data and settings.USE_DATABASE:
                     new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
                                             date_accessed=datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=365),
-                                            handler=handler)
+                                            title=data['title'],scheme=data['scheme'],handler=handler)
                     db.session.add(new_cartogram_entry)
                     db.session.commit()        
             else:
                 string_key = None
 
-            return Response(json.dumps({"stringKey": string_key}), status=200, content_type='application/json')
+            return Response(json.dumps({"mapDBKey": string_key}), status=200, content_type='application/json')
         
         # except (KeyError, csv.Error, ValueError, UnicodeDecodeError):
         #     return Response('{"error":"The data was invalid."}', status=400, content_type='application/json')
@@ -171,11 +219,11 @@ def create_app():
             if 'persist' in data and os.path.exists(folder_path):
                 shutil.rmtree(folder_path)
 
-            print(e)
-            return Response('{"error": "The data may be invalid or the process has timed out. Please try again later."}', status=400, content_type='application/json')
+            return Response(json.dumps({"error": str(e)}), status=400, content_type='application/json')
 
     @app.route('/cleanup', methods=['GET'])
     def cleanup():
+        # Delete records in the database and files that the accessed date is older than 1 year
         num_records = 0
         year_ago = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=366)
         if settings.USE_DATABASE:
@@ -188,6 +236,16 @@ def create_app():
                 db.session.delete(record)
 
             db.session.commit()
+
+        # Delete files in folder /tmp that the created date is older than 1 days
+        for file in os.listdir('/tmp'):
+            file_path = os.path.join('/tmp', file)
+            days_ago = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=1)
+            try:
+                if os.path.isfile(file_path) and os.stat(file_path).st_mtime < days_ago.timestamp():
+                    os.unlink(file_path)
+            except Exception as e:
+                print(e)
             
         return "{} ({} records)".format(year_ago.strftime('%d %B %Y - %H:%M:%S'), num_records)
                     

@@ -1,5 +1,6 @@
 import re
 import json
+import os
 
 def sanitize_filename(filename):    
     invalid_chars = r'[\\/:*?"<>|]'
@@ -19,12 +20,20 @@ def get_csv(data):
 
     return f'{header}\n' + '\n'.join(rows)
 
-def sort_geojson(path):
-    with open(path, 'r') as geojson_file:
-        geojson_data = json.load(geojson_file)
+def sort_geojson(path, geojson_data = None):
+    if os.path.isfile(path):
+        with open(path, 'r') as geojson_file:
+            geojson_data = json.load(geojson_file)
         
     sorted_geojson_features = sorted(geojson_data['features'], key=lambda x: x['properties']['name'])
 
     with open(path, 'w') as sorted_geojson_file:
         geojson_data['features'] = sorted_geojson_features
         json.dump(geojson_data, sorted_geojson_file)
+
+def convert_col_to_serializable(value):
+    try:
+        json.dumps(value)
+        return value
+    except (TypeError, OverflowError):
+        return value.astype(str)

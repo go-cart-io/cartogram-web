@@ -1,56 +1,56 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
 Ang Mo Kio,AM,#a6761d,13.94608,163950.0
-Bedok,BD,#66a61e,21.740894,279380.0
-Bishan,BS,#7570b3,7.605257,88010.0
-Boon Lay,BL,#e6ab02,8.277236,40.0
-Bukit Batok,BK,#1b9e77,11.140694,153740.0
-Bukit Merah,BM,#d95f02,14.465966,151980.0
-Bukit Panjang,BP,#e6ab02,9.018703,139280.0
-Bukit Timah,BT,#7570b3,17.516789,77430.0
-Central Water Catchment,CC,#d95f02,37.162155,NA
-Changi,CH,#e6ab02,41.474598,1830.0
-Changi Bay,CB,#66a61e,1.764293,NA
-Choa Chu Kang,CK,#d95f02,6.117792,190890.0
-Clementi,CL,#66a61e,9.519502,92420.0
-Downtown Core,DT,#1b9e77,5.069935,2720.0
-Geylang,GL,#e6ab02,9.645416,110200.0
-Hougang,HG,#e7298a,13.918692,226240.0
-Jurong East,JE,#d95f02,17.863044,79240.0
-Jurong West,JW,#7570b3,14.68267,264860.0
-Kallang,KL,#e7298a,8.59463,101520.0
+Bedok,BD,1,21.740894,279380.0
+Bishan,BS,4,7.605257,88010.0
+Boon Lay,BL,5,8.277236,40.0
+Bukit Batok,BK,3,11.140694,153740.0
+Bukit Merah,BM,6,14.465966,151980.0
+Bukit Panjang,BP,5,9.018703,139280.0
+Bukit Timah,BT,4,17.516789,77430.0
+Central Water Catchment,CC,6,37.162155,NA
+Changi,CH,5,41.474598,1830.0
+Changi Bay,CB,1,1.764293,NA
+Choa Chu Kang,CK,6,6.117792,190890.0
+Clementi,CL,1,9.519502,92420.0
+Downtown Core,DT,3,5.069935,2720.0
+Geylang,GL,5,9.645416,110200.0
+Hougang,HG,2,13.918692,226240.0
+Jurong East,JE,6,17.863044,79240.0
+Jurong West,JW,4,14.68267,264860.0
+Kallang,KL,2,8.59463,101520.0
 Lim Chu Kang,LK,#a6761d,17.483939,110.0
-Mandai,MD,#7570b3,11.766777,2090.0
-Marina East,ME,#66a61e,1.84385,NA
-Marina South,MS,#e7298a,1.631483,NA
+Mandai,MD,4,11.766777,2090.0
+Marina East,ME,1,1.84385,NA
+Marina South,MS,2,1.631483,NA
 Marine Parade,MP,#a6761d,6.142878,46390.0
-Museum,MU,#66a61e,0.829759,450.0
-Newton,NT,#e6ab02,2.071537,8030.0
-North-eastern Islands,NE,#e6ab02,12.867218,50.0
-Novena,NV,#1b9e77,8.964805,49210.0
-Orchard,OR,#7570b3,0.957589,920.0
-Outram,OT,#66a61e,1.373784,18960.0
-Pasir Ris,PR,#1b9e77,15.790575,148020.0
+Museum,MU,1,0.829759,450.0
+Newton,NT,5,2.071537,8030.0
+North-eastern Islands,NE,5,12.867218,50.0
+Novena,NV,3,8.964805,49210.0
+Orchard,OR,4,0.957589,920.0
+Outram,OT,1,1.373784,18960.0
+Pasir Ris,PR,3,15.790575,148020.0
 Paya Lebar,PL,#a6761d,11.688163,40.0
-Pioneer,PN,#e7298a,12.215755,80.0
-Punggol,PG,#d95f02,9.393927,170560.0
-Queenstown,QT,#1b9e77,21.590085,96340.0
-River Valley,RV,#e6ab02,1.47115,10250.0
-Rochor,RC,#d95f02,1.589504,13340.0
-Seletar,SL,#1b9e77,10.870083,280.0
-Sembawang,SB,#e7298a,12.645703,95920.0
-Sengkang,SE,#7570b3,10.605756,244600.0
-Serangoon,SG,#66a61e,10.092784,116310.0
-Simpang,SM,#1b9e77,6.644633,NA
+Pioneer,PN,2,12.215755,80.0
+Punggol,PG,6,9.393927,170560.0
+Queenstown,QT,3,21.590085,96340.0
+River Valley,RV,5,1.47115,10250.0
+Rochor,RC,6,1.589504,13340.0
+Seletar,SL,3,10.870083,280.0
+Sembawang,SB,2,12.645703,95920.0
+Sengkang,SE,4,10.605756,244600.0
+Serangoon,SG,1,10.092784,116310.0
+Simpang,SM,3,6.644633,NA
 Singapore River,SR,#a6761d,0.961827,3070.0
-Southern Islands,SI,#7570b3,4.79243,1880.0
-Straits View,SV,#7570b3,1.12949,NA
-Sungei Kadut,SK,#e7298a,17.57304,780.0
-Tampines,TM,#d95f02,20.799691,256730.0
-Tanglin,TN,#66a61e,7.551776,21630.0
-Tengah,TH,#e7298a,7.366575,10.0
+Southern Islands,SI,4,4.79243,1880.0
+Straits View,SV,4,1.12949,NA
+Sungei Kadut,SK,2,17.57304,780.0
+Tampines,TM,6,20.799691,256730.0
+Tanglin,TN,1,7.551776,21630.0
+Tengah,TH,2,7.366575,10.0
 Toa Payoh,TP,#a6761d,8.181715,120650.0
-Tuas,TS,#d95f02,47.901171,80.0
-Western Islands,WI,#e7298a,32.852054,10.0
-Western Water Catchment,WC,#1b9e77,69.709159,690.0
+Tuas,TS,6,47.901171,80.0
+Western Islands,WI,2,32.852054,10.0
+Western Water Catchment,WC,3,69.709159,690.0
 Woodlands,WD,#a6761d,13.620412,254730.0
-Yishun,YS,#e6ab02,21.025134,220320.0
+Yishun,YS,5,21.025134,220320.0

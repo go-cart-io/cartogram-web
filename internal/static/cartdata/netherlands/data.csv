@@ -1,13 +1,13 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Drenthe,DR,#d95f02,2664.0,492167.0
-Flevoland,FL,#e6ab02,1468.0,416546.0
-Friesland,FR,#1b9e77,3578.0,647672.0
-Gelderland,GE,#e7298a,5110.0,2071972.0
-Groningen,GR,#e7298a,2373.0,583990.0
-Limburg,LI,#e6ab02,2162.0,1116137.0
-Noord-Brabant,NB,#66a61e,5066.0,2544806.0
-Noord-Holland,NH,#7570b3,2874.0,2853359.0
-Overijssel,OV,#7570b3,3374.0,1156431.0
-Utrecht,UT,#1b9e77,1447.0,1342158.0
-Zeeland,ZE,#1b9e77,1806.0,383032.0
-Zuid-Holland,ZH,#d95f02,3049.0,3673839.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Drenthe,DR,6,2664.0,492167.0
+Flevoland,FL,5,1468.0,416546.0
+Friesland,FR,3,3578.0,647672.0
+Gelderland,GE,2,5110.0,2071972.0
+Groningen,GR,2,2373.0,583990.0
+Limburg,LI,5,2162.0,1116137.0
+Noord-Brabant,NB,1,5066.0,2544806.0
+Noord-Holland,NH,4,2874.0,2853359.0
+Overijssel,OV,4,3374.0,1156431.0
+Utrecht,UT,3,1447.0,1342158.0
+Zeeland,ZE,3,1806.0,383032.0
+Zuid-Holland,ZH,6,3049.0,3673839.0

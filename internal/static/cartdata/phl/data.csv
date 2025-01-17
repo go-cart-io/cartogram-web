@@ -1,83 +1,83 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Abra,AB,#1b9e77,4188.0,241160.0
-Agusan del Norte,AN,#1b9e77,3049.0,691566.0
-Agusan del Sur,AS,#e7298a,8734.0,700653.0
-Aklan,AK,#d95f02,1688.0,574823.0
-Albay,AL,#d95f02,2592.0,1314826.0
-Antique,AQ,#e7298a,2792.0,582012.0
-Apayao,AP,#e6ab02,4140.0,119184.0
-Aurora,AU,#e7298a,3181.0,214336.0
-Basilan,BS,#d95f02,1287.0,346579.0
-Bataan,BA,#1b9e77,1362.0,760650.0
-Batanes,BN,#e7298a,210.0,17246.0
-Batangas,BT,#7570b3,3318.0,2694335.0
-Benguet,BG,#7570b3,2769.0,791590.0
-Biliran,BI,#66a61e,543.0,171612.0
-Bohol,BO,#66a61e,4005.0,1313560.0
-Bukidnon,BK,#7570b3,9249.0,1415226.0
-Bulacan,BU,#66a61e,2662.0,3292071.0
-Cagayan,CG,#1b9e77,9311.0,1199320.0
-Camarines Norte,CN,#e7298a,2148.0,583313.0
-Camarines Sur,CS,#7570b3,5432.0,1952544.0
-Camiguin,CM,#e7298a,249.0,88478.0
-Capiz,CP,#e6ab02,2719.0,761384.0
-Catanduanes,CT,#e7298a,1507.0,260964.0
-Cavite,CV,#e7298a,1291.0,3678301.0
-Cebu,CB,#e6ab02,4944.0,4632359.0
-Compostela Valley,CL,#d95f02,4311.0,736107.0
-Davao del Norte,DV,#e6ab02,3541.0,1016332.0
-Davao del Sur,DS,#1b9e77,3700.0,2265579.0
-Davao Occidental,DS,#d95f02,2433.0,NA
-Davao Oriental,DO,#e6ab02,5198.0,558958.0
-Dinagat Islands,DI,#e6ab02,804.0,127152.0
-Eastern Samar,ES,#e7298a,4332.0,467160.0
-Guimaras,GU,#7570b3,597.0,174613.0
-Ifugao,IF,#d95f02,2631.0,202802.0
-Ilocos Norte,IN,#66a61e,3574.0,593081.0
-Ilocos Sur,IS,#d95f02,2635.0,689668.0
-Iloilo,II,#66a61e,4737.0,2384415.0
-Isabela,IB,#7570b3,10809.0,1593566.0
-Kalinga,KA,#e7298a,3054.0,212680.0
-La Union,LU,#1b9e77,1535.0,786653.0
-Laguna,LG,#66a61e,2800.0,3035081.0
-Lanao del Norte,LN,#1b9e77,2887.0,1019013.0
-Lanao del Sur,LS,#e6ab02,3940.0,1045429.0
-Leyte,LE,#d95f02,5687.0,1966768.0
-Maguindanao,MG,#1b9e77,4852.0,1473371.0
-Marinduque,MQ,#e7298a,936.0,234521.0
-Masbate,MB,#1b9e77,4079.0,892393.0
-Metropolitan Manila,MM,#7570b3,579.0,12877253.0
-Misamis Occidental,MD,#e6ab02,1928.0,602126.0
-Misamis Oriental,MN,#d95f02,3389.0,1564459.0
-Mountain Province,MT,#e6ab02,2239.0,154590.0
-Negros Occidental,ND,#e7298a,7977.0,3059136.0
-Negros Oriental,NR,#66a61e,5101.0,1354995.0
-North Cotabato,NC,#66a61e,6450.0,1379747.0
-Northern Samar,NS,#7570b3,3393.0,632379.0
-Nueva Ecija,NE,#e6ab02,5718.0,2151461.0
-Nueva Vizcaya,NV,#1b9e77,4111.0,452287.0
-Occidental Mindoro,MC,#e6ab02,6082.0,487414.0
-Oriental Mindoro,MR,#1b9e77,4367.0,844059.0
-Palawan,PL,#d95f02,14561.0,1104585.0
-Pampanga,PM,#d95f02,2344.0,2609744.0
-Pangasinan,PN,#d95f02,5425.0,2956726.0
-Quezon,QZ,#d95f02,8626.0,2122830.0
-Quirino,QR,#66a61e,3247.0,188991.0
-Rizal,RI,#e6ab02,1318.0,2884227.0
-Romblon,RO,#7570b3,1354.0,292781.0
-Samar,SM,#e6ab02,5532.0,780481.0
-Sarangani,SG,#66a61e,3285.0,544261.0
-Siquijor,SQ,#7570b3,327.0,95984.0
-Sorsogon,SR,#e6ab02,2040.0,792949.0
-South Cotabato,SC,#e7298a,4404.0,1509735.0
-Southern Leyte,SL,#66a61e,1715.0,421750.0
-Sultan Kudarat,SK,#7570b3,4506.0,812095.0
-Sulu,SU,#66a61e,1271.0,824731.0
-Surigao del Norte,SN,#7570b3,2010.0,485088.0
-Surigao del Sur,SS,#66a61e,4369.0,592250.0
-Tarlac,TR,#e7298a,3147.0,1366027.0
-Tawi-Tawi,TT,#d95f02,958.0,390715.0
-Zambales,PN,#7570b3,3796.0,823888.0
-Zamboanga del Norte,ZN,#66a61e,6494.0,1011393.0
-Zamboanga del Sur,ZS,#e7298a,5357.0,1872473.0
-Zamboanga Sibugay,ZY,#1b9e77,2746.0,633129.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Abra,AB,3,4188.0,241160.0
+Agusan del Norte,AN,3,3049.0,691566.0
+Agusan del Sur,AS,2,8734.0,700653.0
+Aklan,AK,6,1688.0,574823.0
+Albay,AL,6,2592.0,1314826.0
+Antique,AQ,2,2792.0,582012.0
+Apayao,AP,5,4140.0,119184.0
+Aurora,AU,2,3181.0,214336.0
+Basilan,BS,6,1287.0,346579.0
+Bataan,BA,3,1362.0,760650.0
+Batanes,BN,2,210.0,17246.0
+Batangas,BT,4,3318.0,2694335.0
+Benguet,BG,4,2769.0,791590.0
+Biliran,BI,1,543.0,171612.0
+Bohol,BO,1,4005.0,1313560.0
+Bukidnon,BK,4,9249.0,1415226.0
+Bulacan,BU,1,2662.0,3292071.0
+Cagayan,CG,3,9311.0,1199320.0
+Camarines Norte,CN,2,2148.0,583313.0
+Camarines Sur,CS,4,5432.0,1952544.0
+Camiguin,CM,2,249.0,88478.0
+Capiz,CP,5,2719.0,761384.0
+Catanduanes,CT,2,1507.0,260964.0
+Cavite,CV,2,1291.0,3678301.0
+Cebu,CB,5,4944.0,4632359.0
+Compostela Valley,CL,6,4311.0,736107.0
+Davao del Norte,DV,5,3541.0,1016332.0
+Davao del Sur,DS,3,3700.0,2265579.0
+Davao Occidental,DS,6,2433.0,NA
+Davao Oriental,DO,5,5198.0,558958.0
+Dinagat Islands,DI,5,804.0,127152.0
+Eastern Samar,ES,2,4332.0,467160.0
+Guimaras,GU,4,597.0,174613.0
+Ifugao,IF,6,2631.0,202802.0
+Ilocos Norte,IN,1,3574.0,593081.0
+Ilocos Sur,IS,6,2635.0,689668.0
+Iloilo,II,1,4737.0,2384415.0
+Isabela,IB,4,10809.0,1593566.0
+Kalinga,KA,2,3054.0,212680.0
+La Union,LU,3,1535.0,786653.0
+Laguna,LG,1,2800.0,3035081.0
+Lanao del Norte,LN,3,2887.0,1019013.0
+Lanao del Sur,LS,5,3940.0,1045429.0
+Leyte,LE,6,5687.0,1966768.0
+Maguindanao,MG,3,4852.0,1473371.0
+Marinduque,MQ,2,936.0,234521.0
+Masbate,MB,3,4079.0,892393.0
+Metropolitan Manila,MM,4,579.0,12877253.0
+Misamis Occidental,MD,5,1928.0,602126.0
+Misamis Oriental,MN,6,3389.0,1564459.0
+Mountain Province,MT,5,2239.0,154590.0
+Negros Occidental,ND,2,7977.0,3059136.0
+Negros Oriental,NR,1,5101.0,1354995.0
+North Cotabato,NC,1,6450.0,1379747.0
+Northern Samar,NS,4,3393.0,632379.0
+Nueva Ecija,NE,5,5718.0,2151461.0
+Nueva Vizcaya,NV,3,4111.0,452287.0
+Occidental Mindoro,MC,5,6082.0,487414.0
+Oriental Mindoro,MR,3,4367.0,844059.0
+Palawan,PL,6,14561.0,1104585.0
+Pampanga,PM,6,2344.0,2609744.0
+Pangasinan,PN,6,5425.0,2956726.0
+Quezon,QZ,6,8626.0,2122830.0
+Quirino,QR,1,3247.0,188991.0
+Rizal,RI,5,1318.0,2884227.0
+Romblon,RO,4,1354.0,292781.0
+Samar,SM,5,5532.0,780481.0
+Sarangani,SG,1,3285.0,544261.0
+Siquijor,SQ,4,327.0,95984.0
+Sorsogon,SR,5,2040.0,792949.0
+South Cotabato,SC,2,4404.0,1509735.0
+Southern Leyte,SL,1,1715.0,421750.0
+Sultan Kudarat,SK,4,4506.0,812095.0
+Sulu,SU,1,1271.0,824731.0
+Surigao del Norte,SN,4,2010.0,485088.0
+Surigao del Sur,SS,1,4369.0,592250.0
+Tarlac,TR,2,3147.0,1366027.0
+Tawi-Tawi,TT,6,958.0,390715.0
+Zambales,PN,4,3796.0,823888.0
+Zamboanga del Norte,ZN,1,6494.0,1011393.0
+Zamboanga del Sur,ZS,2,5357.0,1872473.0
+Zamboanga Sibugay,ZY,3,2746.0,633129.0

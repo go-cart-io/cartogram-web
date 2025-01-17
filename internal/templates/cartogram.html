@@ -10,8 +10,10 @@
 {% block javascript %}
 <script>
   var mapName = "{{ map_name }}";
-  var maps = {{ (maps | safe) or '{}' }};
-  var mapDataKey = "{{ map_data_key }}";
+  var maps = JSON.parse('{{ maps | default({}) | tojson | safe }}');
+  var mapTitle = "{{ map_title }}";
+  var mapColorScheme = "{{ map_color_scheme }}";
+  var mapDBKey = "{{ map_data_key }}";
   var mode = null;
 </script>
 {% endblock javascript %}

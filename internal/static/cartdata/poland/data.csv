@@ -1,17 +1,17 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Greater Poland,WP,#7570b3,29826.0,3490597.0
-Holy Cross,SK,#e7298a,11711.0,1244400.0
-Kuyavian-Pomeranian,KP,#e7298a,17972.0,2079900.0
-Lesser Poland,MA,#e6ab02,15183.0,3395700.0
-Lodz,LD,#66a61e,18219.0,2470610.0
-Lower Silesian,DS,#d95f02,19947.0,2901000.0
-Lublin,LU,#d95f02,25122.0,2121600.0
-Lubusz,LB,#1b9e77,13988.0,1015440.0
-Masovian,MZ,#1b9e77,35558.0,5391813.0
-Opole,OP,#e7298a,9412.0,988031.0
-Podlaskie,PD,#e7298a,20187.0,1182700.0
-Pomeranian,PM,#d95f02,18310.0,2328200.0
-Silesian,SL,#1b9e77,12333.0,4540100.0
-Subcarpathian,PK,#7570b3,17846.0,2128747.0
-Warmian-Masurian,WN,#e6ab02,24173.0,1431100.0
-West Pomeranian,ZP,#e7298a,22892.0,1703000.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Greater Poland,WP,4,29826.0,3490597.0
+Holy Cross,SK,2,11711.0,1244400.0
+Kuyavian-Pomeranian,KP,2,17972.0,2079900.0
+Lesser Poland,MA,5,15183.0,3395700.0
+Lodz,LD,1,18219.0,2470610.0
+Lower Silesian,DS,6,19947.0,2901000.0
+Lublin,LU,6,25122.0,2121600.0
+Lubusz,LB,3,13988.0,1015440.0
+Masovian,MZ,3,35558.0,5391813.0
+Opole,OP,2,9412.0,988031.0
+Podlaskie,PD,2,20187.0,1182700.0
+Pomeranian,PM,6,18310.0,2328200.0
+Silesian,SL,3,12333.0,4540100.0
+Subcarpathian,PK,4,17846.0,2128747.0
+Warmian-Masurian,WN,5,24173.0,1431100.0
+West Pomeranian,ZP,2,22892.0,1703000.0

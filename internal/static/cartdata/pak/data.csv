@@ -1,9 +1,9 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Azad Kashmir,JK,#d95f02,11639.0,4045000.0
-Balochistan,BA,#1b9e77,347190.0,12344408.0
-Federally Administered Tribal Areas,TA,#7570b3,27220.0,5001676.0
-Gilgit-Baltistan,NA,#66a61e,72520.0,1300000.0
-Islamabad Capital Territory,IS,#1b9e77,906.0,2006572.0
-Khyber Pakhtunkhwa,NW,#e6ab02,74521.0,30523371.0
-Punjab,PB,#e7298a,205344.0,110012442.0
-Sindh,SD,#d95f02,140914.0,47886051.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Azad Kashmir,JK,6,11639.0,4045000.0
+Balochistan,BA,3,347190.0,12344408.0
+Federally Administered Tribal Areas,TA,4,27220.0,5001676.0
+Gilgit-Baltistan,NA,1,72520.0,1300000.0
+Islamabad Capital Territory,IS,3,906.0,2006572.0
+Khyber Pakhtunkhwa,NW,5,74521.0,30523371.0
+Punjab,PB,2,205344.0,110012442.0
+Sindh,SD,6,140914.0,47886051.0

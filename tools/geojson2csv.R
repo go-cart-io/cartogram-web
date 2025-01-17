@@ -36,7 +36,7 @@ map_sf$cartogram_id <- as.character(seq(1, length(map_sf[[abbr_property]]), 1))
 df <- data.frame(
   map_sf$id, map_sf[[name_property]], map_sf[[abbr_property]],
   map_sf$color, NA, NA)
-colnames(df) <- c("Id", "Name", "Abbreviation", "Color", "Area", "Data")
+colnames(df) <- c("Id", "Name", "RegionLabel", "Color", "Area", "Data")
 write.csv(df, paste0(output, ".csv"), row.names=FALSE)
 
 #Create geojson

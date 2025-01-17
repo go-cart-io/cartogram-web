@@ -1,14 +1,14 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Alberta,AB,#7570b3,640330.0,4362503.0
-British Columbia,BC,#e6ab02,922503.0,5034482.0
-Manitoba,MB,#d95f02,552371.0,1362789.0
-New Brunswick,NB,#e6ab02,71389.0,773020.0
-Newfoundland and Labrador,NL,#d95f02,370514.0,522537.0
-Northwest Territories,NT,#e7298a,1143794.0,44420.0
-Nova Scotia,NS,#e7298a,52942.0,966858.0
-Nunavut,NU,#1b9e77,1877779.0,39170.0
-Ontario,ON,#e7298a,908699.0,14490207.0
-Prince Edward Island,PE,#1b9e77,5686.0,155318.0
-Quebec,QC,#7570b3,1356625.0,8452209.0
-Saskatchewan,SK,#66a61e,588244.0,1169131.0
-Yukon,YT,#66a61e,474713.0,40208.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Alberta,AB,4,640330.0,4362503.0
+British Columbia,BC,5,922503.0,5034482.0
+Manitoba,MB,6,552371.0,1362789.0
+New Brunswick,NB,5,71389.0,773020.0
+Newfoundland and Labrador,NL,6,370514.0,522537.0
+Northwest Territories,NT,2,1143794.0,44420.0
+Nova Scotia,NS,2,52942.0,966858.0
+Nunavut,NU,3,1877779.0,39170.0
+Ontario,ON,2,908699.0,14490207.0
+Prince Edward Island,PE,3,5686.0,155318.0
+Quebec,QC,4,1356625.0,8452209.0
+Saskatchewan,SK,1,588244.0,1169131.0
+Yukon,YT,1,474713.0,40208.0

@@ -1,17 +1,17 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Baden-Wuerttemberg,BW,#e7298a,35752.0,10879618.0
-Bayern,BY,#e6ab02,70549.0,12843514.0
-Berlin,BE,#e7298a,892.0,3520031.0
-Brandenburg,BB,#7570b3,29477.0,2484826.0
-Bremen,HB,#7570b3,404.0,671489.0
-Hamburg,HH,#d95f02,755.0,1787408.0
-Hessen,HE,#d95f02,21115.0,6176172.0
-Mecklenburg-Vorpommern,MV,#66a61e,23173.0,1612362.0
-Niedersachsen,NI,#1b9e77,47618.0,7926599.0
-Nordrhein-Westfalen,NW,#7570b3,34083.0,17865516.0
-Rheinland-Pfalz,RP,#66a61e,19847.0,4052803.0
-Saarland,SL,#1b9e77,2569.0,995597.0
-Sachsen,SN,#1b9e77,18413.0,4084851.0
-Sachsen-Anhalt,ST,#d95f02,20445.0,2245470.0
-Schleswig-Holstein,SH,#e6ab02,15763.0,2858714.0
-Thueringen,TH,#e7298a,16172.0,2170714.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Baden-Wuerttemberg,BW,2,35752.0,10879618.0
+Bayern,BY,5,70549.0,12843514.0
+Berlin,BE,2,892.0,3520031.0
+Brandenburg,BB,4,29477.0,2484826.0
+Bremen,HB,4,404.0,671489.0
+Hamburg,HH,6,755.0,1787408.0
+Hessen,HE,6,21115.0,6176172.0
+Mecklenburg-Vorpommern,MV,1,23173.0,1612362.0
+Niedersachsen,NI,3,47618.0,7926599.0
+Nordrhein-Westfalen,NW,4,34083.0,17865516.0
+Rheinland-Pfalz,RP,1,19847.0,4052803.0
+Saarland,SL,3,2569.0,995597.0
+Sachsen,SN,3,18413.0,4084851.0
+Sachsen-Anhalt,ST,6,20445.0,2245470.0
+Schleswig-Holstein,SH,5,15763.0,2858714.0
+Thueringen,TH,2,16172.0,2170714.0

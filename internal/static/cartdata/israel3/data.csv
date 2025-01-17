@@ -1,7 +1,7 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-HaDarom,HD,#7570b3,16954.0,1302000.0
-Haifa,HA,#d95f02,1053.0,1032800.0
-HaMerkaz,HM,#e6ab02,1467.0,2196100.0
-HaZafon,HZ,#1b9e77,4210.0,1397500.0
-Jerusalem,JM,#e7298a,689.0,1133700.0
-Tel Aviv,TA,#66a61e,209.0,1427200.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+HaDarom,HD,4,16954.0,1302000.0
+Haifa,HA,6,1053.0,1032800.0
+HaMerkaz,HM,5,1467.0,2196100.0
+HaZafon,HZ,3,4210.0,1397500.0
+Jerusalem,JM,2,689.0,1133700.0
+Tel Aviv,TA,1,209.0,1427200.0

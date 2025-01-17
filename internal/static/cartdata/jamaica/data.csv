@@ -1,15 +1,15 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Clarendon,CL,#d95f02,1196.0,247702.0
-Hanover,HA,#66a61e,450.0,70265.0
-Kingston,KI,#7570b3,22.0,89883.0
-Manchester,MA,#e7298a,830.0,191881.0
-Portland,PO,#e6ab02,814.0,82643.0
-Saint Andrew,SD,#d95f02,431.0,579890.0
-Saint Ann,SN,#7570b3,1213.0,174203.0
-Saint Catherine,SC,#e7298a,1192.0,521249.0
-Saint Elizabeth,SE,#66a61e,1212.0,151839.0
-Saint James,SJ,#e6ab02,595.0,185697.0
-Saint Mary,SM,#1b9e77,611.0,114867.0
-Saint Thomas,ST,#1b9e77,743.0,94939.0
-Trelawny,TR,#1b9e77,875.0,75981.0
-Westmoreland,WE,#7570b3,807.0,145628.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Clarendon,CL,6,1196.0,247702.0
+Hanover,HA,1,450.0,70265.0
+Kingston,KI,4,22.0,89883.0
+Manchester,MA,2,830.0,191881.0
+Portland,PO,5,814.0,82643.0
+Saint Andrew,SD,6,431.0,579890.0
+Saint Ann,SN,4,1213.0,174203.0
+Saint Catherine,SC,2,1192.0,521249.0
+Saint Elizabeth,SE,1,1212.0,151839.0
+Saint James,SJ,5,595.0,185697.0
+Saint Mary,SM,3,611.0,114867.0
+Saint Thomas,ST,3,743.0,94939.0
+Trelawny,TR,3,875.0,75981.0
+Westmoreland,WE,4,807.0,145628.0

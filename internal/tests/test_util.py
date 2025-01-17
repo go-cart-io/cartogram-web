@@ -8,7 +8,7 @@ testdata = {
     "values": {
         "fields": [
             {"key":"0","label":"Region"},
-            {"key":"1","label":"Abbreviation"},
+            {"key":"1","label":"RegionLabel"},
             {"key":"2","label":"Color"},
             {"key":"3","label":"Land Area (km sq.)"},
             {"key":"4","label":"Population (people)"}            
@@ -21,7 +21,7 @@ testdata = {
             "5":["WEST REGION","WR","#66a61e",201.0,922540.0]
         }
     },
-    "stringKey": time.time(),
+    "mapDBKey": time.time(),
     "persist": "true"
 }
 
@@ -33,7 +33,7 @@ def test_sanitize_filename():
 
 def test_get_csv():
     csvstring = util.get_csv(testdata)
-    assert csvstring == '''Region,Abbreviation,Color,Land Area (km sq.),Population (people)
+    assert csvstring == '''Region,RegionLabel,Color,Land Area (km sq.),Population (people)
 CENTRAL REGION,CR,#1b9e77,133.0,922580.0
 EAST REGION,ER,#e7298a,93.0,685940.0
 NORTH REGION,NR,#d95f02,135.0,582330.0

@@ -1,10 +1,10 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Acquaviva,AC,#e6ab02,5.0,2167.0
-Borgo Maggiore,BM,#66a61e,10.0,6946.0
-Chiesanuova,CH,#1b9e77,5.0,1152.0
-Domagnano,DO,#e6ab02,7.0,3584.0
-Faetano,FA,#e7298a,8.0,1168.0
-Fiorentino,FI,#d95f02,7.0,2552.0
-Montegiardino,MG,#7570b3,3.0,966.0
-San Marino,SM,#7570b3,6.0,4063.0
-Serravalle,SE,#d95f02,10.0,10976.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Acquaviva,AC,5,5.0,2167.0
+Borgo Maggiore,BM,1,10.0,6946.0
+Chiesanuova,CH,3,5.0,1152.0
+Domagnano,DO,5,7.0,3584.0
+Faetano,FA,2,8.0,1168.0
+Fiorentino,FI,6,7.0,2552.0
+Montegiardino,MG,4,3.0,966.0
+San Marino,SM,4,6.0,4063.0
+Serravalle,SE,6,10.0,10976.0

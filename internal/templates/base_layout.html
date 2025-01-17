@@ -21,10 +21,10 @@
 
   {% if config['ENV'] == "production" %}
   <link rel="stylesheet" href="/static/dist/{{ asset.url_for('style.css').file }}" />
-  <script type="module" src="/static/dist/{{ asset.url_for('src/web/main.ts').file }}"></script>
+  <script type="module" src="/static/dist/{{ asset.url_for('src/main.ts').file }}"></script>
   {% else %}
   <script type="module" src="{{ asset.webpack_url_for(request.host_url, '@vite/client') }}"></script>
-  <script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/web/main.ts') }}"></script>
+  <script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/main.ts') }}"></script>
   {% endif %}
 
   <title>Creating Cartograms Online</title>
@@ -50,14 +50,11 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav" style="margin-right: 50px">
-          <li class="nav-item {%if page_active=='home'%}active{%endif%}">
-            <a class="nav-link" href="/">Home</a>
+          <li class="nav-item {%if page_active=='maker'%}active{%endif%}">
+            <a class="nav-link" href="/cartogram/create">Make Cartogram</a>
           </li>
           <li class="nav-item {%if page_active=='cartogram'%}active{%endif%}">
-            <a class="nav-link" href="/cartogram">Cartogram</a>
-          </li>
-          <li class="nav-item {%if page_active=='tutorial'%}active{%endif%}">
-            <a class="nav-link" href="/tutorial">Tutorial</a>
+            <a class="nav-link" href="/cartogram">View Cartogram</a>
           </li>
           <li class="nav-item {%if page_active=='about'%}active{%endif%}">
             <a class="nav-link" href="/about">About</a>
@@ -80,8 +77,8 @@
     <footer class="text-secondary">
       <p>
         &copy; go-cart.io.
-        Cartograms produced through this website utilize the <a href="https://www.pnas.org/content/115/10/E2156">Fast
-          Flow-based Algorithm</a> (Gastner, Seguy, and More, 2018).
+        <span class="d-none d-md-inline">This website uses the <a href="https://www.pnas.org/content/115/10/E2156">Fast
+          Flow-based Algorithm</a> (Gastner et al. 2018) for cartogram generation.</span>
       </p>
     </footer>
   </div>

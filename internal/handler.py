@@ -10,15 +10,18 @@ class CartogramHandler:
     def get_sorted_handler_names(self):
         sub_cartogram_handlers = {}
         for key, value in cartogram_handlers.items():
-            sub_cartogram_handlers[key] = {'name': value['name']}
+            sub_cartogram_handlers[key] = {'name': value['name'], 'regions': value['regions']}
 
         return dict(sorted(sub_cartogram_handlers.items(), key=lambda item: item[1]['name']))
 
     def get_name(self, handler):
         return cartogram_handlers[handler]['name']
 
-    def get_gen_file(self, handler):
-        return './static/cartdata/{}/original.json'.format(handler)  
+    def get_gen_file(self, handler, string_key = ''):
+        if handler == 'custom':
+            return f"./static/userdata/{string_key}/Input.json"
+        else:
+            return f'./static/cartdata/{handler}/Land Area.json'
     
     def remove_holes(self):
         return False

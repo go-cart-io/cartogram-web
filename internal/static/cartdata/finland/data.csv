@@ -1,6 +1,6 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Eastern Finland,IS,#66a61e,48726.0,582781.0
-Lapland,LP,#e7298a,98946.0,186917.0
-Oulu,OU,#e6ab02,57000.0,458504.0
-Southern Finland,ES,#7570b3,34378.0,2116914.0
-Western Finland,LS,#d95f02,74185.0,1848269.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Eastern Finland,IS,1,48726.0,582781.0
+Lapland,LP,2,98946.0,186917.0
+Oulu,OU,5,57000.0,458504.0
+Southern Finland,ES,4,34378.0,2116914.0
+Western Finland,LS,6,74185.0,1848269.0

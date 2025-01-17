@@ -1,9 +1,9 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Akkar,AK,#e6ab02,776.0,423596.0
-Baalbak-Hermel,BH,#7570b3,3009.0,457932.0
-Beirut,BA,#d95f02,18.0,433249.0
-Beqaa,BI,#d95f02,1271.0,534342.0
-Mount Lebanon,JL,#1b9e77,1950.0,1802238.0
-Nabatieh,NA,#e6ab02,1058.0,383839.0
-North,AS,#66a61e,1205.0,790951.0
-South,JA,#e7298a,943.0,590078.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Akkar,AK,5,776.0,423596.0
+Baalbak-Hermel,BH,4,3009.0,457932.0
+Beirut,BA,6,18.0,433249.0
+Beqaa,BI,6,1271.0,534342.0
+Mount Lebanon,JL,3,1950.0,1802238.0
+Nabatieh,NA,5,1058.0,383839.0
+North,AS,1,1205.0,790951.0
+South,JA,2,943.0,590078.0

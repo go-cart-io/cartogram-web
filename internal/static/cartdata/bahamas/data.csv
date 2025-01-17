@@ -1,20 +1,20 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Abaco,AB,#d95f02,1681.0,17224.0
-Acklins,AK,#d95f02,389.0,565.0
-Andros,AN,#7570b3,5957.0,7490.0
-Berry Islands,BR,#e6ab02,31.0,807.0
-Bimini,BI,#d95f02,23.0,1988.0
-Cat Island,CI,#e6ab02,388.0,1522.0
-Crooked Island,CK,#e6ab02,238.0,330.0
-Eleuthera,EL,#1b9e77,518.0,8202.0
-Exuma,EM,#e7298a,290.0,6928.0
-Grand Bahama,GB,#e7298a,1373.0,51368.0
-Harbour Island,HB,#e7298a,4.0,1762.0
-Inagua,IN,#e7298a,1671.0,913.0
-Long Island,LI,#1b9e77,448.0,3094.0
-Mayaguana,MG,#66a61e,110.0,277.0
-New Providence,NP,#66a61e,207.0,246329.0
-Ragged Islands,RI,#7570b3,23.0,72.0
-Rum Cay,RC,#7570b3,78.0,99.0
-San Salvador,SS,#66a61e,163.0,940.0
-Spanish Wells,SW,#e7298a,1.0,1551.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Abaco,AB,6,1681.0,17224.0
+Acklins,AK,6,389.0,565.0
+Andros,AN,4,5957.0,7490.0
+Berry Islands,BR,5,31.0,807.0
+Bimini,BI,6,23.0,1988.0
+Cat Island,CI,5,388.0,1522.0
+Crooked Island,CK,5,238.0,330.0
+Eleuthera,EL,3,518.0,8202.0
+Exuma,EM,2,290.0,6928.0
+Grand Bahama,GB,2,1373.0,51368.0
+Harbour Island,HB,2,4.0,1762.0
+Inagua,IN,2,1671.0,913.0
+Long Island,LI,3,448.0,3094.0
+Mayaguana,MG,1,110.0,277.0
+New Providence,NP,1,207.0,246329.0
+Ragged Islands,RI,4,23.0,72.0
+Rum Cay,RC,4,78.0,99.0
+San Salvador,SS,1,163.0,940.0
+Spanish Wells,SW,2,1.0,1551.0

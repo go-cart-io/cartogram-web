@@ -1,19 +1,19 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Andalucia,AN,#66a61e,110658.0,8446561.0
-Aragon,AR,#e6ab02,63818.0,1324397.0
-Cantabria,CB,#e6ab02,7296.0,581949.0
-Castilla y Leon,CL,#7570b3,126413.0,2402877.0
-Castilla-La Mancha,CM,#d95f02,103236.0,2220270.0
-Cataluna,CT,#1b9e77,43075.0,7609499.0
-Ceuta,CE,#e6ab02,26.0,84434.0
-Comunidad de Madrid,MD,#e6ab02,10570.0,6685471.0
-Comunidad Foral de Navarra,NA,#66a61e,14092.0,652526.0
-Comunidad Valenciana,VC,#7570b3,30139.0,4998711.0
-Extremadura,EX,#1b9e77,53800.0,1062797.0
-Galicia,GA,#1b9e77,40423.0,2698764.0
-Islas Baleares,PM,#e7298a,6517.0,1198576.0
-La Rioja,LO,#d95f02,6829.0,314487.0
-Melilla,ML,#e7298a,9.0,84286.0
-Pais Vasco,PV,#e7298a,10306.0,2181919.0
-Principado de Asturias,AS,#d95f02,14573.0,1019993.0
-Region de Murcia,MU,#e7298a,14386.0,1494442.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Andalucia,AN,1,110658.0,8446561.0
+Aragon,AR,5,63818.0,1324397.0
+Cantabria,CB,5,7296.0,581949.0
+Castilla y Leon,CL,4,126413.0,2402877.0
+Castilla-La Mancha,CM,6,103236.0,2220270.0
+Cataluna,CT,3,43075.0,7609499.0
+Ceuta,CE,5,26.0,84434.0
+Comunidad de Madrid,MD,5,10570.0,6685471.0
+Comunidad Foral de Navarra,NA,1,14092.0,652526.0
+Comunidad Valenciana,VC,4,30139.0,4998711.0
+Extremadura,EX,3,53800.0,1062797.0
+Galicia,GA,3,40423.0,2698764.0
+Islas Baleares,PM,2,6517.0,1198576.0
+La Rioja,LO,6,6829.0,314487.0
+Melilla,ML,2,9.0,84286.0
+Pais Vasco,PV,2,10306.0,2181919.0
+Principado de Asturias,AS,6,14573.0,1019993.0
+Region de Murcia,MU,2,14386.0,1494442.0

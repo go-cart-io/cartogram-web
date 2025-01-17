@@ -1,11 +1,11 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Barima-Waini,BA,#7570b3,20339.0,27643.0
-Cuyuni-Mazaruni,CU,#d95f02,47213.0,18375.0
-Demerara-Mahaica,DE,#e6ab02,2233.0,311563.0
-East Berbice-Corentyne,EB,#e6ab02,36255.0,109652.0
-Essequibo Islands-West Demerara,ES,#e7298a,3755.0,107785.0
-Mahaica-Berbice,MA,#d95f02,4170.0,49820.0
-Pomeroon-Supenaam,PM,#1b9e77,6195.0,46810.0
-Potaro-Siparuni,PT,#66a61e,20052.0,11077.0
-Upper Demerara-Berbice,UD,#1b9e77,17081.0,39992.0
-Upper Takutu-Upper Essequibo,UT,#e7298a,57790.0,24238.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Barima-Waini,BA,4,20339.0,27643.0
+Cuyuni-Mazaruni,CU,6,47213.0,18375.0
+Demerara-Mahaica,DE,5,2233.0,311563.0
+East Berbice-Corentyne,EB,5,36255.0,109652.0
+Essequibo Islands-West Demerara,ES,2,3755.0,107785.0
+Mahaica-Berbice,MA,6,4170.0,49820.0
+Pomeroon-Supenaam,PM,3,6195.0,46810.0
+Potaro-Siparuni,PT,1,20052.0,11077.0
+Upper Demerara-Berbice,UD,3,17081.0,39992.0
+Upper Takutu-Upper Essequibo,UT,2,57790.0,24238.0

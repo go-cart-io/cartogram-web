@@ -1,6 +1,6 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
-  "padding": { "top": 20 },
+  "padding": { "top": 50, "bottom": 10 },
   "autosize": { "type": "fit", "contains": "padding" },
   "signals": [
     {
@@ -20,6 +20,10 @@
         { "events": "shape:mouseover", "update": "datum[\"properties\"][\"cartogram_id\"]" },
         { "events": "mouseover[!event.item]", "update": "null" }
       ]
+    },
+    {
+      "name": "colorScheme",
+      "value": "pastel1"
     }
   ],
   "data": [
@@ -37,17 +41,14 @@
       "name": "geo_1",
       "source": "source_geojson",
       "transform": [
-        {
-          "type": "formula",
-          "expr": "datum[\"properties\"] && datum[\"properties\"][\"name\"]",
-          "as": "Region"
-        },
+        { "type": "filter", "expr": "datum.properties.name != 'Dividers'" },
         {
           "type": "lookup",
           "from": "source_csv",
           "key": "Region",
-          "fields": ["Region"],
-          "values": ["Abbreviation", "Color", "ColorGroup"]
+          "fields": ["properties.name"],
+          "as": ["cartogram_data"],
+          "default": { "Color": "lightgrey", "ColorGroup": "-1" }
         },
         {
           "type": "formula",
@@ -65,6 +66,11 @@
           "as": "y"
         }
       ]
+    },
+    {
+      "name": "geo_1_dividers",
+      "source": "source_geojson",
+      "transform": [{ "type": "filter", "expr": "datum.properties.name == 'Dividers'" }]
     }
   ],
   "projections": [
@@ -87,10 +93,77 @@
       "name": "color_group",
       "type": "ordinal",
       "domain": { "data": "source_csv", "field": "ColorGroup" },
-      "range": { "scheme": "pastel1" }
+      "range": { "scheme": { "signal": "colorScheme" } }
     }
   ],
   "marks": [
+    {
+      "name": "polygon_marks",
+      "type": "shape",
+      "style": ["geoshape"],
+      "from": { "data": "geo_1" },
+      "encode": {
+        "update": {
+          "description": {
+            "signal": "\"geoshape_\" + datum[\"properties\"][\"cartogram_id\"]"
+          },
+          "stroke": { "value": "black" },
+          "strokeWidth": {
+            "signal": "datum[\"properties\"][\"cartogram_id\"] == active? 1 : 0.2"
+          },
+          "tooltip": { "signal": "datum.cartogram_data" },
+          "fill": [
+            {
+              "test": "isValid(datum.cartogram_data.Color)",
+              "field": "cartogram_data.Color"
+            },
+            {
+              "test": "isValid(datum.cartogram_data.ColorGroup)",
+              "scale": "color_group",
+              "field": "cartogram_data.ColorGroup"
+            },
+            { "value": "lightgrey" }
+          ],
+          "ariaRoleDescription": { "value": "geoshape" }
+        }
+      },
+      "transform": [{ "type": "geoshape", "projection": "source_projection" }]
+    },
+    {
+      "name": "divider_marks",
+      "type": "shape",
+      "style": ["geoshape"],
+      "from": { "data": "geo_1_dividers" },
+      "encode": {
+        "update": {
+          "description": {
+            "value": "dividers"
+          },
+          "stroke": { "value": "white" },
+          "strokeWidth": { "value": 8 },
+          "strokeCap": { "value": "round" },
+          "ariaRoleDescription": { "value": "geoshape" }
+        }
+      },
+      "transform": [{ "type": "geoshape", "projection": "source_projection" }]
+    },
+    {
+      "name": "divider_marks_border",
+      "type": "shape",
+      "style": ["geoshape"],
+      "from": { "data": "geo_1_dividers" },
+      "encode": {
+        "update": {
+          "description": {
+            "value": "dividers"
+          },
+          "stroke": { "value": "black" },
+          "strokeWidth": { "value": 1 },
+          "ariaRoleDescription": { "value": "geoshape" }
+        }
+      },
+      "transform": [{ "type": "geoshape", "projection": "source_projection" }]
+    },
     {
       "name": "label_marks",
       "type": "text",
@@ -98,7 +171,7 @@
       "from": { "data": "geo_1" },
       "encode": {
         "enter": {
-          "text": { "field": "Abbreviation" }
+          "text": { "field": "cartogram_data.RegionLabel" }
         },
         "update": {
           "x": { "field": "x" },
@@ -120,34 +193,10 @@
           "ariaRoleDescription": { "value": "geolabel" }
         }
       },
-      "transform": [{ "type": "geopoint", "fields": ["x", "y"], "projection": "source_projection" }]
-    },
-    {
-      "name": "polygon_marks",
-      "type": "shape",
-      "style": ["geoshape"],
-      "from": { "data": "geo_1" },
-      "encode": {
-        "update": {
-          "description": {
-            "signal": "\"geoshape_\" + datum[\"properties\"][\"cartogram_id\"]"
-          },
-          "stroke": { "value": "black" },
-          "strokeWidth": {
-            "signal": "datum[\"properties\"][\"cartogram_id\"] == active? 1 : 0.2"
-          },
-          "tooltip": { "signal": "datum" },
-          "fill": [
-            {
-              "test": "isValid(datum.Color)",
-              "field": "Color"
-            },
-            { "scale": "color_group", "field": "ColorGroup" }
-          ],
-          "ariaRoleDescription": { "value": "geoshape" }
-        }
-      },
-      "transform": [{ "type": "geoshape", "projection": "source_projection" }]
+      "transform": [
+        { "type": "geopoint", "fields": ["x", "y"], "projection": "source_projection" }
+      ],
+      "interactive": false
     }
   ]
 }

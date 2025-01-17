@@ -1,0 +1,19 @@
+{% extends 'base_layout.html' %}
+
+{% block content %}
+
+<div id="cartogram-maker" class="d-flex flex-column flex-fill">
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+	var mapName = "{{ map_name }}";
+	var maps = JSON.parse('{{ maps | default({}) | tojson | safe }}');
+	var mapTitle = "{{ map_title }}";
+	var mapColorScheme = "{{ map_color_scheme }}";
+	var geoUrl = "{{ geo_url }}";
+	var csvUrl = "{{ csv_url }}";
+</script>
+{% endblock javascript %}

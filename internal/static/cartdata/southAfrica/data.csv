@@ -1,10 +1,10 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Eastern Cape,EC,#e7298a,169016.0,6712300.0
-Free State,FS,#66a61e,129762.0,2887500.0
-Gauteng,GT,#7570b3,18186.0,15176100.0
-KwaZulu-Natal,NL,#e6ab02,93317.0,11289100.0
-Limpopo,NP,#1b9e77,125781.0,5982600.0
-Mpumalanga,MP,#e7298a,76449.0,4592200.0
-North West,NW,#d95f02,104898.0,4027200.0
-Northern Cape,NC,#7570b3,373066.0,1263900.0
-Western Cape,WC,#e6ab02,129641.0,6844300.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Eastern Cape,EC,2,169016.0,6712300.0
+Free State,FS,1,129762.0,2887500.0
+Gauteng,GT,4,18186.0,15176100.0
+KwaZulu-Natal,NL,5,93317.0,11289100.0
+Limpopo,NP,3,125781.0,5982600.0
+Mpumalanga,MP,2,76449.0,4592200.0
+North West,NW,6,104898.0,4027200.0
+Northern Cape,NC,4,373066.0,1263900.0
+Western Cape,WC,5,129641.0,6844300.0

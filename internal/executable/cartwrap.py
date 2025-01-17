@@ -23,7 +23,10 @@ def reader(pipe, pipe_name, queue):
 # gen_file:             A string containing the path to the appropriate .gen file
 # cartogram_executable: A string containg the path to the C code executable
 def generate_cartogram(area_data, gen_file, cartogram_executable, world=False, custom_flags=''):
-    args = [cartogram_executable, gen_file, area_data, '--output_to_stdout']
+    args = [cartogram_executable, '--output_to_stdout', gen_file]
+
+    if not area_data == None:
+        args.append(area_data)
        
     if world == True:
         args.append('--world')

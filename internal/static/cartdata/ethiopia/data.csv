@@ -1,12 +1,12 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Addis Abeba,AA,#66a61e,530.0,3273000.0
-Afar,AF,#d95f02,94419.0,1723000.0
-Amhara,AM,#7570b3,159202.0,20401000.0
-Benshangul-Gumaz,BE,#66a61e,49289.0,1005000.0
-Dire Dawa,DD,#7570b3,1213.0,440000.0
-Gambela,GA,#d95f02,25802.0,409000.0
-Harari,HA,#e6ab02,311.0,232000.0
-Oromia,OR,#e7298a,353007.0,33692000.0
-Somali,SO,#1b9e77,312256.0,5453000.0
-"Southern Nations, Nationalities and Peoples",SN,#e6ab02,112343.0,18276000.0
-Tigray,TI,#e6ab02,50079.0,5056000.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Addis Abeba,AA,1,530.0,3273000.0
+Afar,AF,6,94419.0,1723000.0
+Amhara,AM,4,159202.0,20401000.0
+Benshangul-Gumaz,BE,1,49289.0,1005000.0
+Dire Dawa,DD,4,1213.0,440000.0
+Gambela,GA,6,25802.0,409000.0
+Harari,HA,5,311.0,232000.0
+Oromia,OR,2,353007.0,33692000.0
+Somali,SO,3,312256.0,5453000.0
+"Southern Nations, Nationalities and Peoples",SN,5,112343.0,18276000.0
+Tigray,TI,5,50079.0,5056000.0

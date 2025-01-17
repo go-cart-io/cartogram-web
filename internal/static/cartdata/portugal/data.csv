@@ -1,19 +1,19 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Aveiro,AV,#d95f02,2747.0,695702.0
-Beja,BE,#d95f02,10292.0,141178.0
-Braga,BR,#7570b3,2704.0,828650.0
-Braganca,BA,#7570b3,6597.0,124571.0
-Castelo Branco,CB,#e7298a,6627.0,179038.0
-Coimbra,CO,#7570b3,3972.0,405267.0
-Evora,EV,#66a61e,7387.0,152865.0
-Faro,FA,#1b9e77,4951.0,438864.0
-Guarda,GU,#66a61e,5537.0,144354.0
-Leiria,LE,#1b9e77,3507.0,454592.0
-Lisboa,LI,#e7298a,2745.0,2271772.0
-Portalegre,PA,#e6ab02,6080.0,105479.0
-Porto,PO,#e7298a,2330.0,1778146.0
-Santarem,SA,#d95f02,6716.0,429719.0
-Setubal,SE,#e6ab02,5026.0,852328.0
-Viana do Castelo,VC,#66a61e,2217.0,230954.0
-Vila Real,VR,#1b9e77,4307.0,191894.0
-Viseu,VI,#e6ab02,5009.0,354453.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Aveiro,AV,6,2747.0,695702.0
+Beja,BE,6,10292.0,141178.0
+Braga,BR,4,2704.0,828650.0
+Braganca,BA,4,6597.0,124571.0
+Castelo Branco,CB,2,6627.0,179038.0
+Coimbra,CO,4,3972.0,405267.0
+Evora,EV,1,7387.0,152865.0
+Faro,FA,3,4951.0,438864.0
+Guarda,GU,1,5537.0,144354.0
+Leiria,LE,3,3507.0,454592.0
+Lisboa,LI,2,2745.0,2271772.0
+Portalegre,PA,5,6080.0,105479.0
+Porto,PO,2,2330.0,1778146.0
+Santarem,SA,6,6716.0,429719.0
+Setubal,SE,5,5026.0,852328.0
+Viana do Castelo,VC,1,2217.0,230954.0
+Vila Real,VR,3,4307.0,191894.0
+Viseu,VI,5,5009.0,354453.0

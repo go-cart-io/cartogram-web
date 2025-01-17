@@ -1,8 +1,8 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Abu Dhabi,AZ,#66a61e,67340.0,2784490.0
-Ajman,AJ,#1b9e77,259.0,372922.0
-Dubai,DU,#d95f02,3885.0,4177059.0
-Fujairah,FU,#66a61e,1165.0,152000.0
-Ras Al-Khaimah,RK,#e7298a,1684.0,416600.0
-Sharjah,SH,#7570b3,2590.0,2374132.0
-Umm Al-Quwain,UQ,#e6ab02,777.0,72000.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Abu Dhabi,AZ,1,67340.0,2784490.0
+Ajman,AJ,3,259.0,372922.0
+Dubai,DU,6,3885.0,4177059.0
+Fujairah,FU,1,1165.0,152000.0
+Ras Al-Khaimah,RK,2,1684.0,416600.0
+Sharjah,SH,4,2590.0,2374132.0
+Umm Al-Quwain,UQ,5,777.0,72000.0

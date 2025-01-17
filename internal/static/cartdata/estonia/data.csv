@@ -1,16 +1,16 @@
-Region,Abbreviation,Color,Land Area (km sq.),Population (people)
-Harju,HA,#7570b3,4333.0,605027.0
-Hiiu,HI,#7570b3,1023.0,9315.0
-Ida-Viru,IV,#e6ab02,3364.0,134259.0
-Jarva,JR,#1b9e77,2460.0,30174.0
-Jogeva,JN,#d95f02,2604.0,28441.0
-Laane,LN,#66a61e,2383.0,20444.0
-Laane-Viru,LV,#66a61e,3628.0,58862.0
-Parnu,PR,#e6ab02,4807.0,86176.0
-Polva,PL,#e7298a,2165.0,24647.0
-Rapla,RA,#e7298a,2980.0,33282.0
-Saare,SA,#d95f02,2922.0,33083.0
-Tartu,TA,#1b9e77,2993.0,153316.0
-Valga,VG,#d95f02,2044.0,28204.0
-Vilijandi,VD,#7570b3,3422.0,46160.0
-Voru,VR,#1b9e77,2305.0,35415.0
+Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Harju,HA,4,4333.0,605027.0
+Hiiu,HI,4,1023.0,9315.0
+Ida-Viru,IV,5,3364.0,134259.0
+Jarva,JR,3,2460.0,30174.0
+Jogeva,JN,6,2604.0,28441.0
+Laane,LN,1,2383.0,20444.0
+Laane-Viru,LV,1,3628.0,58862.0
+Parnu,PR,5,4807.0,86176.0
+Polva,PL,2,2165.0,24647.0
+Rapla,RA,2,2980.0,33282.0
+Saare,SA,6,2922.0,33083.0
+Tartu,TA,3,2993.0,153316.0
+Valga,VG,6,2044.0,28204.0
+Vilijandi,VD,4,3422.0,46160.0
+Voru,VR,3,2305.0,35415.0
