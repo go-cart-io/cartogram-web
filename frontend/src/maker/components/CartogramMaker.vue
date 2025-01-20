@@ -64,7 +64,10 @@ async function onCsvBtnClick() {
 }
 
 function onCsvUpdate(csvData: KeyValueArray) {
-  dataTableEl.value.updateDataTable(csvData)
+  const updatedProps = dataTableEl.value.updateDataTable(csvData)
+  state.colorScheme = updatedProps.customColor ? 'custom' : state.colorScheme
+  state.useEqualArea = updatedProps.useEqualArea
+  state.useInset = updatedProps.useInset
 }
 
 async function getGeneratedCartogram() {
@@ -174,6 +177,7 @@ async function getGeneratedCartogram() {
               class="form-check-input"
               type="checkbox"
               v-model="state.useEqualArea"
+              v-bind:disabled="!('features' in state.geojsonData)"
               id="chk-area"
             />
             <label class="form-check-label" for="chk-area">
@@ -185,6 +189,7 @@ async function getGeneratedCartogram() {
               class="form-check-input"
               type="checkbox"
               v-model="state.useInset"
+              v-bind:disabled="!('features' in state.geojsonData)"
               id="chk-inset"
             />
             <label class="form-check-label" for="chk-inset"> Define inset </label>

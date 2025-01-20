@@ -29,21 +29,21 @@ defineExpose({
 
 watch(
   () => props.mapColorScheme,
-  (type, prevType) => {
+  (newValue, oldValue) => {
     changeColor(props.mapColorScheme)
   }
 )
 
 watch(
   () => props.useEqualArea,
-  (type, prevType) => {
+  (newValue, oldValue) => {
     state.dataTable.fields[config.COL_AREA].show = props.useEqualArea
   }
 )
 
 watch(
   () => props.useInset,
-  (type, prevType) => {
+  (newValue, oldValue) => {
     state.dataTable.fields[config.COL_INSET].show = props.useInset
   }
 )
@@ -137,7 +137,7 @@ async function initDataTableWArray(data: KeyValueArray, isReplace = true) {
 
   let container = await embed('#map-vis', <VisualizationSpec>versionSpec, { renderer: 'svg', actions: false })
   visView = container.view
-  visView.signal('colorScheme', props.mapColorScheme).runAsync()
+  if (props.mapColorScheme !== 'custom') visView.signal('colorScheme', props.mapColorScheme).runAsync()
 }
 
 function updateDataTable(csvData: KeyValueArray) {
@@ -152,18 +152,31 @@ function updateDataTable(csvData: KeyValueArray) {
 
   state.dataTable.items = util.filterKeyValueInArray(state.dataTable.items, config.RESERVE_FIELDS, null)
   state.dataTable.fields.splice(config.NUM_RESERVED_FILEDS)
-  state.dataTable.fields[config.COL_AREA].show = csvData[0].hasOwnProperty('Land Area')
   state.dataTable.fields[config.COL_COLOR].show = csvData[0].hasOwnProperty('Color')
+  state.dataTable.fields[config.COL_AREA].show = csvData[0].hasOwnProperty('Land Area')
   state.dataTable.fields[config.COL_INSET].show = csvData[0].hasOwnProperty('Inset')
   initDataTableWArray(csvData, false)
+
+  return {
+    customColor: state.dataTable.fields[config.COL_COLOR].show,
+    useEqualArea: state.dataTable.fields[config.COL_AREA].show,
+    useInset: state.dataTable.fields[config.COL_INSET].show
+  }
 }
 
 function changeColor(scheme: string) {
   if (scheme === 'custom') {
-    // Copy color from Vega to data table
-    let colorScale = visView.scale('color_group')
-    for (let i = 0; i < state.dataTable.items.length; i++) {
-      state.dataTable.items[i]['Color'] = colorScale(state.dataTable.items[i]['ColorGroup'])
+    if (state.dataTable.items.length && !state.dataTable.items[0].hasOwnProperty('Color')) {
+      // No color assigned - Copy all color from Vega to data table
+      let colorScale = visView.scale('color_group')
+      for (let i = 0; i < state.dataTable.items.length; i++) {
+        state.dataTable.items[i]['Color'] = colorScale(state.dataTable.items[i]['ColorGroup'])
+      }
+    } else {
+      // Assign white to empty color
+      for (let i = 0; i < state.dataTable.items.length; i++) {
+        state.dataTable.items[i]['Color'] = state.dataTable.items[i]['Color']? state.dataTable.items[i]['Color'] : '#ffffff'
+      }
     }
 
     state.dataTable.fields[config.COL_COLOR].show = true
@@ -193,7 +206,9 @@ function onValueChange(rIndex: number, label: string, event: Event) {
   <div class="card w-75 m-2 border-0">
     <div class="p-2"><span class="badge text-bg-secondary">Input Overview</span></div>
     <div class="p-2" v-if="state.dataTable.items.length < 1">
-      Please follow steps on the left panel.
+      Please follow steps on the left panel. If you have any questions or issues about cartogram
+      generation, refer to the <a href="/faq">Frequently Asked Questions</a> or
+      <a href="/contact">Contact us</a>.
     </div>
     <div id="map-vis" class="vis-area p-2"></div>
     <div class="d-table p-2" v-if="state.dataTable.items.length > 0">

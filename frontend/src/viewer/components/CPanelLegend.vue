@@ -70,7 +70,7 @@ const emit = defineEmits(['gridChanged', 'versionUpdated'])
 
 watch(
   () => props.versionKey,
-  (type, prevType) => {
+  (newValue, oldValue) => {
     state.version = store.versions[props.versionKey]
     switchVersion()
   }
@@ -92,7 +92,7 @@ watch(
 
 watch(
   () => props.affineScale,
-  (type, prevType) => {
+  (newValue, oldValue) => {
     formatLegendValue()
   },
   { deep: true }
