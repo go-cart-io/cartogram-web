@@ -41,12 +41,12 @@
       "name": "geo_1",
       "source": "source_geojson",
       "transform": [
-        { "type": "filter", "expr": "datum.properties.name != 'Dividers'" },
+        { "type": "filter", "expr": "datum.properties.Region != 'Dividers'" },
         {
           "type": "lookup",
           "from": "source_csv",
           "key": "Region",
-          "fields": ["properties.name"],
+          "fields": ["properties.Region"],
           "as": ["cartogram_data"],
           "default": { "Color": "lightgrey", "ColorGroup": "-1" }
         },
@@ -70,7 +70,7 @@
     {
       "name": "geo_1_dividers",
       "source": "source_geojson",
-      "transform": [{ "type": "filter", "expr": "datum.properties.name == 'Dividers'" }]
+      "transform": [{ "type": "filter", "expr": "datum.properties.Region == 'Dividers'" }]
     }
   ],
   "projections": [
@@ -170,10 +170,8 @@
       "style": ["text"],
       "from": { "data": "geo_1" },
       "encode": {
-        "enter": {
-          "text": { "field": "cartogram_data.RegionLabel" }
-        },
         "update": {
+          "text": { "field": "cartogram_data.RegionLabel" },
           "x": { "field": "x" },
           "y": { "field": "y" },
           "description": {

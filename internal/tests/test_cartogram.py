@@ -37,7 +37,7 @@ def test_process_data_with_color_inset(mocker):
     formatted_csv, datasets, is_area_as_base = cartogram.process_data(csv_string, geojson_file)
 
     assert formatted_csv == "Region,RegionLabel,Color,ColorGroup,Inset,Population (people)\nRegion1,R1,#fff,1,C,1000\nRegion2,R2,,2,C,2000\n"
-    assert datasets == [{'label': 'Population', 'datastring': 'name,Data,Color,Inset\nRegion1,1000,#fff,C\nRegion2,2000,,C\n'}]
+    assert datasets == [{'label': 'Population', 'datastring': 'Region,Data,Color,Inset\nRegion1,1000,#fff,C\nRegion2,2000,,C\n'}]
     assert is_area_as_base is False
 
 def test_local_function_equal_area():

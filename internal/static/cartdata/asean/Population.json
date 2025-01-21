@@ -13,7 +13,7 @@
         "NAME_0": "Cambodia",
         "num_vert": 132,
         "label": { "x": 164.84205965236163, "y": 288.15523213452207 },
-        "name": "Cambodia"
+        "Region": "Cambodia"
       },
       "geometry": {
         "type": "Polygon",
@@ -165,7 +165,7 @@
         "NAME_0": "Singapore",
         "num_vert": 48,
         "label": { "x": 162.38222181381443, "y": 206.32011992539492 },
-        "name": "Singapore"
+        "Region": "Singapore"
       },
       "geometry": {
         "type": "Polygon",
@@ -233,7 +233,7 @@
         "NAME_0": "Indonesia",
         "num_vert": 4147,
         "label": { "x": 229.24354831720154, "y": 194.16916604621812 },
-        "name": "Indonesia"
+        "Region": "Indonesia"
       },
       "geometry": {
         "type": "MultiPolygon",
@@ -4594,7 +4594,7 @@
         "NAME_0": "Malaysia",
         "num_vert": 347,
         "label": { "x": 149.64437999826882, "y": 224.24820502294483 },
-        "name": "Malaysia"
+        "Region": "Malaysia"
       },
       "geometry": {
         "type": "MultiPolygon",
@@ -4967,7 +4967,7 @@
         "NAME_0": "Thailand",
         "num_vert": 249,
         "label": { "x": 151.04278511329264, "y": 287.22504004810196 },
-        "name": "Thailand"
+        "Region": "Thailand"
       },
       "geometry": {
         "type": "Polygon",
@@ -5236,7 +5236,7 @@
         "NAME_0": "Vietnam",
         "num_vert": 197,
         "label": { "x": 178.18561812302823, "y": 308.04084159205786 },
-        "name": "Vietnam"
+        "Region": "Vietnam"
       },
       "geometry": {
         "type": "Polygon",
@@ -5453,7 +5453,7 @@
         "NAME_0": "Brunei",
         "num_vert": 107,
         "label": { "x": 235.9159996465591, "y": 221.52094820603625 },
-        "name": "Brunei"
+        "Region": "Brunei"
       },
       "geometry": {
         "type": "MultiPolygon",
@@ -5586,7 +5586,7 @@
         "NAME_0": "Myanmar",
         "num_vert": 231,
         "label": { "x": 110.87195427741185, "y": 328.42381601762963 },
-        "name": "Myanmar"
+        "Region": "Myanmar"
       },
       "geometry": {
         "type": "MultiPolygon",
@@ -5843,7 +5843,7 @@
         "NAME_0": "Philippines",
         "num_vert": 1370,
         "label": { "x": 308.96103632233303, "y": 243.6066313830309 },
-        "name": "Philippines"
+        "Region": "Philippines"
       },
       "geometry": {
         "type": "MultiPolygon",
@@ -7283,7 +7283,7 @@
         "NAME_0": "Laos",
         "num_vert": 198,
         "label": { "x": 157.256463369389, "y": 320.78139371682283 },
-        "name": "Laos"
+        "Region": "Laos"
       },
       "geometry": {
         "type": "Polygon",

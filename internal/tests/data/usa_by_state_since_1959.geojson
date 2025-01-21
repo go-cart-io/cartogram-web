@@ -4,7 +4,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Mississippi",
+        "Region": "Mississippi",
         "Shape_Leng": 24.6095261,
         "Shape_Area": 11.8854224,
         "Level": "ADM1",
@@ -793,7 +793,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "North Carolina",
+        "Region": "North Carolina",
         "Shape_Leng": 41.2633337,
         "Shape_Area": 12.7821986,
         "Level": "ADM1",
@@ -2154,7 +2154,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Oklahoma",
+        "Region": "Oklahoma",
         "Shape_Leng": 27.2111179,
         "Shape_Area": 18.0050088,
         "Level": "ADM1",
@@ -2705,7 +2705,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Virginia",
+        "Region": "Virginia",
         "Shape_Leng": 33.6140678,
         "Shape_Area": 10.6857842,
         "Level": "ADM1",
@@ -3780,7 +3780,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "West Virginia",
+        "Region": "West Virginia",
         "Shape_Leng": 20.1969884,
         "Shape_Area": 6.493883,
         "Level": "ADM1",
@@ -4544,7 +4544,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Louisiana",
+        "Region": "Louisiana",
         "Shape_Leng": 38.8045848,
         "Shape_Area": 11.5442143,
         "Level": "ADM1",
@@ -6050,7 +6050,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Michigan",
+        "Region": "Michigan",
         "Shape_Leng": 58.0994819,
         "Shape_Area": 17.0547778,
         "Level": "ADM1",
@@ -8105,7 +8105,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Massachusetts",
+        "Region": "Massachusetts",
         "Shape_Leng": 17.6297362,
         "Shape_Area": 2.318549,
         "Level": "ADM1",
@@ -8651,7 +8651,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Idaho",
+        "Region": "Idaho",
         "Shape_Leng": 30.7882222,
         "Shape_Area": 24.456468,
         "Level": "ADM1",
@@ -9475,7 +9475,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Florida",
+        "Region": "Florida",
         "Shape_Leng": 43.6491073,
         "Shape_Area": 13.9348557,
         "Level": "ADM1",
@@ -11020,7 +11020,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Nebraska",
+        "Region": "Nebraska",
         "Shape_Leng": 24.1940232,
         "Shape_Area": 21.6144646,
         "Level": "ADM1",
@@ -11407,7 +11407,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Washington",
+        "Region": "Washington",
         "Shape_Leng": 47.9612604,
         "Shape_Area": 20.8996409,
         "Level": "ADM1",
@@ -12954,7 +12954,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "New Mexico",
+        "Region": "New Mexico",
         "Shape_Leng": 23.6745299,
         "Shape_Area": 30.8929287,
         "Level": "ADM1",
@@ -13053,7 +13053,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "South Dakota",
+        "Region": "South Dakota",
         "Shape_Leng": 23.3987874,
         "Shape_Area": 22.5783404,
         "Level": "ADM1",
@@ -13329,7 +13329,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Texas",
+        "Region": "Texas",
         "Shape_Leng": 71.976608,
         "Shape_Area": 65.3276988,
         "Level": "ADM1",
@@ -15867,7 +15867,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "California",
+        "Region": "California",
         "Shape_Leng": 44.1177583,
         "Shape_Area": 41.668284,
         "Level": "ADM1",
@@ -17153,7 +17153,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Alabama",
+        "Region": "Alabama",
         "Shape_Leng": 18.9856185,
         "Shape_Area": 12.8918729,
         "Level": "ADM1",
@@ -17530,7 +17530,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Georgia",
+        "Region": "Georgia",
         "Shape_Leng": 20.6975254,
         "Shape_Area": 14.6684691,
         "Level": "ADM1",
@@ -18198,7 +18198,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Pennsylvania",
+        "Region": "Pennsylvania",
         "Shape_Leng": 17.3341508,
         "Shape_Area": 12.535844,
         "Level": "ADM1",
@@ -18489,7 +18489,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Missouri",
+        "Region": "Missouri",
         "Shape_Leng": 24.7133018,
         "Shape_Area": 18.6154533,
         "Level": "ADM1",
@@ -19108,7 +19108,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Colorado",
+        "Region": "Colorado",
         "Shape_Leng": 22.0192036,
         "Shape_Area": 28.039261,
         "Level": "ADM1",
@@ -19192,7 +19192,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Utah",
+        "Region": "Utah",
         "Shape_Leng": 20.0012182,
         "Shape_Area": 22.9751241,
         "Level": "ADM1",
@@ -19280,7 +19280,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Tennessee",
+        "Region": "Tennessee",
         "Shape_Leng": 22.3742859,
         "Shape_Area": 10.889277,
         "Level": "ADM1",
@@ -19750,7 +19750,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Wyoming",
+        "Region": "Wyoming",
         "Shape_Leng": 21.9955393,
         "Shape_Area": 27.9707242,
         "Level": "ADM1",
@@ -19841,7 +19841,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "New York",
+        "Region": "New York",
         "Shape_Leng": 30.8682429,
         "Shape_Area": 14.0069757,
         "Level": "ADM1",
@@ -20709,7 +20709,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Kansas",
+        "Region": "Kansas",
         "Shape_Leng": 21.4055439,
         "Shape_Area": 22.0043369,
         "Level": "ADM1",
@@ -20880,7 +20880,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Alaska",
+        "Region": "Alaska",
         "Shape_Leng": 566.6599617,
         "Shape_Area": 282.0108767,
         "Level": "ADM1",
@@ -38830,7 +38830,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Nevada",
+        "Region": "Nevada",
         "Shape_Leng": 23.8186927,
         "Shape_Area": 29.9396769,
         "Level": "ADM1",
@@ -39040,7 +39040,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Illinois",
+        "Region": "Illinois",
         "Shape_Leng": 21.4398955,
         "Shape_Area": 15.4082178,
         "Level": "ADM1",
@@ -39746,7 +39746,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Vermont",
+        "Region": "Vermont",
         "Shape_Leng": 9.5712569,
         "Shape_Area": 2.7979549,
         "Level": "ADM1",
@@ -40065,7 +40065,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Montana",
+        "Region": "Montana",
         "Shape_Leng": 36.3101264,
         "Shape_Area": 45.079813,
         "Level": "ADM1",
@@ -40711,7 +40711,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Iowa",
+        "Region": "Iowa",
         "Shape_Leng": 20.2465096,
         "Shape_Area": 15.8572457,
         "Level": "ADM1",
@@ -41249,7 +41249,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "South Carolina",
+        "Region": "South Carolina",
         "Shape_Leng": 15.9258808,
         "Shape_Area": 7.8564032,
         "Level": "ADM1",
@@ -41760,7 +41760,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "New Hampshire",
+        "Region": "New Hampshire",
         "Shape_Leng": 9.527985,
         "Shape_Area": 2.683568,
         "Level": "ADM1",
@@ -42089,7 +42089,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Arizona",
+        "Region": "Arizona",
         "Shape_Leng": 23.8419117,
         "Shape_Area": 28.9192297,
         "Level": "ADM1",
@@ -42462,7 +42462,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "District of Columbia",
+        "Region": "District of Columbia",
         "Shape_Leng": 0.6457344,
         "Shape_Area": 0.0183736,
         "Level": "ADM1",
@@ -42497,7 +42497,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "New Jersey",
+        "Region": "New Jersey",
         "Shape_Leng": 8.7147378,
         "Shape_Area": 2.1309536,
         "Level": "ADM1",
@@ -42815,7 +42815,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Maryland",
+        "Region": "Maryland",
         "Shape_Leng": 28.7194261,
         "Shape_Area": 2.7722998,
         "Level": "ADM1",
@@ -43820,7 +43820,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Maine",
+        "Region": "Maine",
         "Shape_Leng": 37.6034856,
         "Shape_Area": 9.7532104,
         "Level": "ADM1",
@@ -45219,7 +45219,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Hawaii",
+        "Region": "Hawaii",
         "Shape_Leng": 14.6190098,
         "Shape_Area": 1.4482632,
         "Level": "ADM1",
@@ -45948,7 +45948,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Delaware",
+        "Region": "Delaware",
         "Shape_Leng": 4.2850795,
         "Shape_Area": 0.5415904,
         "Level": "ADM1",
@@ -46060,7 +46060,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Rhode Island",
+        "Region": "Rhode Island",
         "Shape_Leng": 5.8000378,
         "Shape_Area": 0.3077632,
         "Level": "ADM1",
@@ -46305,7 +46305,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Kentucky",
+        "Region": "Kentucky",
         "Shape_Leng": 22.4636544,
         "Shape_Area": 10.6679456,
         "Level": "ADM1",
@@ -47046,7 +47046,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Ohio",
+        "Region": "Ohio",
         "Shape_Leng": 17.9352622,
         "Shape_Area": 11.3199183,
         "Level": "ADM1",
@@ -47592,7 +47592,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Wisconsin",
+        "Region": "Wisconsin",
         "Shape_Leng": 28.3847645,
         "Shape_Area": 16.4900817,
         "Level": "ADM1",
@@ -48683,7 +48683,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Oregon",
+        "Region": "Oregon",
         "Shape_Leng": 25.9604835,
         "Shape_Area": 28.1784609,
         "Level": "ADM1",
@@ -49244,7 +49244,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "North Dakota",
+        "Region": "North Dakota",
         "Shape_Leng": 24.8454545,
         "Shape_Area": 21.8398049,
         "Level": "ADM1",
@@ -49517,7 +49517,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Arkansas",
+        "Region": "Arkansas",
         "Shape_Leng": 21.8590608,
         "Shape_Area": 13.5854548,
         "Level": "ADM1",
@@ -50072,7 +50072,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Indiana",
+        "Region": "Indiana",
         "Shape_Leng": 17.1805788,
         "Shape_Area": 9.8737536,
         "Level": "ADM1",
@@ -50540,7 +50540,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Minnesota",
+        "Region": "Minnesota",
         "Shape_Leng": 35.078204,
         "Shape_Area": 25.5398223,
         "Level": "ADM1",
@@ -51454,7 +51454,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Connecticut",
+        "Region": "Connecticut",
         "Shape_Leng": 6.7065742,
         "Shape_Area": 1.3966796,
         "Level": "ADM1",

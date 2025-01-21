@@ -25,7 +25,7 @@ def sort_geojson(path, geojson_data = None):
         with open(path, 'r') as geojson_file:
             geojson_data = json.load(geojson_file)
         
-    sorted_geojson_features = sorted(geojson_data['features'], key=lambda x: x['properties']['name'])
+    sorted_geojson_features = sorted(geojson_data['features'], key=lambda x: x['properties']['Region'])
 
     with open(path, 'w') as sorted_geojson_file:
         geojson_data['features'] = sorted_geojson_features

@@ -188,7 +188,7 @@ def postprocess_geojson(json_data):
                 "type": "MultiLineString",
                 "coordinates": []
             },
-            "properties": { "name": "Dividers" },
+            "properties": { "Region": "Dividers" },
             "type": "Feature"
         }
         for line in json_data["divider_points"]:

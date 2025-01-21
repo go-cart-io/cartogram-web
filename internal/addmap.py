@@ -84,7 +84,7 @@ def get_regions_from_file(map_gen_path):
     with open(map_gen_path, 'r') as file:
         geojson_data = json.load(file)
         for feature in geojson_data['features']:
-            regions[feature['properties']['name']] = str(feature['properties']['cartogram_id'])
+            regions[feature['properties']['Region']] = str(feature['properties']['cartogram_id'])
 
     return regions
 

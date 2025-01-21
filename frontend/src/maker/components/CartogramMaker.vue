@@ -42,7 +42,7 @@ onMounted(() => {
   if (!props.mapName || !props.geoUrl || !props.csvUrl) return
 
   HTTP.get(props.geoUrl).then(function (response: any) {
-    onGeoJsonChanged(props.mapName!, response, 'name', props.csvUrl)
+    onGeoJsonChanged(props.mapName!, response, 'Region', props.csvUrl)
   })
 })
 
@@ -82,7 +82,7 @@ async function getGeneratedCartogram() {
       ? util.filterGeoJSONProperties(
           state.geojsonData,
           ['cartogram_id', state.geojsonRegionCol, 'label'],
-          ['cartogram_id', 'name', 'label']
+          ['cartogram_id', 'Region', 'label']
         )
       : undefined
   var csvData = await dataTableEl.value.getCSV()
