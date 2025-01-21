@@ -1,4 +1,11 @@
-export const RESERVE_FIELDS = ['Region', 'RegionLabel', 'Color', 'ColorGroup', 'Inset', 'Land Area']
+export const RESERVE_FIELDS = [
+  'Region',
+  'RegionLabel',
+  'Color',
+  'ColorGroup',
+  'Inset',
+  'Geographic Area'
+]
 export const NUM_RESERVED_FILEDS = RESERVE_FIELDS.length
 export const COL_COLOR = 2
 export const COL_INSET = 4

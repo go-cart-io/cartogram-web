@@ -15,7 +15,7 @@ def test_preprocess():
     assert result['unique'] == ['prop_unique']
 
 def test_process_data_with_no_color_no_inset(mocker):
-    csv_string = "Region,RegionLabel,Color,Land Area (sq km)\nRegion1,R1,,1000\nRegion2,R2,,2000"
+    csv_string = "Region,RegionLabel,Color,Geographic Area (sq. km)\nRegion1,R1,,1000\nRegion2,R2,,2000"
     geojson_file = "path/to/geojson/file"
 
     mocker.patch('geopandas.read_file', return_value=mocker.Mock(to_crs=lambda x: mocker.Mock()))
@@ -23,7 +23,7 @@ def test_process_data_with_no_color_no_inset(mocker):
 
     formatted_csv, datasets, is_area_as_base = cartogram.process_data(csv_string, geojson_file)
 
-    assert formatted_csv == "Region,RegionLabel,ColorGroup,Land Area (sq km)\nRegion1,R1,1,1000\nRegion2,R2,2,2000\n"
+    assert formatted_csv == "Region,RegionLabel,ColorGroup,Geographic Area (sq. km)\nRegion1,R1,1,1000\nRegion2,R2,2,2000\n"
     assert len(datasets) == 0
     assert is_area_as_base is True
 

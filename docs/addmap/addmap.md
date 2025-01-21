@@ -121,7 +121,7 @@ Should output something like this:
     Enter the location of the .csv file for this map (asean2.csv): asean2.csv
     What are the regions of this map called (e.g. State, Province) (Region)? Country
     What is the name of datasets. Note that only letter with no space is allowed and it should match collumn name is .csv file. Use comma to separate each dataset (Area,Population)? 2017,2018,2019,2020,2021
-    What is unit of each dataset, in order (km.sq.,people)? people,people,people,people,people
+    What is unit of each dataset, in order (sq. km,people)? people,people,people,people,people
     What is the labelling scheme (1):
     1. Auto labelling
     2. Manual labelling

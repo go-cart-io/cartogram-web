@@ -1,9 +1,7 @@
 import json
 import os
 import re
-import shutil
 import redis
-import uuid
 import geopandas
 import mapclassify
 import pandas as pd
@@ -42,10 +40,10 @@ def preprocess(input, mapDBKey='temp_filename'):
         if gdf[column].is_unique:
             unique_columns.append(column)
 
-    # TODO - Project before preview and add Land Area calculation
-    # gdf.to_crs("EPSG:9822", inplace=True) # Albers Equal Area
-    if not any(gdf.columns.str.startswith('Land Area')):
-        gdf['Land Area (sq.km.)'] = 0 #gdf.area / 10**6
+    # TODO - Project before preview and add Geographic Area calculation
+    # gdf.to_crs("EPSG:6933", inplace=True) # NSIDC EASE-Grid 2.0 Global https://epsg.io/6933
+    if not any(gdf.columns.str.startswith('Geographic Area')):
+        gdf['Geographic Area (sq. km)'] = 0 #gdf.area / 10**6
     
     gdf['ColorGroup'] = mapclassify.greedy(gdf, min_colors=6, balance="distance")
     gdf['cartogram_id'] = range(1, len(gdf) + 1)
@@ -83,7 +81,7 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
         if is_area_as_base is True:
             equal_area_json = get_equal_area_map(cartogram_key, gen_file, datasets[0])
             if equal_area_json is not None:
-                with open('{}/Land Area.json'.format(folder), 'w') as outfile:
+                with open('{}/Geographic Area.json'.format(folder), 'w') as outfile:
                     outfile.write(json.dumps(equal_area_json))
     
     for i, dataset in enumerate(datasets):
@@ -125,17 +123,17 @@ def process_data(csv_string, geojson_file):
     df['Color'] = df['Color'] if 'Color' in df else None
     df['Inset'] = df['Inset'] if 'Inset' in df else None
     is_empty_color = df['Color'].isna().all()
-    is_empty_inset = df['Inset'].isna().all()    
+    is_empty_inset = df['Inset'].isna().all()
 
     datasets = []
     cols_order = ['Region', 'RegionLabel', 'Color', 'ColorGroup', 'Inset']
     is_area_as_base = False
     for column in df.columns:
-        if column.startswith('Land Area'):
+        if column.startswith('Geographic Area'):
             cols_order.insert(5, column)
             is_area_as_base = True
 
-        elif column not in ['Region', 'RegionLabel', 'Color', 'ColorGroup', 'Inset'] and not column.startswith('Land Area'):
+        elif column not in ['Region', 'RegionLabel', 'Color', 'ColorGroup', 'Inset'] and not column.startswith('Geographic Area'):
             cols_order.append(column)
             m = re.match(r'(.+)\s?\((.+)\)$', column)
             if m:
@@ -205,7 +203,7 @@ def local_function(params, data_index = 0, data_length = 1, print_progress = Fal
     error_msg = ''
     order = 0
 
-    cartogram_exec = 'cartogram'
+    cartogram_exec = os.path.join(os.path.dirname(__file__), 'executable/cartogram')
     cartogram_key = params['key']
    
     if 'area_data' in params.keys() and params['area_data'] != None:
@@ -220,7 +218,7 @@ def local_function(params, data_index = 0, data_length = 1, print_progress = Fal
     else:
         flags = ''
 
-    for source, line in cartwrap.generate_cartogram(area_data_path, params['gen_file'], 'executable/{}'.format(cartogram_exec), params['world'], flags):
+    for source, line in cartwrap.generate_cartogram(area_data_path, params['gen_file'], cartogram_exec, params['world'], flags):
 
         if source == 'stdout':
             stdout += line.decode()

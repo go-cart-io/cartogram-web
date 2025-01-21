@@ -10,7 +10,7 @@ testdata = {
             {"key":"0","label":"Region"},
             {"key":"1","label":"RegionLabel"},
             {"key":"2","label":"Color"},
-            {"key":"3","label":"Land Area (km sq.)"},
+            {"key":"3","label":"Geographic Area (sq. km)"},
             {"key":"4","label":"Population (people)"}            
         ],
         "items": {
@@ -33,7 +33,7 @@ def test_sanitize_filename():
 
 def test_get_csv():
     csvstring = util.get_csv(testdata)
-    assert csvstring == '''Region,RegionLabel,Color,Land Area (km sq.),Population (people)
+    assert csvstring == '''Region,RegionLabel,Color,Geographic Area (sq. km),Population (people)
 CENTRAL REGION,CR,#1b9e77,133.0,922580.0
 EAST REGION,ER,#e7298a,93.0,685940.0
 NORTH REGION,NR,#d95f02,135.0,582330.0

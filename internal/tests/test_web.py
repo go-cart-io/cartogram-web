@@ -13,7 +13,7 @@ def test_cartogram_post(client):
                 {"key":"0","label":"Region"},
                 {"key":"1","label":"RegionLabel"},
                 {"key":"2","label":"Color"},
-                {"key":"3","label":"Land Area (km sq.)"},
+                {"key":"3","label":"Geographic Area (sq. km)"},
                 {"key":"4","label":"Population (people)"},
                 {"key":"5","label":"Number of Landed Properties (Landed Properties)"}
             ],

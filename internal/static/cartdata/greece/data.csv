@@ -1,4 +1,4 @@
-Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Geographic Area (sq. km),Population (people)
 Attica,AT,4,3817.0,3828434.0
 Central Greece,GC,5,15552.0,547390.0
 Central Macedonia,MC,4,18902.0,1880297.0

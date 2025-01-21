@@ -64,9 +64,9 @@ function reset() {
       show: false
     },
     {
-      label: 'Land Area',
-      name: 'Land Area',
-      unit: 'sq.km.',
+      label: 'Geographic Area',
+      name: 'Geographic Area',
+      unit: 'sq. km',
       type: 'text',
       editable: true,
       editableHead: true,
@@ -89,8 +89,8 @@ function initDataTableWGeojson(geojsonData: FeatureCollection, geojsonRegionCol:
   if (!Object.keys(geoProperties[0]).some((key) => key.startsWith('Population')))
     geoProperties = util.addKeyInArray(geoProperties, 'Population (people)', 0)
 
-  const areaKey = Object.keys(geoProperties[0]).find((key) => key.startsWith('Land Area'))
-  if (areaKey) geoProperties = util.renameKeyInArray(geoProperties, areaKey, 'Land Area')
+  const areaKey = Object.keys(geoProperties[0]).find((key) => key.startsWith('Geographic Area'))
+  if (areaKey) geoProperties = util.renameKeyInArray(geoProperties, areaKey, 'Geographic Area')
   geoProperties = util.renameKeyInArray(geoProperties, geojsonRegionCol, 'Region')
   geoProperties = util.arrangeKeysInArray(geoProperties, [...config.RESERVE_FIELDS, 'Population (people)'])
   geoProperties.sort((a, b) => a.Region.localeCompare(b.Region))
@@ -143,17 +143,17 @@ async function initDataTableWArray(data: KeyValueArray, isReplace = true) {
 function updateDataTable(csvData: KeyValueArray) {
   if (csvData.length === 0) return
 
-  const areaKey = Object.keys(csvData[0]).find((key) => key.startsWith('Land Area'))
+  const areaKey = Object.keys(csvData[0]).find((key) => key.startsWith('Geographic Area'))
   if (areaKey) {
     var [fieldname, unit] = util.getNameUnit(areaKey)
     state.dataTable.fields[config.COL_AREA].unit = unit
-    csvData = util.renameKeyInArray(csvData, areaKey, 'Land Area')
+    csvData = util.renameKeyInArray(csvData, areaKey, 'Geographic Area')
   }
 
   state.dataTable.items = util.filterKeyValueInArray(state.dataTable.items, config.RESERVE_FIELDS, null)
   state.dataTable.fields.splice(config.NUM_RESERVED_FILEDS)
   state.dataTable.fields[config.COL_COLOR].show = csvData[0].hasOwnProperty('Color')
-  state.dataTable.fields[config.COL_AREA].show = csvData[0].hasOwnProperty('Land Area')
+  state.dataTable.fields[config.COL_AREA].show = csvData[0].hasOwnProperty('Geographic Area')
   state.dataTable.fields[config.COL_INSET].show = csvData[0].hasOwnProperty('Inset')
   initDataTableWArray(csvData, false)
 

@@ -1,4 +1,4 @@
-Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Geographic Area (sq. km),Population (people)
 Abu Dhabi,AZ,1,67340.0,2784490.0
 Ajman,AJ,3,259.0,372922.0
 Dubai,DU,6,3885.0,4177059.0

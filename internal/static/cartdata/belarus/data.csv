@@ -1,4 +1,4 @@
-Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Geographic Area (sq. km),Population (people)
 Brest,BR,1,32300.0,1347000.0
 Gomel,HO,2,40400.0,1386600.0
 Grodno,HR,4,25000.0,1025800.0

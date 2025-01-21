@@ -181,7 +181,7 @@ async function getGeneratedCartogram() {
               id="chk-area"
             />
             <label class="form-check-label" for="chk-area">
-              Include equal-area map (recommended)
+              Include geographic area (recommended)
             </label>
           </div>
           <div class="form-check">

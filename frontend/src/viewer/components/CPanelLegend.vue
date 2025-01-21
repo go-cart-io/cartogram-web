@@ -104,7 +104,7 @@ onMounted(async () => {
   versionSpec.data[0].url = util.getGeojsonURL(store.currentMapName, props.mapDBKey, 'data.csv')
   versionSpec.data[1].url = util.getGeojsonURL(store.currentMapName, props.mapDBKey, state.version.name + '.json')
 
-  if (store.currentMapName === "world" && state.version.name === 'Land Area') {
+  if (store.currentMapName === "world" && state.version.name === 'Geographic Area') {
     // Gall–Peters projection
     vega.projection('cylindricalEqualArea', geoCylindricalEqualArea)
     versionSpec.projections[0].type = "cylindricalEqualArea"
