@@ -29,8 +29,8 @@ const props = defineProps<{
 const state = reactive({
   loadingProgress: 0,
   error: '',
-  title: '',
-  handler: '',
+  title: props.mapTitle ? props.mapTitle : '',
+  handler: props.mapName ? props.mapName : '',
   geojsonData: {} as FeatureCollection,
   geojsonRegionCol: '',
   csvFile: '',

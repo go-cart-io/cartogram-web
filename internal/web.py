@@ -204,7 +204,7 @@ def create_app():
       
         gen_file = cartogram_handler.get_gen_file(handler, string_key)
         if handler == 'custom':
-            if 'editedFrom' in data:
+            if 'editedFrom' in data and data['editedFrom'] != '' and f"./{data['editedFrom']}" != f"{folder_path}/Input.json":
                 if os.path.exists(f"./{data['editedFrom']}"):
                     shutil.move(f"./{data['editedFrom']}", f"{folder_path}/Input.json")
             else:
