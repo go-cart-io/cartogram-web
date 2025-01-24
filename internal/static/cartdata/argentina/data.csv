@@ -1,4 +1,4 @@
-Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Geographic Area (sq. km),Population (people)
 Buenos Aires,BA,3,307571.0,15594428.0
 Catamarca,CT,4,102602.0,367820.0
 Chaco,CC,5,99633.0,1053466.0

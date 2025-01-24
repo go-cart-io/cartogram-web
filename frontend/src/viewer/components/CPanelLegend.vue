@@ -70,7 +70,7 @@ const emit = defineEmits(['gridChanged', 'versionUpdated'])
 
 watch(
   () => props.versionKey,
-  (type, prevType) => {
+  (newValue, oldValue) => {
     state.version = store.versions[props.versionKey]
     switchVersion()
   }
@@ -92,7 +92,7 @@ watch(
 
 watch(
   () => props.affineScale,
-  (type, prevType) => {
+  (newValue, oldValue) => {
     formatLegendValue()
   },
   { deep: true }
@@ -101,10 +101,11 @@ watch(
 onMounted(async () => {
   if (!state.version) return
 
+  versionSpec.signals[3]['value'] = (!COLOR_SCHEME || COLOR_SCHEME === 'custom') ? 'pastel1' : COLOR_SCHEME
   versionSpec.data[0].url = util.getGeojsonURL(store.currentMapName, props.mapDBKey, 'data.csv')
   versionSpec.data[1].url = util.getGeojsonURL(store.currentMapName, props.mapDBKey, state.version.name + '.json')
 
-  if (store.currentMapName === "world" && state.version.name === 'Land Area') {
+  if (store.currentMapName === "world" && state.version.name === 'Geographic Area') {
     // Gall–Peters projection
     vega.projection('cylindricalEqualArea', geoCylindricalEqualArea)
     versionSpec.projections[0].type = "cylindricalEqualArea"
@@ -116,7 +117,6 @@ onMounted(async () => {
   offscreenEl = d3.select('#' + props.panelID + '-offscreen')
   let container = await embed('#' + props.panelID + '-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
   visView = container.view
-  visView.signal('colorScheme', COLOR_SCHEME).runAsync()
 
   let [area, sum] = util.getTotalAreasAndValuesForVersion(state.version.header, visView.data('geo_1'), visView.data('source_csv'))
   totalArea = area

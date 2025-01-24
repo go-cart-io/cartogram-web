@@ -1,9 +1,7 @@
 import json
 import os
 import re
-import shutil
 import redis
-import uuid
 import geopandas
 import mapclassify
 import pandas as pd
@@ -19,17 +17,28 @@ def get_representative_point(geometry):
     point = geometry.representative_point()
     return {'x': point.x, 'y': point.y}
 
-def preprocess(mapDBKey, input):    
+def preprocess(input, mapDBKey='temp_filename'):    
     # Input can be anything that is supported by geopandas.read_file
     # Standardize input to geojson file path
+    file_path = os.path.join("/tmp", f"{mapDBKey}.json")
     if isinstance(input, str): # input is path
-        gdf = geopandas.read_file(input)    
+        input_path = input
     else: # input is file object
-        file_path = os.path.join("/tmp", f"{mapDBKey}.json")
         input.save(file_path)
-        gdf = geopandas.read_file(file_path)
+        input_path = file_path
 
-    gdf = gdf[gdf.geometry.type.isin(['Polygon', 'MultiPolygon'])]
+    gdf = geopandas.read_file(input_path)
+
+    # Check if the file is projected
+    with open(input_path, 'r') as file:
+        input_json_data = json.load(file)
+    is_projected = input_json_data.get("crs", {}).get("properties", {}).get("name") == "EPSG:cartesian"
+
+    # Remove invalid geometries
+    gdf = gdf[gdf.is_valid]
+    gdf = gdf[gdf.geometry.notnull()]
+    gdf = gdf[gdf.geometry.type.isin(['Polygon', 'MultiPolygon'])].reset_index(drop=True)
+
     # Get nesseary information
     unique_columns = []
     for column in gdf.columns:
@@ -39,32 +48,41 @@ def preprocess(mapDBKey, input):
         if gdf[column].is_unique:
             unique_columns.append(column)
 
-    # TODO - Project before preview and add Land Area calculation
-    # gdf.to_crs("EPSG:9822", inplace=True) # Albers Equal Area
-    if not any(gdf.columns.str.startswith('Land Area')):
-        gdf['Land Area (sq.km.)'] = 0 #gdf.area / 10**6
+    if not is_projected:
+        # Temporary project it so we can calculate the area
+        gdf.to_crs("EPSG:6933", inplace=True) # NSIDC EASE-Grid 2.0 Global https://epsg.io/6933
+        
+    if not any(gdf.columns.str.startswith('Geographic Area')):
+        gdf['Geographic Area (sq. km)'] = round(gdf.area / 10**6)
     
-    gdf['ColorGroup'] = mapclassify.greedy(gdf, min_colors=6, balance="distance")
-    gdf['cartogram_id'] = range(1, len(gdf) + 1)
-    gdf['label'] = gdf.geometry.apply(get_representative_point)
-    geojson = gdf.to_json()
+    if 'ColorGroup' not in gdf.columns:
+        gdf['ColorGroup'] = mapclassify.greedy(gdf, min_colors=6, balance="distance")
 
+    if 'cartogram_id' not in gdf.columns:
+        gdf['cartogram_id'] = range(1, len(gdf) + 1)
+
+    # Always convert to WGS84 (EPSG:4326) before input to cpp
+    geojson = gdf.to_json(show_bbox = True, to_wgs84 = True)
     with open(file_path, 'w') as outfile:
         outfile.write(geojson)
 
-    return { 'geojson': geojson, 'unique': unique_columns }
+    # Write equal area map to tmp file
+    equal_area_json = preprocess_geojson(mapDBKey, file_path, None, ['--output_equal_area_map']) # TODO --output_eqa
+    if equal_area_json is not None:
+        with open(file_path, 'w') as outfile:
+            outfile.write(json.dumps(equal_area_json))
+
+    return { 'geojson': equal_area_json, 'unique': unique_columns }
 
 
-def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = False, flags = ''):
+def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = False, flags = []):
     if 'csv' in data:
         datacsv = data['csv']
     else:
         datacsv = util.get_csv(data)
 
-    util.sort_geojson(gen_file, data.get('geojson', None))    
-
     datacsv, datasets, is_area_as_base = process_data(datacsv, gen_file)
-    data_length = len(datasets)
+    data_length = len(datasets)    
 
     world = False
     with open(gen_file, 'r') as gen_fp:
@@ -78,15 +96,15 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
             outfile.write(datacsv)
 
         if is_area_as_base is True:
-            equal_area_json = get_equal_area_map(cartogram_key, gen_file, datasets[0])
+            equal_area_json = preprocess_geojson(cartogram_key, gen_file, datasets[0], ['--output_shifted_insets', '--skip_projection'])
             if equal_area_json is not None:
-                with open('{}/Land Area.json'.format(folder), 'w') as outfile:
+                with open('{}/Geographic Area.json'.format(folder), 'w') as outfile:
                     outfile.write(json.dumps(equal_area_json))
     
     for i, dataset in enumerate(datasets):
         datastring = dataset['datastring']
         name = dataset['label']
-        data_flags = flags        
+        data_flags = flags + ['--skip_projection']
             
         lambda_event = {
             'gen_file': gen_file,
@@ -96,7 +114,7 @@ def generate_cartogram(data, gen_file, cartogram_key, folder, print_progress = F
             'world': world
         }
 
-        cartogram_result = local_function(lambda_event, i, data_length, print_progress)
+        cartogram_result = call_binary(lambda_event, i, data_length, print_progress)
 
         if (cartogram_result['stdout'] == ''):
             raise RuntimeError(f'Cannot generate cartogram for {name} - {cartogram_result['error_msg']}')
@@ -122,17 +140,17 @@ def process_data(csv_string, geojson_file):
     df['Color'] = df['Color'] if 'Color' in df else None
     df['Inset'] = df['Inset'] if 'Inset' in df else None
     is_empty_color = df['Color'].isna().all()
-    is_empty_inset = df['Inset'].isna().all()    
+    is_empty_inset = df['Inset'].isna().all()
 
     datasets = []
     cols_order = ['Region', 'RegionLabel', 'Color', 'ColorGroup', 'Inset']
     is_area_as_base = False
     for column in df.columns:
-        if column.startswith('Land Area'):
+        if column.startswith('Geographic Area'):
             cols_order.insert(5, column)
             is_area_as_base = True
 
-        elif column not in ['Region', 'RegionLabel', 'Color', 'ColorGroup', 'Inset'] and not column.startswith('Land Area'):
+        elif column not in ['Region', 'RegionLabel', 'Color', 'ColorGroup', 'Inset'] and not column.startswith('Geographic Area'):
             cols_order.append(column)
             m = re.match(r'(.+)\s?\((.+)\)$', column)
             if m:
@@ -142,38 +160,38 @@ def process_data(csv_string, geojson_file):
             
             df[column] = pd.to_numeric(df[column], errors='coerce')
             dataset = df[["Region", column, "Color", "Inset"]]
-            datasets.append({'label': name, 'datastring': 'name,Data,Color,Inset\n{}'.format(dataset.to_csv(header=False, index=False))})
+            datasets.append({'label': name, 'datastring': 'Region,Data,Color,Inset\n{}'.format(dataset.to_csv(header=False, index=False))})
 
-    if not 'ColorGroup' in df:
-        geo_data = geopandas.read_file(geojson_file)
-        geo_data = geo_data.to_crs("epsg:6933")
-        df["ColorGroup"] = mapclassify.greedy(geo_data, min_colors=6, balance="distance")
-    
     df = df.sort_values(by='Region')
     df = df.reindex(columns=cols_order)
 
+    if not 'ColorGroup' in df or df['ColorGroup'].isna().all():
+        geo_data = geopandas.read_file(geojson_file)
+        geo_data = geo_data.to_crs("epsg:6933")
+        df["ColorGroup"] = mapclassify.greedy(geo_data, min_colors=6, balance="distance")
+
     if is_empty_color:
-        df.drop(columns = 'Color', inplace=True)
+        df.drop(columns = 'Color', inplace=True)        
     
     if is_empty_inset:
         df.drop(columns = 'Inset', inplace=True)
 
     return df.to_csv(index=False), datasets, is_area_as_base
 
-def get_equal_area_map(mapDBKey, file_path, dataset = None):
-    result = local_function({
+def preprocess_geojson(mapDBKey, file_path, dataset = None, flags = []):
+    result = call_binary({
         'gen_file': file_path,
         'area_data': dataset['datastring'] if dataset else None,
         'key': mapDBKey,
-        'flags': '--output_equal_area',
+        'flags': flags,
         'world': False
     })
-    if result['error_msg'] != '' and result['error_msg'] != 'Input GeoJSON is not a longitude-latitude map. Therefore, it is not possible to produce an equal-area map.':
+    if result['error_msg'] != '':
         raise RuntimeError(result['error_msg'])
     elif result['stdout'] == '':
         return None
     
-    return postprocess_geojson(json.loads(result['stdout']))    
+    return postprocess_geojson(json.loads(result['stdout']))
 
 def postprocess_geojson(json_data):
     for feature in json_data["features"]:
@@ -181,28 +199,30 @@ def postprocess_geojson(json_data):
         point = geom.representative_point()
         feature['properties']['label'] = {'x': point.x, 'y': point.y}
 
+    # TODO This should be done in cpp - just change the format of divider_points
     if 'divider_points' in json_data:
+        json_data["dividers"] = []
         linestring = {
+            "type": "Feature",
+            "properties": { "Region": "Dividers" },
             "geometry": {
                 "type": "MultiLineString",
                 "coordinates": []
-            },
-            "properties": { "name": "Dividers" },
-            "type": "Feature"
+            }
         }
         for line in json_data["divider_points"]:
             linestring["geometry"]["coordinates"].append([[line[0], line[1]], [line[2], line[3]]])
-        json_data["features"].append(linestring)
+        json_data["dividers"].append(linestring)
 
     return json_data
    
-def local_function(params, data_index = 0, data_length = 1, print_progress = False):
+def call_binary(params, data_index = 0, data_length = 1, print_progress = False):
     stdout = ''
     stderr = 'Dataset {}/{}\n'.format(data_index + 1, data_length)
     error_msg = ''
     order = 0
 
-    cartogram_exec = 'cartogram'
+    cartogram_exec = os.path.join(os.path.dirname(__file__), 'executable/cartogram')
     cartogram_key = params['key']
    
     if 'area_data' in params.keys() and params['area_data'] != None:
@@ -215,9 +235,9 @@ def local_function(params, data_index = 0, data_length = 1, print_progress = Fal
     if 'flags' in params.keys():
         flags = params['flags']
     else:
-        flags = ''
+        flags = []
 
-    for source, line in cartwrap.generate_cartogram(area_data_path, params['gen_file'], 'executable/{}'.format(cartogram_exec), params['world'], flags):
+    for source, line in cartwrap.generate_cartogram(area_data_path, params['gen_file'], cartogram_exec, params['world'], flags):
 
         if source == 'stdout':
             stdout += line.decode()

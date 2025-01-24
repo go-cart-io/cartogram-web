@@ -1,4 +1,4 @@
-Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Geographic Area (sq. km),Population (people)
 Almaty,AA,2,224000.0,3837027.0
 Akmola,AM,4,146200.0,1770355.0
 Aktobe,AT,1,300600.0,857711.0

@@ -33,9 +33,9 @@ def init(map_name):
     folder = f"static/cartdata/{map_name}"
     if not os.path.exists(folder):
         os.mkdir(folder)
-        print("We create the folder {} for you. Please put Land Area.json and data.csv files in the folder.".format(folder))
+        print("We create the folder {} for you. Please put Geographic Area.json and data.csv files in the folder.".format(folder))
 
-    map_gen_path = "{}/Land Area.json".format(folder)
+    map_gen_path = "{}/Geographic Area.json".format(folder)
     map_dat_path = "{}/data.csv".format(folder)
 
     if not os.path.exists(map_gen_path):
@@ -84,7 +84,7 @@ def get_regions_from_file(map_gen_path):
     with open(map_gen_path, 'r') as file:
         geojson_data = json.load(file)
         for feature in geojson_data['features']:
-            regions[feature['properties']['name']] = str(feature['properties']['cartogram_id'])
+            regions[feature['properties']['Region']] = str(feature['properties']['cartogram_id'])
 
     return regions
 

@@ -1,4 +1,4 @@
-Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Geographic Area (sq. km),Population (people)
 Anhui,AH,1,140455.0,61960000.0
 Beijing,BJ,3,16808.0,21730000.0
 Chongqing,CQ,5,82403.0,30480000.0

@@ -1,4 +1,4 @@
-Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Geographic Area (sq. km),Population (people)
 Auckland,AU,5,4809.0,1590261.0
 Bay of Plenty,BP,6,12226.0,313380.0
 Canterbury,CA,5,48226.0,614628.0

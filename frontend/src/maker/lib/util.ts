@@ -124,31 +124,11 @@ export function getNameUnit(label: string): [string, string] {
   return [name, unit]
 }
 
-export function filterGeoJSONProperties(
-  geojson: FeatureCollection,
-  fromProperties: Array<string>,
-  toProperties: Array<string>
-) {
-  return {
-    ...geojson,
-    features: geojson.features.map((feature) => {
-      let filteredProperties = {} as any
-      for (let i = 0; i <= fromProperties.length; i++) {
-        if (feature.properties?.hasOwnProperty(fromProperties[i])) {
-          filteredProperties[toProperties[i]] = feature.properties[fromProperties[i]]
-        }
-      }
-      return {
-        ...feature,
-        properties: filteredProperties
-      }
-    })
-  }
-}
-
-export async function getGeneratedCSV(dataTable: DataTable) {
+export async function getGeneratedCSV(dataTable: DataTable, isGetFile = false) {
   var data = tableToArray(dataTable)
   var csv = d3.csvFormat(data)
+  if (!isGetFile) return csv
+
   const blob = new Blob([csv], { type: 'text/csv' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')

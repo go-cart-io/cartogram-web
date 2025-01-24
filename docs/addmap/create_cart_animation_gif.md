@@ -4,14 +4,14 @@ This guide will help you to create a cartogram animation GIF (e.g. [World Map](h
 This guide assumes that you are already fairly familiar with setting up the website code for local testing and development by following the instructions here https://github.com/jansky/cartogram-docker.
 
 ## Contents
+
 [1. Downloading the cartogram animation frames as SVGs](#1-downloading-the-cartogram-animation-frames-as-svgs)<br/>
 [2. Converting the SVGs into PNGs](#2-converting-the-svgs-into-pngs)<br/>
 [3. Compiling the PNGs into a GIF](#3-compiling-the-pngs-into-a-gif)<br/>
 
-
 ## 1. Downloading the cartogram animation frames as SVGs
 
-First, you will need to start up the website on your machine locally. 
+First, you will need to start up the website on your machine locally.
 
 ```
 $ cd cartogram-docker/
@@ -22,7 +22,7 @@ Open `cartogram-docker/cartogram-web/internal/static/cartogram2.js` in your pref
 
 ### 1.1 Adding the `downloadSVG()` function
 
-Find the method `displayVersionSwitchButtons()` of the class `Cartogram`, which might be on line ~2500. You will now create a function in this method that downloads the frames of the cartogram animation as SVGs. 
+Find the method `displayVersionSwitchButtons()` of the class `Cartogram`, which might be on line ~2500. You will now create a function in this method that downloads the frames of the cartogram animation as SVGs.
 
 On line ~2548, right before the end of the method, insert the following `downloadSVG()` function.
 
@@ -47,7 +47,7 @@ function downloadSVG() {
     let svgHTML = svgElem.innerHTML;
     svgHTML = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' + svgHTML + '<\/svg>';
     let svgBlob = new Blob([svgHTML], {type: "image/svg+xml, charset=utf-8"}); // create a "blob object" storing the svg
-    
+
     // save SVG file
     function saveSVG () {
       saveAs(svgBlob, "frame_" + id + ".svg"); // from FileSaver.js
@@ -64,7 +64,8 @@ function downloadSVG() {
     setTimeout(downloadSVG, frameRate);
 }
 ```
-On line ~2535, insert the code `downloadSVG();` so that the `downloadSVG()` function is called when an option is selected from the dropdown menu (e.g. Land Area/Population/GDP).
+
+On line ~2535, insert the code `downloadSVG();` so that the `downloadSVG()` function is called when an option is selected from the dropdown menu (e.g. Geographic Area/Population/GDP).
 
 ```
 select.onchange = (function(cartogram_inst){
@@ -72,7 +73,7 @@ select.onchange = (function(cartogram_inst){
   return function(_e) {
     downloadSVG();
     cartogram_inst.switchVersion(this.value);
-  };   
+  };
 }(this));
 ```
 
@@ -80,13 +81,11 @@ Download `FileSaver.js` from https://github.com/eligrey/FileSaver.js/tree/master
 
 ### 1.2 Downloading the SVGs from your local website
 
-Visit your locally-hosted website and select a country. Select an option from the dropdown menu (e.g. Land Area/Population/GDP) and the SVG frames for that animation should get downloaded onto your computer.
-
+Visit your locally-hosted website and select a country. Select an option from the dropdown menu (e.g. Geographic Area/Population/GDP) and the SVG frames for that animation should get downloaded onto your computer.
 
 ## 2. Converting the SVGs into PNGs
 
 Open the SVGs in Inkscape and ensure that each of their canvas extents fit to the SVG object (no smaller). Export the SVGs to PNGs using Inkscape or another software.
-
 
 ## 3. Compiling the PNGs into a GIF
 

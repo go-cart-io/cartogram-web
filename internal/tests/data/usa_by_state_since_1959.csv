@@ -1,4 +1,4 @@
-Region,RegionLabel,Inset,ColorGroup,Land Area (sq.km.),Population (million people),GDP (billion chained 2017 $US)
+Region,RegionLabel,Inset,ColorGroup,Geographic Area (sq. km),Population (million people),GDP (billion chained 2017 $US)
 Alabama,AL,,4,131171,5.11,245.35
 Alaska,AK,L,1,1477953,0.73,54.06
 Arizona,AZ,,5,294207,7.43,422.4

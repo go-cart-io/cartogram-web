@@ -11,6 +11,7 @@ from flask_limiter.util import get_remote_address
 
 import cartogram
 import settings
+import util
 from database import db
 from handler import CartogramHandler
 from asset import Asset
@@ -139,6 +140,7 @@ def create_app():
             handler = name_or_key
             csv_url = f'/static/cartdata/{handler}/data.csv'
             title = name_or_key
+            scheme = 'pastel1'
 
         elif type == 'key':
             if not settings.USE_DATABASE:
@@ -151,14 +153,14 @@ def create_app():
             handler = cartogram_entry.handler
             csv_url = f'/static/userdata/{name_or_key}/data.csv'
             title = cartogram_entry.title
-            scheme = cartogram_entry.scheme
+            scheme = cartogram_entry.scheme if cartogram_entry.scheme else 'pastel1'
 
         else:
             return Response('Not found', status=404)
         
         geo_url = cartogram_handler.get_gen_file(handler, name_or_key)[1:]
         
-        return render_template('maker.html', page_active='maker', 
+        return render_template('maker.html', page_active='maker',
                 maps=cartogram_handler.get_sorted_handler_names(),
                 map_name=handler, geo_url=geo_url, csv_url=csv_url,
                 map_title=title, map_color_scheme=scheme,
@@ -173,7 +175,7 @@ def create_app():
             return Response('{"error": "No selected file"}', status=400, content_type='application/json')
     
         try:
-            processed_geojson = cartogram.preprocess(mapDBKey, request.files['file'])
+            processed_geojson = cartogram.preprocess(request.files['file'], mapDBKey)
             return Response(json.dumps(processed_geojson), status=200, content_type='application/json')
         except Exception as e:
             return Response(json.dumps({"error": str(e)}), status=400, content_type='application/json')
@@ -192,15 +194,26 @@ def create_app():
         
         string_key = data['mapDBKey']
         folder_path = None
+
         if 'persist' in data:
             folder_path = f"static/userdata/{string_key}"
             os.mkdir(folder_path)
             # TODO can we simplify the code so that we don't need to keep Input.json?
             if os.path.exists(f"/tmp/{string_key}.json"):
                 shutil.move(f"/tmp/{string_key}.json", f"{folder_path}/Input.json")
+      
+        gen_file = cartogram_handler.get_gen_file(handler, string_key)
+        if handler == 'custom':
+            if 'editedFrom' in data and data['editedFrom'] != '' and f"./{data['editedFrom']}" != f"{folder_path}/Input.json":
+                if os.path.exists(f"./{data['editedFrom']}"):
+                    shutil.move(f"./{data['editedFrom']}", f"{folder_path}/Input.json")
+            else:
+                # Clean input file
+                region_col = data.get('geojsonRegionCol', 'Region')
+                util.clean_geojson(gen_file, region_col, inplace=True)
 
         try:
-            cartogram.generate_cartogram(data, cartogram_handler.get_gen_file(handler, string_key), string_key, folder_path)
+            cartogram.generate_cartogram(data, gen_file, string_key, folder_path)
                         
             if 'persist' in data and settings.USE_DATABASE:
                     new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),

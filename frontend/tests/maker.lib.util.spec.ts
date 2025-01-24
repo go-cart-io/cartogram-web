@@ -143,37 +143,4 @@ describe('maker.lib.util', () => {
       expect(unit).toBe('')
     })
   })
-
-  describe('filterGeoJSONProperties', () => {
-    it('should filter properties of each feature in a GeoJSON object', () => {
-      const geojson = {
-        type: 'FeatureCollection',
-        features: [
-          {
-            type: 'Feature',
-            properties: {
-              cartogram_id: 1,
-              region: 'Feature 1',
-              label: 'Label 1',
-              other_property: 'value'
-            },
-            geometry: {
-              type: 'Point',
-              coordinates: [102.0, 0.5]
-            }
-          }
-        ]
-      } as FeatureCollection
-      const result = util.filterGeoJSONProperties(
-        geojson,
-        ['cartogram_id', 'region', 'label'],
-        ['cartogram_id', 'name', 'label']
-      )
-      expect(result.features[0].properties).toEqual({
-        cartogram_id: 1,
-        name: 'Feature 1',
-        label: 'Label 1'
-      })
-    })
-  })
 })

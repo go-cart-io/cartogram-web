@@ -21,7 +21,7 @@ class CartogramHandler:
         if handler == 'custom':
             return f"./static/userdata/{string_key}/Input.json"
         else:
-            return f'./static/cartdata/{handler}/Land Area.json'
+            return f'./static/cartdata/{handler}/Geographic Area.json'
     
     def remove_holes(self):
         return False

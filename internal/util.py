@@ -1,6 +1,6 @@
 import re
 import json
-import os
+import geopandas
 
 def sanitize_filename(filename):    
     invalid_chars = r'[\\/:*?"<>|]'
@@ -20,16 +20,36 @@ def get_csv(data):
 
     return f'{header}\n' + '\n'.join(rows)
 
-def sort_geojson(path, geojson_data = None):
-    if os.path.isfile(path):
-        with open(path, 'r') as geojson_file:
-            geojson_data = json.load(geojson_file)
-        
-    sorted_geojson_features = sorted(geojson_data['features'], key=lambda x: x['properties']['name'])
+def clean_geojson(json_path, region_col, inplace=False):
+    gdf = geopandas.read_file(json_path)
 
-    with open(path, 'w') as sorted_geojson_file:
-        geojson_data['features'] = sorted_geojson_features
-        json.dump(geojson_data, sorted_geojson_file)
+    if region_col != 'Region':
+        if 'Region' in gdf.columns:
+            gdf = gdf.drop(columns=['Region'])
+        gdf = gdf.rename(columns={region_col: 'Region'})
+
+    gdf = gdf.sort_values(by='Region')
+    area_columns = [col for col in gdf.columns if col.startswith('Geographic Area')]
+    columns_to_keep = ['Region', 'label', 'cartogram_id', 'geometry'] + area_columns
+    existing_columns = [col for col in columns_to_keep if col in gdf.columns]
+    gdf = gdf[existing_columns]
+
+    if 'label' in gdf.columns:
+        gdf['label'] = gdf['label'].apply(json.loads)
+
+    geojson = json.loads(gdf.to_json())
+    geojson['crs'] = {
+        "type": "name",
+        "properties": {
+        "name": "EPSG:cartesian"
+        }
+    }
+
+    if inplace:
+        with open(json_path, 'w') as outfile:
+            outfile.write(json.dumps(geojson))
+
+    return geojson
 
 def convert_col_to_serializable(value):
     try:

@@ -1,4 +1,4 @@
-Region,RegionLabel,ColorGroup,Land Area (km sq.),Population (people)
+Region,RegionLabel,ColorGroup,Geographic Area (sq. km),Population (people)
 Eastern Cape,EC,2,169016.0,6712300.0
 Free State,FS,1,129762.0,2887500.0
 Gauteng,GT,4,18186.0,15176100.0

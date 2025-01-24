@@ -30,8 +30,8 @@ async function loadGeoJson(event: Event) {
   if (!state.handler) return
 
   var basedUrl = '/static/cartdata/' + state.handler
-  HTTP.get(basedUrl + '/Land Area.json').then(function (response: any) {
-    state.geojsonRegionCol = 'name'
+  HTTP.get(basedUrl + '/Geographic Area.json').then(function (response: any) {
+    state.geojsonRegionCol = 'Region'
     emit('changed', state.handler, response, state.geojsonRegionCol, basedUrl + '/data.csv')
   })
 }
@@ -63,7 +63,7 @@ async function uploadGeoJson(event: Event) {
   })
 
   if (!response || !response.geojson) return
-  var geojson = JSON.parse(response.geojson)
+  var geojson = response.geojson
   // Check whether the GeoJSON contains any polygons or multipolygons and remove all other objects.
   if (!geojson || !geojson.features) {
     state.error = 'Invalid geospatial file'

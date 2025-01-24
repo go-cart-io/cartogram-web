@@ -7,12 +7,13 @@ def test_cartogram_post(client):
     testdata = {
         "title": '',
         "handler": "singaporeRe",
+        "scheme": "pastel1",
         "values": {
             "fields": [
                 {"key":"0","label":"Region"},
                 {"key":"1","label":"RegionLabel"},
                 {"key":"2","label":"Color"},
-                {"key":"3","label":"Land Area (km sq.)"},
+                {"key":"3","label":"Geographic Area (sq. km)"},
                 {"key":"4","label":"Population (people)"},
                 {"key":"5","label":"Number of Landed Properties (Landed Properties)"}
             ],
@@ -39,6 +40,7 @@ def test_cartogram_post_world(client):
     testdata = {
         "title": '',
         "handler": "world",
+        "scheme": "pastel1",
         "csv": csv_string,
         "mapDBKey": time.time(),
         "persist": "true"
@@ -48,19 +50,21 @@ def test_cartogram_post_world(client):
     print(response.data)
     assert response.status_code == 200
 
-def test_cartogram_post_inset(client):    
+def test_cartogram_post_inset(client):
+    key = time.time()
+
     with open("tests/data/usa_by_state_since_1959.csv", 'r') as file:
         csv_string = file.read()
-    with open("tests/data/usa_by_state_since_1959.geojson", 'r') as gen_fp:
-        gen_file_contents = gen_fp.read()       
-        json_string = json.loads(gen_file_contents) 
+    with open("tests/data/usa_by_state_since_1959.geojson", 'rb') as file:
+        data = {'file': (file, 'filename')}        
+        response = client.post(f"/api/v1/cartogram/preprocess/{key}", data=data, content_type='multipart/form-data')
 
     testdata = {
-        "title": '',
+        "title": "",
         "handler": "custom",
+        "scheme": "pastel1",
         "csv": csv_string,
-        "geojson": json_string,
-        "mapDBKey": time.time(),
+        "mapDBKey": key,
         "persist": "true"
     }
 
