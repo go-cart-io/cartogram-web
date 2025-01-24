@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import * as d3 from 'd3'
 import type { FeatureCollection } from 'geojson'
 import { Toast, Modal } from 'bootstrap'
 import { reactive, ref, onMounted } from 'vue'
@@ -33,7 +34,7 @@ const state = reactive({
   geojsonData: {} as FeatureCollection,
   geojsonRegionCol: '',
   csvFile: '',
-  colorScheme: 'pastel1',
+  colorScheme: props.mapColorScheme ? props.mapColorScheme : 'pastel1',
   useEqualArea: true,
   useInset: false
 })
@@ -56,7 +57,22 @@ function onGeoJsonChanged(
   state.geojsonData = geojsonData
   state.geojsonRegionCol = regionCol
   state.csvFile = csvFile
-  dataTableEl.value.initDataTableWGeojson(geojsonData, regionCol, csvFile)
+  dataTableEl.value.initDataTableWGeojson(geojsonData, regionCol)
+
+  // Immediately populate data if a CSV file is supplied
+  if (csvFile) {
+    d3.csv(csvFile)
+      .then((csvData) => {
+        if (!csvData || !Array.isArray(csvData)) {
+          console.error('Invalid CSV data')
+          return
+        }
+        onCsvUpdate(csvData)
+      })
+      .catch((error) => {
+        console.error('Error loading CSV:', error)
+      })
+  }
 }
 
 async function onCsvBtnClick() {
@@ -77,14 +93,6 @@ async function getGeneratedCartogram() {
   })
   progressModal.show()
 
-  var geojsonData =
-    state.handler === 'custom'
-      ? util.filterGeoJSONProperties(
-          state.geojsonData,
-          ['cartogram_id', state.geojsonRegionCol, 'label'],
-          ['cartogram_id', 'Region', 'label']
-        )
-      : undefined
   var csvData = await dataTableEl.value.getCSV()
 
   await new Promise<any>(function (resolve, reject) {
@@ -95,9 +103,10 @@ async function getGeneratedCartogram() {
         scheme: state.colorScheme,
         handler: state.handler,
         csv: csvData,
-        geojson: geojsonData,
+        geojsonRegionCol: state.geojsonRegionCol,
         mapDBKey: mapDBKey,
-        persist: true
+        persist: true,
+        editedFrom: props.geoUrl
       })
 
     var progressUpdater = window.setInterval(
@@ -219,7 +228,6 @@ async function getGeneratedCartogram() {
         <div class="row p-2">
           <div class="col-auto p-2">
             <p class="bg-warning-subtle p-1 rounded">
-              <!-- TODO: Auto extend the link validity when hit share button -->
               <span class="badge text-bg-warning">Important</span> The data will be pruned from our
               server within 1-2 days, unless you share and access a non-preview link. We strongly
               advise you to back up your original data in a safe place so you can regenerate the

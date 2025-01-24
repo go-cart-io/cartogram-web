@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { FeatureCollection } from 'geojson'
 
-import * as d3 from 'd3'
 import { reactive, watch } from 'vue'
 import embed, { type VisualizationSpec } from 'vega-embed'
 
@@ -30,7 +29,7 @@ defineExpose({
 watch(
   () => props.mapColorScheme,
   (newValue, oldValue) => {
-    changeColor(props.mapColorScheme)
+    changeColor(newValue, oldValue)
   }
 )
 
@@ -75,7 +74,7 @@ function reset() {
   ]
 }
 
-function initDataTableWGeojson(geojsonData: FeatureCollection, geojsonRegionCol: string, csvFile = '') {
+function initDataTableWGeojson(geojsonData: FeatureCollection, geojsonRegionCol: string) {
   reset()
 
   document.getElementById('map-vis')!.innerHTML = ''
@@ -96,24 +95,9 @@ function initDataTableWGeojson(geojsonData: FeatureCollection, geojsonRegionCol:
   geoProperties.sort((a, b) => a.Region.localeCompare(b.Region))
 
   versionSpec.data[1].values = geojsonData
-  versionSpec.data[2].transform[0].fields = ['properties.' + geojsonRegionCol]
+  versionSpec.data[2].transform[2].fields = ['properties.' + geojsonRegionCol]
 
   initDataTableWArray(geoProperties)
-
-  // Immediately populate data if a CSV file is supplied
-  if (csvFile) {
-    d3.csv(csvFile)
-      .then((csvData) => {
-        if (!csvData || !Array.isArray(csvData)) {
-          console.error('Invalid CSV data')
-          return
-        }
-        updateDataTable(csvData)
-      })
-      .catch((error) => {
-        console.error('Error loading CSV:', error)
-      })
-  }
 }
 
 async function initDataTableWArray(data: KeyValueArray, isReplace = true) {
@@ -164,9 +148,9 @@ function updateDataTable(csvData: KeyValueArray) {
   }
 }
 
-function changeColor(scheme: string) {
+function changeColor(scheme: string, oldScheme: string) {
   if (scheme === 'custom') {
-    if (state.dataTable.items.length && !state.dataTable.items[0].hasOwnProperty('Color')) {
+    if (oldScheme !== 'custom') {
       // No color assigned - Copy all color from Vega to data table
       let colorScale = visView.scale('color_group')
       for (let i = 0; i < state.dataTable.items.length; i++) {
@@ -219,10 +203,12 @@ function onValueChange(rIndex: number, label: string, event: Event) {
               <span v-if="!field.editableHead">{{ field.label }}</span>
               <div class="position-relative" v-else>
                 <i
+                  v-if="state.dataTable.fields[index]['name'] !== 'Geographic Area'"
                   class="position-absolute top-0 end-0 btn-icon text-secondary fas fa-minus-circle"
                   v-on:click="state.dataTable.fields[index].show = false"
                   v-bind:title="'Remove ' + state.dataTable.fields[index].name + ' column'"
                 ></i>
+                <!-- TODO ask for the confirmation and completely remove it so it'll beremove from the popup. -->
                 <input
                   class="form-control"
                   v-model="state.dataTable.fields[index]['name']"

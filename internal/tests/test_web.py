@@ -50,20 +50,21 @@ def test_cartogram_post_world(client):
     print(response.data)
     assert response.status_code == 200
 
-def test_cartogram_post_inset(client):    
+def test_cartogram_post_inset(client):
+    key = time.time()
+
     with open("tests/data/usa_by_state_since_1959.csv", 'r') as file:
         csv_string = file.read()
-    with open("tests/data/usa_by_state_since_1959.geojson", 'r') as gen_fp:
-        gen_file_contents = gen_fp.read()       
-        json_string = json.loads(gen_file_contents) 
+    with open("tests/data/usa_by_state_since_1959.geojson", 'rb') as file:
+        data = {'file': (file, 'filename')}        
+        response = client.post(f"/api/v1/cartogram/preprocess/{key}", data=data, content_type='multipart/form-data')
 
     testdata = {
-        "title": '',
+        "title": "",
         "handler": "custom",
         "scheme": "pastel1",
         "csv": csv_string,
-        "geojson": json_string,
-        "mapDBKey": time.time(),
+        "mapDBKey": key,
         "persist": "true"
     }
 

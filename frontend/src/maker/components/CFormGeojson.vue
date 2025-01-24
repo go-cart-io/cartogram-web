@@ -63,7 +63,7 @@ async function uploadGeoJson(event: Event) {
   })
 
   if (!response || !response.geojson) return
-  var geojson = JSON.parse(response.geojson)
+  var geojson = response.geojson
   // Check whether the GeoJSON contains any polygons or multipolygons and remove all other objects.
   if (!geojson || !geojson.features) {
     state.error = 'Invalid geospatial file'

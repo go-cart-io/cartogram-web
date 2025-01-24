@@ -101,6 +101,7 @@ watch(
 onMounted(async () => {
   if (!state.version) return
 
+  versionSpec.signals[3]['value'] = (!COLOR_SCHEME || COLOR_SCHEME === 'custom') ? 'pastel1' : COLOR_SCHEME
   versionSpec.data[0].url = util.getGeojsonURL(store.currentMapName, props.mapDBKey, 'data.csv')
   versionSpec.data[1].url = util.getGeojsonURL(store.currentMapName, props.mapDBKey, state.version.name + '.json')
 
@@ -116,7 +117,6 @@ onMounted(async () => {
   offscreenEl = d3.select('#' + props.panelID + '-offscreen')
   let container = await embed('#' + props.panelID + '-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
   visView = container.view
-  visView.signal('colorScheme', COLOR_SCHEME).runAsync()
 
   let [area, sum] = util.getTotalAreasAndValuesForVersion(state.version.header, visView.data('geo_1'), visView.data('source_csv'))
   totalArea = area

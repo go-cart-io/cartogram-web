@@ -29,19 +29,27 @@
   "data": [
     {
       "name": "source_csv",
-      "url": "./static/usa-data.csv",
+      "url": "",
       "format": { "type": "csv", "delimiter": "," }
     },
     {
       "name": "source_geojson",
-      "url": "./static/usa-population.json",
-      "format": { "property": "features", "type": "json", "parse": {} }
+      "url": "",
+      "format": { "type": "json", "parse": {} }
     },
     {
       "name": "geo_1",
       "source": "source_geojson",
       "transform": [
-        { "type": "filter", "expr": "datum.properties.Region != 'Dividers'" },
+        {
+          "type": "flatten",
+          "fields": ["features"]
+        },
+        {
+          "type": "project",
+          "fields": ["features.type", "features.properties", "features.geometry"],
+          "as": ["type", "properties", "geometry"]
+        },
         {
           "type": "lookup",
           "from": "source_csv",
@@ -70,7 +78,21 @@
     {
       "name": "geo_1_dividers",
       "source": "source_geojson",
-      "transform": [{ "type": "filter", "expr": "datum.properties.Region == 'Dividers'" }]
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "datum.dividers != null"
+        },
+        {
+          "type": "flatten",
+          "fields": ["dividers"]
+        },
+        {
+          "type": "project",
+          "fields": ["dividers.type", "dividers.properties", "dividers.geometry"],
+          "as": ["type", "properties", "geometry"]
+        }
+      ]
     }
   ],
   "projections": [
