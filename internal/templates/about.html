@@ -27,15 +27,15 @@
 <div class="container-fluid p-3">
   <h1 class="text-primary">About</h1>
 
-  <h3>What are Cartograms?</h3>
+  <h5>What are Cartograms?</h5>
 
-  <p class="text-justify">Cartograms are maps in which the areas of regions (e.g.&nbsp;states or provinces) are
+  <p class="mx-4">Cartograms are maps in which the areas of regions (e.g.&nbsp;states or provinces) are
     rescaled to be proportional to statistical data (e.g.&nbsp;population size or gross domestic product).
     Cartograms are called &lsquo;contiguous&rsquo; if they maintain the topology of the conventional map
     (i.e.&nbsp;regions are displayed as neighbours on the cartogram if and only if they are geographic
     neighbours).</p>
 
-  <p class="text-justify">Creating cartograms has traditionally been a complex endeavour that required expert
+  <p class="mx-4">Creating cartograms has traditionally been a complex endeavour that required expert
     knowledge in cartography and programming.
     However, producing cartograms should not be the privilege of only a handful of experts.
     Journalists or bloggers, for example, may also benefit from a cartogram as an intriguing illustration
@@ -43,9 +43,9 @@
     Similarly, students may enrich a term paper with a cartogram that can summarize data more effectively
     than raw numeric tables.</p>
 
-  <h3>Why go-cart.io?</h3>
+  <h5>Why go-cart.io?</h5>
 
-  <p class="text-justify">In the past, the creation of contiguous cartograms was far from user-friendly.
+  <p class="mx-4">In the past, the creation of contiguous cartograms was far from user-friendly.
     Even experts in data visualisation found it difficult and time-consuming to learn the required
     computer skills.
     Scientific publications that introduced new cartogram algorithms rarely included computer code.
@@ -58,9 +58,9 @@
     With a simple interface, we want to eliminate hurdles for non-experts and provide a convenient way
     to create readable cartograms.</p>
 
-  <h3>How Does go-cart.io Work?</h3>
+  <h5>How does go-cart.io Work?</h5>
 
-  <p class="text-justify">While previous cartogram generators required users to install software on their
+  <p class="mx-4">While previous cartogram generators required users to install software on their
     computer, go-cart.io is based on JavaScript that can be run in any contemporary web browser without
     additional downloads.
     We decided to simplify the data input as much as possible.
@@ -71,16 +71,14 @@
     Because the calculation is entirely server-side, we eliminate any dependence on the client&apos;s
     hardware.
     For typical input, the calculation finishes within 10 to 15 seconds.
-    If the calculation needs substantially longer, the application displays a bar chart instead of a
-    cartogram as a fallback.
     The cartogram is displayed in the browser window side by side with the conventional
     (i.e.&nbsp;equal-area) map.
-    The user can explore both maps with various interactive features implemented using the D3.js
-    library [2].</p>
+    The user can explore both maps with various interactive features implemented using the Vue.js, D3.js [2], and
+    Vega [3] library.</p>
 
-  <h3>What is the Fast Flow-based Algorithm?</h3>
+  <h5>What is the Fast Flow-based Algorithm?</h5>
 
-  <p class="text-justify">One way to create a contiguous cartogram is to create a map projection that transforms
+  <p class="mx-4">One way to create a contiguous cartogram is to create a map projection that transforms
     every coordinate on a conventional map such that the projected regions on the cartogram have the
     desired areas.
     The fast flow-based algorithm translates the cartographic deformations into physics-inspired equations
@@ -91,15 +89,46 @@
     In our paper [1], we describe several mathematical and computational tricks that speed up the
     calculation.</p>
 
-  <h3>References</h3>
+  <h5>Research Publications</h5>
 
-  <ol class="citations">
-    <li>Gastner MT, Seguy V, More P.
-      Fast flow-based algorithm for creating density-equalizing map projections.
-      Proc Natl Acad Sci USA 115(10):E2156–E2164 (2018).</li>
-    <li>Bostock M, Ogievetsky V, Heer J.
-      D3 Data-Driven Documents.
-      IEEE Trans Vis Comput Graph 17(12):2301–2309(2011).</li>
+  <p class="mx-4">Go-cart.io emerged from a research initiative. Below are research papers on Go-cart.io’s design,
+    implementation, and
+    evaluation.</p>
+
+  <ul class="mx-4">
+    <li>Duncan, I. K., & Gastner, M. T. (2024). Comparative evaluation of the web-based contiguous cartogram generation
+      tool go-cart. io. PLOS one, 19(5), e0298192.</li>
+    <li>Fung, K. L., Perrault, S. T., & Gastner, M. T. (2023). Effectiveness of Area-to-Value Legends and Grid Lines in
+      Contiguous Area Cartograms. IEEE Transactions on Visualization and Computer Graphics.</li>
+    <li>Duncan, I. K., Tingsheng, S., Perrault, S. T., & Gastner, M. T. (2020). Task-based effectiveness of interactive
+      contiguous area cartograms. IEEE Transactions on Visualization and Computer Graphics, 27(3), 2136-2152.</li>
+    <li>Shi, T., Duncan, I. K., & Gastner, M. T. (2019). go-cart. io: A web application for generating contiguous
+      cartograms. Abstracts of the ICA, 1, 333.</li>
+    <li>Gastner, M. T., Seguy, V., & More, P. (2018). Fast flow-based algorithm for creating
+      density-equalizing map projections. Proceedings of the National Academy of Sciences, 115(10), E2156-E2164.</li>
+  </ul>
+
+  <h5>Acknowledgment</h5>
+
+  <p class="mx-4">This website is supported by the following grant(s). Any opinions, findings, and conclusions or
+    recommendations expressed in this material do not reflect the views of the grant provider.
+  </p>
+
+  <ul class="mx-4">
+    <li>Ministry of Education, Singapore, under its Academic Research Fund Tier 2 (EP2) programme (Award No.
+      MOE-T2EP20221-0007)</li>
+  </ul>
+
+  <h5>References</h5>
+
+  <ol class="citations mx-4">
+    <li>Gastner, M. T., Seguy, V., & More, P. (2018). Fast flow-based algorithm for creating density-equalizing map
+      projections. Proceedings of the National Academy of Sciences, 115(10), E2156-E2164.</li>
+    <li>Bostock, M., Ogievetsky, V., & Heer, J. (2011). D³ data-driven documents. IEEE transactions on visualization and
+      computer graphics, 17(12), 2301-2309.</li>
+    <li>Satyanarayan, A., Wongsuphasawat, K., & Heer, J. (2014, October). Declarative interaction design for data
+      visualization. In Proceedings of the 27th annual ACM symposium on User interface software and technology (pp.
+      669-678).</li>
   </ol>
 
 

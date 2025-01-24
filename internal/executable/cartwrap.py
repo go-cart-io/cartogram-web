@@ -25,8 +25,8 @@ def reader(pipe, pipe_name, queue):
 def generate_cartogram(area_data, gen_file, cartogram_executable, world=False, custom_flags=[]):
     args = [cartogram_executable, '--redirect_exports_to_stdout']    
        
-    if world == True:
-        args.append('--world')
+    # if world == True:
+    #     args.append('--world')
     
     if custom_flags != []:
         args = args + custom_flags

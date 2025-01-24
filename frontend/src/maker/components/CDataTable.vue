@@ -190,9 +190,13 @@ function onValueChange(rIndex: number, label: string, event: Event) {
   <div class="card w-75 m-2 border-0">
     <div class="p-2"><span class="badge text-bg-secondary">Input Overview</span></div>
     <div class="p-2" v-if="state.dataTable.items.length < 1">
-      Please follow steps on the left panel. If you have any questions or issues about cartogram
-      generation, refer to the <a href="/faq">Frequently Asked Questions</a> or
-      <a href="/contact">Contact us</a>.
+      <p>Please follow steps on the left panel.</p>
+      <p>
+        Don't know where to get start? You may try editing one of our
+        <a href="/cartogram">examples</a>. If you have any questions or issues about cartogram
+        generation, refer to the <a href="/faq">Frequently Asked Questions</a> or
+        <a href="/contact">Contact us</a>.
+      </p>
     </div>
     <div id="map-vis" class="vis-area p-2"></div>
     <div class="d-table p-2" v-if="state.dataTable.items.length > 0">
