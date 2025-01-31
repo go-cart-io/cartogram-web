@@ -206,7 +206,7 @@ def create_app():
         if handler == 'custom':
             if 'editedFrom' in data and data['editedFrom'] != '' and f"./{data['editedFrom']}" != f"{folder_path}/Input.json":
                 if os.path.exists(f"./{data['editedFrom']}"):
-                    shutil.move(f"./{data['editedFrom']}", f"{folder_path}/Input.json")
+                    shutil.copyfile(f"./{data['editedFrom']}", f"{folder_path}/Input.json")
             else:
                 # Clean input file
                 region_col = data.get('geojsonRegionCol', 'Region')
