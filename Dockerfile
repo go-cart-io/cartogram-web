@@ -9,5 +9,8 @@ RUN apt-get -y install gcc libgeos-dev libjpeg-dev zlib1g-dev libfftw3-dev nlohm
 RUN pip install --upgrade pip setuptools wheel
 RUN pip install -r /root/internal/requirements.txt
 
+# Download and chmod +x the executable
+RUN bash ./tools/pull-executable.sh
+
 EXPOSE 5000
 WORKDIR /root/internal

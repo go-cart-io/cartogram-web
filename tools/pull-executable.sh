@@ -15,15 +15,21 @@ pull_release() {
     printf "\nPulling release tag: ${RED}$1${RESET}\n\n"
     wget https://github.com/mgastner/cartogram-cpp/releases/download/$1/cartogram -O ../internal/executable/cartogram
 
-    # Overwrite version.txt with the release tag
-    echo $1 > ../internal/executable/release-tag.txt
+    # Make the binary executable
+    chmod +x ../internal/executable/cartogram
 }
 
 # Function to pull the latest release
 pull_latest() {
+
+    # Find out what the latest release tag is
     printf "\nPulling LATEST release"
     LATEST_TAG=$(curl -s https://api.github.com/repos/mgastner/cartogram-cpp/releases/latest | grep 'tag_name' | cut -d\" -f4)
+
     pull_release $LATEST_TAG
+
+    # Overwrite version.txt with the release tag
+    echo $1 > ../internal/executable/release-tag.txt
 }
 
 # Check for --latest option
