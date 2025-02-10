@@ -51,7 +51,7 @@ watch(
 function reset() {
   state.dataTable.items = []
   state.dataTable.fields = [
-    { label: 'Region', name: 'Region', type: 'text', editable: false, show: true },
+    { label: 'Region', name: 'Region', type: 'text', editable: false, show: true, headerError: false, errorMessage: '' },
     { label: 'RegionLabel', name: 'RegionLabel', type: 'text', editable: true, show: true },
     { label: 'Color', name: 'Color', type: 'color', editable: true, show: false },
     { label: 'ColorGroup', name: 'ColorGroup', type: 'number', editable: false, show: false },
