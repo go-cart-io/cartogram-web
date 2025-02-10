@@ -51,13 +51,14 @@ function onGeoJsonChanged(
   handler: string,
   geojsonData: FeatureCollection,
   regionCol: string,
-  csvFile = ''
+  csvFile = '',
+  displayTable : boolean = true
 ) {
   state.handler = handler
   state.geojsonData = geojsonData
   state.geojsonRegionCol = regionCol
   state.csvFile = csvFile
-  dataTableEl.value.initDataTableWGeojson(geojsonData, regionCol)
+  dataTableEl.value.initDataTableWGeojson(geojsonData, regionCol, displayTable)
 
   // Immediately populate data if a CSV file is supplied
   if (csvFile) {

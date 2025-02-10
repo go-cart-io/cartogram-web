@@ -19,7 +19,8 @@ const props = defineProps<{
 }>()
 
 const state = reactive({
-  dataTable: { fields: [], items: [] } as DataTable
+  dataTable: { fields: [], items: [] } as DataTable,
+  displayTable: false
 })
 
 defineExpose({
@@ -72,19 +73,20 @@ function reset() {
       show: true
     }
   ]
+  state.displayTable = false
 }
 
-function initDataTableWGeojson(geojsonData: FeatureCollection, geojsonRegionCol: string) {
+function initDataTableWGeojson(geojsonData: FeatureCollection, geojsonRegionCol: string, displayTable : boolean = true) {
   reset()
 
   document.getElementById('map-vis')!.innerHTML = ''
   state.dataTable.fields.splice(config.NUM_RESERVED_FILEDS)
   state.dataTable.items = []
-
+  state.displayTable = displayTable
+  
   // Transform geojson to data fields
   var geoProperties = util.propertiesToArray(geojsonData)
   if (geoProperties.length === 0) return
-
   if (!Object.keys(geoProperties[0]).some((key) => key.startsWith('Population')))
     geoProperties = util.addKeyInArray(geoProperties, 'Population (people)', 0)
 
@@ -199,7 +201,7 @@ function onValueChange(rIndex: number, label: string, event: Event) {
       </p>
     </div>
     <div id="map-vis" class="vis-area p-2"></div>
-    <div class="d-table p-2" v-if="state.dataTable.items.length > 0">
+    <div class="d-table p-2" v-if="state.displayTable && state.dataTable.items.length > 0">
       <table class="table table-bordered">
         <thead>
           <tr class="table-light">
