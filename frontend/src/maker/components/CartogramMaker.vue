@@ -81,6 +81,12 @@ async function onCsvBtnClick() {
 }
 
 function onCsvUpdate(csvData: KeyValueArray) {
+  let isCSVValid = dataTableEl.value.validateCSV(csvData);
+
+  // Do not update the data table if the CSV is invalid
+  if (!isCSVValid) {
+    return
+  }
   const updatedProps = dataTableEl.value.updateDataTable(csvData)
   state.colorScheme = updatedProps.customColor ? 'custom' : state.colorScheme
   state.useEqualArea = updatedProps.useEqualArea
