@@ -58,7 +58,10 @@ def preprocess(input, mapDBKey='temp_filename', based_path='/tmp'):
         # Always convert to WGS84 (EPSG:4326) before input to cpp
         cdf.to_crs("EPSG:4326", inplace=True)
         geojson = cdf.to_carto_file(file_path)
-        equal_area_json = preprocess_geojson(mapDBKey, file_path, None, ['--output_equal_area_map'])
+        flags = ['--output_equal_area_map']
+        if cdf.is_world:
+            flags += ['--world']
+        equal_area_json = preprocess_geojson(mapDBKey, file_path, None, flags)
         if equal_area_json is None:
             equal_area_json = geojson
     else:

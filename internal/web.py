@@ -198,7 +198,7 @@ def create_app():
         clean_by = None
 
         # Prepare data.csv and Input.json in userdata
-        # TODO check whether the code works properly if persist is false
+        # TODO check whether the code works properly if persist is false     
         if 'persist' in data:
             userdata_path = f"static/userdata/{string_key}"
             os.mkdir(userdata_path)
@@ -211,14 +211,13 @@ def create_app():
         gen_file = cartogram_handler.get_gen_file(handler, string_key)
 
         if handler == 'custom':
-            input_path = f"{userdata_path}/Input.json"
-            if ('editedFrom' in data and data['editedFrom'] != '' and 
-                data['editedFrom'] != input_path and os.path.exists(data['editedFrom'])):
-                    shutil.copyfile(data['editedFrom'], input_path)
+            editedFrom = data.get('editedFrom', None)
+            if (editedFrom and editedFrom != '' and editedFrom != gen_file and os.path.exists(f"./{editedFrom}")):
+                shutil.copyfile(f"./{editedFrom}", gen_file)
 
             else:
                 if os.path.exists(f"/tmp/{string_key}.json"):
-                    shutil.move(f"/tmp/{string_key}.json", input_path)
+                    shutil.move(f"/tmp/{string_key}.json", gen_file)
                 clean_by = data.get('geojsonRegionCol', 'Region')
 
         try:
