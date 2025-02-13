@@ -1,15 +1,15 @@
 Region,RegionLabel,ColorGroup,Geographic Area (sq. km),Population (people)
-Almaty,AA,2,224000.0,3837027.0
 Akmola,AM,4,146200.0,1770355.0
 Aktobe,AT,1,300600.0,857711.0
+Almaty,AA,2,224000.0,3837027.0
 Atyrau,AR,2,118600.0,631841.0
 East Kazakhstan,EK,5,283200.0,1379739.0
-Mangystau,MG,3,165600.0,660317.0
-North Kazakhstan,NK,3,98000.0,558584.0
-Pavlodar,PA,6,124800.0,754854.0
 Karagandy,QG,3,428000.0,1379061.0
 Kostanay,QS,5,196000.0,875616.0
 Kyzylorda,QO,4,226000.0,783156.0
+Mangystau,MG,3,165600.0,660317.0
+North Kazakhstan,NK,3,98000.0,558584.0
+Pavlodar,PA,6,124800.0,754854.0
 Turkistan Region,SK,6,117300.0,2987881.0
 West Kazakhstan,WK,4,151300.0,646927.0
 Zhambyl,ZM,1,144300.0,1117220.0
