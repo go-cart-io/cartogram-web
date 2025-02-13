@@ -28,7 +28,7 @@ def test_cartogram_post(client):
         "persist": "true"
     }
 
-    response = client.post("/api/v1/cartogram", data={"data": json.dumps(testdata)})
+    response = client.post("/api/v1/cartogram", json=testdata)
     print(response.data)
     assert response.status_code == 200
 
@@ -45,7 +45,7 @@ def test_cartogram_post_world(client):
         "persist": "true"
     }
 
-    response = client.post("/api/v1/cartogram", data={"data": json.dumps(testdata)})
+    response = client.post("/api/v1/cartogram", json=testdata)
     print(response.data)
     assert response.status_code == 200
 
@@ -67,7 +67,7 @@ def test_cartogram_post_inset(client):
         "persist": "true"
     }
 
-    response = client.post("/api/v1/cartogram", data={"data": json.dumps(testdata)})
+    response = client.post("/api/v1/cartogram", json=testdata)
     print(response.data)
     assert response.status_code == 200
 

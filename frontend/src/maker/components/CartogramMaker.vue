@@ -97,18 +97,16 @@ async function getGeneratedCartogram() {
   var csvData = await dataTableEl.value.getCSV()
 
   await new Promise<any>(function (resolve, reject) {
-    var req_body =
-      'data=' +
-      JSON.stringify({
-        title: state.title,
-        scheme: state.colorScheme,
-        handler: state.handler,
-        csv: csvData,
-        geojsonRegionCol: state.geojsonRegionCol,
-        mapDBKey: mapDBKey,
-        persist: true,
-        editedFrom: props.geoUrl
-      })
+    var req_body = JSON.stringify({
+      title: state.title,
+      scheme: state.colorScheme,
+      handler: state.handler,
+      csv: csvData,
+      geojsonRegionCol: state.geojsonRegionCol,
+      mapDBKey: mapDBKey,
+      persist: true,
+      editedFrom: props.geoUrl
+    })
 
     var progressUpdater = window.setInterval(
       (function (key) {
@@ -131,7 +129,7 @@ async function getGeneratedCartogram() {
     )
 
     HTTP.post('/api/v1/cartogram', req_body, {
-      'Content-type': 'application/x-www-form-urlencoded'
+      'Content-type': 'application/json'
     }).then(
       function (response: any) {
         state.loadingProgress = 100

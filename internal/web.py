@@ -183,7 +183,7 @@ def create_app():
     @app.route('/api/v1/cartogram', methods=['POST'])
     @limiter.limit(cartogram_rate_limit)
     def cartogram_gen():
-        data = json.loads(request.form['data'])
+        data = request.get_json()
         handler = data['handler']
 
         if 'handler' not in data or (not cartogram_handler.has_handler(handler) and handler != 'custom'):
