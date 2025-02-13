@@ -22,11 +22,8 @@ def reader(pipe, pipe_name, queue):
 # area_data:            A string containing appropriately formated area data
 # gen_file:             A string containing the path to the appropriate .gen file
 # cartogram_executable: A string containg the path to the C code executable
-def generate_cartogram(area_data, gen_file, cartogram_executable, world=False, custom_flags=[]):
-    args = [cartogram_executable, '--redirect_exports_to_stdout']    
-       
-    # if world == True:
-    #     args.append('--world')
+def generate_cartogram(area_data, gen_file, cartogram_executable, custom_flags=[]):
+    args = [cartogram_executable, '--redirect_exports_to_stdout']
     
     if custom_flags != []:
         args = args + custom_flags

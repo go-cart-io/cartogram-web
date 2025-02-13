@@ -42,7 +42,8 @@ const state = reactive({
 onMounted(() => {
   if (!props.mapName || !props.geoUrl || !props.csvUrl) return
 
-  HTTP.get(props.geoUrl).then(function (response: any) {
+  const projectedUrl = props.geoUrl.replace('/Input.json', '/Geographic Area.json')
+  HTTP.get(projectedUrl).then(function (response: any) {
     onGeoJsonChanged(props.mapName!, response, 'Region', props.csvUrl)
   })
 })

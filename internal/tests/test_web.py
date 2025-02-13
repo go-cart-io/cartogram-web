@@ -1,6 +1,5 @@
 import json
 import time
-import csv
 from tests.conftest import client
 
 def test_cartogram_post(client):
