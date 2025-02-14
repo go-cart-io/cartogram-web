@@ -246,7 +246,7 @@ function onValueChange(rIndex: number, label: string, event: Event) {
               class="form-control"
               v-bind:type="field.type"
               v-bind:value="state.dataTable.items[rIndex][field.label]"
-              v-on:change="($event) => onValueChange(rIndex, field.label, $event)"
+              v-on:change="($event: any) => onValueChange(rIndex, field.label, $event)"
             />
           </td>
         </tr>
