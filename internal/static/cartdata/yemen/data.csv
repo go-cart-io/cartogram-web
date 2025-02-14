@@ -1,14 +1,14 @@
 Region,RegionLabel,ColorGroup,Geographic Area (sq. km),Population (people)
-Aden,AD,6,760.0,925000.0
+'Amran,AM,6,7900.0,1052000.0
 Abyan,AB,4,16450.0,568000.0
-Al Bayda',BA,6,9270.0,760000.0
 Ad Dali,DL,2,4000.0,720000.0
+Aden,AD,6,760.0,925000.0
+Al Bayda',BA,6,9270.0,760000.0
 Al Hudaydah,HU,4,13250.0,3189000.0
 Al Jawf,JA,2,39500.0,589000.0
 Al Mahrah,MR,5,67310.0,150000.0
 Al Mahwit,MW,2,2330.0,695000.0
 Amanat Al Asimah,AN,4,380.0,2948472.0
-'Amran,AM,6,7900.0,1052000.0
 Dhamar,DH,5,7590.0,1913000.0
 Hadramawt,HD,6,163680.0,1424036.0
 Hajjah,HJ,1,8300.0,2129000.0

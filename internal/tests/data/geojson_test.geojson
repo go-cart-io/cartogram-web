@@ -1,9 +1,12 @@
 {
   "type": "FeatureCollection",
+  "name": "test",
+  "crs": { "properties": { "name": "EPSG:cartesian" } },
   "features": [
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [102.0, 0.5] }
+      "geometry": { "type": "Point", "coordinates": [102.0, 0.5] },
+      "properties": { "prop_unique": "99" }
     },
     {
       "type": "Feature",
@@ -15,7 +18,8 @@
           [104.0, 0.0],
           [105.0, 1.0]
         ]
-      }
+      },
+      "properties": { "prop_unique": "98" }
     },
     {
       "type": "Feature",

@@ -7,9 +7,9 @@ Bukit Batok,BK,3,11.140694,153740.0
 Bukit Merah,BM,6,14.465966,151980.0
 Bukit Panjang,BP,5,9.018703,139280.0
 Bukit Timah,BT,4,17.516789,77430.0
-Central Water Catchment,CC,6,37.162155,NA
+Central Water Catchment,CC,6,37.162155,
 Changi,CH,5,41.474598,1830.0
-Changi Bay,CB,1,1.764293,NA
+Changi Bay,CB,1,1.764293,
 Choa Chu Kang,CK,6,6.117792,190890.0
 Clementi,CL,1,9.519502,92420.0
 Downtown Core,DT,3,5.069935,2720.0
@@ -20,8 +20,8 @@ Jurong West,JW,4,14.68267,264860.0
 Kallang,KL,2,8.59463,101520.0
 Lim Chu Kang,LK,#a6761d,17.483939,110.0
 Mandai,MD,4,11.766777,2090.0
-Marina East,ME,1,1.84385,NA
-Marina South,MS,2,1.631483,NA
+Marina East,ME,1,1.84385,
+Marina South,MS,2,1.631483,
 Marine Parade,MP,#a6761d,6.142878,46390.0
 Museum,MU,1,0.829759,450.0
 Newton,NT,5,2.071537,8030.0
@@ -40,10 +40,10 @@ Seletar,SL,3,10.870083,280.0
 Sembawang,SB,2,12.645703,95920.0
 Sengkang,SE,4,10.605756,244600.0
 Serangoon,SG,1,10.092784,116310.0
-Simpang,SM,3,6.644633,NA
+Simpang,SM,3,6.644633,
 Singapore River,SR,#a6761d,0.961827,3070.0
 Southern Islands,SI,4,4.79243,1880.0
-Straits View,SV,4,1.12949,NA
+Straits View,SV,4,1.12949,
 Sungei Kadut,SK,2,17.57304,780.0
 Tampines,TM,6,20.799691,256730.0
 Tanglin,TN,1,7.551776,21630.0

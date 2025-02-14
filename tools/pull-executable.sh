@@ -29,7 +29,7 @@ pull_latest() {
     pull_release $LATEST_TAG
 
     # Overwrite version.txt with the release tag
-    echo $1 > ../internal/executable/release-tag.txt
+    echo $LATEST_TAG > ../internal/executable/release-tag.txt
 }
 
 # Check for --latest option

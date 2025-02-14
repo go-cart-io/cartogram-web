@@ -183,7 +183,7 @@ def create_app():
     @app.route('/api/v1/cartogram', methods=['POST'])
     @limiter.limit(cartogram_rate_limit)
     def cartogram_gen():
-        data = json.loads(request.form['data'])
+        data = request.get_json()
         handler = data['handler']
 
         if 'handler' not in data or (not cartogram_handler.has_handler(handler) and handler != 'custom'):
@@ -192,35 +192,43 @@ def create_app():
         if 'mapDBKey' not in data:
             return Response('{"error":"Missing sharing key."}', status=404, content_type='application/json')
         
+        datacsv = data['csv'] if 'csv' in data else util.get_csv(data)
         string_key = data['mapDBKey']
-        folder_path = None
+        userdata_path = None
+        clean_by = None
 
+        # Prepare data.csv and Input.json in userdata
+        # TODO check whether the code works properly if persist is false     
         if 'persist' in data:
-            folder_path = f"static/userdata/{string_key}"
-            os.mkdir(folder_path)
-            # TODO can we simplify the code so that we don't need to keep Input.json?
-            if os.path.exists(f"/tmp/{string_key}.json"):
-                shutil.move(f"/tmp/{string_key}.json", f"{folder_path}/Input.json")
-      
+            userdata_path = f"static/userdata/{string_key}"
+            os.mkdir(userdata_path)
+        else:
+            userdata_path = f"/tmp/{string_key}"
+
+        with open(f'{userdata_path}/data.csv', 'w') as outfile:
+            outfile.write(datacsv)
+
         gen_file = cartogram_handler.get_gen_file(handler, string_key)
+
         if handler == 'custom':
-            if 'editedFrom' in data and data['editedFrom'] != '' and f"./{data['editedFrom']}" != f"{folder_path}/Input.json":
-                if os.path.exists(f"./{data['editedFrom']}"):
-                    shutil.copyfile(f"./{data['editedFrom']}", f"{folder_path}/Input.json")
+            editedFrom = data.get('editedFrom', None)
+            if (editedFrom and editedFrom != '' and editedFrom != gen_file and os.path.exists(f"./{editedFrom}")):
+                shutil.copyfile(f"./{editedFrom}", gen_file)
+
             else:
-                # Clean input file
-                region_col = data.get('geojsonRegionCol', 'Region')
-                util.clean_geojson(gen_file, region_col, inplace=True)
+                if os.path.exists(f"/tmp/{string_key}.json"):
+                    shutil.move(f"/tmp/{string_key}.json", gen_file)
+                clean_by = data.get('geojsonRegionCol', 'Region')
 
         try:
-            cartogram.generate_cartogram(data, gen_file, string_key, folder_path)
+            cartogram.generate_cartogram(datacsv, gen_file, data['mapDBKey'], userdata_path, clean_by=clean_by)
                         
             if 'persist' in data and settings.USE_DATABASE:
-                    new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
-                                            date_accessed=datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=365),
-                                            title=data['title'],scheme=data['scheme'],handler=handler)
-                    db.session.add(new_cartogram_entry)
-                    db.session.commit()        
+                new_cartogram_entry = CartogramEntry(string_key=string_key, date_created=datetime.datetime.today(),
+                                        date_accessed=datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=365),
+                                        title=data['title'],scheme=data['scheme'],handler=handler)
+                db.session.add(new_cartogram_entry)
+                db.session.commit()
             else:
                 string_key = None
 
@@ -229,8 +237,8 @@ def create_app():
         # except (KeyError, csv.Error, ValueError, UnicodeDecodeError):
         #     return Response('{"error":"The data was invalid."}', status=400, content_type='application/json')
         except Exception as e:
-            if 'persist' in data and os.path.exists(folder_path):
-                shutil.rmtree(folder_path)
+            if os.path.exists(userdata_path):
+                shutil.rmtree(userdata_path)
 
             return Response(json.dumps({"error": str(e)}), status=400, content_type='application/json')
 
