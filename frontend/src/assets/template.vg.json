@@ -1,5 +1,8 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "config": {
+    "text": { "font": "Roboto Condensed, Arial, sans-serif" }
+  },
   "padding": { "top": 50, "bottom": 10 },
   "autosize": { "type": "fit", "contains": "padding" },
   "signals": [
