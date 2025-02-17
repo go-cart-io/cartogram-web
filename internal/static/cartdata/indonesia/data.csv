@@ -1,34 +1,39 @@
 Region,RegionLabel,ColorGroup,Geographic Area (sq. km),Population (people)
-Aceh,AC,2,51937.0,4486570.0
-Bali,BA,2,5633.0,3891428.0
-Bangka Belitung,BB,4,16171.0,1223048.0
-Banten,BT,6,8651.0,10644030.0
-Bengkulu,BE,3,19789.0,1713393.0
-Gorontalo,GO,2,12215.0,50380687.0
-Jakarta Raya,JK,5,664.0,2202599.0
-Jambi,JA,6,53437.0,2633420.0
-Jawa Barat,JR,4,34597.0,37476011.0
-Jawa Tengah,JT,6,32549.0,3550586.0
-Jawa Timur,JI,5,47922.0,4679316.0
-Kalimantan Barat,KB,1,146807.0,1038585.0
-Kalimantan Selatan,KS,6,43546.0,9588198.0
-Kalimantan Tengah,KT,3,153564.0,3088618.0
-Kalimantan Timur,KM,5,230277.0,7596115.0
-Kepulauan Riau,KR,6,8202.0,1531402.0
-Lampung,LA,4,35384.0,1035478.0
-Maluku,MA,4,46975.0,2265937.0
-Maluku Utara,MU,5,30895.0,12985075.0
-Nusa Tenggara Barat,NB,1,20153.0,2851999.0
-Nusa Tenggara Timur,NT,3,47351.0,5543031.0
-Papua,PA,1,365466.0,1685698.0
-Papua Barat,IB,2,102946.0,3626119.0
-Riau,RI,5,94560.0,8032551.0
-Sulawesi Barat,SR,3,16937.0,7446401.0
-Sulawesi Selatan,SE,1,62365.0,2230569.0
-Sulawesi Tengah,ST,4,63678.0,43021826.0
-Sulawesi Tenggara,SG,3,38140.0,4393239.0
-Sulawesi Utara,SW,6,15273.0,4496855.0
-Sumatera Barat,SB,2,42899.0,760855.0
-Sumatera Selatan,SL,2,93083.0,1158336.0
-Sumatera Utara,SU,1,73587.0,4845998.0
-Yogyakarta,YO,3,3186.0,3452390.0
+Aceh,AC,5,56266,5554.8
+Bali,BA,3,5468,4433.3
+Banten,BT,4,9172,12431.4
+Bengkulu,BE,3,20083,2112.2
+DKI Jakarta,JK,2,646,10684.9
+Daerah Istimewa Yogyakarta,YO,5,3182,3759.5
+Gorontalo,GO,1,11949,1227.8
+Jambi,JA,4,48942,3724.3
+Jawa Barat,JR,1,37108,50345.2
+Jawa Tengah,JT,0,34189,37892.3
+Jawa Timur,JI,4,47399,41814.5
+Kalimantan Barat,KB,2,146221,5695.5
+Kalimantan Selatan,KS,1,37043,4273.4
+Kalimantan Tengah,KT,3,153402,2809.7
+Kalimantan Timur,KM,5,125370,4045.9
+Kalimantan Utara,KU,4,69555,739.8
+Kepulauan Bangka Belitung,BB,1,16358,1531.5
+Kepulauan Riau,KR,3,5454,2183.3
+Lampung,LA,0,33414,9419.6
+Maluku,MA,2,42475,1945.6
+Maluku Utara,MU,5,29621,1355.6
+Nusa Tenggara Barat,NB,1,19524,5646
+Nusa Tenggara Timur,NT,5,45220,5656
+Papua,PA,2,80485,1060.6
+Papua Barat,IB,3,57935,578.7
+Papua Barat Daya,PD,0,38075,627.1
+Papua Pegunungan,PP,4,54162,1467
+Papua Selatan,PS,5,116919,542.1
+Papua Tengah,PT,1,61021,1472.9
+Riau,RI,1,89349,6728.1
+Sulawesi Barat,SR,4,16536,1503.2
+Sulawesi Selatan,SE,2,44542,9463.4
+Sulawesi Tengah,ST,0,60422,3121.8
+Sulawesi Tenggara,SG,3,35255,2793.1
+Sulawesi Utara,SW,3,13706,2701.8
+Sumatera Barat,SB,2,41945,5836.2
+Sumatera Selatan,SL,5,86811,8837.3
+Sumatera Utara,SU,0,72144,15588.5

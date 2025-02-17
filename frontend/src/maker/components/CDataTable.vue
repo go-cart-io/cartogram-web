@@ -254,8 +254,7 @@ function onValueChange(rIndex: number, label: string, event: Event) {
       <p>
         Don't know where to start? You may try editing one of our
         <a href="/cartogram">examples</a>. If you have any questions or issues about cartogram
-        generation, refer to the
-        <a href="/faq">Frequently Asked Questions</a> or
+        generation, refer to the <a href="/faq">Frequently Asked Questions</a> or
         <a href="/contact">Contact us</a>.
       </p>
     </div>
@@ -270,18 +269,31 @@ function onValueChange(rIndex: number, label: string, event: Event) {
           <tr class="table-light">
             <th v-for="(field, index) in state.dataTable.fields" v-show="field.show" :key="index">
               <!-- Wrap header content in a container for tooltip -->
-              <div class="header-cell" :class="{ 'header-error': field.label === 'Region' && field.headerError }">
+              <div
+                class="header-cell"
+                :class="{ 'header-error': field.label === 'Region' && field.headerError }"
+              >
                 <span v-if="!field.editableHead">{{ field.label }}</span>
                 <div v-else>
-                  <i v-if="state.dataTable.fields[index].name !== 'Geographic Area'"
+                  <i
+                    v-if="state.dataTable.fields[index].name !== 'Geographic Area'"
                     class="position-absolute top-0 end-0 btn-icon text-secondary fas fa-minus-circle"
                     @click="state.dataTable.fields[index].show = false"
-                    :title="'Remove ' + state.dataTable.fields[index].name + ' column'"></i>
+                    :title="'Remove ' + state.dataTable.fields[index].name + ' column'"
+                  ></i>
                   <!-- TODO ask for the confirmation and completely remove it so it'll beremove from the popup. -->
-                  <input class="form-control" v-model="state.dataTable.fields[index].name" :type="field.name"
-                    placeholder="Data name" />
-                  <input class="form-control" v-model="state.dataTable.fields[index].unit" :type="field.unit"
-                    placeholder="Unit" />
+                  <input
+                    class="form-control"
+                    v-model="state.dataTable.fields[index].name"
+                    :type="field.name"
+                    placeholder="Data name"
+                  />
+                  <input
+                    class="form-control"
+                    v-model="state.dataTable.fields[index].unit"
+                    :type="field.unit"
+                    placeholder="Unit"
+                  />
                 </div>
                 <!-- Tooltip for header error -->
                 <div v-if="field.label === 'Region' && field.headerError" class="tooltip">
@@ -291,28 +303,36 @@ function onValueChange(rIndex: number, label: string, event: Event) {
             </th>
           </tr>
         </thead>
-        <tbody>
-          <tr v-for="(row, rIndex) in state.dataTable.items" :key="rIndex">
-            <td v-for="(field, index) in state.dataTable.fields" v-show="field.show" :key="index">
-              <!-- Wrap cell content in a container for tooltip -->
-              <div class="cell-content" :class="{ 'error-cell': field.label === 'Region' && row.regionError }">
-                <span v-if="!field.editable">{{ row[field.label] }}</span>
-                <select v-else-if="field.type === 'select'" class="form-control"
-                  v-model="state.dataTable.items[rIndex][field.label]">
-                  <option v-for="option in field.options" :key="option.value" :value="option.value">
-                    {{ option.text }}
-                  </option>
-                </select>
-                <input v-else-if="field.show" class="form-control" :type="field.type" :value="row[field.label]"
-                  @change="($event) => onValueChange(rIndex, field.label, $event)" />
-                <!-- Tooltip for cell error -->
-                <div v-if="field.label === 'Region' && row.regionError" class="tooltip">
-                  {{ row.regionError }}
-                </div>
+        <tr v-for="(row, rIndex) in state.dataTable.items">
+          <td v-for="(field, index) in state.dataTable.fields" v-show="field.show">
+            <div
+              class="cell-content"
+              :class="{ 'error-cell': field.label === 'Region' && row.regionError }"
+            >
+              <span v-if="!field.editable">{{ row[field.label] }}</span>
+              <select
+                v-else-if="field.type === 'select'"
+                class="form-control"
+                v-model="state.dataTable.items[rIndex][field.label]"
+              >
+                <option v-for="option in field.options" v-bind:value="option.value">
+                  {{ option.text }}
+                </option>
+              </select>
+              <input
+                v-else-if="field.show"
+                class="form-control"
+                v-bind:type="field.type"
+                v-bind:value="state.dataTable.items[rIndex][field.label]"
+                v-on:change="($event: any) => onValueChange(rIndex, field.label, $event)"
+              />
+              <!-- Tooltip for cell error -->
+              <div v-if="field.label === 'Region' && row.regionError" class="tooltip">
+                {{ row.regionError }}
               </div>
-            </td>
-          </tr>
-        </tbody>
+            </div>
+          </td>
+        </tr>
       </table>
     </div>
   </div>

@@ -14,7 +14,7 @@ $theme-colors: (
 );
 
 $min-contrast-ratio: 3;
-$font-family-base: Comfortaa;
+$font-family-base: Roboto, Arial, sans-serif;
 $form-range-track-bg: $secondary;
 $form-range-thumb-bg: #d76127;
 
@@ -43,7 +43,7 @@ $form-range-thumb-bg: #d76127;
 // @import "bootstrap/scss/accordion";
 // @import "bootstrap/scss/pagination";
 @import 'bootstrap/scss/badge';
-// @import "bootstrap/scss/alert";
+@import 'bootstrap/scss/alert';
 @import 'bootstrap/scss/progress';
 // @import "bootstrap/scss/list-group";
 @import 'bootstrap/scss/close';

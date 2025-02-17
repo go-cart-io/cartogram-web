@@ -6,7 +6,7 @@
 import { onMounted, nextTick, reactive, ref, watch, inject } from 'vue'
 import * as d3 from 'd3'
 // @ts-ignore
-import { geoCylindricalEqualArea } from "d3-geo-projection"
+// import { geoCylindricalEqualArea } from "d3-geo-projection"
 import * as vega from 'vega'
 import embed, { type VisualizationSpec } from 'vega-embed'
 
@@ -105,13 +105,13 @@ onMounted(async () => {
   versionSpec.data[0].url = util.getGeojsonURL(store.currentMapName, props.mapDBKey, 'data.csv')
   versionSpec.data[1].url = util.getGeojsonURL(store.currentMapName, props.mapDBKey, state.version.name + '.json')
 
-  if (store.currentMapName === "world" && state.version.name === 'Geographic Area') {
-    // Gall–Peters projection
-    vega.projection('cylindricalEqualArea', geoCylindricalEqualArea)
-    versionSpec.projections[0].type = "cylindricalEqualArea"
-    versionSpec.projections[0].reflectY = false
-    versionSpec.projections[0].parallel = 45
-  }
+  // if (store.currentMapName === "world" && state.version.name === 'Geographic Area') {
+  //   // Gall–Peters projection
+  //   vega.projection('cylindricalEqualArea', geoCylindricalEqualArea)
+  //   versionSpec.projections[0].type = "cylindricalEqualArea"
+  //   versionSpec.projections[0].reflectY = false
+  //   versionSpec.projections[0].parallel = 45
+  // }
 
   visEl = d3.select('#' + props.panelID + '-vis')
   offscreenEl = d3.select('#' + props.panelID + '-offscreen')

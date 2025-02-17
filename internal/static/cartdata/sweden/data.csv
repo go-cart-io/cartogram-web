@@ -1,4 +1,5 @@
 Region,RegionLabel,ColorGroup,Geographic Area (sq. km),Population (people)
+Blekinge,BL,5,2946.0,159371.0
 Dalarna,KO,6,28189.0,286165.0
 Gavleborg,GV,4,18199.0,285637.0
 Gotland,GT,3,3151.0,58595.0
@@ -10,9 +11,8 @@ Kronoberg,KR,2,8466.0,197519.0
 Norrbotten,NB,2,98245.0,251295.0
 Orebro,OR,3,8546.0,298907.0
 Ostergotland,OG,1,10602.0,457496.0
-Blekinge,BL,5,2946.0,159371.0
-Sodermanland,SD,2,6102.0,291341.0
 Skane,SN,1,11035.0,1344689.0
+Sodermanland,SD,2,6102.0,291341.0
 Stockholm,ST,6,6519.0,2308143.0
 Uppsala,UP,1,8207.0,368971.0
 Varmland,VR,2,17591.0,280399.0

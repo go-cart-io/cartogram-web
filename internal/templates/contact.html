@@ -17,9 +17,7 @@
       {% for category, message in messages %}
       <div class="alert alert-{{category}} alert-dismissible fade show" role="alert">
         {{message}}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
       {% endfor %}
       {% endif %}
@@ -27,9 +25,7 @@
 
       <div class="alert alert-danger alert-dismissible fade show" style="display: none" role="alert" id="captcha-alert">
         You must complete the CAPTCHA.
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
       <form action="{{url_for('contact')}}" method="POST">
         <div class="row">
