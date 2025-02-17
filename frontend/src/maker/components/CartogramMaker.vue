@@ -14,7 +14,7 @@ import CFormCsv from './CFormCsv.vue'
 import CSelectColor from './CSelectColor.vue'
 import CDataTable from './CDataTable.vue'
 
-var mapDBKey = util.generateShareKey(32)
+const mapDBKey = util.generateShareKey(32)
 const dataTableEl = ref()
 
 const props = defineProps<{
@@ -53,7 +53,7 @@ function onGeoJsonChanged(
   geojsonData: FeatureCollection,
   regionCol: string,
   csvFile = '',
-  displayTable : boolean = true
+  displayTable: boolean = true
 ) {
   state.handler = handler
   state.geojsonData = geojsonData
@@ -82,7 +82,7 @@ async function onCsvBtnClick() {
 }
 
 function onCsvUpdate(csvData: KeyValueArray) {
-  let isCSVValid = dataTableEl.value.validateCSV(csvData);
+  const isCSVValid = dataTableEl.value.validateCSV(csvData)
 
   // Do not update the data table if the CSV is invalid
   if (!isCSVValid) {
@@ -101,10 +101,10 @@ async function getGeneratedCartogram() {
   })
   progressModal.show()
 
-  var csvData = await dataTableEl.value.getCSV()
+  const csvData = await dataTableEl.value.getCSV()
 
   await new Promise<any>(function (resolve, reject) {
-    var req_body = JSON.stringify({
+    const req_body = JSON.stringify({
       title: state.title,
       scheme: state.colorScheme,
       handler: state.handler,
@@ -115,7 +115,7 @@ async function getGeneratedCartogram() {
       editedFrom: props.geoUrl
     })
 
-    var progressUpdater = window.setInterval(
+    const progressUpdater = window.setInterval(
       (function (key) {
         return function () {
           HTTP.get(

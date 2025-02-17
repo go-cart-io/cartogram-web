@@ -73,6 +73,7 @@ function changeScheme(scheme: string) {
               v-for="color in schemeObject[scheme]"
               v-bind:title="color"
               v-bind:style="'background: ' + color"
+              v-bind:key="color"
             ></div>
           </div>
           <span class="ms-2" v-bind:class="{ 'text-white': scheme === state.scheme }">{{

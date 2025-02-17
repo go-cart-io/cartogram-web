@@ -18,15 +18,15 @@ export default class TouchInfo {
         return // Just assume the first pointer as thumb
 
       case 3:
-        let d01 = Math.hypot(
+        const d01 = Math.hypot(
           this.getTouchId(this.touchIds[1]).pageY - this.getTouchId(this.touchIds[0]).pageY,
           this.getTouchId(this.touchIds[1]).pageX - this.getTouchId(this.touchIds[0]).pageX
         )
-        let d12 = Math.hypot(
+        const d12 = Math.hypot(
           this.getTouchId(this.touchIds[2]).pageY - this.getTouchId(this.touchIds[1]).pageY,
           this.getTouchId(this.touchIds[2]).pageX - this.getTouchId(this.touchIds[1]).pageX
         )
-        let d20 = Math.hypot(
+        const d20 = Math.hypot(
           this.getTouchId(this.touchIds[0]).pageY - this.getTouchId(this.touchIds[2]).pageY,
           this.getTouchId(this.touchIds[0]).pageX - this.getTouchId(this.touchIds[2]).pageX
         )
@@ -77,8 +77,8 @@ export default class TouchInfo {
   }
 
   getAllPoints(ofsetX: number = 0, ofsetY: number = 0): number[][] {
-    let points = [] as number[][]
-    this.touches.forEach((touch, key) => {
+    const points = [] as number[][]
+    this.touches.forEach((touch) => {
       points.push([touch.pageX - ofsetX, touch.pageY - ofsetY])
     })
 
@@ -90,7 +90,9 @@ export default class TouchInfo {
       if (this.touches.size === 1) return [this.getThumb(ofsetX, ofsetY)]
       else if (this.touches.size > 1)
         return [this.getThumb(ofsetX, ofsetY), this.getOthers(ofsetX, ofsetY)]
-    } catch (err) {}
+    } catch (err) {
+      console.error(err)
+    }
     return []
   }
 

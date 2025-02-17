@@ -13,7 +13,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['changed'])
 const fileEl = ref()
-var geojsonData = {} as FeatureCollection
+let geojsonData = {} as FeatureCollection
 
 const state = reactive({
   isLoading: false,
@@ -23,13 +23,13 @@ const state = reactive({
   geojsonRegionCol: ''
 })
 
-async function loadGeoJson(event: Event) {
+async function loadGeoJson() {
   fileEl.value.value = null
   geojsonData = {} as FeatureCollection
   state.geojsonUniqueProperties = []
   if (!state.handler) return
 
-  var basedUrl = '/static/cartdata/' + state.handler
+  const basedUrl = '/static/cartdata/' + state.handler
   HTTP.get(basedUrl + '/Geographic Area.json').then(function (response: any) {
     state.geojsonRegionCol = 'Region'
     emit('changed', state.handler, response, state.geojsonRegionCol, basedUrl + '/data.csv')
@@ -46,7 +46,7 @@ async function uploadGeoJson(event: Event) {
   const formData = new FormData()
   formData.append('file', files[0])
 
-  var response = await new Promise<any>(function (resolve, reject) {
+  const response = await new Promise<any>(function (resolve, reject) {
     HTTP.post('/api/v1/cartogram/preprocess/' + props.mapDBKey, formData).then(
       function (response: any) {
         resolve(response)
@@ -63,7 +63,7 @@ async function uploadGeoJson(event: Event) {
   })
 
   if (!response || !response.geojson) return
-  var geojson = response.geojson
+  const geojson = response.geojson
   // Check whether the GeoJSON contains any polygons or multipolygons and remove all other objects.
   if (!geojson || !geojson.features) {
     state.error = 'Invalid geospatial file'
@@ -95,7 +95,7 @@ async function uploadGeoJson(event: Event) {
 
         <select class="form-select" v-model="state.handler" v-on:change="loadGeoJson">
           <option></option>
-          <option v-for="(mapItem, mapKey) in props.maps" v-bind:value="mapKey">
+          <option v-for="(mapItem, mapKey) in props.maps" v-bind:value="mapKey" v-bind:key="mapKey">
             {{ mapItem.name }}
           </option>
         </select>
@@ -124,7 +124,7 @@ async function uploadGeoJson(event: Event) {
           v-model="state.geojsonRegionCol"
           v-on:change="emit('changed', state.handler, geojsonData, state.geojsonRegionCol)"
         >
-          <option v-for="(item, index) in state.geojsonUniqueProperties">
+          <option v-for="(item, index) in state.geojsonUniqueProperties" v-bind:key="index">
             {{ item }}
           </option>
         </select>
