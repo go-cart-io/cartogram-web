@@ -3,7 +3,7 @@ import { reactive, ref, onMounted, watch } from 'vue'
 import TouchInfo from '../lib/touchInfo'
 
 const svgEl = ref()
-var posX = 0,
+let posX = 0,
   posY = 0
 
 const props = defineProps<{
@@ -17,7 +17,7 @@ const state = reactive({
 })
 
 onMounted(() => {
-  let pos = svgEl.value.getBoundingClientRect()
+  const pos = svgEl.value.getBoundingClientRect()
   posX = pos.left
   posY = pos.top
   updatePoints()
@@ -25,7 +25,7 @@ onMounted(() => {
 
 watch(
   () => props.touchLenght,
-  (touchLenght, prevTouchLenght) => {
+  () => {
     updatePoints()
   }
 )
@@ -48,7 +48,7 @@ function updatePoints() {
 
 <template>
   <svg ref="svgEl" class="w-100 h-100 position-absolute z-3" style="pointer-events: none">
-    <g v-for="(point, index) in state.points">
+    <g v-for="(point, index) in state.points" v-bind:key="index">
       <circle v-bind:cx="point[0]" v-bind:cy="point[1]" fill="blue" r="5" />
     </g>
     <g v-if="state.line.length > 0">

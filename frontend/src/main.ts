@@ -2,9 +2,9 @@
 import 'vite/modulepreload-polyfill'
 import './assets/main.css'
 
-import { createApp, provide } from 'vue'
+import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import App from './viewer/components/Cartogram.vue'
+import App from './viewer/components/CartogramViewer.vue'
 import CartogramMaker from './maker/components/CartogramMaker.vue'
 import './assets/styles.scss'
 

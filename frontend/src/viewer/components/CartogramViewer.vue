@@ -61,10 +61,11 @@ async function switchMap() {
         store.options.numberOfPanels === 1
           ? state.versionKeys[state.versionKeys.length - 1]
           : index === 1
-          ? state.versionKeys[0]
-          : state.versionKeys[state.versionKeys.length - 1]
+            ? state.versionKeys[0]
+            : state.versionKeys[state.versionKeys.length - 1]
       "
       v-bind:mapDBKey="props.mapDBKey"
+      v-bind:key="index"
     />
   </div>
 </template>

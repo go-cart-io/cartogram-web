@@ -93,12 +93,12 @@ export function mergeObjInArray(baseData: KeyValueArray, newData: KeyValueArray,
 }
 
 export function tableToArray(dataTable: DataTable): KeyValueArray {
-  var data = [] as KeyValueArray
-  for (var i = 0; i < dataTable.items.length; i++) {
+  const data = [] as KeyValueArray
+  for (let i = 0; i < dataTable.items.length; i++) {
     data[i] = {}
-    for (var j = 0; j < dataTable.fields.length; j++) {
+    for (let j = 0; j < dataTable.fields.length; j++) {
       if (dataTable.fields[j].show || dataTable.fields[j].name === 'ColorGroup') {
-        let newLabel = dataTable.fields[j].unit
+        const newLabel = dataTable.fields[j].unit
           ? dataTable.fields[j].name + ' (' + dataTable.fields[j].unit + ')'
           : dataTable.fields[j].name
         data[i][newLabel] = dataTable.items[i][dataTable.fields[j].label]
@@ -112,21 +112,22 @@ export function propertiesToArray(geojsonData: FeatureCollection): KeyValueArray
   if (!geojsonData.features) return []
 
   return geojsonData.features.map((item: Feature) => {
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     const { properties, ...rest } = item
     return properties ? properties : []
   }) as KeyValueArray
 }
 
 export function getNameUnit(label: string): [string, string] {
-  let unitMatch = label.match(/\(([^)]+)\)$/)
-  let unit = unitMatch ? unitMatch[1].trim() : ''
-  let name = label.replace('(' + unit + ')', '').trim()
+  const unitMatch = label.match(/\(([^)]+)\)$/)
+  const unit = unitMatch ? unitMatch[1].trim() : ''
+  const name = label.replace('(' + unit + ')', '').trim()
   return [name, unit]
 }
 
 export async function getGeneratedCSV(dataTable: DataTable, isGetFile = false) {
-  var data = tableToArray(dataTable)
-  var csv = d3.csvFormat(data)
+  const data = tableToArray(dataTable)
+  const csv = d3.csvFormat(data)
   if (!isGetFile) return csv
 
   const blob = new Blob([csv], { type: 'text/csv' })

@@ -88,7 +88,7 @@ function onMapChanged(data: any) {
               </div>
               <div class="col-4 text-end">
                 <select class="form-select" v-model="store.options.numberOfPanels">
-                  <option v-for="number in [1, 2, 3, 4, 5]" :key="number" :value="number">
+                  <option v-for="number in [1, 2, 3, 4, 5]" v-bind:key="number" v-bind:value="number">
                     {{ number }}
                   </option>
                 </select>
