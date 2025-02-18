@@ -64,8 +64,8 @@ async function uploadCsvData(event: Event) {
         id="csvInput"
         type="file"
         accept="text/csv,.csv,.xlsx,.xls"
-        :disabled="props.disabled"
-        @change="uploadCsvData"
+        v-bind:disabled="props.disabled"
+        v-on:change="uploadCsvData"
       />
       <div v-if="selectedFileName"><strong>Selected file:</strong> {{ selectedFileName }}</div>
     </div>

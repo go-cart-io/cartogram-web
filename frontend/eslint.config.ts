@@ -37,7 +37,10 @@ export default defineConfigWithVueTs(
   {
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/ban-ts-comment': 'off'
+      '@typescript-eslint/ban-ts-comment': 'off',
+      'vue/v-on-style': ['error', 'longform'],
+      'vue/v-bind-style': ['error', 'longform'],
+      'vue/v-slot-style': ['error', 'longform']
     }
   }
 )

@@ -274,7 +274,7 @@ async function getGeneratedCartogram() {
           <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100">
             <div
               class="progress-bar bg-primary"
-              :style="{ width: state.loadingProgress + '%' }"
+              v-bind:style="{ width: state.loadingProgress + '%' }"
             ></div>
           </div>
         </div>
