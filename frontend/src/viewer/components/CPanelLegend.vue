@@ -440,7 +440,7 @@ function highlight(itemID: any) {
     </div>
 
     <div v-bind:id="props.panelID" class="d-flex flex-fill position-relative">
-      <div>
+      <div style="mix-blend-mode: multiply">
         <div v-bind:id="props.panelID + '-offscreen'" class="vis-area offscreen"></div>
         <div v-bind:id="props.panelID + '-vis'" class="vis-area"></div>
         <slot></slot>
