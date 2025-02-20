@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import type { FeatureCollection } from 'geojson'
 
-import { reactive, watch } from 'vue'
+import { onMounted, onUpdated, nextTick, reactive, watch } from 'vue'
 import embed, { type VisualizationSpec } from 'vega-embed'
 
 import type { KeyValueArray, DataTable } from '../lib/interface'
 import spec from '../../assets/template.vg.json' with { type: 'json' }
 import * as config from '../../common/config'
+import { Tooltip } from 'bootstrap'
+
+import 'bootstrap/dist/css/bootstrap.min.css'
 import * as util from '../lib/util'
 
 const versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
@@ -50,6 +53,30 @@ watch(
     state.dataTable.fields[config.COL_INSET].show = props.useInset
   }
 )
+
+// Make sure the tooltips appear immediately upon hover.
+function initTooltips() {
+  nextTick(() => {
+    const tooltipElements = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    tooltipElements.forEach((el) => {
+      Tooltip.getInstance(el)?.dispose()
+      // Create a new instance with no delay, no animation, and attach to body.
+      const instance = new Tooltip(el, {
+        delay: { show: 0, hide: 0 },
+        animation: false,
+        container: 'body'
+      })
+    })
+  })
+}
+
+onMounted(() => {
+  initTooltips()
+})
+
+onUpdated(() => {
+  initTooltips()
+})
 
 function reset() {
   state.dataTable.items = []
@@ -311,10 +338,12 @@ function onValueChange(rIndex: number, label: string, event: Event) {
               v-show="field.show"
               v-bind:key="index"
             >
-              <!-- Wrap header content in a container for tooltip -->
               <div
-                class="header-cell"
-                v-bind:class="{ 'header-error': field.label === 'Region' && field.headerError }"
+                class="position-relative d-inline-block"
+                v-bind:class="{ 'bg-danger-subtle': field.label === 'Region' && field.headerError }"
+                data-bs-toggle="tooltip"
+                data-bs-delay='{"show": 0, "hide": 0}'
+                v-bind:title="field.errorMessage"
               >
                 <span v-if="!field.editableHead">{{ field.label }}</span>
                 <div v-else>
@@ -338,10 +367,6 @@ function onValueChange(rIndex: number, label: string, event: Event) {
                     placeholder="Unit"
                   />
                 </div>
-                <!-- Tooltip for header error -->
-                <div v-if="field.label === 'Region' && field.headerError" class="tooltip">
-                  {{ field.errorMessage }}
-                </div>
               </div>
             </th>
           </tr>
@@ -353,8 +378,11 @@ function onValueChange(rIndex: number, label: string, event: Event) {
             v-bind:key="index"
           >
             <div
-              class="cell-content"
-              v-bind:class="{ 'error-cell': field.label === 'Region' && row.regionError }"
+              class="position-relative d-inline-block"
+              v-bind:class="{ 'bg-danger-subtle': field.label === 'Region' && row.regionError }"
+              data-bs-toggle="tooltip"
+              data-bs-delay='{"show": 0, "hide": 0}'
+              v-bind:title="row.regionError"
             >
               <span v-if="!field.editable">{{ row[field.label] }}</span>
               <select
@@ -377,10 +405,6 @@ function onValueChange(rIndex: number, label: string, event: Event) {
                 v-bind:value="state.dataTable.items[rIndex][field.label]"
                 v-on:change="($event: any) => onValueChange(rIndex, field.label, $event)"
               />
-              <!-- Tooltip for cell error -->
-              <div v-if="field.label === 'Region' && row.regionError" class="tooltip">
-                {{ row.regionError }}
-              </div>
             </div>
           </td>
         </tr>
@@ -409,49 +433,5 @@ table input[type='color'] {
 
 .btn-icon {
   cursor: pointer;
-}
-
-/* Header error highlighting */
-.header-error {
-  background-color: #f8d7da;
-  /* Light red background */
-}
-
-/* Cell error highlighting */
-.error-cell {
-  background-color: #f8d7da;
-}
-
-/* Tooltip container styles */
-.header-cell,
-.cell-content {
-  position: relative;
-  display: inline-block;
-}
-
-/* Tooltip styling */
-.tooltip {
-  visibility: hidden;
-  background-color: #333;
-  color: #fff;
-  text-align: left;
-  padding: 4px;
-  border-radius: 4px;
-  position: absolute;
-  z-index: 10;
-  left: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  white-space: nowrap;
-  opacity: 0;
-  transition: opacity 0s;
-}
-
-/* Show tooltip immediately on hover */
-.header-cell:hover .tooltip,
-.cell-content:hover .tooltip {
-  visibility: visible;
-  opacity: 1;
-  transition: opacity 0s;
 }
 </style>
