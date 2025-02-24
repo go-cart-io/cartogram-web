@@ -64,14 +64,14 @@ export default class HTTP {
    * @param {string} url The URL of the POST request
    * @param {any} form_data The body or form data of the POST request
    * @param {Object} headers The headers of the POST request
-   * @param {number} timeout The timeout, in seconds, of the GET request
+   * @param {number} timeout The timeout, in milliseconds, of the GET request
    * @returns {Promise<Object|string>} A promise to the HTTP response
    */
   static post(
     url: string,
     form_data: any,
     headers: { [key: string]: any } = {},
-    timeout: number = 180000 // 3 minutes
+    timeout: number = 600000 // 10 minutes
   ): Promise<Object | string> {
     return new Promise(function (resolve, reject) {
       var xhttp = new XMLHttpRequest()
