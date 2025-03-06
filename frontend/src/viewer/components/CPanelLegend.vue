@@ -9,6 +9,7 @@ import * as d3 from 'd3'
 // import { geoCylindricalEqualArea } from "d3-geo-projection"
 import * as vega from 'vega'
 import embed, { type VisualizationSpec } from 'vega-embed'
+import { formatValue } from 'vega-tooltip'
 
 import * as util from '../lib/util'
 
@@ -115,7 +116,26 @@ onMounted(async () => {
 
   visEl = d3.select('#' + props.panelID + '-vis')
   offscreenEl = d3.select('#' + props.panelID + '-offscreen')
-  let container = await embed('#' + props.panelID + '-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
+  var tooltipOptions = {
+    formatTooltip: (value: any, sanitize: any) => {
+      // Create a shallow copy of the value object with formatted numbers.
+      const newValues: any = {};
+      for (const [key, val] of Object.entries(value)) {
+        const num = Number(val);
+        if (!isNaN(num)) {
+          newValues[key] =
+            num >= 1e6
+              ? (num / 1e6).toFixed(3) + " million"
+              : new Intl.NumberFormat(LOCALE).format(num);
+        } else {
+          newValues[key] = val;
+        }
+      }
+      // Delegate to the default formatter to keep their HTML structure.
+      return formatValue(newValues, sanitize, 0);
+    }
+  };
+  let container = await embed('#' + props.panelID + '-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false, tooltip: tooltipOptions })
   visView = container.view
 
   let [area, sum] = util.getTotalAreasAndValuesForVersion(state.version.header, visView.data('geo_1'), visView.data('source_csv'))
