@@ -122,6 +122,11 @@ onMounted(async () => {
       // Create a shallow copy of the value object with formatted numbers.
       const newValues: any = {};
       for (const [key, val] of Object.entries(value)) {
+
+        // Skip the 'ColorGroup' key.
+        if (key === 'ColorGroup') {
+          continue;
+        }
         const num = Number(val);
         if (!isNaN(num)) {
           newValues[key] =
