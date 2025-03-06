@@ -117,6 +117,7 @@ onMounted(async () => {
   visEl = d3.select('#' + props.panelID + '-vis')
   offscreenEl = d3.select('#' + props.panelID + '-offscreen')
   var tooltipOptions = {
+    theme: 'dark',
     formatTooltip: (value: any, sanitize: any) => {
       // Create a shallow copy of the value object with formatted numbers.
       const newValues: any = {};
