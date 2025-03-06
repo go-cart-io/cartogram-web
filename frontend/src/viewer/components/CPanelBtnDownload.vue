@@ -55,9 +55,11 @@ function downloadSVG() {
   mapAreaSVG.appendChild(document.getElementById(props.panelID + '-grid-area')!.cloneNode(true))
 
   const a = document.createElement('a')
-  a.href =
-    'data:image/svg+xml;base64,' +
-    window.btoa(svg_header + mapAreaSVG.outerHTML.replace(/×/g, '&#xD7;'))
+
+  const svgBlob = new Blob([svg_header + mapAreaSVG.outerHTML.replace(/×/g, '&#xD7;')], { type: 'image/svg+xml;charset=utf-8' })
+  const url = URL.createObjectURL(svgBlob)
+  a.href = url
+
   a.download = store.versions[props.versionKey].name + '.svg'
   document.body.appendChild(a)
   a.click()
