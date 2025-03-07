@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import * as util from '../lib/util'
-var citation =
+const citation =
   'Gastner MT, Seguy V, More P. Fast low-based algorithm for creating density-equalizing map projections. Proc Natl Acad Sci USA 115(10):E2156–E2164 (2018).'
 </script>
 

@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest'
-import type { FeatureCollection } from 'geojson'
 import * as util from '../src/maker/lib/util'
 
 describe('maker.lib.util', () => {
@@ -54,7 +53,6 @@ describe('maker.lib.util', () => {
         { name: 'Bob', age: 'unknown', active: false },
         { name: 'Cat', age: '25', active: false }
       ]
-      const type = 'number'
       const except = ['name']
       const result = util.filterKeyValueInArray(data, except)
       expect(result).toEqual([
@@ -70,7 +68,6 @@ describe('maker.lib.util', () => {
         { name: 'Bob', age: 'unknown', active: false },
         { name: 'Cat', age: '25', active: false }
       ]
-      const type = 'number'
       const except = ['name']
       const result = util.filterKeyValueInArray(data, except, null)
       expect(result).toEqual([{ name: 'Alice' }, { name: 'Bob' }, { name: 'Cat' }])

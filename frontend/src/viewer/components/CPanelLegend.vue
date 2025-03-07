@@ -5,15 +5,12 @@
 
 import { onMounted, nextTick, reactive, ref, watch, inject } from 'vue'
 import * as d3 from 'd3'
-// @ts-ignore
-// import { geoCylindricalEqualArea } from "d3-geo-projection"
-import * as vega from 'vega'
 import embed, { type VisualizationSpec } from 'vega-embed'
 import { formatValue } from 'vega-tooltip'
 
 import * as util from '../lib/util'
 
-import spec from '../../assets/template.vg.json' with { type: "json" }
+import spec from '../../assets/template.vg.json' with { type: 'json' }
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
@@ -24,15 +21,15 @@ const LOCALE =
 const DEFAULT_OPACITY = 0.3
 const COLOR_SCHEME = inject('colorScheme')
 
-var versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
+const versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
 const legendSvgEl = ref()
-var visEl: any
-var offscreenEl: any
-var visView: any
-var totalArea: number
-var totalValue: number
-var handlePointerId = -1
-var handlePointerPosition = 0
+let visEl: any
+let offscreenEl: any
+let visView: any
+let totalArea: number
+let totalValue: number
+let handlePointerId = -1
+let handlePointerPosition = 0
 
 const props = withDefaults(
   defineProps<{
@@ -71,7 +68,7 @@ const emit = defineEmits(['gridChanged', 'versionUpdated'])
 
 watch(
   () => props.versionKey,
-  (newValue, oldValue) => {
+  () => {
     state.version = store.versions[props.versionKey]
     switchVersion()
   }
@@ -79,21 +76,21 @@ watch(
 
 watch(
   () => store.highlightedRegionID,
-  (id, prevID) => {
+  (id) => {
     highlight(id)
   }
 )
 
 watch(
   () => store.options.numberOfPanels,
-  (id, prevID) => {
+  () => {
     resizeViewWidth()
   }
 )
 
 watch(
   () => props.affineScale,
-  (newValue, oldValue) => {
+  () => {
     formatLegendValue()
   },
   { deep: true }
@@ -102,9 +99,14 @@ watch(
 onMounted(async () => {
   if (!state.version) return
 
-  versionSpec.signals[3]['value'] = (!COLOR_SCHEME || COLOR_SCHEME === 'custom') ? 'pastel1' : COLOR_SCHEME
+  versionSpec.signals[3]['value'] =
+    !COLOR_SCHEME || COLOR_SCHEME === 'custom' ? 'pastel1' : COLOR_SCHEME
   versionSpec.data[0].url = util.getGeojsonURL(store.currentMapName, props.mapDBKey, 'data.csv')
-  versionSpec.data[1].url = util.getGeojsonURL(store.currentMapName, props.mapDBKey, state.version.name + '.json')
+  versionSpec.data[1].url = util.getGeojsonURL(
+    store.currentMapName,
+    props.mapDBKey,
+    state.version.name + '.json'
+  )
 
   // if (store.currentMapName === "world" && state.version.name === 'Geographic Area') {
   //   // Gall–Peters projection
@@ -148,24 +150,28 @@ onMounted(async () => {
       return formatValue(newValues, sanitize, 0);
     }
   };
-  let container = await embed('#' + props.panelID + '-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false, tooltip: tooltipOptions })
+  const container = await embed('#' + props.panelID + '-vis', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false, tooltip: tooltipOptions })
   visView = container.view
 
-  let [area, sum] = util.getTotalAreasAndValuesForVersion(state.version.header, visView.data('geo_1'), visView.data('source_csv'))
+  const [area, sum] = util.getTotalAreasAndValuesForVersion(
+    state.version.header,
+    visView.data('geo_1'),
+    visView.data('source_csv')
+  )
   totalArea = area
   totalValue = sum
 
-  visView.addResizeListener(function() {
+  visView.addResizeListener(function () {
     totalArea = util.getTotalAreas(visView.data('geo_1'))
     update()
   })
 
-  visView.addSignalListener('active', function(name: string, value: any) {
+  visView.addSignalListener('active', function (name: string, value: any) {
     store.highlightedRegionID = value
   })
 
-  visView.addEventListener('pointerup', function(event: any, item: any) {
-    let value = item?.datum.cartogram_data
+  visView.addEventListener('pointerup', function (event: any, item: any) {
+    const value = item?.datum.cartogram_data
     visView.tooltip()(visView, event, item, value)
   })
 
@@ -173,11 +179,23 @@ onMounted(async () => {
 })
 
 async function switchVersion() {
-  versionSpec.data[1].url = util.getGeojsonURL(store.currentMapName, props.mapDBKey, state.version.name + '.json')
+  versionSpec.data[1].url = util.getGeojsonURL(
+    store.currentMapName,
+    props.mapDBKey,
+    state.version.name + '.json'
+  )
 
-  var transitions = 0
-  let container = await embed('#' + props.panelID + '-offscreen', <VisualizationSpec> versionSpec, { renderer: 'svg', "actions": false })
-  let [area, sum] = util.getTotalAreasAndValuesForVersion(state.version.header, container.view.data('geo_1'), container.view.data('source_csv'))
+  let transitions = 0
+  const container = await embed(
+    '#' + props.panelID + '-offscreen',
+    <VisualizationSpec>versionSpec,
+    { renderer: 'svg', actions: false }
+  )
+  const [area, sum] = util.getTotalAreasAndValuesForVersion(
+    state.version.header,
+    container.view.data('geo_1'),
+    container.view.data('source_csv')
+  )
   totalArea = area
   totalValue = sum
   update()
@@ -189,23 +207,41 @@ async function switchVersion() {
   }
 
   visEl.selectAll('path[aria-roledescription="geoshape"]').each(function (this: any) {
-    let geoID = d3.select(this).attr('aria-label')
-    let labelID = geoID.replace("geoshape", "geolabel")
+    const geoID = d3.select(this).attr('aria-label')
+    const labelID = geoID.replace('geoshape', 'geolabel')
 
-    let newD = offscreenEl.select('path[aria-label="' + geoID + '"]').attr('d')
-    d3.select(this).transition().ease(d3.easeCubic).duration(1000).attr('d', newD)
-      .on("start", function() { transitions++ })
-      .on( "end", function() { if( --transitions === 0 ) finalize() })
+    const newD = offscreenEl.select('path[aria-label="' + geoID + '"]').attr('d')
+    d3.select(this)
+      .transition()
+      .ease(d3.easeCubic)
+      .duration(1000)
+      .attr('d', newD)
+      .on('start', function () {
+        transitions++
+      })
+      .on('end', function () {
+        if (--transitions === 0) finalize()
+      })
 
     if (!labelID || labelID === 'dividers') return
-    let labelEl =  offscreenEl.select('text[aria-label="' + labelID + '"]')
-    let newLabelPos = labelEl.attr('transform')
-    let newLabelOpacity = labelEl.attr('opacity')
-    let newLabelSize = labelEl.attr('font-size')
-    visEl.select('text[aria-label="' + labelID + '"]').transition().ease(d3.easeCubic).duration(1000)
-      .attr('transform', newLabelPos).attr('opacity', newLabelOpacity).attr('font-size', newLabelSize)
-      .on("start", function() { transitions++ })
-      .on( "end", function() { if( --transitions === 0 ) finalize() })
+    const labelEl = offscreenEl.select('text[aria-label="' + labelID + '"]')
+    const newLabelPos = labelEl.attr('transform')
+    const newLabelOpacity = labelEl.attr('opacity')
+    const newLabelSize = labelEl.attr('font-size')
+    visEl
+      .select('text[aria-label="' + labelID + '"]')
+      .transition()
+      .ease(d3.easeCubic)
+      .duration(1000)
+      .attr('transform', newLabelPos)
+      .attr('opacity', newLabelOpacity)
+      .attr('font-size', newLabelSize)
+      .on('start', function () {
+        transitions++
+      })
+      .on('end', function () {
+        if (--transitions === 0) finalize()
+      })
   })
 }
 
@@ -242,16 +278,16 @@ function getLegendData() {
     valuePerSquare *= 2
     baseWidth = Math.sqrt(valuePerSquare / valuePerPixel)
   }
-  let width = [] as Array<number>
-  let [scaleNiceNumber0, scalePowerOf10] = util.findNearestNiceNumber(valuePerSquare)
-  let niceIndex = util.NICE_NUMBERS.indexOf(scaleNiceNumber0)
+  const width = [] as Array<number>
+  const [scaleNiceNumber0, scalePowerOf10] = util.findNearestNiceNumber(valuePerSquare)
+  const niceIndex = util.NICE_NUMBERS.indexOf(scaleNiceNumber0)
   let beginIndex = niceIndex === 0 ? niceIndex : niceIndex - 1
   let endIndex = beginIndex + NUM_GRID_OPTIONS + 1
   while (endIndex >= util.NICE_NUMBERS.length && beginIndex > 0) {
     endIndex--
     beginIndex--
   }
-  let scaleNiceNumber = util.NICE_NUMBERS.slice(beginIndex, endIndex)
+  const scaleNiceNumber = util.NICE_NUMBERS.slice(beginIndex, endIndex)
   for (let i = 0; i <= NUM_GRID_OPTIONS; i++) {
     width[i] =
       baseWidth * Math.sqrt((scaleNiceNumber[i] * Math.pow(10, scalePowerOf10)) / valuePerSquare)
@@ -299,8 +335,8 @@ function onHandleDown(event: PointerEvent) {
 function onHandleMove(event: PointerEvent) {
   if (handlePointerId !== event.pointerId) return
 
-  var direction = event.pageX - handlePointerPosition
-  var pos = state.handlePosition + direction
+  const direction = event.pageX - handlePointerPosition
+  const pos = state.handlePosition + direction
   state.handlePosition = Math.max(0, Math.min(pos, state.gridData[NUM_GRID_OPTIONS].width))
   handlePointerPosition = event.pageX
 }
@@ -310,10 +346,10 @@ function onHandleUp(event: any) {
   legendSvgEl.value.releasePointerCapture(event.pointerId)
   handlePointerId = -1
 
-  var key = 0
-  var minDiff = Number.MAX_VALUE
+  let key = 0
+  let minDiff = Number.MAX_VALUE
   for (let i = 0; i <= NUM_GRID_OPTIONS; i++) {
-    var diff = Math.abs(state.handlePosition - state.gridData[i]['width'])
+    const diff = Math.abs(state.handlePosition - state.gridData[i]['width'])
     if (diff < minDiff) {
       minDiff = diff
       key = i
@@ -332,7 +368,7 @@ function formatLegendValue() {
 }
 
 function formatLegendText(value: number, scalePowerOf10: number): string {
-  let originalValue = value * Math.pow(10, scalePowerOf10)
+  const originalValue = value * Math.pow(10, scalePowerOf10)
   const formatter = Intl.NumberFormat(LOCALE, {
     notation: 'compact',
     compactDisplay: 'short'
@@ -350,7 +386,7 @@ function drawGridLines() {
 
 function updateGridLines(gridWidth: number) {
   if (isNaN(gridWidth)) return
-  let stroke_opacity = store.options.showGrid ? DEFAULT_OPACITY : 0
+  const stroke_opacity = store.options.showGrid ? DEFAULT_OPACITY : 0
   const gridPattern = d3.select('#' + props.panelID + '-grid')
   gridPattern
     .select('path')
@@ -394,11 +430,12 @@ function highlight(itemID: any) {
       >
         <line x1="0" y1="15" v-bind:x2="state.gridData[NUM_GRID_OPTIONS].width" y2="15"></line>
         <line
-          v-for="grid in state.gridData"
+          v-for="(grid, index) in state.gridData"
           v-bind:x1="grid.width"
           y1="8"
           v-bind:x2="grid.width"
           y2="16"
+          v-bind:key="index"
         ></line>
         <circle id="handle" r="5" v-bind:cx="state.handlePosition" cy="15" stroke-width="0px" />
       </svg>
@@ -415,6 +452,7 @@ function highlight(itemID: any) {
           stroke-width="2px"
           fill="#EEEEEE"
           stroke="#AAAAAA"
+          v-bind:key="key"
         >
           <rect
             x="1"
@@ -432,7 +470,7 @@ function highlight(itemID: any) {
     </div>
 
     <div v-bind:id="props.panelID" class="d-flex flex-fill position-relative">
-      <div>
+      <div style="mix-blend-mode: multiply">
         <div v-bind:id="props.panelID + '-offscreen'" class="vis-area offscreen"></div>
         <div v-bind:id="props.panelID + '-vis'" class="vis-area"></div>
         <slot></slot>

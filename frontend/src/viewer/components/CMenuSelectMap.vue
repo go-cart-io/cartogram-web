@@ -19,26 +19,26 @@ const emit = defineEmits(['map_changed'])
 let mapDataURL: string | null
 
 onMounted(async () => {
-  const urlParams = new URLSearchParams(window.location.search)
+  // const urlParams = new URLSearchParams(window.location.search)
   mapDataURL = null //urlParams.get('url') //TODO: enable only when there is schema verification
   switchMap()
 })
 
 async function switchMap() {
-  var url = mapDataURL
+  const url = mapDataURL
     ? mapDataURL
     : props.mapDBKey
-    ? '/static/userdata/' + props.mapDBKey + '/data.csv'
-    : '/static/cartdata/' + store.currentMapName + '/data.csv'
+      ? '/static/userdata/' + props.mapDBKey + '/data.csv'
+      : '/static/cartdata/' + store.currentMapName + '/data.csv'
 
-  let csvdata = await d3.csv(url)
+  const csvdata = await d3.csv(url)
   store.versions = {}
   for (let i = 0; i < csvdata.columns.length; i++) {
     if (RESERVE_FIELDS.includes(csvdata.columns[i])) continue
 
-    let unitMatch = csvdata.columns[i].match(/\(([^)]+)\)$/)
-    let unit = unitMatch ? unitMatch[1].trim() : ''
-    let name = csvdata.columns[i].replace('(' + unit + ')', '').trim()
+    const unitMatch = csvdata.columns[i].match(/\(([^)]+)\)$/)
+    const unit = unitMatch ? unitMatch[1].trim() : ''
+    const name = csvdata.columns[i].replace('(' + unit + ')', '').trim()
     store.versions[i.toString()] = {
       key: i.toString(),
       header: csvdata.columns[i],
@@ -59,7 +59,7 @@ async function switchMap() {
       v-model="store.currentMapName"
       v-on:change="switchMap"
     >
-      <option v-for="(mapItem, mapKey) in props.maps" v-bind:value="mapKey">
+      <option v-for="(mapItem, mapKey) in props.maps" v-bind:value="mapKey" v-bind:key="mapKey">
         {{ mapItem.name }}
       </option>
     </select>

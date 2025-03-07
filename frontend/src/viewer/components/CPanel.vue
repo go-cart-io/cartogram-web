@@ -13,11 +13,11 @@ import CPanelLegend from './CPanelLegend.vue'
 import CPanelSelectVersion from './CPanelSelectVersion.vue'
 import CPanelBtnDownload from './CPanelBtnDownload.vue'
 
-let touchInfo = new TouchInfo()
-var pointerangle: number | boolean, // (A)
+const touchInfo = new TouchInfo()
+let pointerangle: number | boolean, // (A)
   pointerposition: number[] | null, // (B)
   pointerdistance: number | boolean // (C)
-var lastTouch = 0
+let lastTouch = 0
 
 const DELAY_THRESHOLD = 300
 const SUPPORT_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints
@@ -51,8 +51,8 @@ function onPointerdown(event: any) {
   touchInfo.set(event)
   state.touchLenght = touchInfo.length()
 
-  var now = new Date().getTime()
-  var timesince = now - lastTouch
+  const now = new Date().getTime()
+  const timesince = now - lastTouch
   if (touchInfo.length() === 1 && timesince < DELAY_THRESHOLD && timesince > 0) {
     // Double tap
     transformReset()
@@ -96,11 +96,11 @@ function onPointermove(event: any) {
   legendEl.value.$el.setPointerCapture(event.pointerId)
 
   const t = touchInfo.getMergedPoints()
-  var matrix = util.getOriginalMatrix()
-  var angle = 0
-  var position = [0, 0]
-  var scale = [1, 1]
-  var now = new Date().getTime()
+  let matrix = util.getOriginalMatrix()
+  let angle = 0
+  const position = [0, 0]
+  const scale = [1, 1]
+  const now = new Date().getTime()
 
   // Order should be rotate, scale, translate
   // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
@@ -109,14 +109,14 @@ function onPointermove(event: any) {
     (touchInfo.length() === 3 || (touchInfo.length() === 2 && !state.isLockRatio))
   ) {
     // rotate
-    var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
+    const pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
     if (pointerangle && typeof pointerangle === 'number') angle = pointerangle2 - pointerangle
     else angle = 0
     pointerangle = pointerangle2
     matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
 
     // stretch
-    var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
+    const pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
     if (pointerdistance && typeof pointerdistance === 'number')
       scale[0] = pointerdistance2 / pointerdistance
     else scale[0] = 0
@@ -130,14 +130,14 @@ function onPointermove(event: any) {
   } else if (t.length > 1) {
     // (B) rotate
     if (pointerangle && typeof pointerangle === 'number') {
-      var pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
+      const pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
       angle = pointerangle2 - pointerangle
       pointerangle = pointerangle2
       matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
     }
     // (C) scale
     if (pointerdistance && typeof pointerdistance === 'number') {
-      var pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
+      const pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
       scale[0] = pointerdistance2 / pointerdistance
       scale[1] = pointerdistance2 / pointerdistance
       state.affineScale[0] *= scale[0]
@@ -148,10 +148,10 @@ function onPointermove(event: any) {
     }
   }
 
-  var timesince = now - lastTouch
+  const timesince = now - lastTouch
   if (touchInfo.length() > 1 || (touchInfo.length() === 1 && timesince > DELAY_THRESHOLD)) {
     // (A) translate
-    var pointerposition2 = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0]
+    const pointerposition2 = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0]
     position[0] = pointerposition2[0] - pointerposition[0]
     position[1] = pointerposition2[1] - pointerposition[1]
     pointerposition = pointerposition2
@@ -164,12 +164,12 @@ function onPointermove(event: any) {
 }
 
 function onWheel(event: any) {
-  var matrix: Array<Array<number>> = []
+  let matrix: Array<Array<number>> = []
   if (event.shiftKey) {
     matrix = util.getRotateMatrix(event.wheelDelta / 1000)
   } else {
-    var scale = 1 + event.wheelDelta / 1000
-    var scales
+    const scale = 1 + event.wheelDelta / 1000
+    let scales
 
     if (state.isLockRatio) {
       scales = [scale, scale]
@@ -227,16 +227,16 @@ function transformReset() {
 }
 
 function snapToBetterNumber() {
-  let value = legendEl.value.getCurrentScale()
+  const value = legendEl.value.getCurrentScale()
   if (value === 0) return
 
-  let [scaleNiceNumber, scalePowerOf10] = util.findNearestNiceNumber(value)
-  let targetValue = scaleNiceNumber * Math.pow(10, scalePowerOf10)
-  let adjustedScale = Math.sqrt(value / targetValue)
+  const [scaleNiceNumber, scalePowerOf10] = util.findNearestNiceNumber(value)
+  const targetValue = scaleNiceNumber * Math.pow(10, scalePowerOf10)
+  const adjustedScale = Math.sqrt(value / targetValue)
 
   state.affineScale[0] *= adjustedScale
   state.affineScale[1] *= adjustedScale
-  var matrix = util.getScaleMatrix(adjustedScale, adjustedScale)
+  const matrix = util.getScaleMatrix(adjustedScale, adjustedScale)
   transformVersion(matrix, state.affineMatrix)
 }
 </script>

@@ -17,10 +17,12 @@ const version = computed(() => {
 })
 
 const geolink = computed(() => {
+  const ext =
+    store.versions[props.versionKey].name === 'Geographic Area' ? '.json' : '_simplified.json'
   return util.getGeojsonURL(
     store.currentMapName,
     props.mapDBKey,
-    store.versions[props.versionKey].name + '.json'
+    store.versions[props.versionKey].name + ext
   )
 })
 
@@ -30,9 +32,9 @@ const geolink = computed(() => {
  * blob URL.
  */
 function downloadSVG() {
-  var svg_header = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'
+  const svg_header = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'
 
-  let mapAreaSVG = document
+  const mapAreaSVG = document
     .getElementById(props.panelID + '-vis')!
     .querySelector('svg')!
     .cloneNode(true) as SVGSVGElement
@@ -40,13 +42,15 @@ function downloadSVG() {
   // Add SVG xml namespace to SVG element, so that the file can be opened with any web browser.
   mapAreaSVG.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
 
-  let legendSVG = document.getElementById(props.panelID + '-legend')!.cloneNode(true) as HTMLElement
+  const legendSVG = document
+    .getElementById(props.panelID + '-legend')!
+    .cloneNode(true) as HTMLElement
   mapAreaSVG.appendChild(legendSVG)
 
-  let legendNumber = document.getElementById(props.panelID + '-legend-num')!.textContent || ''
-  let legendNumberSVG = document.createElement('text')
-  let legendNumberX = 2 + parseFloat(legendSVG.getAttribute('width')!)
-  legendNumberSVG.innerHTML = legendNumber
+  const legendNumber = document.getElementById(props.panelID + '-legend-num')!.textContent || ''
+  const legendNumberSVG = document.createElement('text')
+  const legendNumberX = 2 + parseFloat(legendSVG.getAttribute('width')!)
+  legendNumberSVG.innerHTML = legendNumber.replace('Total:', ' / Total:')
   legendNumberSVG.setAttribute('font-family', 'sans-serif')
   legendNumberSVG.setAttribute('font-size', '12px')
   legendNumberSVG.setAttribute('x', legendNumberX.toString())

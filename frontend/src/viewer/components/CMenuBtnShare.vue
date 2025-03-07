@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed } from 'vue'
 import * as util from '../lib/util'
 import CTextCitation from './CTextCitation.vue'
 
@@ -22,7 +22,7 @@ const socialURLEncoded = computed(() => {
 })
 
 const embedHTML = computed(() => {
-  let embedURL = socialURL.value + '/embed'
+  const embedURL = socialURL.value + '/embed'
 
   return (
     '<iframe src="' +
@@ -32,7 +32,7 @@ const embedHTML = computed(() => {
 })
 
 function access() {
-  var http = new XMLHttpRequest()
+  const http = new XMLHttpRequest()
   http.open('GET', socialURL.value)
 }
 </script>
@@ -161,8 +161,8 @@ function access() {
                 disabled
                 rows="3"
                 style="font-family: monospace; resize: none"
-                >{{ embedHTML }}</textarea
-              >
+                v-model="embedHTML"
+              ></textarea>
               <button
                 class="clipboard-copy"
                 id="clipboard-embed"
