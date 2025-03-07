@@ -129,13 +129,6 @@ onMounted(async () => {
         if (key === 'ColorGroup') {
           continue;
         }
-
-        // Rename the 'RegionLabel' key to 'Label'.
-        if (key === 'RegionLabel') {
-          newValues['Label'] = val;
-          continue;
-        }
-
         const num = Number(val);
         if (!isNaN(num)) {
           newValues[key] =
