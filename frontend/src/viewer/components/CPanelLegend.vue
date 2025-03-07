@@ -6,6 +6,7 @@
 import { onMounted, nextTick, reactive, ref, watch, inject } from 'vue'
 import * as d3 from 'd3'
 import embed, { type VisualizationSpec } from 'vega-embed'
+import { formatValue } from 'vega-tooltip'
 
 import * as util from '../lib/util'
 
@@ -117,9 +118,34 @@ onMounted(async () => {
 
   visEl = d3.select('#' + props.panelID + '-vis')
   offscreenEl = d3.select('#' + props.panelID + '-offscreen')
+  const tooltipOptions = {
+    theme: 'dark',
+    formatTooltip: (value: any, sanitize: any) => {
+      // Create a shallow copy of the value object with formatted numbers.
+      const newValues: any = {}
+      for (const [key, val] of Object.entries(value)) {
+        // Skip the 'ColorGroup' key.
+        if (key === 'ColorGroup') {
+          continue
+        }
+        const num = Number(val)
+        if (!isNaN(num)) {
+          newValues[key] =
+            num >= 1e6
+              ? (num / 1e6).toFixed(3) + ' million'
+              : new Intl.NumberFormat(LOCALE).format(num)
+        } else {
+          newValues[key] = val
+        }
+      }
+      // Delegate to the default formatter to keep their HTML structure.
+      return formatValue(newValues, sanitize, 0)
+    }
+  }
   const container = await embed('#' + props.panelID + '-vis', <VisualizationSpec>versionSpec, {
     renderer: 'svg',
-    actions: false
+    actions: false,
+    tooltip: tooltipOptions
   })
   visView = container.view
 
