@@ -60,7 +60,9 @@ function downloadSVG() {
 
   const a = document.createElement('a')
 
-  const svgBlob = new Blob([svg_header + mapAreaSVG.outerHTML.replace(/×/g, '&#xD7;')], { type: 'image/svg+xml;charset=utf-8' })
+  const svgBlob = new Blob([svg_header + mapAreaSVG.outerHTML.replace(/×/g, '&#xD7;')], {
+    type: 'image/svg+xml;charset=utf-8'
+  })
   const url = URL.createObjectURL(svgBlob)
   a.href = url
 

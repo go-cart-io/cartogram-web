@@ -123,16 +123,26 @@ onMounted(async () => {
     formatTooltip: (value: any, sanitize: any) => {
       // Create a shallow copy of the value object with formatted numbers.
       const newValues: any = {}
+      let region
+
       for (const [key, val] of Object.entries(value)) {
         // Skip the 'ColorGroup' key.
         if (key === 'ColorGroup') {
+          continue
+        }
+        if (key === 'Region') {
+          region = val
+          continue
+        }
+        if (key === 'RegionLabel') {
+          newValues[val] = region
           continue
         }
         const num = Number(val)
         if (!isNaN(num)) {
           let unit = ''
           const baseKey = key
-            .replace(/\s*\(([^)]+)\)/, (match, p1) => {
+            .replace(/\s*\(([^)]+)\)/, (_, p1) => {
               unit = ' ' + p1
               return ''
             })
