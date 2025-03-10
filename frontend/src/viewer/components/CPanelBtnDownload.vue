@@ -26,6 +26,9 @@ const geolink = computed(() => {
   )
 })
 
+const csvlink = computed(() => {
+  return util.getCsvURL(store.currentMapName, props.mapDBKey)
+})
 /**
  * Generates download links for the map(s) and/or cartogram(s) displayed on the left and
  * right. We do this by taking advantage of the fact that D3 generates SVG markup. We convert the SVG markup into a
@@ -105,6 +108,7 @@ function downloadSVG() {
           <p class="text-center">
             <a v-on:click="downloadSVG()" class="btn btn-lg btn-primary mx-3">SVG</a>
             <a v-bind:href="geolink" download class="btn btn-lg btn-primary">GeoJSON</a>
+            <a v-bind:href="csvlink" download class="btn btn-lg btn-primary mx-3">CSV</a>
           </p>
           <c-text-citation />
         </div>

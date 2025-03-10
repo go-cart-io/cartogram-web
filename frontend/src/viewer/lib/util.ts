@@ -135,13 +135,22 @@ export function addClipboard(button_id: string, message: string) {
 }
 
 export function getGeojsonURL(currentMapName: string, mapDBKey: string, versionKey: string) {
-  if (currentMapName !== 'custom' && versionKey === 'Geographic Area.json')
-    return '/static/cartdata/' + currentMapName + '/Geographic Area.json'
+  // Figure out whether data is in userdata or cartdata
+  const baseURL =
+    mapDBKey &&
+    mapDBKey !== '' &&
+    (currentMapName === 'custom' || versionKey !== 'Geographic Area.json')
+      ? '/userdata/' + mapDBKey + '/'
+      : '/cartdata/' + currentMapName + '/'
 
+  return '/static' + baseURL + versionKey
+}
+
+export function getCsvURL(currentMapName: string, mapDBKey: string) {
   const baseURL =
     mapDBKey && mapDBKey !== ''
-      ? '/static/userdata/' + mapDBKey + '/'
-      : '/static/cartdata/' + currentMapName + '/'
+      ? '/userdata/' + mapDBKey + '/'
+      : '/cartdata/' + currentMapName + '/'
 
-  return baseURL + versionKey
+  return '/static' + baseURL + 'data.csv'
 }
