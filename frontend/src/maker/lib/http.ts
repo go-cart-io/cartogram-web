@@ -65,7 +65,7 @@ export default class HTTP {
    * @param {string} url The URL of the POST request
    * @param {any} form_data The body or form data of the POST request
    * @param {Object} headers The headers of the POST request
-   * @param {number} timeout The timeout, in seconds, of the GET request
+   * @param {number} timeout The timeout, in milliseconds, of the GET request
    * @returns {Promise<Object|string>} A promise to the HTTP response
    */
   static post(

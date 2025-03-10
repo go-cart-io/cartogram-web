@@ -26,6 +26,9 @@ const geolink = computed(() => {
   )
 })
 
+const csvlink = computed(() => {
+  return util.getCsvURL(store.currentMapName, props.mapDBKey)
+})
 /**
  * Generates download links for the map(s) and/or cartogram(s) displayed on the left and
  * right. We do this by taking advantage of the fact that D3 generates SVG markup. We convert the SVG markup into a
@@ -59,9 +62,13 @@ function downloadSVG() {
   mapAreaSVG.appendChild(document.getElementById(props.panelID + '-grid-area')!.cloneNode(true))
 
   const a = document.createElement('a')
-  a.href =
-    'data:image/svg+xml;base64,' +
-    window.btoa(svg_header + mapAreaSVG.outerHTML.replace(/×/g, '&#xD7;'))
+
+  const svgBlob = new Blob([svg_header + mapAreaSVG.outerHTML.replace(/×/g, '&#xD7;')], {
+    type: 'image/svg+xml;charset=utf-8'
+  })
+  const url = URL.createObjectURL(svgBlob)
+  a.href = url
+
   a.download = store.versions[props.versionKey].name + '.svg'
   document.body.appendChild(a)
   a.click()
@@ -101,6 +108,7 @@ function downloadSVG() {
           <p class="text-center">
             <a v-on:click="downloadSVG()" class="btn btn-lg btn-primary mx-3">SVG</a>
             <a v-bind:href="geolink" download class="btn btn-lg btn-primary">GeoJSON</a>
+            <a v-bind:href="csvlink" download class="btn btn-lg btn-primary mx-3">CSV</a>
           </p>
           <c-text-citation />
         </div>
