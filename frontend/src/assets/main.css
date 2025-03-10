@@ -47,3 +47,7 @@ footer p {
 .form-group {
   position: relative;
 }
+
+.vg-tooltip {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+}
