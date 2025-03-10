@@ -130,14 +130,24 @@ onMounted(async () => {
         }
         const num = Number(val)
         if (!isNaN(num)) {
-          newValues[key] =
-            num >= 1e6
-              ? (num / 1e6).toFixed(3) + ' million'
-              : new Intl.NumberFormat(LOCALE).format(num)
+          let unit = ''
+          const baseKey = key
+            .replace(/\s*\(([^)]+)\)/, (match, p1) => {
+              unit = ' ' + p1
+              return ''
+            })
+            .trim()
+          newValues[baseKey] =
+            new Intl.NumberFormat(LOCALE, {
+              notation: 'compact',
+              compactDisplay: 'short',
+              maximumFractionDigits: 3
+            }).format(num) + unit
         } else {
           newValues[key] = val
         }
       }
+
       // Delegate to the default formatter to keep their HTML structure.
       return formatValue(newValues, sanitize, 0)
     }
