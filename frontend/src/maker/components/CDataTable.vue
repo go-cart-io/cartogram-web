@@ -38,13 +38,6 @@ watch(
 )
 
 watch(
-  () => props.useEqualArea,
-  () => {
-    state.dataTable.fields[config.COL_AREA].show = props.useEqualArea
-  }
-)
-
-watch(
   () => props.useInset,
   () => {
     state.dataTable.fields[config.COL_INSET].show = props.useInset
@@ -81,7 +74,7 @@ function reset() {
       type: 'text',
       editable: true,
       editableHead: true,
-      show: true
+      show: false
     }
   ]
   state.displayTable = false
@@ -227,7 +220,6 @@ function updateDataTable(csvData: KeyValueArray) {
   )
   state.dataTable.fields.splice(config.NUM_RESERVED_FILEDS)
   state.dataTable.fields[config.COL_COLOR].show = csvData[0].hasOwnProperty('Color')
-  state.dataTable.fields[config.COL_AREA].show = csvData[0].hasOwnProperty('Geographic Area')
   state.dataTable.fields[config.COL_INSET].show = csvData[0].hasOwnProperty('Inset')
   initDataTableWArray(csvData, false)
 
