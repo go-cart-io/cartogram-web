@@ -6,7 +6,8 @@
 import { onMounted, nextTick, reactive, ref, watch, inject } from 'vue'
 import * as d3 from 'd3'
 import embed, { type VisualizationSpec } from 'vega-embed'
-import { formatValue } from 'vega-tooltip'
+
+import * as config from '../../common/config'
 
 import * as util from '../lib/util'
 
@@ -118,54 +119,10 @@ onMounted(async () => {
 
   visEl = d3.select('#' + props.panelID + '-vis')
   offscreenEl = d3.select('#' + props.panelID + '-offscreen')
-  const tooltipOptions = {
-    theme: 'dark',
-    formatTooltip: (value: any, sanitize: any) => {
-      // Create a shallow copy of the value object with formatted numbers.
-      const newValues: any = {}
-      let region
-
-      for (const [key, val] of Object.entries(value)) {
-        // Skip the 'ColorGroup' key.
-        if (key === 'ColorGroup') {
-          continue
-        }
-        if (key === 'Region') {
-          region = val
-          continue
-        }
-        if (key === 'RegionLabel') {
-          newValues[val] = region
-          continue
-        }
-        const num = Number(val)
-        if (!isNaN(num)) {
-          let unit = ''
-          const baseKey = key
-            .replace(/\s*\(([^)]+)\)/, (_, p1) => {
-              unit = ' ' + p1
-              return ''
-            })
-            .trim()
-          newValues[baseKey] =
-            new Intl.NumberFormat(LOCALE, {
-              notation: 'compact',
-              compactDisplay: 'short',
-              maximumFractionDigits: 3
-            }).format(num) + unit
-        } else {
-          newValues[key] = val
-        }
-      }
-
-      // Delegate to the default formatter to keep their HTML structure.
-      return formatValue(newValues, sanitize, 0)
-    }
-  }
   const container = await embed('#' + props.panelID + '-vis', <VisualizationSpec>versionSpec, {
     renderer: 'svg',
     actions: false,
-    tooltip: tooltipOptions
+    tooltip: config.tooltipOptions
   })
   visView = container.view
 
