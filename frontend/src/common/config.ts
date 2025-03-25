@@ -40,7 +40,7 @@ export const tooltipOptions = {
         continue
       }
       if (key === 'RegionLabel') {
-        newValues[val] = region
+        newValues[val == null ? '' : val] = region
         continue
       }
       if (key.startsWith('Geographic Area')) {

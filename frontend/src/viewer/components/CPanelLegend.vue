@@ -162,7 +162,7 @@ async function switchVersion() {
   const container = await embed(
     '#' + props.panelID + '-offscreen',
     <VisualizationSpec>versionSpec,
-    { renderer: 'svg', actions: false }
+    { renderer: 'svg', actions: false, tooltip: config.tooltipOptions }
   )
   const [area, sum] = util.getTotalAreasAndValuesForVersion(
     state.version.header,
