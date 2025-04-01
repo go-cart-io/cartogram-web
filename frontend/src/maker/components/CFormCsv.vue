@@ -25,18 +25,21 @@ async function uploadCsvData(event: Event) {
   if (!files || files.length === 0) return
 
   // Store the file name before clearing
-  selectedFileName.value = files[0].name
+  const file = files[0]
+  selectedFileName.value = file.name
 
-  const data = await util.readFile(files[0])
-  const type = files[0].name.split('.').pop()?.slice(0, 3)
-  let csvData: any[] = [{}]
+  const data = await util.readFile(file)
+  const type = file.name.split('.').pop()?.toLowerCase()
+  let csvData = [{}]
 
   if (type === 'xls' || type === 'xlsx') {
-    const wb = XLSX.read(data, { type: 'binary' })
+    const wb = XLSX.read(data, { type: 'array' })
     const ws = wb.Sheets[wb.SheetNames[0]]
     csvData = XLSX.utils.sheet_to_json(ws)
   } else {
-    csvData = d3.csvParse(data as string)
+    // Assume CSV: decode ArrayBuffer to a UTF‑8 string before parsing
+    const text = new TextDecoder('utf-8').decode(data)
+    csvData = d3.csvParse(text)
   }
 
   if (!csvData || csvData.length < 1) return

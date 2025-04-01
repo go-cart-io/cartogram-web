@@ -2,11 +2,11 @@ import * as d3 from 'd3'
 import type { KeyValueArray, DataTable } from './interface'
 import type { FeatureCollection, Feature } from 'geojson'
 
-export async function readFile(file: File) {
-  return new Promise<string>((resolve, reject) => {
+export async function readFile(file: File): Promise<ArrayBuffer> {
+  return new Promise<ArrayBuffer>((resolve, reject) => {
     const reader = new FileReader()
-    reader.readAsBinaryString(file)
-    reader.onload = () => resolve(<string>reader.result)
+    reader.readAsArrayBuffer(file)
+    reader.onload = () => resolve(reader.result as ArrayBuffer)
     reader.onerror = (error) => reject(error)
   })
 }
