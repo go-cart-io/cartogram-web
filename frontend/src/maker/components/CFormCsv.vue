@@ -85,6 +85,12 @@ async function uploadCsvData(event: Event) {
         v-on:change="uploadCsvData"
       />
       <div v-if="selectedFileName"><strong>Selected file:</strong> {{ selectedFileName }}</div>
+      <br />
+      <br />
+      <em>
+        Note: Please ensure the first column contains the same region names you chose in step 1, and
+        the subsequent columns contain the data to be visualize.
+      </em>
     </div>
   </div>
 </template>
