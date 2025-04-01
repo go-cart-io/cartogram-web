@@ -44,10 +44,19 @@ async function uploadCsvData(event: Event) {
 
   if (!csvData || csvData.length < 1) return
 
-  //   if (csvData.some((obj) => obj.hasOwnProperty('Region'))) {
-  //     state.csvRegionCol = 'Region'
-  //   }
-  //   console.log(state.csvData)
+  // Rename the first column key to "Region"
+  const firstKey = Object.keys(csvData[0])[0]
+
+  if (firstKey !== 'Region') {
+    // Copy current row then add new key "Region"
+    csvData = csvData.map((row) => {
+      const newRow = { ...row }
+      newRow['Region'] = newRow[firstKey]
+      delete newRow[firstKey]
+      return newRow
+    })
+  }
+
 
   // Reset the file input so that selecting the same file again triggers a change event.
   input.value = ''
