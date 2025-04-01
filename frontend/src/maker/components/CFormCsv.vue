@@ -25,26 +25,43 @@ async function uploadCsvData(event: Event) {
   if (!files || files.length === 0) return
 
   // Store the file name before clearing
-  selectedFileName.value = files[0].name
+  const file = files[0]
+  selectedFileName.value = file.name
 
-  const data = await util.readFile(files[0])
-  const type = files[0].name.split('.').pop()?.slice(0, 3)
-  let csvData: any[] = [{}]
+  const data = await util.readFile(file)
+  const type = file.name.split('.').pop()?.toLowerCase()
+  let csvData = [{}]
 
   if (type === 'xls' || type === 'xlsx') {
-    const wb = XLSX.read(data, { type: 'binary' })
+    const wb = XLSX.read(data, { type: 'array' })
     const ws = wb.Sheets[wb.SheetNames[0]]
     csvData = XLSX.utils.sheet_to_json(ws)
   } else {
-    csvData = d3.csvParse(data as string)
+    // Assume CSV: decode ArrayBuffer to a UTF‑8 string before parsing
+    const text = new TextDecoder('utf-8').decode(data)
+    csvData = d3.csvParse(text)
   }
 
   if (!csvData || csvData.length < 1) return
 
-  //   if (csvData.some((obj) => obj.hasOwnProperty('Region'))) {
-  //     state.csvRegionCol = 'Region'
-  //   }
-  //   console.log(state.csvData)
+  // Rename the first column key to "Region"
+  const firstKey = Object.keys(csvData[0])[0]
+
+  if (firstKey !== 'Region') {
+    // Copy current row then add new key "Region"
+    csvData = csvData.map((row) => {
+      const newRow = { ...row }
+      newRow['Region'] = newRow[firstKey]
+      delete newRow[firstKey]
+      return newRow
+    })
+  }
+
+  csvData.sort((a, b) => {
+    const aRegion = (a['Region'] || '').toString()
+    const bRegion = (b['Region'] || '').toString()
+    return aRegion.localeCompare(bRegion)
+  })
 
   // Reset the file input so that selecting the same file again triggers a change event.
   input.value = ''
@@ -68,6 +85,12 @@ async function uploadCsvData(event: Event) {
         v-on:change="uploadCsvData"
       />
       <div v-if="selectedFileName"><strong>Selected file:</strong> {{ selectedFileName }}</div>
+      <br />
+      <br />
+      <em>
+        Note: Please ensure the first column contains the same region names you chose in step 1, and
+        the subsequent columns contain the data to be visualize.
+      </em>
     </div>
   </div>
 </template>
