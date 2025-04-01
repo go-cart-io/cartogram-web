@@ -50,14 +50,14 @@ async function uploadCsvData(event: Event) {
   if (firstKey !== 'Region') {
     // Copy current row then add new key "Region"
     csvData = csvData.map((row) => {
-      const newRow = { ...row }
+      const newRow: { [key: string]: any } = { ...row }
       newRow['Region'] = newRow[firstKey]
       delete newRow[firstKey]
       return newRow
     })
   }
 
-  csvData.sort((a, b) => {
+  csvData.sort((a: { [key: string]: any }, b: { [key: string]: any }) => {
     const aRegion = (a['Region'] || '').toString()
     const bRegion = (b['Region'] || '').toString()
     return aRegion.localeCompare(bRegion)
