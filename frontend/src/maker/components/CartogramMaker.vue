@@ -90,7 +90,7 @@ function onCsvUpdate(csvData: KeyValueArray) {
   }
   const updatedProps = dataTableEl.value.updateDataTable(csvData)
   state.colorScheme = updatedProps.customColor ? 'custom' : state.colorScheme
-  state.useEqualArea = updatedProps.useEqualArea
+  state.useEqualArea = true
   state.useInset = updatedProps.useInset
 }
 

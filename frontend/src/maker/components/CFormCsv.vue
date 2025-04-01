@@ -57,6 +57,11 @@ async function uploadCsvData(event: Event) {
     })
   }
 
+  csvData.sort((a, b) => {
+    const aRegion = (a['Region'] || '').toString()
+    const bRegion = (b['Region'] || '').toString()
+    return aRegion.localeCompare(bRegion)
+  })
 
   // Reset the file input so that selecting the same file again triggers a change event.
   input.value = ''
