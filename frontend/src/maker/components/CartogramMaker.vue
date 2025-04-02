@@ -85,12 +85,12 @@ async function onExcelBtnClick() {
 }
 
 function onCsvUpdate(csvData: KeyValueArray) {
-  const isCSVValid = dataTableEl.value.validateCSV(csvData)
+  // const isCSVValid = dataTableEl.value.validateCSV(csvData)
 
-  // Do not update the data table if the CSV is invalid
-  if (!isCSVValid) {
-    return
-  }
+  // // Do not update the data table if the CSV is invalid
+  // if (!isCSVValid) {
+  //   return
+  // }
   const updatedProps = dataTableEl.value.updateDataTable(csvData)
   state.colorScheme = updatedProps.customColor ? 'custom' : state.colorScheme
   state.useInset = updatedProps.useInset
@@ -212,7 +212,7 @@ async function getGeneratedCartogram() {
           >
             CSV
           </button>
-          &nbsp;
+          or
           <button
             class="btn btn-outline-secondary"
             v-bind:disabled="!('features' in state.geojsonData)"
