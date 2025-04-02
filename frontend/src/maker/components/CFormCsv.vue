@@ -63,9 +63,6 @@ async function uploadCsvData(event: Event) {
     return aRegion.localeCompare(bRegion)
   })
 
-  console.log('**************************')
-  console.log(csvData)
-
   // Reset the file input so that selecting the same file again triggers a change event.
   input.value = ''
 
