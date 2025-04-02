@@ -1,4 +1,5 @@
 import * as d3 from 'd3'
+import * as XLSX from 'xlsx'
 import type { KeyValueArray, DataTable } from './interface'
 import type { FeatureCollection, Feature } from 'geojson'
 
@@ -63,6 +64,14 @@ export function filterKeyValueInArray(
         accumulator[key] = parseFloat(item[key])
       return accumulator
     }, {})
+  })
+}
+
+export function deleteKeysInArray(data: KeyValueArray, key: string): KeyValueArray {
+  return data.map((item) => {
+    const newItem = { ...item }
+    delete newItem[key]
+    return newItem
   })
 }
 
@@ -138,4 +147,12 @@ export async function getGeneratedCSV(dataTable: DataTable, isGetFile = false) {
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
+}
+
+export async function getGeneratedExcel(dataTable: DataTable) {
+  const data = tableToArray(dataTable)
+  const worksheet = XLSX.utils.json_to_sheet(data)
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1')
+  XLSX.writeFile(workbook, 'data.xlsx')
 }

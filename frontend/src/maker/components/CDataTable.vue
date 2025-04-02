@@ -26,6 +26,7 @@ defineExpose({
   initDataTableWGeojson,
   updateDataTable,
   getCSV,
+  getExcel,
   validateCSV
 })
 
@@ -94,6 +95,8 @@ function initDataTableWGeojson(
   // Transform geojson to data fields
   let geoProperties = util.propertiesToArray(geojsonData)
   if (geoProperties.length === 0) return
+
+  geoProperties = util.deleteKeysInArray(geoProperties, 'cartogram_id')
   if (!Object.keys(geoProperties[0]).some((key) => key.startsWith('Population')))
     geoProperties = util.addKeyInArray(geoProperties, 'Population (people)', 0)
 
@@ -258,7 +261,13 @@ function changeColor(scheme: string, oldScheme: string) {
 
 async function getCSV(isGetFile = false) {
   if (!isGetFile) state.dataTable.fields[config.COL_AREA].show = true // Force include Geographic Area when generate cartogram
-  return await util.getGeneratedCSV(state.dataTable, isGetFile)
+  const csv = await util.getGeneratedCSV(state.dataTable, isGetFile)
+  state.dataTable.fields[config.COL_AREA].show = false
+  return csv
+}
+
+async function getExcel() {
+  return await util.getGeneratedExcel(state.dataTable)
 }
 
 function onValueChange(rIndex: number, label: string, event: Event) {
@@ -295,6 +304,7 @@ function onValueChange(rIndex: number, label: string, event: Event) {
 
     <!-- Data Table -->
     <div class="d-table p-2" v-if="state.displayTable && state.dataTable.items.length > 0">
+      Please remove unrelated columns by clicking the minus icon.
       <table class="table table-bordered">
         <thead>
           <tr class="table-light">

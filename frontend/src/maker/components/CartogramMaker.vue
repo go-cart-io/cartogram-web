@@ -80,6 +80,10 @@ async function onCsvBtnClick() {
   await dataTableEl.value.getCSV(true)
 }
 
+async function onExcelBtnClick() {
+  await dataTableEl.value.getExcel()
+}
+
 function onCsvUpdate(csvData: KeyValueArray) {
   const isCSVValid = dataTableEl.value.validateCSV(csvData)
 
@@ -206,7 +210,15 @@ async function getGeneratedCartogram() {
             v-bind:disabled="!('features' in state.geojsonData)"
             v-on:click="onCsvBtnClick"
           >
-            Download data
+            CSV
+          </button>
+          &nbsp;
+          <button
+            class="btn btn-outline-secondary"
+            v-bind:disabled="!('features' in state.geojsonData)"
+            v-on:click="onExcelBtnClick"
+          >
+            Excel
           </button>
           for editing on your device.
         </div>
