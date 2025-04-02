@@ -61,9 +61,15 @@ function downloadSVG() {
   mapAreaSVG.appendChild(legendNumberSVG)
   mapAreaSVG.appendChild(document.getElementById(props.panelID + '-grid-area')!.cloneNode(true))
 
-  const a = document.createElement('a')
+  // https://stackoverflow.com/questions/68122097/how-can-i-ensure-text-is-valid-for-an-svg
+  const dummy = document.createElement('div')
+  const svgData = mapAreaSVG.outerHTML.replace(/(&(?!(amp|gt|lt|quot|apos))[^;]+;)/g, (t) => {
+    dummy.innerHTML = t
+    return dummy.textContent || ''
+  })
 
-  const svgBlob = new Blob([svg_header + mapAreaSVG.outerHTML.replace(/×/g, '&#xD7;')], {
+  const a = document.createElement('a')
+  const svgBlob = new Blob([svg_header + svgData.replace(/×/g, '&#xD7;')], {
     type: 'image/svg+xml;charset=utf-8'
   })
   const url = URL.createObjectURL(svgBlob)
