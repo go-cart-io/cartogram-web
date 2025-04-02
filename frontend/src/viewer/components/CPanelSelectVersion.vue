@@ -16,10 +16,10 @@ const state = reactive({
 
 function playVersions() {
   state.isPlaying = true
-  let keys = Object.keys(store.versions)
+  const keys = Object.keys(store.versions)
   let i = 0
   emit('version_changed', keys[i++])
-  let interval = setInterval(function () {
+  const interval = setInterval(function () {
     emit('version_changed', keys[i++])
     if (i >= keys.length) {
       clearInterval(interval)
@@ -49,11 +49,8 @@ function playVersions() {
       type="button"
       class="btn btn-outline-primary version"
       v-bind:class="{ active: props.currentVersionName === index.toString() }"
-      v-on:click="
-        () => {
-          emit('version_changed', index.toString())
-        }
-      "
+      v-on:click="emit('version_changed', index.toString())"
+      v-bind:key="index"
     >
       {{ version.name }}
       <i

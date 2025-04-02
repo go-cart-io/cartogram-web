@@ -1,5 +1,5 @@
 export function getTotalAreas(features: any): number {
-  var area = 0
+  let area = 0
   features.forEach((feature: any) => {
     area += feature['Area']
   })
@@ -13,10 +13,10 @@ export function getTotalAreasAndValuesForVersion(
   features: any,
   data: any
 ): [number, number] {
-  var area = 0
-  var sum = 0
-  var na_names: Array<string> = []
-  var na_areas: Array<number> = []
+  let area = 0
+  let sum = 0
+  const na_names: Array<string> = []
+  let na_areas: Array<number> = []
 
   data.forEach((row: any) => {
     if (
@@ -24,7 +24,8 @@ export function getTotalAreasAndValuesForVersion(
       row[versionName].toString() !== '' &&
       row[versionName].toString() !== 'NA'
     ) {
-      let value = typeof row[versionName] === 'string' ? Number(row[versionName]) : row[versionName]
+      const value =
+        typeof row[versionName] === 'string' ? Number(row[versionName]) : row[versionName]
       sum += value
     } else {
       na_names.push(row['Region'])
@@ -33,7 +34,7 @@ export function getTotalAreasAndValuesForVersion(
 
   na_areas = Array(na_names.length)
   features.forEach((feature: any) => {
-    let na_index = na_names.indexOf(feature['Region'])
+    const na_index = na_names.indexOf(feature['Region'])
     if (na_index > -1) na_areas[na_index] = feature['Area']
     else area += feature['Area']
   })
@@ -51,7 +52,7 @@ export function getTotalAreasAndValuesForVersion(
 export const NICE_NUMBERS = [1, 2, 5, 10, 20, 50]
 export function findNearestNiceNumber(value: number): [number, number] {
   let scaleNiceNumber = 99
-  let scalePowerOf10 = Math.floor(Math.log10(value))
+  const scalePowerOf10 = Math.floor(Math.log10(value))
 
   // We find the "nice number" that is closest to valuePerSquare's
   const valueFirstNumber = value / Math.pow(10, scalePowerOf10)
@@ -124,7 +125,7 @@ export function multiplyMatrix(
 }
 
 export function addClipboard(button_id: string, message: string) {
-  var icon_id = button_id + '-icon'
+  const icon_id = button_id + '-icon'
   navigator.clipboard.writeText(message)
   document.getElementById(icon_id)?.setAttribute('src', '/static/img/clipboard-check.svg')
 
@@ -134,13 +135,22 @@ export function addClipboard(button_id: string, message: string) {
 }
 
 export function getGeojsonURL(currentMapName: string, mapDBKey: string, versionKey: string) {
-  if (currentMapName !== 'custom' && versionKey === 'Geographic Area.json')
-    return '/static/cartdata/' + currentMapName + '/Geographic Area.json'
+  // Figure out whether data is in userdata or cartdata
+  const baseURL =
+    mapDBKey &&
+    mapDBKey !== '' &&
+    (currentMapName === 'custom' || versionKey !== 'Geographic Area.json')
+      ? '/userdata/' + mapDBKey + '/'
+      : '/cartdata/' + currentMapName + '/'
 
-  let baseURL =
+  return '/static' + baseURL + versionKey
+}
+
+export function getCsvURL(currentMapName: string, mapDBKey: string) {
+  const baseURL =
     mapDBKey && mapDBKey !== ''
-      ? '/static/userdata/' + mapDBKey + '/'
-      : '/static/cartdata/' + currentMapName + '/'
+      ? '/userdata/' + mapDBKey + '/'
+      : '/cartdata/' + currentMapName + '/'
 
-  return baseURL + versionKey
+  return '/static' + baseURL + 'data.csv'
 }

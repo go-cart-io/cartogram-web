@@ -64,7 +64,7 @@ function changeScheme(scheme: string) {
       </li>
       <li
         v-for="scheme in schemeNames"
-        :key="scheme"
+        v-bind:key="scheme"
         v-bind:class="{ 'bg-secondary': scheme === state.scheme }"
       >
         <a class="dropdown-item" v-on:click="changeScheme(scheme)">
@@ -73,6 +73,7 @@ function changeScheme(scheme: string) {
               v-for="color in schemeObject[scheme]"
               v-bind:title="color"
               v-bind:style="'background: ' + color"
+              v-bind:key="color"
             ></div>
           </div>
           <span class="ms-2" v-bind:class="{ 'text-white': scheme === state.scheme }">{{

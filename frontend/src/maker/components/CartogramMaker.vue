@@ -14,7 +14,7 @@ import CFormCsv from './CFormCsv.vue'
 import CSelectColor from './CSelectColor.vue'
 import CDataTable from './CDataTable.vue'
 
-var mapDBKey = util.generateShareKey(32)
+const mapDBKey = util.generateShareKey(32)
 const dataTableEl = ref()
 
 const props = defineProps<{
@@ -35,7 +35,6 @@ const state = reactive({
   geojsonRegionCol: '',
   csvFile: '',
   colorScheme: props.mapColorScheme ? props.mapColorScheme : 'pastel1',
-  useEqualArea: true,
   useInset: false
 })
 
@@ -52,13 +51,14 @@ function onGeoJsonChanged(
   handler: string,
   geojsonData: FeatureCollection,
   regionCol: string,
-  csvFile = ''
+  csvFile = '',
+  displayTable: boolean = true
 ) {
   state.handler = handler
   state.geojsonData = geojsonData
   state.geojsonRegionCol = regionCol
   state.csvFile = csvFile
-  dataTableEl.value.initDataTableWGeojson(geojsonData, regionCol)
+  dataTableEl.value.initDataTableWGeojson(geojsonData, regionCol, displayTable)
 
   // Immediately populate data if a CSV file is supplied
   if (csvFile) {
@@ -80,10 +80,19 @@ async function onCsvBtnClick() {
   await dataTableEl.value.getCSV(true)
 }
 
+async function onExcelBtnClick() {
+  await dataTableEl.value.getExcel()
+}
+
 function onCsvUpdate(csvData: KeyValueArray) {
+  // const isCSVValid = dataTableEl.value.validateCSV(csvData)
+
+  // // Do not update the data table if the CSV is invalid
+  // if (!isCSVValid) {
+  //   return
+  // }
   const updatedProps = dataTableEl.value.updateDataTable(csvData)
   state.colorScheme = updatedProps.customColor ? 'custom' : state.colorScheme
-  state.useEqualArea = updatedProps.useEqualArea
   state.useInset = updatedProps.useInset
 }
 
@@ -94,10 +103,10 @@ async function getGeneratedCartogram() {
   })
   progressModal.show()
 
-  var csvData = await dataTableEl.value.getCSV()
+  const csvData = await dataTableEl.value.getCSV()
 
   await new Promise<any>(function (resolve, reject) {
-    var req_body = JSON.stringify({
+    const req_body = JSON.stringify({
       title: state.title,
       scheme: state.colorScheme,
       handler: state.handler,
@@ -108,7 +117,7 @@ async function getGeneratedCartogram() {
       editedFrom: props.geoUrl
     })
 
-    var progressUpdater = window.setInterval(
+    const progressUpdater = window.setInterval(
       (function (key) {
         return function () {
           HTTP.get(
@@ -184,18 +193,6 @@ async function getGeneratedCartogram() {
             <input
               class="form-check-input"
               type="checkbox"
-              v-model="state.useEqualArea"
-              v-bind:disabled="!('features' in state.geojsonData)"
-              id="chk-area"
-            />
-            <label class="form-check-label" for="chk-area">
-              Include geographic area (recommended)
-            </label>
-          </div>
-          <div class="form-check">
-            <input
-              class="form-check-input"
-              type="checkbox"
               v-model="state.useInset"
               v-bind:disabled="!('features' in state.geojsonData)"
               id="chk-inset"
@@ -213,7 +210,15 @@ async function getGeneratedCartogram() {
             v-bind:disabled="!('features' in state.geojsonData)"
             v-on:click="onCsvBtnClick"
           >
-            Download data
+            CSV
+          </button>
+          or
+          <button
+            class="btn btn-outline-secondary"
+            v-bind:disabled="!('features' in state.geojsonData)"
+            v-on:click="onExcelBtnClick"
+          >
+            Excel
           </button>
           for editing on your device.
         </div>
@@ -241,7 +246,6 @@ async function getGeneratedCartogram() {
     <c-data-table
       ref="dataTableEl"
       v-bind:mapColorScheme="state.colorScheme"
-      v-bind:useEqualArea="state.useEqualArea"
       v-bind:useInset="state.useInset"
     />
   </div>
@@ -267,7 +271,7 @@ async function getGeneratedCartogram() {
           <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100">
             <div
               class="progress-bar bg-primary"
-              :style="{ width: state.loadingProgress + '%' }"
+              v-bind:style="{ width: state.loadingProgress + '%' }"
             ></div>
           </div>
         </div>

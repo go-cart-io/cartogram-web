@@ -15,9 +15,9 @@ export default class HTTP {
     timeout: number | null = null,
     onprogress: any = null,
     parse_json: boolean = true
-  ): Promise<Object | string> {
+  ): Promise<object | string> {
     return new Promise(function (resolve, reject) {
-      var xhttp = new XMLHttpRequest()
+      const xhttp = new XMLHttpRequest()
 
       xhttp.onreadystatechange = function () {
         if (this.readyState == 4) {
@@ -47,6 +47,7 @@ export default class HTTP {
       }
 
       xhttp.ontimeout = function (e) {
+        console.log(e)
         reject(Error('The request has timed out.'))
       }
 
@@ -71,10 +72,10 @@ export default class HTTP {
     url: string,
     form_data: any,
     headers: { [key: string]: any } = {},
-    timeout: number = 600000 // 10 minutes
-  ): Promise<Object | string> {
+    timeout: number = 180000 // 3 minutes
+  ): Promise<object | string> {
     return new Promise(function (resolve, reject) {
-      var xhttp = new XMLHttpRequest()
+      const xhttp = new XMLHttpRequest()
 
       xhttp.onreadystatechange = function () {
         if (this.readyState == 4) {
@@ -89,28 +90,31 @@ export default class HTTP {
           } else if (this.status == 429) {
             reject(Error('Too many requests within specify time. Please try again later.'))
           } else {
-            console.log(url)
             try {
-              var response = JSON.parse(this.responseText)
-              var errorText = response.error
+              const response = JSON.parse(this.responseText)
+              const errorText = response.error
                 ? response.error
                 : 'Unable to fetch data from the server.'
+              reject(Error(errorText))
             } catch (e) {
-              errorText = this.responseText.replace(/<\/?[^>]+(>|$)/g, '')
+              console.error(e)
+              console.log(this.responseText)
+              const errorText = this.responseText.replace(/<\/?[^>]+(>|$)/g, '')
+              reject(Error(errorText))
             }
-            reject(Error(errorText))
           }
         }
       }
 
       xhttp.ontimeout = function (e) {
+        console.log(e)
         reject(Error('The request has timed out.'))
       }
 
       xhttp.open('POST', url, true)
       xhttp.timeout = timeout
 
-      Object.keys(headers).forEach(function (key, index) {
+      Object.keys(headers).forEach(function (key) {
         xhttp.setRequestHeader(key, headers[key])
       })
 
@@ -124,10 +128,10 @@ export default class HTTP {
    * @returns {string}
    */
   static serializePostVariables(vars: { [key: string]: string }): string {
-    var post_string = ''
-    var first_entry = true
+    let post_string = ''
+    let first_entry = true
 
-    Object.keys(vars).forEach(function (key, index) {
+    Object.keys(vars).forEach(function (key) {
       post_string += (first_entry ? '' : '&') + key + '=' + encodeURIComponent(vars[key])
       first_entry = false
     })
@@ -140,10 +144,10 @@ export default class HTTP {
    * @returns {string}
    */
   static generateMIMEBoundary(): string {
-    var text = '---------'
-    var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    let text = '---------'
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
-    for (var i = 0; i < 25; i++)
+    for (let i = 0; i < 25; i++)
       text += possible.charAt(Math.floor(Math.random() * possible.length))
 
     return text
