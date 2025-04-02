@@ -30,27 +30,28 @@ export const tooltipOptions = {
 
     // Create a shallow copy of the value object with formatted numbers.
     const newValues: { [key: string]: string } = {}
-    let region = ''
 
     for (const [key, value] of Object.entries(values) as [string, any][]) {
-      if (key === 'ColorGroup') continue // Skip the 'ColorGroup' key.
+      if (!value || key === 'ColorGroup') continue // Skip the 'ColorGroup' key.
 
-      if (typeof value === 'string') {
-        if (key === 'Region') region = value
-        else if (key === 'RegionLabel') newValues[value == null ? '' : value] = region
-        else newValues[key] = value
-      } else if (typeof value !== 'number') {
-        const num = Number(value)
-        let baseKey = 'Area',
-          unit = ' km²'
+      const num = Number(value)
+      if (isNaN(num)) {
+        if (key === 'RegionLabel') {
+          newValues[value] = newValues['Region']
+          delete newValues['Region']
+        } else newValues[key] = value
+      } else {
+        let unit = ''
+        let baseKey = key
+          .replace(/\s*\(([^)]+)\)/, (_, p1) => {
+            unit = ' ' + p1
+            return ''
+          })
+          .trim()
 
-        if (!key.startsWith('Geographic Area')) {
-          baseKey = key
-            .replace(/\s*\(([^)]+)\)/, (_, p1) => {
-              unit = ' ' + p1
-              return ''
-            })
-            .trim()
+        if (baseKey === 'Geographic Area') {
+          baseKey = 'Area'
+          unit = ' sq. km'
         }
 
         newValues[baseKey] =

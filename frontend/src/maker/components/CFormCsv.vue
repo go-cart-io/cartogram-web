@@ -44,10 +44,10 @@ async function uploadCsvData(event: Event) {
 
   if (!csvData || csvData.length < 1) return
 
-  // Rename the first column key to "Region"
-  const firstKey = Object.keys(csvData[0])[0]
+  // Rename the first column key to "Region" if "Region" key does not exist
+  if (!('Region' in csvData)) {
+    const firstKey = Object.keys(csvData[0])[0]
 
-  if (firstKey !== 'Region') {
     // Copy current row then add new key "Region"
     csvData = csvData.map((row) => {
       const newRow: { [key: string]: any } = { ...row }
@@ -88,8 +88,7 @@ async function uploadCsvData(event: Event) {
       <br />
       <br />
       <em>
-        Note: Please ensure the first column contains the same region names you chose in step 1, and
-        the subsequent columns contain the data to be visualize.
+        Note: Please ensure the first column contains the same region names you chose in step 1.
       </em>
     </div>
   </div>
