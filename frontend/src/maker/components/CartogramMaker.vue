@@ -35,7 +35,6 @@ const state = reactive({
   geojsonRegionCol: '',
   csvFile: '',
   colorScheme: props.mapColorScheme ? props.mapColorScheme : 'pastel1',
-  useEqualArea: true,
   useInset: false
 })
 
@@ -90,7 +89,6 @@ function onCsvUpdate(csvData: KeyValueArray) {
   }
   const updatedProps = dataTableEl.value.updateDataTable(csvData)
   state.colorScheme = updatedProps.customColor ? 'custom' : state.colorScheme
-  state.useEqualArea = true
   state.useInset = updatedProps.useInset
 }
 
@@ -191,18 +189,6 @@ async function getGeneratedCartogram() {
             <input
               class="form-check-input"
               type="checkbox"
-              v-model="state.useEqualArea"
-              v-bind:disabled="!('features' in state.geojsonData)"
-              id="chk-area"
-            />
-            <label class="form-check-label" for="chk-area">
-              Include geographic area (recommended)
-            </label>
-          </div>
-          <div class="form-check">
-            <input
-              class="form-check-input"
-              type="checkbox"
               v-model="state.useInset"
               v-bind:disabled="!('features' in state.geojsonData)"
               id="chk-inset"
@@ -248,7 +234,6 @@ async function getGeneratedCartogram() {
     <c-data-table
       ref="dataTableEl"
       v-bind:mapColorScheme="state.colorScheme"
-      v-bind:useEqualArea="state.useEqualArea"
       v-bind:useInset="state.useInset"
     />
   </div>

@@ -14,7 +14,6 @@ let visView: any
 
 const props = defineProps<{
   mapColorScheme: string
-  useEqualArea: boolean
   useInset: boolean
 }>()
 
@@ -225,7 +224,6 @@ function updateDataTable(csvData: KeyValueArray) {
 
   return {
     customColor: state.dataTable.fields[config.COL_COLOR].show,
-    useEqualArea: state.dataTable.fields[config.COL_AREA].show,
     useInset: state.dataTable.fields[config.COL_INSET].show
   }
 }
@@ -259,6 +257,7 @@ function changeColor(scheme: string, oldScheme: string) {
 }
 
 async function getCSV(isGetFile = false) {
+  if (!isGetFile) state.dataTable.fields[config.COL_AREA].show = true // Force include Geographic Area when generate cartogram
   return await util.getGeneratedCSV(state.dataTable, isGetFile)
 }
 
