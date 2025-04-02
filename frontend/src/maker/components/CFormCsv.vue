@@ -45,7 +45,7 @@ async function uploadCsvData(event: Event) {
   if (!csvData || csvData.length < 1) return
 
   // Rename the first column key to "Region" if "Region" key does not exist
-  if (!('Region' in csvData)) {
+  if (!('Region' in csvData[0])) {
     const firstKey = Object.keys(csvData[0])[0]
 
     // Copy current row then add new key "Region"
@@ -62,6 +62,9 @@ async function uploadCsvData(event: Event) {
     const bRegion = (b['Region'] || '').toString()
     return aRegion.localeCompare(bRegion)
   })
+
+  console.log('**************************')
+  console.log(csvData)
 
   // Reset the file input so that selecting the same file again triggers a change event.
   input.value = ''
