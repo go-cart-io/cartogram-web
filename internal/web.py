@@ -12,6 +12,7 @@ from flask import Flask, Response, render_template, request
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_migrate import Migrate
 from handler import CartogramHandler
 from views import contact, custom_captcha, tracking
@@ -19,12 +20,15 @@ from views import contact, custom_captcha, tracking
 
 def create_app():
     app = Flask(__name__)
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+    )
     Asset(app)
     CORS(app, resources={r"/api/*": {"origins": "*"}})
     limiter = Limiter(
         get_remote_address,
         app=app,
-        default_limits=["50 per hour"],
+        default_limits=["100 per hour"],
         storage_uri="redis://{}:{}".format(
             settings.CARTOGRAM_REDIS_HOST, settings.CARTOGRAM_REDIS_PORT
         ),
