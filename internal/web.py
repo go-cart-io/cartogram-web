@@ -239,13 +239,16 @@ def create_app():
             )
 
         try:
+            app.logger.info(f"Preprocessing map for {mapDBKey}")
             processed_geojson = cartogram.preprocess(request.files["file"], mapDBKey)
+            app.logger.info(f"Finish preprocessing map for {mapDBKey}")
             return Response(
                 json.dumps(processed_geojson),
                 status=200,
                 content_type="application/json",
             )
         except Exception as e:
+            app.logger.warning(f"Error: {str(e)}")
             return Response(
                 json.dumps({"error": str(e)}),
                 status=400,
@@ -276,36 +279,38 @@ def create_app():
         string_key = data["mapDBKey"]
         userdata_path = None
         clean_by = None
+        app.logger.info(f"Generating cartogram for {string_key}")
 
         # Prepare data.csv and Input.json in userdata
         # TODO check whether the code works properly if persist is false
-        if "persist" in data:
-            userdata_path = f"static/userdata/{string_key}"
-            os.mkdir(userdata_path)
-        else:
-            userdata_path = f"/tmp/{string_key}"
-
-        with open(f"{userdata_path}/data.csv", "w") as outfile:
-            outfile.write(datacsv)
-
-        gen_file = cartogram_handler.get_gen_file(handler, string_key)
-
-        if handler == "custom":
-            editedFrom = data.get("editedFrom", None)
-            if (
-                editedFrom
-                and editedFrom != ""
-                and editedFrom != gen_file
-                and os.path.exists(f"./{editedFrom}")
-            ):
-                shutil.copyfile(f"./{editedFrom}", gen_file)
-
-            else:
-                if os.path.exists(f"/tmp/{string_key}.json"):
-                    shutil.move(f"/tmp/{string_key}.json", gen_file)
-                clean_by = data.get("geojsonRegionCol", "Region")
-
         try:
+            if "persist" in data:
+                userdata_path = f"static/userdata/{string_key}"
+            else:
+                userdata_path = f"/tmp/{string_key}"
+
+            if not os.path.exists(userdata_path):
+                os.mkdir(userdata_path)
+
+            with open(f"{userdata_path}/data.csv", "w") as outfile:
+                outfile.write(datacsv)
+
+            gen_file = cartogram_handler.get_gen_file(handler, string_key)
+
+            if handler == "custom":
+                editedFrom = data.get("editedFrom", None)
+                if (
+                    editedFrom
+                    and editedFrom != ""
+                    and editedFrom != gen_file
+                    and os.path.exists(f"./{editedFrom}")
+                ):
+                    shutil.copyfile(f"./{editedFrom}", gen_file)
+
+                else:
+                    shutil.copyfile(f"/tmp/{string_key}.json", gen_file)
+                    clean_by = data.get("geojsonRegionCol", "Region")
+
             cartogram.generate_cartogram(
                 datacsv, gen_file, data["mapDBKey"], userdata_path, clean_by=clean_by
             )
@@ -325,15 +330,19 @@ def create_app():
             else:
                 string_key = None
 
+            app.logger.info(f"Finish cartogram generation for {string_key}")
             return Response(
                 json.dumps({"mapDBKey": string_key}),
                 status=200,
                 content_type="application/json",
             )
 
-        # except (KeyError, csv.Error, ValueError, UnicodeDecodeError):
-        #     return Response('{"error":"The data was invalid."}', status=400, content_type='application/json')
+        except (FileNotFoundError):
+            return Response('{"error":"Files for cartogram generation not found. ' \
+                'Please refresh this page and re-upload your map and data. If the issue persists, please contact us."}', 
+                status=400, content_type='application/json')
         except Exception as e:
+            app.logger.warning(f"Error: {str(e)}")
             if os.path.exists(userdata_path):
                 shutil.rmtree(userdata_path)
 
@@ -366,11 +375,13 @@ def create_app():
             file_path = os.path.join("/tmp", file)
             days_ago = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=1)
             try:
-                if (
-                    os.path.isfile(file_path)
-                    and os.stat(file_path).st_mtime < days_ago.timestamp()
-                ):
-                    os.unlink(file_path)
+                mod_time = os.stat(file_path).st_mtime
+                if mod_time < days_ago.timestamp():
+                    if os.path.isfile(file_path):
+                        os.unlink(file_path)
+                    else:
+                        shutil.rmtree(file_path)
+
             except Exception as e:
                 print(e)
 

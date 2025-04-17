@@ -51,7 +51,8 @@ def preprocess(input, mapDBKey="temp_filename", based_path="/tmp"):
         cdf["Geographic Area (sq. km)"] = cdf["Geographic Area (sq. km)"].astype(int)
 
     if "ColorGroup" not in cdf.columns:
-        cdf["ColorGroup"] = mapclassify.greedy(cdf, min_colors=6, balance="distance")
+        tmp_cdf = cdf.to_crs("EPSG:6933") # Forced projected file just for surprass mapclassify's warning
+        cdf["ColorGroup"] = mapclassify.greedy(tmp_cdf, min_colors=6, balance="distance")
         cdf["ColorGroup"] = cdf["ColorGroup"].astype(int)
 
     if "cartogram_id" not in cdf.columns:
