@@ -79,6 +79,22 @@ function downloadSVG() {
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
+
+  if (typeof window.gtag !== 'undefined') {
+    window.gtag('event', 'file_download', {
+      file_name: geolink.value.replace('json', 'svg').replace('_simplified', ''),
+      file_extension: 'svg'
+    })
+  }
+}
+
+function downloadJson() {
+  if (typeof window.gtag !== 'undefined') {
+    window.gtag('event', 'file_download', {
+      file_name: geolink.value,
+      file_extension: 'json'
+    })
+  }
 }
 </script>
 
@@ -112,8 +128,14 @@ function downloadSVG() {
         <div class="modal-body">
           <p class="lead text-center">Download</p>
           <p class="text-center">
-            <a v-on:click="downloadSVG()" class="btn btn-lg btn-primary mx-3">SVG</a>
-            <a v-bind:href="geolink" download class="btn btn-lg btn-primary">GeoJSON</a>
+            <a v-on:click="downloadSVG" class="btn btn-lg btn-primary mx-3">SVG</a>
+            <a
+              v-bind:href="geolink"
+              v-on:click="downloadJson"
+              download
+              class="btn btn-lg btn-primary"
+              >GeoJSON</a
+            >
             <a v-bind:href="csvlink" download class="btn btn-lg btn-primary mx-3">CSV</a>
           </p>
           <c-text-citation />
