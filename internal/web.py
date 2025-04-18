@@ -3,6 +3,7 @@ import datetime
 import json
 import os
 import shutil
+import logging
 
 import cartogram
 import settings
@@ -35,6 +36,7 @@ def create_app():
     )
 
     app.app_context().push()
+    app.logger.setLevel(logging.INFO)
     app.secret_key = settings.SECRET_KEY
     app.config["SQLALCHEMY_DATABASE_URI"] = settings.DATABASE_URI
     # This gets rid of an annoying Flask error message. We don't need this feature anyway.
