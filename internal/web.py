@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import datetime
 import json
+import logging
 import os
 import shutil
-import logging
 
 import cartogram
 import settings
@@ -13,17 +13,15 @@ from flask import Flask, Response, render_template, request
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_migrate import Migrate
 from handler import CartogramHandler
 from views import contact, custom_captcha, tracking
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 
 def create_app():
     app = Flask(__name__)
-    app.wsgi_app = ProxyFix(
-        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
-    )
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
     Asset(app)
     CORS(app, resources={r"/api/*": {"origins": "*"}})
     limiter = Limiter(
@@ -144,8 +142,11 @@ def create_app():
             return Response("Error", status=500)
 
         if mode != "preview":
-            cartogram_entry.date_accessed = datetime.datetime.now(datetime.UTC)
-            db.session.commit()
+            try:
+                cartogram_entry.date_accessed = datetime.datetime.now(datetime.UTC)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
 
         return render_template(
             template,
@@ -339,11 +340,16 @@ def create_app():
                 content_type="application/json",
             )
 
-        except (FileNotFoundError):
-            return Response('{"error":"Files for cartogram generation not found. ' \
-                'Please refresh this page and re-upload your map and data. If the issue persists, please contact us."}', 
-                status=400, content_type='application/json')
+        except FileNotFoundError:
+            db.session.rollback()
+            return Response(
+                '{"error":"Files for cartogram generation not found. '
+                'Please refresh this page and re-upload your map and data. If the issue persists, please contact us."}',
+                status=400,
+                content_type="application/json",
+            )
         except Exception as e:
+            db.session.rollback()
             app.logger.warning(f"Error: {str(e)}")
             if os.path.exists(userdata_path):
                 shutil.rmtree(userdata_path)
@@ -360,17 +366,21 @@ def create_app():
         num_records = 0
         year_ago = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=366)
         if settings.USE_DATABASE:
-            records = CartogramEntry.query.filter(
-                CartogramEntry.date_accessed < year_ago
-            ).all()
-            num_records = len(records)
-            for record in records:
-                folder_path = f"static/userdata/{record.string_key}"
-                if os.path.exists(folder_path):
-                    shutil.rmtree(folder_path)
-                db.session.delete(record)
+            try:
+                records = CartogramEntry.query.filter(
+                    CartogramEntry.date_accessed < year_ago
+                ).all()
+                num_records = len(records)
+                for record in records:
+                    folder_path = f"static/userdata/{record.string_key}"
+                    if os.path.exists(folder_path):
+                        shutil.rmtree(folder_path)
+                    db.session.delete(record)
 
-            db.session.commit()
+                db.session.commit()
+
+            except Exception:
+                db.session.rollback()
 
         # Delete files in folder /tmp that the created date is older than 1 days
         for file in os.listdir("/tmp"):
