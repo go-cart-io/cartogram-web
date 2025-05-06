@@ -1,6 +1,9 @@
+import os
 import subprocess
 import threading
 from queue import Queue
+
+import util
 
 
 def reader(pipe, pipe_name, queue):
@@ -23,15 +26,26 @@ def reader(pipe, pipe_name, queue):
 #
 # area_data:            A string containing appropriately formated area data
 # gen_file:             A string containing the path to the appropriate .gen file
-# cartogram_executable: A string containg the path to the C code executable
-def generate_cartogram(area_data, gen_file, cartogram_executable, custom_flags=[]):
-    args = [cartogram_executable, "--redirect_exports_to_stdout"]
+def generate_cartogram(area_data, gen_file, custom_flags=[]):
+    cartogram_exec = os.path.join(os.path.dirname(__file__), "cartogram")
+    allowed_flags = {
+        "--output_equal_area_map",
+        "--world",
+        "--output_shifted_insets",
+        "--skip_projection",
+    }
+    validated_flags = [flag for flag in custom_flags if flag in allowed_flags]
 
-    if custom_flags != []:
-        args = args + custom_flags
+    gen_file = util.get_safepath(gen_file)
+    if not os.path.isfile(gen_file):
+        raise ValueError(f"Invalid boundary file path: {gen_file}")
 
-    args = args + [gen_file]
-    if area_data is not None:
+    args = (
+        [cartogram_exec, "--redirect_exports_to_stdout"] + validated_flags + [gen_file]
+    )
+
+    area_data = util.get_safepath(area_data)
+    if area_data is not None and os.path.isfile(area_data):
         args.append(area_data)
 
     cartogram_process = subprocess.Popen(

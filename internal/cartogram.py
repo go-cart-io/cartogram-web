@@ -263,8 +263,6 @@ def call_binary(params, data_index=0, data_length=1, print_progress=False):
     stderr = "Dataset {}/{}\n".format(data_index + 1, data_length)
     error_msg = ""
     order = 0
-
-    cartogram_exec = os.path.join(os.path.dirname(__file__), "executable/cartogram")
     cartogram_key = params["key"]
 
     if "area_data" in params.keys() and params["area_data"] is not None:
@@ -280,7 +278,7 @@ def call_binary(params, data_index=0, data_length=1, print_progress=False):
         flags = []
 
     for source, line in cartwrap.generate_cartogram(
-        area_data_path, params["gen_file"], cartogram_exec, flags
+        area_data_path, params["gen_file"], flags
     ):
         if source == "stdout":
             stdout += line.decode()
