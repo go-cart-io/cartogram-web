@@ -16,7 +16,7 @@ from shapely.geometry import shape
 def preprocess(input, mapDBKey="temp_filename", based_path="/tmp"):
     # Input can be anything that is supported by geopandas.read_file
     # Standardize input to geojson file path
-    file_path = os.path.join(based_path, f"{mapDBKey}.json")
+    file_path = util.get_safepath(based_path, f"{mapDBKey}.json")
     if isinstance(input, str):  # input is path
         input_path = input
     else:  # input is file object
@@ -42,17 +42,19 @@ def preprocess(input, mapDBKey="temp_filename", based_path="/tmp"):
 
     if not cdf.is_projected:
         # Temporary project it so we can calculate the area
-        cdf.to_crs(
-            "EPSG:6933", inplace=True
-        )  # NSIDC EASE-Grid 2.0 Global https://epsg.io/6933
+        # NSIDC EASE-Grid 2.0 Global https://epsg.io/6933
+        cdf.to_crs("EPSG:6933", inplace=True)
 
     if not any(cdf.columns.str.startswith("Geographic Area")):
         cdf["Geographic Area (sq. km)"] = round(cdf.area / 10**6)
         cdf["Geographic Area (sq. km)"] = cdf["Geographic Area (sq. km)"].astype(int)
 
     if "ColorGroup" not in cdf.columns:
-        tmp_cdf = cdf.to_crs("EPSG:6933") # Forced projected file just for surprass mapclassify's warning
-        cdf["ColorGroup"] = mapclassify.greedy(tmp_cdf, min_colors=6, balance="distance")
+        # Forced projected file just for surprass mapclassify's warning
+        tmp_cdf = cdf.to_crs("EPSG:6933")
+        cdf["ColorGroup"] = mapclassify.greedy(
+            tmp_cdf, min_colors=6, balance="distance"
+        )
         cdf["ColorGroup"] = cdf["ColorGroup"].astype(int)
 
     if "cartogram_id" not in cdf.columns:
@@ -85,7 +87,7 @@ def generate_cartogram(
     flags=[],
 ):
     datacsv, datasets, is_area_as_base, prefered_names_dict = process_data(datacsv)
-    with open(f"{project_path}/data.csv", "w") as outfile:
+    with open(util.get_safepath(project_path, "data.csv"), "w") as outfile:
         outfile.write(datacsv)
     data_length = len(datasets)
 
@@ -114,12 +116,11 @@ def generate_cartogram(
 
     if equal_area_json is not None:
         equal_area_json = util.add_attributes(equal_area_json, is_projected=True)
-        with open(f"{project_path}/Geographic Area.json", "w") as outfile:
+        gen_file = util.get_safepath(project_path, "Geographic Area.json")
+        with open(gen_file, "w") as outfile:
             outfile.write(json.dumps(equal_area_json))
     else:
         raise "Error while projecting the boundary file."
-
-    gen_file = f"{project_path}/Geographic Area.json"
 
     # Generate cartograms
     for i, dataset in enumerate(datasets):
@@ -145,11 +146,13 @@ def generate_cartogram(
 
         cartogram_json = cartogram_gen_output_json["Original"]
         cartogram_json = postprocess_geojson(cartogram_json)
-        with open(f"{project_path}/{name}.json", "w") as outfile:
+        with open(util.get_safepath(project_path, f"{name}.json"), "w") as outfile:
             cartogram_json = util.add_attributes(cartogram_json, is_projected=True)
             outfile.write(json.dumps(cartogram_json))
 
-        with open(f"{project_path}/{name}_simplified.json", "w") as outfile:
+        with open(
+            util.get_safepath(project_path, f"{name}_simplified.json"), "w"
+        ) as outfile:
             cartogram_json_simplified = cartogram_gen_output_json["Simplified"]
             cartogram_json_simplified = util.add_attributes(
                 cartogram_json_simplified, is_projected=True
@@ -212,10 +215,9 @@ def process_data(csv_string):
     df = df.sort_values(by="Region")
     df = df.reindex(columns=cols_order)
 
+    # Just to make sure ColorGroup column exists. Color assignment should be done during geojson processing
     if "ColorGroup" not in df:
-        df["ColorGroup"] = (
-            ""  # Just to make sure ColorGroup column exists. Color assignment sould be done during geojson processing
-        )
+        df["ColorGroup"] = ""
 
     if is_empty_color:
         df.drop(columns="Color", inplace=True)
@@ -266,7 +268,7 @@ def call_binary(params, data_index=0, data_length=1, print_progress=False):
     cartogram_key = params["key"]
 
     if "area_data" in params.keys() and params["area_data"] is not None:
-        area_data_path = "/tmp/{}.csv".format(cartogram_key)
+        area_data_path = util.get_safepath("/tmp", f"{cartogram_key}.csv")
         with open(area_data_path, "w") as areas_file:
             areas_file.write(params["area_data"])
     else:
@@ -322,8 +324,8 @@ def call_binary(params, data_index=0, data_length=1, print_progress=False):
                 if e is not None:
                     error_msg = e.groups(1)[0]
 
-    if os.path.exists("/tmp/{}.csv".format(cartogram_key)):
-        os.remove("/tmp/{}.csv".format(cartogram_key))
+    if area_data_path is not None and os.path.exists(area_data_path):
+        os.remove(area_data_path)
 
     return {"stderr": stderr, "stdout": stdout, "error_msg": error_msg}
 

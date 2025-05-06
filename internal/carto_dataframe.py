@@ -1,6 +1,8 @@
-import geopandas as gpd
 import json
 import warnings
+
+import geopandas as gpd
+import util
 
 
 class CartoDataFrame(gpd.GeoDataFrame):
@@ -40,6 +42,8 @@ class CartoDataFrame(gpd.GeoDataFrame):
 
     @classmethod
     def read_file(cls, filepath):
+        filepath = util.get_safepath(filepath)
+
         """Reads a GeoJSON file and preserves extra attributes."""
         with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -73,7 +77,7 @@ class CartoDataFrame(gpd.GeoDataFrame):
 
     def to_carto_file(self, filepath):
         output_data = self.to_json()
-        with open(filepath, "w") as f:
+        with open(util.get_safepath(filepath), "w") as f:
             json.dump(output_data, f)
         return output_data
 

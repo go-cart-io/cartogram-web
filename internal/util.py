@@ -1,12 +1,21 @@
-import re
 import json
+import os
+import re
 import unicodedata
 
 
 def sanitize_filename(filename):
     invalid_chars = r'[\\/:*?"<>|]'
-    sanitized_filename = re.sub(invalid_chars, "_", filename)
+    sanitized_filename = (
+        re.sub(invalid_chars, "_", str(filename))
+        if filename is not None
+        else "default_name"
+    )
     return sanitized_filename
+
+
+def get_safepath(*parts):
+    return os.path.normpath(os.path.join(*parts))
 
 
 def get_csv(data):

@@ -39,7 +39,7 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = settings.DATABASE_URI
     # This gets rid of an annoying Flask error message. We don't need this feature anyway.
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["ENV"] = "development" if settings.DEBUG else "production"
+    app.config["ENV"] = "development" if settings.IS_DEBUG else "production"
     app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB
     app.config["MAX_FORM_MEMORY_SIZE"] = 10 * 1024 * 1024
 
@@ -279,7 +279,7 @@ def create_app():
             )
 
         datacsv = data["csv"] if "csv" in data else util.get_csv(data)
-        string_key = data["mapDBKey"]
+        string_key = util.sanitize_filename(data["mapDBKey"])
         userdata_path = None
         clean_by = None
         app.logger.info(f"Generating cartogram for {string_key}")
@@ -288,34 +288,39 @@ def create_app():
         # TODO check whether the code works properly if persist is false
         try:
             if "persist" in data:
-                userdata_path = f"static/userdata/{string_key}"
+                userdata_path = util.get_safepath("static/userdata", string_key)
             else:
-                userdata_path = f"/tmp/{string_key}"
+                userdata_path = util.get_safepath("/tmp", string_key)
 
             if not os.path.exists(userdata_path):
                 os.mkdir(userdata_path)
 
-            with open(f"{userdata_path}/data.csv", "w") as outfile:
+            with open(util.get_safepath(userdata_path, "data.csv"), "w") as outfile:
                 outfile.write(datacsv)
 
-            gen_file = cartogram_handler.get_gen_file(handler, string_key)
+            gen_file = util.get_safepath(
+                cartogram_handler.get_gen_file(handler, string_key)
+            )
 
             if handler == "custom":
-                editedFrom = data.get("editedFrom", None)
+                editedFrom = data.get("editedFrom", "")
+                edited_path = util.get_safepath("./", editedFrom)
                 if (
                     editedFrom
                     and editedFrom != ""
                     and editedFrom != gen_file
-                    and os.path.exists(f"./{editedFrom}")
+                    and os.path.exists(edited_path)
                 ):
-                    shutil.copyfile(f"./{editedFrom}", gen_file)
+                    shutil.copyfile(edited_path, gen_file)
 
                 else:
-                    shutil.copyfile(f"/tmp/{string_key}.json", gen_file)
+                    shutil.copyfile(
+                        util.get_safepath("/tmp", f"{string_key}.json"), gen_file
+                    )
                     clean_by = data.get("geojsonRegionCol", "Region")
 
             cartogram.generate_cartogram(
-                datacsv, gen_file, data["mapDBKey"], userdata_path, clean_by=clean_by
+                datacsv, gen_file, string_key, userdata_path, clean_by=clean_by
             )
 
             if "persist" in data and settings.USE_DATABASE:
@@ -340,8 +345,9 @@ def create_app():
                 content_type="application/json",
             )
 
-        except FileNotFoundError:
+        except FileNotFoundError as e:
             db.session.rollback()
+            app.logger.warning(f"Error: {str(e)}")
             return Response(
                 '{"error":"Files for cartogram generation not found. '
                 'Please refresh this page and re-upload your map and data. If the issue persists, please contact us."}',
@@ -384,7 +390,7 @@ def create_app():
 
         # Delete files in folder /tmp that the created date is older than 1 days
         for file in os.listdir("/tmp"):
-            file_path = os.path.join("/tmp", file)
+            file_path = util.get_safepath("/tmp", file)
             days_ago = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=1)
             try:
                 mod_time = os.stat(file_path).st_mtime
@@ -414,4 +420,4 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=settings.DEBUG, host=settings.HOST, port=settings.PORT)
+    app.run(debug=settings.IS_DEBUG, host=settings.HOST, port=settings.PORT)

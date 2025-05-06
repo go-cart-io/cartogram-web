@@ -1,9 +1,9 @@
 import json
 import os
-import settings
-
-from flask import current_app
 from urllib.parse import urlparse
+
+import settings
+from flask import current_app
 
 
 class Asset:
@@ -19,7 +19,7 @@ class Asset:
         )
         self._get_webpack_assets(app)
 
-        if settings.DEBUG:
+        if settings.IS_DEBUG:
             app.before_request(self.reload_webpack_assets)
 
         app.context_processor(lambda: {"asset": self})
