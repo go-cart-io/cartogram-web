@@ -4,67 +4,72 @@ on:
   # when a push is made to the main branch (like when a pull request is merged, or something is pushed directly)
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+
+permissions:
+  contents: write
+  packages: write
+  actions: read
+  id-token: write
 
 jobs:
   build-publish-release:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Calculate short_sha
-      id: vars
-      run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Calculate short_sha
+        id: vars
+        run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-    # note: we don't use the --latest flag. this way, a particular short_sha
-    # of cartogram-web can be used to identify the version of the executable
-    # as internal/executable/release-tag.txt will specify version
-    - name: Pull Executable
-      id: pull-exec
-      run: |
-        bash ${{github.workspace}}/tools/pull-executable.sh
-        echo "CPP_TAG=$(cat ${{github.workspace}}/internal/executable/release-tag.txt)" >> $GITHUB_OUTPUT
+      # note: we don't use the --latest flag. this way, a particular short_sha
+      # of cartogram-web can be used to identify the version of the executable
+      # as internal/executable/release-tag.txt will specify version
+      - name: Pull Executable
+        id: pull-exec
+        run: |
+          bash ${{github.workspace}}/tools/pull-executable.sh
+          echo "CPP_TAG=$(cat ${{github.workspace}}/internal/executable/release-tag.txt)" >> $GITHUB_OUTPUT
 
-    - name: Build and Publish Docker Image
-      uses: elgohr/Publish-Docker-Github-Action@2.18
-      with:
+      - name: Build and Publish Docker Image
+        uses: elgohr/Publish-Docker-Github-Action@2.18
+        with:
           name: gocartio/cartogram-web
           username: ${{ secrets.DOCKER_USERNAME }}
           # DOCKER_PASSWORD should not be your actual password, but a docker access token
           password: ${{ secrets.DOCKER_PASSWORD }}
           tags: "latest,${{ steps.vars.outputs.short_sha }}"
 
+      - name: Push tag
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.vars.outputs.short_sha }}
+          git push origin ${{ steps.vars.outputs.short_sha }}
 
-    - name: Push tag
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git tag ${{ steps.vars.outputs.short_sha }}
-        git push origin ${{ steps.vars.outputs.short_sha }}
+      - name: Set release URLs
+        id: release-urls
+        run: |
+          echo "gh_release_url=https://github.com/${{ github.repository }}/releases/tag/${{ steps.vars.outputs.short_sha }}" >> $GITHUB_OUTPUT
+          echo "dh_release_url=https://hub.docker.com/r/gocartio/cartogram-web/tags?name=${{ steps.vars.outputs.short_sha }}" >> $GITHUB_OUTPUT
+          echo "cpp_release_url=https://github.com/mgastner/cartogram-cpp/releases/tag/${{ steps.pull-exec.outputs.CPP_TAG }}" >> $GITHUB_OUTPUT
 
-    - name: Set release URLs
-      id: release-urls
-      run: |
-        echo "gh_release_url=https://github.com/${{ github.repository }}/releases/tag/${{ steps.vars.outputs.short_sha }}" >> $GITHUB_OUTPUT
-        echo "dh_release_url=https://hub.docker.com/r/gocartio/cartogram-web/tags?name=${{ steps.vars.outputs.short_sha }}" >> $GITHUB_OUTPUT
-        echo "cpp_release_url=https://github.com/mgastner/cartogram-cpp/releases/tag/${{ steps.pull-exec.outputs.CPP_TAG }}" >> $GITHUB_OUTPUT
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.short_sha }}
+          body: |
+            This release includes the Docker image available at:
+            ${{ steps.release-urls.outputs.dh_release_url }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Release
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: ${{ steps.vars.outputs.short_sha }}
-        body: |
-          This release includes the Docker image available at:
-          ${{ steps.release-urls.outputs.dh_release_url }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Display Release URLs in GitHub Actions Job Summary
-      run: |
-        echo "### \`cartogram-web\`" >> $GITHUB_STEP_SUMMARY
-        echo "- GitHub Release URL: ${{ steps.release-urls.outputs.gh_release_url }}" >> $GITHUB_STEP_SUMMARY
-        echo "- DockerHub Release URL: ${{ steps.release-urls.outputs.dh_release_url }}" >> $GITHUB_STEP_SUMMARY
-        echo "### \`cartogram-cpp\`" >> $GITHUB_STEP_SUMMARY
-        echo "- Release URL: ${{ steps.release-urls.outputs.cpp_release_url }}" >> $GITHUB_STEP_SUMMARY
+      - name: Display Release URLs in GitHub Actions Job Summary
+        run: |
+          echo "### \`cartogram-web\`" >> $GITHUB_STEP_SUMMARY
+          echo "- GitHub Release URL: ${{ steps.release-urls.outputs.gh_release_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- DockerHub Release URL: ${{ steps.release-urls.outputs.dh_release_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "### \`cartogram-cpp\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Release URL: ${{ steps.release-urls.outputs.cpp_release_url }}" >> $GITHUB_STEP_SUMMARY
