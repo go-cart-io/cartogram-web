@@ -15,7 +15,15 @@ def sanitize_filename(filename):
 
 
 def get_safepath(*parts):
-    return os.path.normpath(os.path.join(*parts))
+    fullpath = os.path.normpath(os.path.join(*parts))
+    if (
+        not fullpath.startswith("/tmp")
+        and not fullpath.startswith("static")
+        and not fullpath.startswith("tests")
+    ):
+        raise Exception("Invalid file path")
+
+    return fullpath
 
 
 def get_csv(data):

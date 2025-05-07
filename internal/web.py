@@ -304,13 +304,8 @@ def create_app():
 
             if handler == "custom":
                 editedFrom = data.get("editedFrom", "")
-                edited_path = util.get_safepath("./", editedFrom)
-                if (
-                    editedFrom
-                    and editedFrom != ""
-                    and editedFrom != gen_file
-                    and os.path.exists(edited_path)
-                ):
+                if editedFrom and editedFrom != "" and editedFrom != gen_file:
+                    edited_path = util.get_safepath("./", editedFrom)
                     shutil.copyfile(edited_path, gen_file)
 
                 else:
