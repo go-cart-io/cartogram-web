@@ -9,12 +9,14 @@ import cartogram
 import settings
 import util
 from asset import Asset
+from errors import CartogramError
 from flask import Flask, Response, render_template, request
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_migrate import Migrate
 from handler import CartogramHandler
+from markupsafe import escape
 from views import contact, custom_captcha, tracking
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -109,7 +111,7 @@ def create_app():
             template = "cartogram.html"
 
         if not cartogram_handler.has_handler(map_name):
-            return Response("Cannot find the map {}".format(map_name), status=500)
+            return Response(f"Cannot find the map {escape(map_name)}", status=500)
 
         return render_template(
             template,
@@ -250,10 +252,14 @@ def create_app():
                 status=200,
                 content_type="application/json",
             )
+
+        except CartogramError as e:
+            db.session.rollback()
+            return e.response()
         except Exception as e:
             app.logger.warning(f"Error: {str(e)}")
             return Response(
-                json.dumps({"error": str(e)}),
+                json.dumps({"error": "Unknown error"}),
                 status=400,
                 content_type="application/json",
             )
@@ -349,6 +355,9 @@ def create_app():
                 status=400,
                 content_type="application/json",
             )
+        except CartogramError as e:
+            db.session.rollback()
+            return e.response()
         except Exception as e:
             db.session.rollback()
             app.logger.warning(f"Error: {str(e)}")
@@ -356,7 +365,7 @@ def create_app():
                 shutil.rmtree(userdata_path)
 
             return Response(
-                json.dumps({"error": str(e)}),
+                json.dumps({"error": "Unknown error"}),
                 status=400,
                 content_type="application/json",
             )
