@@ -39,10 +39,3 @@ To update the `cartogram` binary to:
 ## Contributing
 
 We welcome and encourage contributions! For details on setting up a development environment and contribution guidelines, please visit our [Developer Guide](https://guides.go-cart.io/developers).
-
-## Licenses
-
-- **Source Code**: Licensed under [GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.en.html)
-- **Output Data/Cartograms**: Licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/), which requires attribution when shared or adapted
-
-For complete licensing details and attribution guidelines, please see [https://guides.go-cart.io/licenses](https://guides.go-cart.io/licenses)
