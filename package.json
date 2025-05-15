@@ -1,0 +1,21 @@
+{
+  "name": "cartogram-web",
+  "description": "cartogram-web is a web-based tool designed to simplify the creation of contiguous cartograms. It provides a user-friendly, browser-based interface that makes cartogram creation accessible to a wider audience. You can use the tool online at https://go-cart.io.",
+  "scripts": {
+    "postinstall": "cd frontend && npm install",
+    "dev:js": "cd frontend && npm run dev",
+    "dev:py": "FLASK_APP=internal/web.py FLASK_ENV=development python -m flask run --host=0.0.0.0 --debug",
+    "build": "npm run build:version && npm run build:js && npm run build:docker",
+    "build:version": "npx semantic-release --dry-run --no-ci",
+    "build:js": "cd frontend && npm run build",
+    "build:docker": "docker build -t gocartio/cartogram-web:$(cat version.txt) ."
+  },
+  "author": "go-cart.io",
+  "license": "MIT",
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^10.0.1",
+    "semantic-release": "^24.2.3"
+  }
+}

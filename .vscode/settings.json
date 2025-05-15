@@ -27,5 +27,12 @@
       "source.organizeImports": "explicit"
     },
     "editor.defaultFormatter": "charliermarsh.ruff"
-  }
+  },
+  "conventionalCommits.scopes": [
+    "backend",
+    "ui",
+    "ui-maker",
+    "ui-viewer",
+    "security"
+  ]
 }
