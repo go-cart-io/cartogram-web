@@ -9,6 +9,7 @@ import redis
 import settings
 import util
 from carto_dataframe import CartoDataFrame
+from errors import CartogramError
 from executable import cartwrap
 from shapely.geometry import shape
 
@@ -120,7 +121,7 @@ def generate_cartogram(
         with open(gen_file, "w") as outfile:
             outfile.write(json.dumps(equal_area_json))
     else:
-        raise "Error while projecting the boundary file."
+        raise CartogramError("Error while projecting the boundary file.")
 
     # Generate cartograms
     for i, dataset in enumerate(datasets):
@@ -137,9 +138,7 @@ def generate_cartogram(
         cartogram_result = call_binary(lambda_event, i, data_length, print_progress)
 
         if cartogram_result["stdout"] == "":
-            raise RuntimeError(
-                f"Cannot generate cartogram for {name} - {cartogram_result['error_msg']}"
-            )
+            raise CartogramError(f"Cannot generate cartogram for {data_col['name']}.")
 
         cartogram_gen_output = cartogram_result["stdout"]
         cartogram_gen_output_json = json.loads(cartogram_gen_output)
@@ -237,7 +236,7 @@ def preprocess_geojson(mapDBKey, file_path, dataset=None, flags=[]):
         }
     )
     if result["error_msg"] != "":
-        raise RuntimeError(result["error_msg"])
+        raise CartogramError(result["error_msg"])
     elif result["stdout"] == "":
         return None
 

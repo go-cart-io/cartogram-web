@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import shutil
+import traceback
 
 import cartogram
 import settings
@@ -16,7 +17,6 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_migrate import Migrate
 from handler import CartogramHandler
-from markupsafe import escape
 from views import contact, custom_captcha, tracking
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -55,7 +55,7 @@ def create_app():
         try:
             db.create_all()
         except Exception as err:
-            print(err)
+            app.logger.error(err)
 
     default_cartogram_handler = "usa"
     cartogram_handler = CartogramHandler()
@@ -111,7 +111,7 @@ def create_app():
             template = "cartogram.html"
 
         if not cartogram_handler.has_handler(map_name):
-            return Response(f"Cannot find the map {escape(map_name)}", status=500)
+            return Response("Not found", status=404)
 
         return render_template(
             template,
@@ -141,7 +141,7 @@ def create_app():
             not cartogram_handler.has_handler(cartogram_entry.handler)
             and cartogram_entry.handler != "custom"
         ):
-            return Response("Error", status=500)
+            return Response("Invalide map", status=400)
 
         if mode != "preview":
             try:
@@ -199,11 +199,12 @@ def create_app():
             cartogram_entry = CartogramEntry.query.filter_by(
                 string_key=name_or_key
             ).first_or_404()
+
             if cartogram_entry is None or (
                 not cartogram_handler.has_handler(cartogram_entry.handler)
                 and cartogram_entry.handler != "custom"
             ):
-                return Response("Error", status=500)
+                return Response("Invalide map", status=400)
 
             handler = cartogram_entry.handler
             csv_url = f"/static/userdata/{name_or_key}/data.csv"
@@ -232,13 +233,13 @@ def create_app():
         if mapDBKey is None or mapDBKey == "":
             return Response(
                 '{"error":"Missing sharing key."}',
-                status=404,
+                status=400,
                 content_type="application/json",
             )
 
         if "file" not in request.files or request.files["file"].filename == "":
             return Response(
-                '{"error": "No selected file"}',
+                '{"error": "No selected file."}',
                 status=400,
                 content_type="application/json",
             )
@@ -254,12 +255,11 @@ def create_app():
             )
 
         except CartogramError as e:
-            db.session.rollback()
-            return e.response()
+            return e.response(logger=app.logger)
         except Exception as e:
-            app.logger.warning(f"Error: {str(e)}")
+            app.logger.error(f"Error: {str(e)}\nTraceback:\n{traceback.format_exc()}")
             return Response(
-                json.dumps({"error": "Unknown error"}),
+                json.dumps({"error": "Unknown error."}),
                 status=400,
                 content_type="application/json",
             )
@@ -280,7 +280,7 @@ def create_app():
         if "mapDBKey" not in data:
             return Response(
                 '{"error":"Missing sharing key."}',
-                status=404,
+                status=400,
                 content_type="application/json",
             )
 
@@ -350,22 +350,21 @@ def create_app():
             db.session.rollback()
             app.logger.warning(f"Error: {str(e)}")
             return Response(
-                '{"error":"Files for cartogram generation not found. '
-                'Please refresh this page and re-upload your map and data. If the issue persists, please contact us."}',
+                '{"error":"Files for cartogram generation not found."}',
                 status=400,
                 content_type="application/json",
             )
         except CartogramError as e:
             db.session.rollback()
-            return e.response()
+            return e.response(app.logger)
         except Exception as e:
             db.session.rollback()
-            app.logger.warning(f"Error: {str(e)}")
+            app.logger.error(f"Error: {str(e)}\nTraceback:\n{traceback.format_exc()}")
             if os.path.exists(userdata_path):
                 shutil.rmtree(userdata_path)
 
             return Response(
-                json.dumps({"error": "Unknown error"}),
+                json.dumps({"error": "Unknown error."}),
                 status=400,
                 content_type="application/json",
             )

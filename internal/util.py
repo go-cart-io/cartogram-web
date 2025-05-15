@@ -1,7 +1,8 @@
 import json
 import os
 import re
-import unicodedata
+
+from errors import CartogramError
 
 
 def sanitize_filename(filename):
@@ -21,7 +22,7 @@ def get_safepath(*parts):
         and not fullpath.startswith("static")
         and not fullpath.startswith("tests")
     ):
-        raise Exception("Invalid file path")
+        raise CartogramError(f"Invalid file path: {fullpath}.")
 
     return fullpath
 

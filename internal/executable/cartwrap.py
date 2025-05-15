@@ -4,6 +4,7 @@ import threading
 from queue import Queue
 
 import util
+from errors import CartogramError
 
 
 def reader(pipe, pipe_name, queue):
@@ -36,9 +37,9 @@ def generate_cartogram(area_data, gen_file, custom_flags=[]):
     }
     validated_flags = [flag for flag in custom_flags if flag in allowed_flags]
 
-    gen_file = util.get_safepath(gen_file)
-    if not os.path.isfile(gen_file):
-        raise ValueError(f"Invalid boundary file path: {gen_file}")
+    gen_path = util.get_safepath(gen_path)
+    if not os.path.isfile(gen_path):
+        raise CartogramError(f"Invalid boundary file path: {gen_path}")
 
     args = (
         [cartogram_exec, "--redirect_exports_to_stdout"] + validated_flags + [gen_file]
