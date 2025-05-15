@@ -97,7 +97,7 @@ def generate_cartogram(
     if cdf.is_world:
         flags = flags + ["--world"]
     if clean_by is not None and clean_by != "":
-        cdf.clean_and_sort(
+        cdf.clean_properties(
             clean_by or "Region", prefered_names_dict=prefered_names_dict
         )
         cdf.to_carto_file(input_file)
@@ -212,7 +212,6 @@ def process_data(csv_string):
                 }
             )
 
-    df = df.sort_values(by="Region")
     df = df.reindex(columns=cols_order)
 
     # Just to make sure ColorGroup column exists. Color assignment should be done during geojson processing

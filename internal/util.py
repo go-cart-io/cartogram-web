@@ -59,9 +59,3 @@ def add_attributes(geojson, is_projected=False, is_world=False):
         geojson["extent"] = "world"
 
     return geojson
-
-
-def remove_accents(text):
-    # example usage
-    # data_df = data_df.sort_values(by=‘Region’, key=lambda col: col.apply(remove_accents))
-    return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("utf-8")
