@@ -60,6 +60,16 @@ def create_app():
     default_cartogram_handler = "usa"
     cartogram_handler = CartogramHandler()
 
+    try:
+        with open("version.txt") as f:
+            app.config["VERSION"] = " v" + f.read().strip()
+    except FileNotFoundError:
+        app.config["VERSION"] = ""
+
+    @app.context_processor
+    def inject_version():
+        return dict(version=app.config["VERSION"])
+
     @app.route("/", methods=["GET"])
     def index():
         return render_template(
