@@ -82,4 +82,4 @@ def test_cartogram_post_inset(client):
 
 def test_cleanup(client):
     response = client.get("/cleanup")
-    print(response)
+    print(response.data)

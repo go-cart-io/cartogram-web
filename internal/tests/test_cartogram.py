@@ -16,32 +16,17 @@ def test_preprocess():
 
 def test_process_data_with_no_inset(mocker):
     csv_string = "Region,RegionLabel,Color,Geographic Area (sq. km)\nRegion1,R1,,1000\nRegion2,R2,,2000"
-    formatted_csv, datasets, is_area_as_base, prefered_names_dict = (
-        cartogram.process_data(csv_string)
-    )
+    expected_csv_string = "Region,RegionLabel,ColorGroup,Geographic Area (sq. km)\nRegion1,R1,,1000\nRegion2,R2,,2000\n"
 
-    assert (
-        formatted_csv
-        == "Region,RegionLabel,ColorGroup,Geographic Area (sq. km)\nRegion1,R1,,1000\nRegion2,R2,,2000\n"
-    )
-    assert len(datasets) == 0
-    assert is_area_as_base is True
+    formatted_csv, data_cols, prefered_names_dict = cartogram.process_data(csv_string)
+    assert formatted_csv == expected_csv_string
+    assert len(data_cols) == 0
 
 
 def test_process_data_with_color_inset(mocker):
     csv_string = "Region,RegionLabel,Color,Inset,Population (people)\nRegion1,R1,#fff,C,1000\nRegion2,R2,,C,2000"
-    formatted_csv, datasets, is_area_as_base, prefered_names_dict = (
-        cartogram.process_data(csv_string)
-    )
+    expected_csv_string = "Region,RegionLabel,Color,ColorGroup,Inset,Population (people)\nRegion1,R1,#fff,,C,1000\nRegion2,R2,,,C,2000\n"
+    formatted_csv, data_cols, prefered_names_dict = cartogram.process_data(csv_string)
 
-    assert (
-        formatted_csv
-        == "Region,RegionLabel,Color,ColorGroup,Inset,Population (people)\nRegion1,R1,#fff,,C,1000\nRegion2,R2,,,C,2000\n"
-    )
-    assert datasets == [
-        {
-            "label": "Population",
-            "datastring": "Region,Data,Color,Inset\nRegion1,1000,#fff,C\nRegion2,2000,,C\n",
-        }
-    ]
-    assert is_area_as_base is False
+    assert formatted_csv == expected_csv_string
+    assert data_cols == [{"name": "Population", "column_name": "Population (people)"}]
