@@ -13,7 +13,7 @@ from executable import cartwrap
 from shapely.geometry import shape
 
 
-def preprocess(input, mapDBKey="temp_filename", based_path="/tmp"):
+def preprocess(input, mapDBKey="temp_filename", based_path="tmp"):
     # Input can be anything that is supported by geopandas.read_file
     # Standardize input to geojson file path
     file_path = util.get_safepath(based_path, f"{mapDBKey}.json")

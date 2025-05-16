@@ -296,7 +296,7 @@ def create_app():
             if "persist" in data:
                 userdata_path = util.get_safepath("static/userdata", string_key)
             else:
-                userdata_path = util.get_safepath("/tmp", string_key)
+                userdata_path = util.get_safepath("tmp", string_key)
 
             if not os.path.exists(userdata_path):
                 os.mkdir(userdata_path)
@@ -311,12 +311,12 @@ def create_app():
             if handler == "custom":
                 editedFrom = data.get("editedFrom", "")
                 if editedFrom and editedFrom != "" and editedFrom != gen_file:
-                    edited_path = util.get_safepath("./", editedFrom)
+                    edited_path = util.get_safepath(editedFrom.lstrip("/"))
                     shutil.copyfile(edited_path, gen_file)
 
                 else:
                     shutil.copyfile(
-                        util.get_safepath("/tmp", f"{string_key}.json"), gen_file
+                        util.get_safepath("tmp", f"{string_key}.json"), gen_file
                     )
                     clean_by = data.get("geojsonRegionCol", "Region")
 
@@ -391,9 +391,9 @@ def create_app():
             except Exception:
                 db.session.rollback()
 
-        # Delete files in folder /tmp that the created date is older than 1 days
-        for file in os.listdir("/tmp"):
-            file_path = util.get_safepath("/tmp", file)
+        # Delete files in folder tmp that the created date is older than 1 days
+        for file in os.listdir("tmp"):
+            file_path = util.get_safepath("tmp", file)
             days_ago = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=1)
             try:
                 mod_time = os.stat(file_path).st_mtime

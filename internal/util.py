@@ -6,21 +6,24 @@ from errors import CartogramError
 
 
 def sanitize_filename(filename):
+    if filename is None:
+        return "default_name"
+
     invalid_chars = r'[\\/:*?"<>|]'
-    sanitized_filename = (
-        re.sub(invalid_chars, "_", str(filename))
-        if filename is not None
-        else "default_name"
-    )
+    sanitized_filename = re.sub(invalid_chars, "_", str(filename))
     return sanitized_filename
 
 
 def get_safepath(*parts):
     fullpath = os.path.normpath(os.path.join(*parts))
+    filepath = os.path.dirname(__file__)
+    if not os.path.isabs(fullpath):
+        fullpath = os.path.join(filepath, fullpath)
+    
     if (
-        not fullpath.startswith("/tmp")
-        and not fullpath.startswith("static")
-        and not fullpath.startswith("tests")
+        not fullpath.startswith(filepath + "/tmp")
+        and not fullpath.startswith(filepath + "/static")
+        and not fullpath.startswith(filepath + "/tests")
     ):
         raise CartogramError(f"Invalid file path: {fullpath}.")
 
