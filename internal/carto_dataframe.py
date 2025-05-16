@@ -54,12 +54,12 @@ class CartoDataFrame(gpd.GeoDataFrame):
         gdf = gpd.read_file(filepath)
         return cls(gdf, extra_attributes=extra_attributes)
 
-    def to_crs(self, crs=None, epsg=None, inplace=False):
+    def to_crs(self, crs=None, epsg=None, inplace=False, force=False):
         """
         Overrides GeoDataFrame's to_crs method.
         If the GeoDataFrame is already projected, prints a warning before reprojecting.
         """
-        if self.is_projected:
+        if self.is_projected and not force:
             warnings.warn(
                 "The file is already projected. This reprojection may be incorrect.",
                 UserWarning,
