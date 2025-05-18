@@ -1,6 +1,10 @@
 {
   "branches": [
-    "main"
+    "main",
+    {
+      "name": "dev",
+      "prerelease": true
+    }
   ],
   "plugins": [
     "@semantic-release/commit-analyzer",
@@ -8,8 +12,9 @@
     [
       "@semantic-release/exec",
       {
-        "verifyReleaseCmd": "echo ${nextRelease.version} > version.txt"
+        "verifyReleaseCmd": "echo ${nextRelease.version} > internal/version.txt"
       }
-    ]
+    ],
+    "@semantic-release/github"
   ]
 }

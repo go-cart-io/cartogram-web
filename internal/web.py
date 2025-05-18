@@ -61,7 +61,7 @@ def create_app():
     cartogram_handler = CartogramHandler()
 
     try:
-        with open("version.txt") as f:
+        with open(os.path.join(os.path.dirname(__file__), "version.txt")) as f:
             app.config["VERSION"] = " v" + f.read().strip()
     except FileNotFoundError:
         app.config["VERSION"] = ""
