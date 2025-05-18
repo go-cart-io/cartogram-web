@@ -294,8 +294,8 @@ function onValueChange(rIndex: number, label: string, event: Event) {
       <p>
         Don't know where to start? You may try editing one of our
         <a href="/cartogram">examples</a>. If you have any questions or issues about cartogram
-        generation, refer to the <a href="/faq">Frequently Asked Questions</a> or
-        <a href="/contact">Contact us</a>.
+        generation, refer to the <a href="//guides.go-cart.io/quick-start">guides</a> or
+        <a href="/contact">contact us</a>.
       </p>
     </div>
 

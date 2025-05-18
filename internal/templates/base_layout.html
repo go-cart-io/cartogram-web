@@ -49,21 +49,23 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav" style="margin-right: 50px">
+        <ul class="navbar-nav me-auto" style="margin-right: 50px">
           <li class="nav-item {%if page_active=='maker'%}active{%endif%}">
             <a class="nav-link" href="/cartogram/create">Make Cartogram</a>
           </li>
           <li class="nav-item {%if page_active=='cartogram'%}active{%endif%}">
             <a class="nav-link" href="/cartogram">View Cartogram</a>
           </li>
-          <li class="nav-item {%if page_active=='faq'%}active{%endif%}">
-            <a class="nav-link" href="/faq">FAQ</a>
-          </li>
-          <li class="nav-item {%if page_active=='about'%}active{%endif%}">
-            <a class="nav-link" href="/about">About</a>
-          </li>
           <li class="nav-item {%if page_active=='contact'%}active{%endif%}">
             <a class="nav-link" href="/contact">Contact</a>
+          </li>
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="//guides.go-cart.io" target="_blank">Guides</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/go-cart-io/cartogram-web" target="_blank">GitHub</a>
           </li>
         </ul>
       </div>

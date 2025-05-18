@@ -77,27 +77,11 @@ def create_app():
             tracking=tracking.determine_tracking_action(request),
         )
 
-    @app.route("/about", methods=["GET"])
-    def about():
-        return render_template(
-            "about.html",
-            page_active="about",
-            tracking=tracking.determine_tracking_action(request),
-        )
-
     @app.route("/cookies", methods=["GET"])
     def cookies():
         return render_template(
             "cookies.html",
             page_active="",
-            tracking=tracking.determine_tracking_action(request),
-        )
-
-    @app.route("/faq", methods=["GET"])
-    def faq():
-        return render_template(
-            "faq.html",
-            page_active="faq",
             tracking=tracking.determine_tracking_action(request),
         )
 
