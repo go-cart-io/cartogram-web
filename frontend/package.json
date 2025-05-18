@@ -5,14 +5,15 @@
   "scripts": {
     "dev": "vite --host",
     "test": "vitest",
-    "build": "run-p type-check build-only",
-    "preview": "vite preview",
+    "test:once": "vitest run",
     "test:unit": "vitest",
     "test:e2e": "playwright test",
+    "build": "run-p type-check build-only",
     "build-only": "vite build --base=/static/dist",
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false",
     "lint": "eslint . --fix",
-    "format": "prettier --write src/"
+    "format": "prettier --write src/",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
