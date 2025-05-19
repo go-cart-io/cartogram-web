@@ -1,8 +1,12 @@
-name: Publish Docker Image on DockerHub, Create GitHub Release
+name: Build, Publish, Release
 
 on:
   # when a push is made to the main branch (like when a pull request is merged, or something is pushed directly)
   workflow_dispatch:
+    inputs:
+      update-server:
+        type: boolean
+        description: Update docker image on go-cart.io server
   # push:
   #   branches: ["main"]
 
@@ -75,3 +79,24 @@ jobs:
           echo "- DockerHub Release URL: ${{ steps.release-urls.outputs.dh_release_url }}" >> $GITHUB_STEP_SUMMARY
           echo "### \`cartogram-cpp\`" >> $GITHUB_STEP_SUMMARY
           echo "- Release URL: ${{ steps.release-urls.outputs.cpp_release_url }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Update cartogram docker and web image on go-cart.io server
+        if: github.event.inputs.update-server == 'true'
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.SERVER_HOSTNAME }}
+          username: cartogram
+          key: ${{ secrets.SERVER_SSH_ACCESS_KEY }}
+          script: |
+            # Reset all changes before pull to prevent conflicts
+            cd ~/cartogram-docker
+            git fetch origin
+            git reset --hard origin/main
+            git pull origin main
+
+            export TAG=":${{ steps.vars.outputs.version }}"
+            docker compose -f docker-compose.yml pull web
+            docker compose -f docker-compose.yml up -d
+
+            # Clean up old image
+            docker image prune -a -f
