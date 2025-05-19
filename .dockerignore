@@ -3,6 +3,8 @@
 **/npm-debug.log
 
 **/__pycache__
+**/.pytest_cache
+**/.ruff_cache
 **/*.pyc
 **/*.pyo
 **/*.pyd
@@ -21,3 +23,16 @@
 **/.mypy_cache
 **/.pytest_cache
 **/.hypothesis
+**/.Rhistory
+**/.cache
+**/.vscode-server
+**/.dotnet
+**/.gnupg
+**/.npm
+**/.qodo
+**/.bash_history
+**/.gitconfig
+**/.wget-hsts
+**/.docker
+
+**/.devcontainer

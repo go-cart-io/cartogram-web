@@ -1,12 +1,33 @@
-import re
 import json
-import unicodedata
+import os
+import re
+
+from errors import CartogramError
 
 
 def sanitize_filename(filename):
+    if filename is None:
+        return "default_name"
+
     invalid_chars = r'[\\/:*?"<>|]'
-    sanitized_filename = re.sub(invalid_chars, "_", filename)
+    sanitized_filename = re.sub(invalid_chars, "_", str(filename))
     return sanitized_filename
+
+
+def get_safepath(*parts):
+    fullpath = os.path.normpath(os.path.join(*parts))
+    filepath = os.path.dirname(__file__)
+    if not os.path.isabs(fullpath):
+        fullpath = os.path.join(filepath, fullpath)
+    
+    if (
+        not fullpath.startswith(filepath + "/tmp")
+        and not fullpath.startswith(filepath + "/static")
+        and not fullpath.startswith(filepath + "/tests")
+    ):
+        raise CartogramError(f"Invalid file path: {fullpath}.")
+
+    return fullpath
 
 
 def get_csv(data):
@@ -42,9 +63,3 @@ def add_attributes(geojson, is_projected=False, is_world=False):
         geojson["extent"] = "world"
 
     return geojson
-
-
-def remove_accents(text):
-    # example usage
-    # data_df = data_df.sort_values(by=‘Region’, key=lambda col: col.apply(remove_accents))
-    return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("utf-8")

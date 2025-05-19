@@ -30,7 +30,7 @@ def test_crs(mocker):
     # assert carto_df2.crs == "EPSG:6933"
 
 
-def test_clean_and_sort_with_existing_region_column(mocker):
+def test_clean_properties_with_existing_region_column(mocker):
     json_data = {
         "Region": ["B", "A"],
         "geometry": [None, None],
@@ -38,19 +38,19 @@ def test_clean_and_sort_with_existing_region_column(mocker):
         "other": ["1", "2"],
     }
     carto_df = CartoDataFrame(json_data)
-    carto_df.clean_and_sort("Region")
+    carto_df.clean_properties("Region")
     assert "Region" in carto_df.columns
     assert "other" not in carto_df.columns
-    assert list(carto_df["Region"]) == ["A", "B"]
+    assert list(carto_df["Region"]) == ["B", "A"]
 
 
-def test_clean_and_sort_with_other_region_column(mocker):
+def test_clean_properties_with_other_region_column(mocker):
     carto_df = CartoDataFrame.read_file("tests/data/geojson_test.geojson")
-    carto_df.clean_and_sort("prop_unique")
+    carto_df.clean_properties("prop_unique")
     carto_json = carto_df.to_json()
     # carto_df.to_carto_file("tests/data/geojson_out.geojson")
 
     assert "Region" in carto_json["features"][0]["properties"]
-    assert "1" == carto_json["features"][0]["properties"]["Region"][0]
+    assert "99" == carto_json["features"][0]["properties"]["Region"]
     assert "prop_non_unique" not in carto_json["features"][0]["properties"]
     assert carto_json.get("name") == "test"

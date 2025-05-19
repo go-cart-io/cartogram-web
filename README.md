@@ -4,7 +4,7 @@ cartogram-web is a web-based tool designed to simplify the creation of contiguou
 
 This repository contains the source code behind the go-cart.io website. Users can input data through a streamlined interface, while a remote server performs fast flow-based cartogram calculations using a binary from [mgastner/cartogram-cpp](https://github.com/mgastner/cartogram-cpp).
 
-We recommend using [go-cart.io](https://go-cart.io) for cartogram generation. However, if you want to run the tool locally, we suggest using [go-cart-io/carotgram-docker](https://github.com/go-cart-io/cartogram-docker). To push changes to go-cart.io (for instance, adding a map, updating the `cartogram` binary, or any other changes), please follow the the instructions [here](https://github.com/go-cart-io/cartogram-docker/blob/main/docs/deploy.md).
+We recommend using [go-cart.io](https://go-cart.io) for cartogram generation. However, if you want to run the tool locally, we suggest using [go-cart-io/carotgram-docker](https://github.com/go-cart-io/cartogram-docker).
 
 ## Repository overview
 
@@ -36,6 +36,6 @@ To update the `cartogram` binary to:
   bash tools/pull-executable.sh
   ```
 
-# Contributing
+## Contributing
 
-Contributions are highly encouraged, and we love pull requests! Feel free to take a stab at any of the open issues. If there are no issues, don't hesitate to suggest new features, or report bugs under the issues tab (and, optionally, even subsequently send in pull requests with said enhancements or fixes). If you need help getting setup or more guidance contributing, please @ any of the main contributors under the issue you'd like to help solve, and we'll be happy to guide you!
+We welcome and encourage contributions! For details on setting up a development environment and contribution guidelines, please visit our [Developer Guide](https://guides.go-cart.io/developers).

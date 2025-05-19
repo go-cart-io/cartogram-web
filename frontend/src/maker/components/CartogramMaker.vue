@@ -27,6 +27,7 @@ const props = defineProps<{
 }>()
 
 const state = reactive({
+  isProcessing: false,
   loadingProgress: 0,
   error: '',
   title: props.mapTitle ? props.mapTitle : '',
@@ -97,6 +98,7 @@ function onCsvUpdate(csvData: KeyValueArray) {
 }
 
 async function getGeneratedCartogram() {
+  state.isProcessing = true
   const progressModal = new Modal('#progressBackdrop', {
     backdrop: 'static',
     keyboard: false
@@ -153,8 +155,11 @@ async function getGeneratedCartogram() {
       }
     )
   }).catch(function (error: any) {
-    state.error = error
+    state.error =
+      error +
+      ' Try refresh this page, then re-upload your map and data. If the issue persists, please contact us.'
     progressModal.hide()
+    state.isProcessing = false
     Toast.getOrCreateInstance(document.getElementById('errorToast')!).show()
     return
   })
@@ -237,7 +242,13 @@ async function getGeneratedCartogram() {
               advise you to back up your original data in a safe place so you can regenerate the
               cartogram if needed.
             </p>
-            <button class="btn btn-primary" v-on:click="getGeneratedCartogram">Generate</button>
+            <button
+              class="btn btn-primary"
+              v-bind:disabled="state.isProcessing || !('features' in state.geojsonData)"
+              v-on:click="getGeneratedCartogram"
+            >
+              Generate
+            </button>
           </div>
         </div>
       </div>

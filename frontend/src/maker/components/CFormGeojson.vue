@@ -57,7 +57,7 @@ async function uploadGeoJson(event: Event) {
     )
   }).catch(function (error: any) {
     console.log(error)
-    state.error = 'Unable to processs your geospatial file(s)'
+    state.error = 'Unable to process your geospatial file(s): ' + error
     state.isLoading = false
     return
   })

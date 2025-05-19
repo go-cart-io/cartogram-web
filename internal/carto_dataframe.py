@@ -1,6 +1,8 @@
-import geopandas as gpd
 import json
 import warnings
+
+import geopandas as gpd
+import util
 
 
 class CartoDataFrame(gpd.GeoDataFrame):
@@ -40,6 +42,8 @@ class CartoDataFrame(gpd.GeoDataFrame):
 
     @classmethod
     def read_file(cls, filepath):
+        filepath = util.get_safepath(filepath)
+
         """Reads a GeoJSON file and preserves extra attributes."""
         with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -50,12 +54,12 @@ class CartoDataFrame(gpd.GeoDataFrame):
         gdf = gpd.read_file(filepath)
         return cls(gdf, extra_attributes=extra_attributes)
 
-    def to_crs(self, crs=None, epsg=None, inplace=False):
+    def to_crs(self, crs=None, epsg=None, inplace=False, force=False):
         """
         Overrides GeoDataFrame's to_crs method.
         If the GeoDataFrame is already projected, prints a warning before reprojecting.
         """
-        if self.is_projected:
+        if self.is_projected and not force:
             warnings.warn(
                 "The file is already projected. This reprojection may be incorrect.",
                 UserWarning,
@@ -73,7 +77,7 @@ class CartoDataFrame(gpd.GeoDataFrame):
 
     def to_carto_file(self, filepath):
         output_data = self.to_json()
-        with open(filepath, "w") as f:
+        with open(util.get_safepath(filepath), "w") as f:
             json.dump(output_data, f)
         return output_data
 
@@ -82,18 +86,17 @@ class CartoDataFrame(gpd.GeoDataFrame):
         result = super().reset_index(*args, **kwargs)
         return CartoDataFrame(result, extra_attributes=self.extra_attributes)
 
-    def clean_and_sort(
+    def clean_properties(
         self,
         region_col,
         base_columns=["Region", "label", "cartogram_id", "geometry"],
         prefered_names_dict={},
     ):
         """
-        Cleans and sorts the GeoDataFrame by:
+        Cleans the GeoDataFrame by:
         - Renaming `region_col` to 'Region'
         - Dropping existing 'Region' column if necessary
         - Keeping only relevant columns
-        - Sorting by 'Region'
         """
         # Rename or replace 'Region' column
         if region_col != "Region":
@@ -110,7 +113,7 @@ class CartoDataFrame(gpd.GeoDataFrame):
         area_columns = [
             col for col in self.columns if col.startswith("Geographic Area")
         ]
-        columns_to_keep = ["Region", "label", "cartogram_id", "geometry"] + area_columns
+        columns_to_keep = base_columns + area_columns
         existing_columns = [col for col in columns_to_keep if col in self.columns]
 
         # Filter columns
@@ -118,9 +121,6 @@ class CartoDataFrame(gpd.GeoDataFrame):
             columns=[col for col in self.columns if col not in existing_columns],
             inplace=True,
         )
-
-        # Sort by 'Region'
-        self.sort_values(by="Region", inplace=True)
 
         if "label" in self.columns:
             self["label"] = self["label"].apply(json.loads)

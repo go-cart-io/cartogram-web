@@ -4,11 +4,13 @@ import json
 import logging
 import os
 import shutil
+import traceback
 
 import cartogram
 import settings
 import util
 from asset import Asset
+from errors import CartogramError
 from flask import Flask, Response, render_template, request
 from flask_cors import CORS
 from flask_limiter import Limiter
@@ -39,7 +41,7 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = settings.DATABASE_URI
     # This gets rid of an annoying Flask error message. We don't need this feature anyway.
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["ENV"] = "development" if settings.DEBUG else "production"
+    app.config["ENV"] = "development" if settings.IS_DEBUG else "production"
     app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB
     app.config["MAX_FORM_MEMORY_SIZE"] = 10 * 1024 * 1024
 
@@ -53,10 +55,20 @@ def create_app():
         try:
             db.create_all()
         except Exception as err:
-            print(err)
+            app.logger.error(err)
 
     default_cartogram_handler = "usa"
     cartogram_handler = CartogramHandler()
+
+    try:
+        with open(os.path.join(os.path.dirname(__file__), "version.txt")) as f:
+            app.config["VERSION"] = " v" + f.read().strip()
+    except FileNotFoundError:
+        app.config["VERSION"] = ""
+
+    @app.context_processor
+    def inject_version():
+        return dict(version=app.config["VERSION"])
 
     @app.route("/", methods=["GET"])
     def index():
@@ -109,7 +121,7 @@ def create_app():
             template = "cartogram.html"
 
         if not cartogram_handler.has_handler(map_name):
-            return Response("Cannot find the map {}".format(map_name), status=500)
+            return Response("Not found", status=404)
 
         return render_template(
             template,
@@ -139,7 +151,7 @@ def create_app():
             not cartogram_handler.has_handler(cartogram_entry.handler)
             and cartogram_entry.handler != "custom"
         ):
-            return Response("Error", status=500)
+            return Response("Invalide map", status=400)
 
         if mode != "preview":
             try:
@@ -197,11 +209,12 @@ def create_app():
             cartogram_entry = CartogramEntry.query.filter_by(
                 string_key=name_or_key
             ).first_or_404()
+
             if cartogram_entry is None or (
                 not cartogram_handler.has_handler(cartogram_entry.handler)
                 and cartogram_entry.handler != "custom"
             ):
-                return Response("Error", status=500)
+                return Response("Invalide map", status=400)
 
             handler = cartogram_entry.handler
             csv_url = f"/static/userdata/{name_or_key}/data.csv"
@@ -230,13 +243,13 @@ def create_app():
         if mapDBKey is None or mapDBKey == "":
             return Response(
                 '{"error":"Missing sharing key."}',
-                status=404,
+                status=400,
                 content_type="application/json",
             )
 
         if "file" not in request.files or request.files["file"].filename == "":
             return Response(
-                '{"error": "No selected file"}',
+                '{"error": "No selected file."}',
                 status=400,
                 content_type="application/json",
             )
@@ -250,10 +263,13 @@ def create_app():
                 status=200,
                 content_type="application/json",
             )
+
+        except CartogramError as e:
+            return e.response(logger=app.logger)
         except Exception as e:
-            app.logger.warning(f"Error: {str(e)}")
+            app.logger.error(f"Error: {str(e)}\nTraceback:\n{traceback.format_exc()}")
             return Response(
-                json.dumps({"error": str(e)}),
+                json.dumps({"error": "Unknown error."}),
                 status=400,
                 content_type="application/json",
             )
@@ -274,12 +290,12 @@ def create_app():
         if "mapDBKey" not in data:
             return Response(
                 '{"error":"Missing sharing key."}',
-                status=404,
+                status=400,
                 content_type="application/json",
             )
 
         datacsv = data["csv"] if "csv" in data else util.get_csv(data)
-        string_key = data["mapDBKey"]
+        string_key = util.sanitize_filename(data["mapDBKey"])
         userdata_path = None
         clean_by = None
         app.logger.info(f"Generating cartogram for {string_key}")
@@ -288,34 +304,34 @@ def create_app():
         # TODO check whether the code works properly if persist is false
         try:
             if "persist" in data:
-                userdata_path = f"static/userdata/{string_key}"
+                userdata_path = util.get_safepath("static/userdata", string_key)
             else:
-                userdata_path = f"/tmp/{string_key}"
+                userdata_path = util.get_safepath("tmp", string_key)
 
             if not os.path.exists(userdata_path):
                 os.mkdir(userdata_path)
 
-            with open(f"{userdata_path}/data.csv", "w") as outfile:
+            with open(util.get_safepath(userdata_path, "data.csv"), "w") as outfile:
                 outfile.write(datacsv)
 
-            gen_file = cartogram_handler.get_gen_file(handler, string_key)
+            gen_file = util.get_safepath(
+                cartogram_handler.get_gen_file(handler, string_key)
+            )
 
             if handler == "custom":
-                editedFrom = data.get("editedFrom", None)
-                if (
-                    editedFrom
-                    and editedFrom != ""
-                    and editedFrom != gen_file
-                    and os.path.exists(f"./{editedFrom}")
-                ):
-                    shutil.copyfile(f"./{editedFrom}", gen_file)
+                editedFrom = data.get("editedFrom", "")
+                if editedFrom and editedFrom != "" and editedFrom != gen_file:
+                    edited_path = util.get_safepath(editedFrom.lstrip("/"))
+                    shutil.copyfile(edited_path, gen_file)
 
                 else:
-                    shutil.copyfile(f"/tmp/{string_key}.json", gen_file)
+                    shutil.copyfile(
+                        util.get_safepath("tmp", f"{string_key}.json"), gen_file
+                    )
                     clean_by = data.get("geojsonRegionCol", "Region")
 
             cartogram.generate_cartogram(
-                datacsv, gen_file, data["mapDBKey"], userdata_path, clean_by=clean_by
+                datacsv, gen_file, string_key, userdata_path, clean_by=clean_by
             )
 
             if "persist" in data and settings.USE_DATABASE:
@@ -340,22 +356,25 @@ def create_app():
                 content_type="application/json",
             )
 
-        except FileNotFoundError:
+        except FileNotFoundError as e:
             db.session.rollback()
+            app.logger.warning(f"Error: {str(e)}")
             return Response(
-                '{"error":"Files for cartogram generation not found. '
-                'Please refresh this page and re-upload your map and data. If the issue persists, please contact us."}',
+                '{"error":"Files for cartogram generation not found."}',
                 status=400,
                 content_type="application/json",
             )
+        except CartogramError as e:
+            db.session.rollback()
+            return e.response(app.logger)
         except Exception as e:
             db.session.rollback()
-            app.logger.warning(f"Error: {str(e)}")
+            app.logger.error(f"Error: {str(e)}\nTraceback:\n{traceback.format_exc()}")
             if os.path.exists(userdata_path):
                 shutil.rmtree(userdata_path)
 
             return Response(
-                json.dumps({"error": str(e)}),
+                json.dumps({"error": "Unknown error."}),
                 status=400,
                 content_type="application/json",
             )
@@ -382,9 +401,9 @@ def create_app():
             except Exception:
                 db.session.rollback()
 
-        # Delete files in folder /tmp that the created date is older than 1 days
-        for file in os.listdir("/tmp"):
-            file_path = os.path.join("/tmp", file)
+        # Delete files in folder tmp that the created date is older than 1 days
+        for file in os.listdir("tmp"):
+            file_path = util.get_safepath("tmp", file)
             days_ago = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=1)
             try:
                 mod_time = os.stat(file_path).st_mtime
@@ -414,4 +433,4 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=settings.DEBUG, host=settings.HOST, port=settings.PORT)
+    app.run(debug=settings.IS_DEBUG, host=settings.HOST, port=settings.PORT)

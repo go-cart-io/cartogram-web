@@ -1,8 +1,7 @@
 import json
 
-from flask import request, Response
-
 import settings
+from flask import Response, request
 
 
 def consent():
@@ -16,13 +15,27 @@ def consent():
             content_type="application/json",
             status=200,
         )
-        resp.set_cookie("tracking", "track", max_age=31556926)  # One year
+        resp.set_cookie(
+            "tracking",
+            "track",
+            max_age=31556926,
+            secure=True,
+            httponly=True,
+            samesite="Strict",
+        )  # One year
         return resp
     else:
         resp = Response(
             json.dumps({"error": "none"}), content_type="application/json", status=200
         )
-        resp.set_cookie("tracking", "do_not_track", max_age=31556926)
+        resp.set_cookie(
+            "tracking",
+            "do_not_track",
+            max_age=31556926,
+            secure=True,
+            httponly=True,
+            samesite="Strict",
+        )
         return resp
 
 
