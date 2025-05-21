@@ -1,4 +1,7 @@
+import os
 import time
+
+import util
 
 
 def test_cartogram_post(client):
@@ -36,7 +39,7 @@ def test_cartogram_post(client):
 
 
 def test_cartogram_post_world(client):
-    with open("static/cartdata/world/data.csv", "r") as file:
+    with open(util.get_safepath("static/cartdata/world/data.csv"), "r") as file:
         csv_string = file.read()
 
     testdata = {
@@ -56,9 +59,14 @@ def test_cartogram_post_world(client):
 def test_cartogram_post_inset(client):
     key = time.time()
 
-    with open("tests/data/usa_by_state_since_1959.csv", "r") as file:
+    with open(
+        os.path.join(os.path.dirname(__file__), "data/usa_by_state_since_1959.csv"), "r"
+    ) as file:
         csv_string = file.read()
-    with open("tests/data/usa_by_state_since_1959.geojson", "rb") as file:
+    with open(
+        os.path.join(os.path.dirname(__file__), "data/usa_by_state_since_1959.geojson"),
+        "rb",
+    ) as file:
         data = {"file": (file, "filename")}
         response = client.post(
             f"/api/v1/cartogram/preprocess/{key}",

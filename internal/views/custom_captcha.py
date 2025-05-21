@@ -1,11 +1,11 @@
-from captcha.image import ImageCaptcha
-from captcha.audio import AudioCaptcha
-import bcrypt
-import secrets
-import json
 import base64
+import json
+import secrets
 
-from flask import session, Response
+import bcrypt
+from captcha.audio import AudioCaptcha
+from captcha.image import ImageCaptcha
+from flask import Response, session
 
 
 def gencaptcha():
@@ -42,7 +42,7 @@ def generate_captcha():
     audio_str = base64.b64encode(audio_data)
     audio_base64 = "data:audio/wav;base64," + audio_str.decode("utf-8")
 
-    captcha_hash = bcrypt.hashpw(text, bcrypt.gensalt(12))
+    captcha_hash = bcrypt.hashpw(text.encode("utf-8"), bcrypt.gensalt(12))
 
     return {
         "captcha_image": img_base64,

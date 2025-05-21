@@ -1,3 +1,5 @@
+import json
+
 from carto_dataframe import CartoDataFrame
 
 
@@ -5,13 +7,17 @@ from carto_dataframe import CartoDataFrame
 def test_read_file(mocker):
     carto_df = CartoDataFrame.read_file("tests/data/geojson_test.geojson")
     assert isinstance(carto_df, CartoDataFrame)
-    assert carto_df.extra_attributes == {
+
+    expected_extra_attributes = {
         "type": "FeatureCollection",
         "name": "test",
         "crs": {"properties": {"name": "EPSG:cartesian"}},
     }
 
-    carto_json = carto_df.to_json()
+    assert isinstance(carto_df.extra_attributes, dict)
+    assert carto_df.extra_attributes == expected_extra_attributes  # type: ignore[reportGeneralTypeIssues]
+
+    carto_json = json.loads(carto_df.to_json())
     assert "name" in carto_json
     assert "bbox" not in carto_json
     assert carto_json["name"] == "test"
@@ -47,7 +53,7 @@ def test_clean_properties_with_existing_region_column(mocker):
 def test_clean_properties_with_other_region_column(mocker):
     carto_df = CartoDataFrame.read_file("tests/data/geojson_test.geojson")
     carto_df.clean_properties("prop_unique")
-    carto_json = carto_df.to_json()
+    carto_json = carto_df.to_json_obj()
     # carto_df.to_carto_file("tests/data/geojson_out.geojson")
 
     assert "Region" in carto_json["features"][0]["properties"]

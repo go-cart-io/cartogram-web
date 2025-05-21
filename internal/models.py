@@ -14,5 +14,13 @@ class CartogramEntry(db.Model):
     title = db.Column(db.String(120))
     scheme = db.Column(db.String(15))
 
+    def __init__(self, string_key, date_created, date_accessed, title, scheme, handler):
+        self.string_key = string_key
+        self.date_created = date_created
+        self.date_accessed = date_accessed
+        self.title = title
+        self.scheme = scheme
+        self.handler = handler
+
     def __repr__(self):
         return "<CartogramEntry {}>".format(self.string_key)

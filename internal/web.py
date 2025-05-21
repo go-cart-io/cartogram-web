@@ -10,6 +10,7 @@ import cartogram
 import settings
 import util
 from asset import Asset
+from database import db
 from errors import CartogramError
 from flask import Flask, Response, render_template, request
 from flask_cors import CORS
@@ -17,6 +18,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_migrate import Migrate
 from handler import CartogramHandler
+from models import CartogramEntry
 from views import contact, custom_captcha, tracking
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -46,9 +48,6 @@ def create_app():
     app.config["MAX_FORM_MEMORY_SIZE"] = 10 * 1024 * 1024
 
     if settings.USE_DATABASE:
-        from database import db
-        from models import CartogramEntry
-
         db.init_app(app)
         Migrate(app, db)
 
@@ -370,7 +369,7 @@ def create_app():
         except Exception as e:
             db.session.rollback()
             app.logger.error(f"Error: {str(e)}\nTraceback:\n{traceback.format_exc()}")
-            if os.path.exists(userdata_path):
+            if userdata_path and os.path.exists(userdata_path):
                 shutil.rmtree(userdata_path)
 
             return Response(
@@ -387,7 +386,7 @@ def create_app():
         if settings.USE_DATABASE:
             try:
                 records = CartogramEntry.query.filter(
-                    CartogramEntry.date_accessed < year_ago
+                    getattr(CartogramEntry, "date_accessed") < year_ago
                 ).all()
                 num_records = len(records)
                 for record in records:

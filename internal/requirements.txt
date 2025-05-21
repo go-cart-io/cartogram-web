@@ -6,11 +6,12 @@ Flask-SQLAlchemy==3.1.1
 # For site
 SQLAlchemy==2.0.36
 psycopg2-binary==2.9.10 # Required by SQLAlchemy
-redis==5.2.0
+redis==6.1.0
+types-redis==4.6.0.20241004
 gunicorn==23.0.0
 validate_email==1.3
 captcha==0.6.0
-py-bcrypt==0.4
+bcrypt==4.3.0
 # For cartogram
 shapely==2.0.6
 geopandas==1.0.1
