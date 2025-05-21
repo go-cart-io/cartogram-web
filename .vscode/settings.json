@@ -28,6 +28,7 @@
     },
     "editor.defaultFormatter": "charliermarsh.ruff"
   },
+  "python.analysis.typeCheckingMode": "standard",
   "conventionalCommits.scopes": [
     "backend",
     "ui",

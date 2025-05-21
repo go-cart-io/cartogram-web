@@ -1,5 +1,6 @@
 import json
 import warnings
+from typing import Any
 
 import geopandas as gpd
 import util
@@ -12,6 +13,10 @@ class CartoDataFrame(gpd.GeoDataFrame):
     _metadata = ["extra_attributes"]
     is_projected = False
     is_world = False
+
+    def __new__(cls, *args, extra_attributes={}, **kwargs):
+        obj = object.__new__(cls)
+        return obj
 
     def __init__(self, *args, extra_attributes={}, **kwargs):
         super().__init__(*args, **kwargs)
@@ -33,8 +38,8 @@ class CartoDataFrame(gpd.GeoDataFrame):
             )  # Let GeoDataFrame handle standard attributes
 
     # Override Filtering to Preserve Subclass
-    def __getitem__(self, key):
-        """Ensure filtering returns a CartoDataFrame."""
+    def __getitem__(self, key: Any) -> Any:
+        """Ensure filtering returns a CartoDataFrame when appropriate."""
         result = super().__getitem__(key)
         if isinstance(result, gpd.GeoDataFrame):
             return CartoDataFrame(result, extra_attributes=self.extra_attributes)
@@ -54,7 +59,7 @@ class CartoDataFrame(gpd.GeoDataFrame):
         gdf = gpd.read_file(filepath)
         return cls(gdf, extra_attributes=extra_attributes)
 
-    def to_crs(self, crs=None, epsg=None, inplace=False, force=False):
+    def to_crs(self, *args, force: bool = False, **kwargs) -> Any:
         """
         Overrides GeoDataFrame's to_crs method.
         If the GeoDataFrame is already projected, prints a warning before reprojecting.
@@ -67,23 +72,33 @@ class CartoDataFrame(gpd.GeoDataFrame):
         if "crs" in self.extra_attributes:
             del self.extra_attributes["crs"]
 
-        return super().to_crs(crs=crs, epsg=epsg, inplace=inplace)
+        result = super().to_crs(*args, **kwargs)
+        if result is None:
+            return None
+
+        return CartoDataFrame(result, extra_attributes=self.extra_attributes)
 
     def to_json(self, *args, **kwargs):
+        return json.dumps(self.to_json_obj(*args, **kwargs))
+
+    def to_json_obj(self, *args, **kwargs):
         return {
             **self.extra_attributes,
             "features": json.loads(super().to_json(*args, **kwargs))["features"],
         }
 
     def to_carto_file(self, filepath):
-        output_data = self.to_json()
+        output_data = self.to_json_obj()
         with open(util.get_safepath(filepath), "w") as f:
             json.dump(output_data, f)
         return output_data
 
-    def reset_index(self, *args, **kwargs):
+    def reset_index(self, *args, **kwargs) -> Any:
         """Ensure reset_index returns a CartoDataFrame."""
         result = super().reset_index(*args, **kwargs)
+        if result is None:
+            return None
+
         return CartoDataFrame(result, extra_attributes=self.extra_attributes)
 
     def clean_properties(
