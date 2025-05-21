@@ -53,7 +53,7 @@ function downloadSVG() {
   const legendNumber = document.getElementById(props.panelID + '-legend-num')!.textContent || ''
   const legendNumberSVG = document.createElement('text')
   const legendNumberX = 2 + parseFloat(legendSVG.getAttribute('width')!)
-  legendNumberSVG.innerHTML = legendNumber.replace('Total:', ' / Total:')
+  legendNumberSVG.textContent = legendNumber.replace('Total:', ' / Total:')
   legendNumberSVG.setAttribute('font-family', 'sans-serif')
   legendNumberSVG.setAttribute('font-size', '12px')
   legendNumberSVG.setAttribute('x', legendNumberX.toString())
