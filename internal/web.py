@@ -433,4 +433,4 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=settings.IS_DEBUG, host=settings.HOST, port=settings.PORT)
+    app.run(host=settings.HOST, port=settings.PORT)
