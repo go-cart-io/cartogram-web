@@ -39,6 +39,7 @@
 
 internal/handler.py.bak
 internal/static/cartdata/test*
+internal/static/dist/*
 internal/executable/cartogram
 internal/tmp/*
 
