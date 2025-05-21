@@ -4,7 +4,7 @@ VITE_SERVER_PORT = os.environ.get("VITE_SERVER_PORT")
 
 HOST = os.environ.get("CARTOGRAM_HOST")
 PORT = int(os.environ.get("CARTOGRAM_PORT"))
-IS_DEBUG = True if os.environ.get("CARTOGRAM_DEBUG").lower() == "true" else False
+IS_DEBUG = os.environ.get("FLASK_DEBUG")
 SECRET_KEY = os.environ.get(
     "CARTOGRAM_SECRET_KEY", "LTTNWg8luqfWKfDxjFaeC3vYoGrC2r2f5mtXo5IE/jt1GcY7/JaSq8V/tB"
 )
