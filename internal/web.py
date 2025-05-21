@@ -12,7 +12,7 @@ import util
 from asset import Asset
 from database import db
 from errors import CartogramError
-from flask import Flask, Response, render_template, request
+from flask import Flask, Response, redirect, render_template, request
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -419,8 +419,15 @@ def create_app():
             year_ago.strftime("%d %B %Y - %H:%M:%S"), num_records
         )
 
+    @app.route("/embed/map/<map_name>", methods=["GET"], defaults={"mode": "embed"})
+    @app.route("/cartogram/<map_name>", methods=["GET"], defaults={"mode": None})
+    def map_old(map_name, mode):
+        if mode == "embed":
+            return redirect(f"/cartogram/map/{map_name}/{mode}", code=301)
+        else:
+            return redirect(f"/cartogram/map/{map_name}", code=301)
+
     @app.route("/cart/<key>", methods=["GET"])
-    @app.route("/embed/map/<key>", methods=["GET"])
     @app.route("/embed/cart/<key>", methods=["GET"])
     def cartogram_old(key):
         return render_template(
