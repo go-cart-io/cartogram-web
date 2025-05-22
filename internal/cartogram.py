@@ -137,6 +137,7 @@ def generate_cartogram(
     # Generate cartograms
     for i, data_col in enumerate(data_cols):
         progress_options = {
+            "data_name": f"{data_col['column_name']} ({i + 1}/{data_length})",
             "data_index": i,
             "data_length": data_length,
             "print": print_progress,
@@ -255,6 +256,7 @@ def postprocess_geojson(json_data):
 
 
 def call_binary(mapDBKey, gen_path, area_data_path, flags=[], progress_options={}):
+    data_name = progress_options.get("data_name", "")
     data_index = progress_options.get("data_index", 0)
     data_length = progress_options.get("data_length", 1)
     stdout = ""
@@ -266,7 +268,6 @@ def call_binary(mapDBKey, gen_path, area_data_path, flags=[], progress_options={
         if source == "stdout":
             stdout += line.decode()
         else:
-            # stderr_line = line.decode()
             stderr += line.decode()
 
             # From C++ executable, we directly get cartogram generation progress in percentage; whereas, for C executable
@@ -277,9 +278,8 @@ def call_binary(mapDBKey, gen_path, area_data_path, flags=[], progress_options={
             if s is not None:
                 current_progress = float(s.groups(1)[0])
 
-                if (
-                    current_progress == 1 and data_index == data_length - 1
-                ):  # To prevent stucking at 0.99999
+                # To prevent stucking at 0.99999
+                if current_progress == 1 and data_index == data_length - 1:
                     current_progress = 1
                 else:
                     current_progress = (current_progress / data_length) + (
@@ -292,6 +292,7 @@ def call_binary(mapDBKey, gen_path, area_data_path, flags=[], progress_options={
                 setprogress(
                     {
                         "key": mapDBKey,
+                        "name": data_name,
                         "progress": current_progress,
                         "stderr": stderr,
                         "order": order,
@@ -318,6 +319,7 @@ def setprogress(params):
         current_progress = {
             "order": params["order"],
             "stderr": params["stderr"],
+            "name": params["name"],
             "progress": params["progress"],
         }
     else:
@@ -327,6 +329,7 @@ def setprogress(params):
             current_progress = {
                 "order": params["order"],
                 "stderr": params["stderr"],
+                "name": params["name"],
                 "progress": params["progress"],
             }
 
@@ -347,6 +350,7 @@ def getprogress(key):
     else:
         current_progress = json.loads(current_progress.decode())
         return {
+            "name": current_progress["name"],
             "progress": current_progress["progress"],
             "stderr": current_progress["stderr"],
         }
