@@ -20,10 +20,11 @@ def preprocess(input, mapDBKey="temp_filename", based_path="tmp"):
     if isinstance(input, str):  # input is path
         input_path = input
     else:  # input is file object
-        input.save(file_path)
-        input_path = file_path
+        input_path = util.get_safepath("tmp", input.filename)
+        input.save(input_path)
 
     cdf = CartoDataFrame.read_file(input_path)
+    cdf.to_carto_file(file_path)
 
     # Remove invalid geometries
     cdf = cdf[cdf.geometry.notnull()]
