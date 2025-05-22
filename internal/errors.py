@@ -9,6 +9,9 @@ class CartogramError(Exception):
     """Custom exception for user-facing errors with automated logging. DO NOT include sensitive data."""
 
     def __init__(self, message: str = "Error occurred"):
+        if not message.endswith("."):
+            message = message + "."
+
         self.message = message
         super().__init__(message)
 
