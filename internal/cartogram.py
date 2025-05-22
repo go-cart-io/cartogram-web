@@ -176,7 +176,7 @@ def generate_cartogram(
 
 
 def process_data(csv_string):
-    df = pd.read_csv(StringIO(csv_string))
+    df = pd.read_csv(StringIO(csv_string), keep_default_na=False, na_values=[""])
     df.columns = [util.sanitize_filename(col) for col in df.columns]
     df["Color"] = df["Color"] if "Color" in df else None
     df["Inset"] = df["Inset"] if "Inset" in df else None
