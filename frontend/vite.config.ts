@@ -41,7 +41,10 @@ export default ({ mode }: UserConfig): UserConfigExport => {
     },
     server: {
       port: SERVER_PORT,
-      origin: SERVER_ORIGIN
+      origin: SERVER_ORIGIN,
+      watch: {
+        usePolling: true
+      }
     }
   })
 }
