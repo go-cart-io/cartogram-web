@@ -44,8 +44,8 @@ def create_app():
     # This gets rid of an annoying Flask error message. We don't need this feature anyway.
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["ENV"] = "development" if settings.IS_DEBUG else "production"
-    app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB
-    app.config["MAX_FORM_MEMORY_SIZE"] = 10 * 1024 * 1024
+    app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024  # 100 MB
+    app.config["MAX_FORM_MEMORY_SIZE"] = 100 * 1024 * 1024
 
     if settings.USE_DATABASE:
         db.init_app(app)
@@ -302,6 +302,14 @@ def create_app():
         # Prepare data.csv and Input.json in userdata
         # TODO check whether the code works properly if persist is false
         try:
+            if settings.USE_DATABASE:
+                cartogram_entry = CartogramEntry.query.filter_by(
+                    string_key=string_key
+                ).first()
+
+                if cartogram_entry is not None:
+                    raise CartogramError("Duplicated database key.")
+
             if "persist" in data:
                 userdata_path = util.get_safepath("static/userdata", string_key)
             else:
