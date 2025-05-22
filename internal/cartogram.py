@@ -149,7 +149,11 @@ def generate_cartogram(
             progress_options,
         )
 
-        if cartogram_result["stdout"] == "":
+        if cartogram_result["error_msg"] != "":
+            raise CartogramError(
+                f"Cannot generate cartogram for {data_col['name']}. {cartogram_result['error_msg']}"
+            )
+        elif cartogram_result["stdout"] == "":
             raise CartogramError(f"Cannot generate cartogram for {data_col['name']}.")
 
         cartogram_gen_output = cartogram_result["stdout"]
