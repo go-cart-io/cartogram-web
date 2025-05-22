@@ -28,7 +28,8 @@ const props = defineProps<{
 
 const state = reactive({
   isProcessing: false,
-  loadingProgress: 0,
+  progressName: '',
+  progressPercentage: 0,
   error: '',
   title: props.mapTitle ? props.mapTitle : '',
   handler: props.mapName ? props.mapName : '',
@@ -126,11 +127,13 @@ async function getGeneratedCartogram() {
             '/api/v1/getprogress?key=' + encodeURIComponent(key) + '&time=' + Date.now()
           ).then(function (progress: any) {
             if (progress.progress === null) {
-              state.loadingProgress = 8
+              state.progressName = ''
+              state.progressPercentage = 8
               return
             }
 
-            state.loadingProgress = Math.floor(progress.progress * 100)
+            state.progressName = progress.name
+            state.progressPercentage = Math.floor(progress.progress * 100)
             // state.error += progress.stderr
             console.log(progress.stderr)
           })
@@ -143,13 +146,13 @@ async function getGeneratedCartogram() {
       'Content-type': 'application/json'
     }).then(
       function (response: any) {
-        state.loadingProgress = 100
+        state.progressPercentage = 100
         window.clearInterval(progressUpdater)
         resolve(response)
         window.location.href = '/cartogram/key/' + response.mapDBKey + '/preview'
       },
       function (error: any) {
-        state.loadingProgress = 100
+        state.progressPercentage = 100
         window.clearInterval(progressUpdater)
         reject(error)
       }
@@ -279,10 +282,11 @@ async function getGeneratedCartogram() {
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-body">
+          <div>Processing {{ state.progressName }}</div>
           <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100">
             <div
               class="progress-bar bg-primary"
-              v-bind:style="{ width: state.loadingProgress + '%' }"
+              v-bind:style="{ width: state.progressPercentage + '%' }"
             ></div>
           </div>
         </div>
