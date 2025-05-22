@@ -48,14 +48,25 @@ class CartoDataFrame(gpd.GeoDataFrame):
     @classmethod
     def read_file(cls, filepath):
         filepath = util.get_safepath(filepath)
+        extra_attributes = {}
 
-        """Reads a GeoJSON file and preserves extra attributes."""
-        with open(filepath, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        # Reads a GeoJSON file and preserves extra attributes.
+        # If fail, just try again with GeoPandas only
+        if filepath.lower().endswith(".json") or filepath.lower().endswith(".geojson"):
+            encodings = ["utf-8", "utf-16", "latin-1", "iso-8859-1", "windows-1252"]
+            try:
+                for encoding in encodings:
+                    with open(filepath, "r", encoding=encoding) as f:
+                        data = json.load(f)
+                        extra_attributes = {
+                            key: value
+                            for key, value in data.items()
+                            if key != "features"
+                        }
+                        break
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                pass
 
-        extra_attributes = {
-            key: value for key, value in data.items() if key != "features"
-        }
         gdf = gpd.read_file(filepath)
         return cls(gdf, extra_attributes=extra_attributes)
 
@@ -83,6 +94,7 @@ class CartoDataFrame(gpd.GeoDataFrame):
 
     def to_json_obj(self, *args, **kwargs):
         return {
+            "type": "FeatureCollection",
             **self.extra_attributes,
             "features": json.loads(super().to_json(*args, **kwargs))["features"],
         }
