@@ -94,6 +94,9 @@ def generate_cartogram(
         outfile.write(datacsv)
     data_length = len(data_cols)
 
+    if data_length == 0:
+        raise CartogramError("Cannot find data column.")
+
     # Process the boundary file
     cdf = CartoDataFrame.read_file(input_file)
     is_projected = cdf.is_projected
