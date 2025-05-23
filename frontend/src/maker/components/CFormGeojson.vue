@@ -19,6 +19,7 @@ const state = reactive({
   isLoading: false,
   error: '',
   handler: '',
+  selectedFileName: '',
   geojsonUniqueProperties: [] as Array<string>,
   geojsonRegionCol: ''
 })
@@ -39,12 +40,19 @@ async function loadGeoJson() {
 async function uploadGeoJson(event: Event) {
   geojsonData = {} as FeatureCollection
   state.geojsonUniqueProperties = []
-  const files = (event.target as HTMLInputElement).files
+
+  const input = event.target as HTMLInputElement
+  const files = input.files
   if (!files || files.length == 0) return
 
   state.isLoading = true
   const formData = new FormData()
   formData.append('file', files[0])
+
+  // Store the file name before clearing so that selecting the same file again triggers a change event.
+  const file = files[0]
+  state.selectedFileName = file.name
+  input.value = ''
 
   const response = await new Promise<any>(function (resolve, reject) {
     HTTP.post('/api/v1/cartogram/preprocess/' + props.mapDBKey, formData).then(
@@ -102,15 +110,23 @@ async function uploadGeoJson(event: Event) {
       </div>
       <div class="p-2">
         OR upload your GeoJSONs or Shapefiles (.shp, .shx, and .dbf in zip).
+        <div>
+          <label for="fileInput" class="btn btn-outline-secondary">
+            Choose file <i class="fa-solid fa-upload"></i>
+          </label>
         <input
+            id="fileInput"
           ref="fileEl"
-          class="form-control"
-          v-bind:class="{ 'is-invalid': state.error }"
           type="file"
           accept=".geojson,.json,.zip"
+            class="d-none"
           v-on:change="uploadGeoJson"
         />
+          <div class="text-truncate">
+            {{ state.selectedFileName || 'No file chosen' }}
+          </div>
         <div class="invalid-feedback">{{ state.error }}</div>
+        </div>
       </div>
       <div class="d-flex justify-content-center" v-if="state.isLoading">
         <div class="p-2 spinner-border" role="status">
