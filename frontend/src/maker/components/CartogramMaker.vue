@@ -218,7 +218,7 @@ async function getGeneratedCartogram() {
             v-bind:disabled="!('features' in state.geojsonData)"
             v-on:click="onCsvBtnClick"
           >
-            CSV
+            CSV <i class="fa-solid fa-download"></i>
           </button>
           or
           <button
@@ -226,7 +226,7 @@ async function getGeneratedCartogram() {
             v-bind:disabled="!('features' in state.geojsonData)"
             v-on:click="onExcelBtnClick"
           >
-            Excel
+            Excel <i class="fa-solid fa-download"></i>
           </button>
           for editing on your device.
         </div>
