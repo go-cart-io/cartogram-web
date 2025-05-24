@@ -5,9 +5,11 @@ VITE_SERVER_PORT = os.environ.get("VITE_SERVER_PORT")
 HOST = os.environ.get("CARTOGRAM_HOST", "0.0.0.0")
 PORT = int(os.environ.get("CARTOGRAM_PORT", "5000"))
 IS_DEBUG = os.environ.get("FLASK_DEBUG", False)
-SECRET_KEY = os.environ.get(
-    "CARTOGRAM_SECRET_KEY", "LTTNWg8luqfWKfDxjFaeC3vYoGrC2r2f5mtXo5IE/jt1GcY7/JaSq8V/tB"
-)
+
+SECRET_KEY = os.environ.get("CARTOGRAM_SECRET_KEY", "")
+if not SECRET_KEY or SECRET_KEY == "":
+    SECRET_KEY = "LTTNWg8luqfWKfDxjFaeC3vYoGrC2r2f5mtXo5IE/jt1GcY7/JaSq8V/tB"
+
 CARTOGRAM_RATE_LIMIT = os.environ.get("CARTOGRAM_RATE_LIMIT", "100 per hour")
 
 if "CARTOGRAM_DATABASE_URI" in os.environ:

@@ -2,7 +2,7 @@
   "name": "cartogram-web",
   "description": "cartogram-web is a web-based tool designed to simplify the creation of contiguous cartograms. It provides a user-friendly, browser-based interface that makes cartogram creation accessible to a wider audience. You can use the tool online at https://go-cart.io.",
   "scripts": {
-    "postinstall": "cd frontend && npm install",
+    "postinstall": "cd frontend && npm install && npm run build:js-if-needed",
     "dev:js": "cd frontend && npm run dev",
     "dev:py": "FLASK_APP=internal/web.py FLASK_ENV=development python -m flask run --host=0.0.0.0 --debug",
     "test": "npm run build:js-if-needed && npm run test:js && npm run test:py",
