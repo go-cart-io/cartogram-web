@@ -113,5 +113,3 @@ jobs:
 
             # Clean up old image
             docker image prune -a -f
-
-            echo "Updated cartogram docker and web image on go-cart.io server" >> $GITHUB_STEP_SUMMARY
