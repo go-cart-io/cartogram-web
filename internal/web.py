@@ -430,8 +430,11 @@ def create_app():
     @app.route("/embed/map/<map_name>", methods=["GET"], defaults={"mode": "embed"})
     @app.route("/cartogram/<map_name>", methods=["GET"], defaults={"mode": None})
     def map_old(map_name, mode):
+        if not cartogram_handler.has_handler(map_name):
+            return Response("Not found", status=404)
+
         if mode == "embed":
-            return redirect(f"/cartogram/map/{map_name}/{mode}", code=301)
+            return redirect(f"/cartogram/map/{map_name}/embed", code=301)
         else:
             return redirect(f"/cartogram/map/{map_name}", code=301)
 
