@@ -1,13 +1,13 @@
-import string
-import random
-import validate_email
-import smtplib
 import email.mime.text
+import random
+import smtplib
 import socket
+import string
 
-from flask import request, session, flash, redirect, render_template, url_for
-from views import tracking, custom_captcha
 import settings
+import validate_email
+from flask import flash, redirect, render_template, request, session, url_for
+from views import custom_captcha, tracking
 
 
 # This function returns a random string containg lowercase letters and numbers that is *length* characters long.

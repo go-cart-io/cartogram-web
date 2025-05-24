@@ -1,5 +1,6 @@
 import base64
 import json
+import os
 import secrets
 
 import bcrypt
@@ -30,7 +31,8 @@ def generate_captcha():
     text = "".join(secrets.choice(alphabet) for i in range(5))
 
     image = ImageCaptcha()
-    audio = AudioCaptcha(voicedir="audiocaptcha")
+    voice_folder = os.path.join(os.path.dirname(__file__), "../audiocaptcha")
+    audio = AudioCaptcha(voicedir=voice_folder)
 
     img_data = image.generate(text)
 
@@ -52,4 +54,4 @@ def generate_captcha():
 
 
 def validate_captcha(captcha, captcha_hashed):
-    return bcrypt.checkpw(captcha, captcha_hashed)
+    return bcrypt.checkpw(captcha.encode("utf-8"), captcha_hashed)
