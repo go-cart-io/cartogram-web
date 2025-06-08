@@ -111,6 +111,7 @@ def create_app():
             page_active="cartogram",
             maps=cartogram_handler.get_sorted_handler_names(),
             map_name=map_name,
+            map_color_scheme="pastel1",
             mode=mode,
             tracking=tracking.determine_tracking_action(request),
         )

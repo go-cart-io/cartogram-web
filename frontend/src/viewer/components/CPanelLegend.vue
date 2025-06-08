@@ -102,7 +102,7 @@ onMounted(async () => {
 
   versionSpec.signals[3]['value'] =
     !COLOR_SCHEME || COLOR_SCHEME === 'custom' ? 'pastel1' : COLOR_SCHEME
-  versionSpec.data[0].url = util.getGeojsonURL(store.currentMapName, props.mapDBKey, 'data.csv')
+  versionSpec.data[0].url = util.getCsvURL(store.currentMapName, props.mapDBKey)
   versionSpec.data[1].url = util.getGeojsonURL(
     store.currentMapName,
     props.mapDBKey,
