@@ -134,7 +134,11 @@ export function addClipboard(button_id: string, message: string) {
   }, 2000)
 }
 
-export function getGeojsonURL(currentMapName: string, mapDBKey: string, versionKey: string) {
+export function getGeojsonURL(
+  currentMapName: string,
+  mapDBKey: string | undefined,
+  versionKey: string
+) {
   // Figure out whether data is in userdata or cartdata
   const baseURL =
     mapDBKey &&
@@ -146,7 +150,7 @@ export function getGeojsonURL(currentMapName: string, mapDBKey: string, versionK
   return '/static' + baseURL + versionKey
 }
 
-export function getCsvURL(currentMapName: string, mapDBKey: string) {
+export function getCsvURL(currentMapName: string, mapDBKey: string | undefined) {
   const baseURL =
     mapDBKey && mapDBKey !== ''
       ? '/userdata/' + mapDBKey + '/'
