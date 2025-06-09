@@ -14,7 +14,7 @@ const props = withDefaults(
   }
 )
 
-const emit = defineEmits(['changed'])
+const emit = defineEmits(['changed', 'downloadCSV', 'downloadExcel'])
 
 const state = reactive({
   selectedFileName: ''
@@ -71,33 +71,47 @@ async function uploadCsvData(event: Event) {
 </script>
 
 <template>
-  <div class="p-2 text-bg-light">
-    <div class="badge text-bg-secondary">4. Input your data</div>
-    <div class="p-2">Input your data to the table on the right panel.</div>
-    <div class="p-2">
-      Alternatively, upload your data in CSV or Excel format.
-      <div>
-        <label
-          for="csvInput"
-          class="btn btn-outline-secondary"
-          v-bind:class="{ disabled: props.disabled }"
-        >
-          Choose file <i class="fa-solid fa-upload"></i>
-        </label>
-        <input
-          id="csvInput"
-          type="file"
-          accept="text/csv,.csv,.xlsx,.xls"
-          class="d-none"
-          v-on:change="uploadCsvData"
-        />
-        <div class="text-truncate">
-          {{ state.selectedFileName || 'No file chosen' }}
-        </div>
+  <div class="p-2">
+    Input your data to the table on the right panel. Alternatively, download data for editing on
+    your device, then upload the edited file.
+  </div>
+  <div class="p-2">
+    <div class="badge text-bg-secondary mb-2">Download</div>
+    <div>
+      <button class="btn btn-outline-secondary" v-on:click="emit('downloadCSV')">
+        CSV <i class="fa-solid fa-download"></i>
+      </button>
+      or
+      <button class="btn btn-outline-secondary" v-on:click="emit('downloadExcel')">
+        Excel <i class="fa-solid fa-download"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="p-2">
+    <div class="badge text-bg-secondary mb-2">Upload</div>
+    <div class="mb-2">
+      <label
+        for="csvInput"
+        class="btn btn-outline-secondary"
+        v-bind:class="{ disabled: props.disabled }"
+      >
+        Choose file <i class="fa-solid fa-upload"></i>
+      </label>
+      <input
+        id="csvInput"
+        type="file"
+        accept="text/csv,.csv,.xlsx,.xls"
+        class="d-none"
+        v-on:change="uploadCsvData"
+      />
+      <div class="text-truncate">
+        {{ state.selectedFileName || 'No file chosen' }}
       </div>
-      <div class="bg-info-subtle my-2 p-1 rounded">
-        Please ensure the first column contains the same region names you chose in step 1.
-      </div>
+    </div>
+
+    <div class="bg-info-subtle p-1 rounded">
+      Please ensure the first column contains the same region names you chose in step 1.
     </div>
   </div>
 </template>

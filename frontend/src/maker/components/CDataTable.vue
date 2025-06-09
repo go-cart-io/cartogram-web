@@ -287,7 +287,6 @@ function onValueChange(rIndex: number, label: string, event: Event) {
 }
 </script>
 <template>
-  <div class="card w-75 m-2 border-0">
     <!-- Overview Message -->
     <div class="p-2">
       <span class="badge text-bg-secondary">Input Overview</span>
@@ -352,11 +351,7 @@ function onValueChange(rIndex: number, label: string, event: Event) {
           </tr>
         </thead>
         <tr v-for="(row, rIndex) in state.dataTable.items" v-bind:key="rIndex">
-          <td
-            v-for="(field, index) in state.dataTable.fields"
-            v-show="field.show"
-            v-bind:key="index"
-          >
+        <td v-for="(field, index) in state.dataTable.fields" v-show="field.show" v-bind:key="index">
             <div
               class="cell-content"
               v-bind:class="{ 'error-cell': field.label === 'Region' && row.regionError }"
@@ -390,7 +385,6 @@ function onValueChange(rIndex: number, label: string, event: Event) {
           </td>
         </tr>
       </table>
-    </div>
   </div>
 </template>
 

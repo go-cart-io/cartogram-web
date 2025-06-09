@@ -78,14 +78,6 @@ function onGeoJsonChanged(
   }
 }
 
-async function onCsvBtnClick() {
-  await dataTableEl.value.getCSV(true)
-}
-
-async function onExcelBtnClick() {
-  await dataTableEl.value.getExcel()
-}
-
 function onCsvUpdate(csvData: KeyValueArray) {
   // const isCSVValid = dataTableEl.value.validateCSV(csvData)
 
@@ -168,30 +160,57 @@ async function getGeneratedCartogram() {
 </script>
 
 <template>
-  <div class="d-flex flex-fill">
-    <div class="card w-25 m-2">
-      <c-form-geojson
-        v-bind:mapDBKey="mapDBKey"
-        v-bind:maps="props.maps"
-        v-bind:geoUrl="props.geoUrl"
-        v-on:changed="onGeoJsonChanged"
-      />
+  <div class="row">
+    <div class="accordion col-12 col-sm-4 col-md-3 p-0 bg-light">
+      <button
+        class="accordion-button p-2 bg-light border"
+        data-bs-toggle="collapse"
+        data-bs-target="#step1"
+        aria-expanded="true"
+        aria-controls="step1"
+      >
+        1. Define a map
+      </button>
+      <div id="step1" class="accordion-collapse collapse show p-2">
+        <c-form-geojson
+          v-bind:mapDBKey="mapDBKey"
+          v-bind:maps="props.maps"
+          v-bind:geoUrl="props.geoUrl"
+          v-on:changed="onGeoJsonChanged"
+        />
+      </div>
 
-      <div class="p-2">
-        <div class="badge text-bg-secondary">2. Specify visualization</div>
+      <button
+        class="accordion-button p-2 bg-light border"
+        data-bs-toggle="collapse"
+        data-bs-target="#step2"
+        aria-expanded="true"
+        aria-controls="step2"
+      >
+        2. Input your data
+      </button>
+      <div id="step2" class="accordion-collapse collapse show p-2">
+        <c-form-csv
+          v-bind:disabled="!('features' in state.geojsonData)"
+          v-on:changed="onCsvUpdate"
+          v-on:downloadCSV="dataTableEl.getCSV(true)"
+          v-on:downloadExcel="dataTableEl.getExcel()"
+        />
+      </div>
 
+      <button
+        class="accordion-button p-2 bg-light border"
+        data-bs-toggle="collapse"
+        data-bs-target="#step3"
+        aria-expanded="true"
+        aria-controls="step3"
+      >
+        3. Specify visualization
+      </button>
+      <div id="step3" class="accordion-collapse collapse show p-2">
         <div class="p-2">
-          Title
+          Project Title
           <input class="form-control" type="text" v-model="state.title" maxlength="100" />
-        </div>
-
-        <div class="p-2">
-          <c-select-color
-            v-bind:key="state.colorScheme"
-            v-bind:disabled="!('features' in state.geojsonData)"
-            v-bind:scheme="state.colorScheme"
-            v-on:changed="(scheme) => (state.colorScheme = scheme)"
-          />
         </div>
 
         <div class="p-2">
@@ -206,60 +225,52 @@ async function getGeneratedCartogram() {
             <label class="form-check-label" for="chk-inset"> Define inset </label>
           </div>
         </div>
-      </div>
 
-      <div class="p-2">
-        <div class="badge text-bg-secondary">3. Download data (optional)</div>
         <div class="p-2">
-          <button
-            class="btn btn-outline-secondary"
+          <c-select-color
+            v-bind:key="state.colorScheme"
             v-bind:disabled="!('features' in state.geojsonData)"
-            v-on:click="onCsvBtnClick"
-          >
-            CSV <i class="fa-solid fa-download"></i>
-          </button>
-          or
-          <button
-            class="btn btn-outline-secondary"
-            v-bind:disabled="!('features' in state.geojsonData)"
-            v-on:click="onExcelBtnClick"
-          >
-            Excel <i class="fa-solid fa-download"></i>
-          </button>
-          for editing on your device.
+            v-bind:scheme="state.colorScheme"
+            v-on:changed="(scheme) => (state.colorScheme = scheme)"
+          />
         </div>
       </div>
 
-      <c-form-csv v-bind:disabled="!('features' in state.geojsonData)" v-on:changed="onCsvUpdate" />
-
-      <div class="p-2">
-        <div class="badge text-bg-secondary">5. Generate cartogram</div>
-
-        <div class="row p-2">
-          <div class="col-auto p-2">
-            <p class="bg-warning-subtle p-1 rounded">
-              <span class="badge text-bg-warning">Important</span> The data will be pruned from our
-              server within 1-2 days, unless you share and access a non-preview link. We strongly
-              advise you to back up your original data in a safe place so you can regenerate the
-              cartogram if needed.
-            </p>
-            <button
-              class="btn btn-primary"
-              v-bind:disabled="state.isProcessing || !('features' in state.geojsonData)"
-              v-on:click="getGeneratedCartogram"
-            >
-              Generate
-            </button>
-          </div>
+      <button
+        class="accordion-button p-2 bg-light border"
+        data-bs-toggle="collapse"
+        data-bs-target="#step4"
+        aria-expanded="true"
+        aria-controls="step4"
+      >
+        4. Generate cartogram
+      </button>
+      <div id="step4" class="accordion-collapse collapse show p-2">
+        <div class="p-2">
+          <p class="bg-warning-subtle p-1 rounded">
+            <span class="badge text-bg-warning">Important</span> The data will be pruned from our
+            server within 1-2 days, unless you share and access a non-preview link. We strongly
+            advise you to back up your original data in a safe place so you can regenerate the
+            cartogram if needed.
+          </p>
+          <button
+            class="btn btn-primary"
+            v-bind:disabled="state.isProcessing || !('features' in state.geojsonData)"
+            v-on:click="getGeneratedCartogram"
+          >
+            Generate
+          </button>
         </div>
       </div>
     </div>
 
-    <c-data-table
-      ref="dataTableEl"
-      v-bind:mapColorScheme="state.colorScheme"
-      v-bind:useInset="state.useInset"
-    />
+    <div class="col-12 col-sm-8 col-md-9">
+      <c-data-table
+        ref="dataTableEl"
+        v-bind:mapColorScheme="state.colorScheme"
+        v-bind:useInset="state.useInset"
+      />
+    </div>
   </div>
 
   <div

@@ -94,70 +94,65 @@ async function uploadGeoJson(event: Event) {
 </script>
 
 <template>
-  <div class="p-2 text-bg-light">
-    <div class="badge text-bg-secondary">1. Define a map</div>
-    <!-- TODO allow creating cartogram by url? -->
-    <div v-if="props.geoUrl" class="p-2">
-      <input type="text" v-bind:value="props.geoUrl" disabled />
+  <div v-if="props.geoUrl" class="p-2">
+    <input type="text" class="form-control" v-bind:value="props.geoUrl" disabled />
+  </div>
+  <div v-else>
+    <div class="p-2">
+      Select an appropriate map for your data.
+
+      <select class="form-select" v-model="state.handler" v-on:change="loadGeoJson">
+        <option></option>
+        <option v-for="(mapItem, mapKey) in props.maps" v-bind:value="mapKey" v-bind:key="mapKey">
+          {{ mapItem.name }}
+        </option>
+      </select>
     </div>
-    <div v-else>
-      <div class="p-2">
-        Select an appropriate map for your data.
-
-        <select class="form-select" v-model="state.handler" v-on:change="loadGeoJson">
-          <option></option>
-          <option v-for="(mapItem, mapKey) in props.maps" v-bind:value="mapKey" v-bind:key="mapKey">
-            {{ mapItem.name }}
-          </option>
-        </select>
-      </div>
-      <div class="p-2">
-        OR upload your GeoJSONs or Shapefiles (.shp, .shx, and .dbf in zip).
-        <div>
-          <label for="fileInput" class="btn btn-outline-secondary">
-            Choose file <i class="fa-solid fa-upload"></i>
-          </label>
-          <input
-            id="fileInput"
-            ref="fileEl"
-            type="file"
-            accept=".geojson,.json,.zip"
-            class="d-none"
-            v-on:change="uploadGeoJson"
-          />
-          <div class="text-truncate">
-            {{ state.selectedFileName || 'No file chosen' }}
-          </div>
-          <div class="d-block invalid-feedback">{{ state.error }}</div>
+    <div class="p-2">
+      OR upload your GeoJSONs or Shapefiles (.shp, .shx, and .dbf in zip).
+      <div>
+        <label for="fileInput" class="btn btn-outline-secondary">
+          Choose file <i class="fa-solid fa-upload"></i>
+        </label>
+        <input
+          id="fileInput"
+          ref="fileEl"
+          type="file"
+          accept=".geojson,.json,.zip"
+          class="d-none"
+          v-on:change="uploadGeoJson"
+        />
+        <div class="text-truncate">
+          {{ state.selectedFileName || 'No file chosen' }}
         </div>
+        <div class="d-block invalid-feedback">{{ state.error }}</div>
       </div>
+    </div>
+    <div class="d-flex justify-content-center" v-if="state.isLoading">
+      <div class="p-2 spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    <div
+      v-else
+      v-for="(warning, index) in state.warnings"
+      class="p-2 bg-warning-subtle"
+      v-bind:key="index"
+    >
+      <i class="fa-solid fa-triangle-exclamation text-warning"></i> {{ warning }}
+    </div>
 
-      <div class="d-flex justify-content-center" v-if="state.isLoading">
-        <div class="p-2 spinner-border" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-      </div>
-      <div
-        v-else
-        v-for="(warning, index) in state.warnings"
-        class="p-2 bg-warning-subtle"
-        v-bind:key="index"
+    <div class="p-2" v-if="state.geojsonUniqueProperties.length > 0">
+      Which property contain unique region names (e.g., country names)?
+      <select
+        class="form-select"
+        v-model="state.geojsonRegionCol"
+        v-on:change="emit('changed', state.handler, geojsonData, state.geojsonRegionCol)"
       >
-        <i class="fa-solid fa-triangle-exclamation text-warning"></i> {{ warning }}
-      </div>
-
-      <div class="p-2" v-if="state.geojsonUniqueProperties.length > 0">
-        Which property contain unique region names (e.g., country names)?
-        <select
-          class="form-select"
-          v-model="state.geojsonRegionCol"
-          v-on:change="emit('changed', state.handler, geojsonData, state.geojsonRegionCol)"
-        >
-          <option v-for="(item, index) in state.geojsonUniqueProperties" v-bind:key="index">
-            {{ item }}
-          </option>
-        </select>
-      </div>
+        <option v-for="(item, index) in state.geojsonUniqueProperties" v-bind:key="index">
+          {{ item }}
+        </option>
+      </select>
     </div>
   </div>
 </template>
