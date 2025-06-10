@@ -78,11 +78,19 @@ async function uploadCsvData(event: Event) {
   <div class="p-2">
     <div class="badge text-bg-secondary mb-2">Download</div>
     <div>
-      <button class="btn btn-outline-secondary" v-on:click="emit('downloadCSV')">
+      <button
+        class="btn btn-outline-secondary"
+        v-on:click="emit('downloadCSV')"
+        v-bind:class="{ disabled: props.disabled }"
+      >
         CSV <i class="fa-solid fa-download"></i>
       </button>
       or
-      <button class="btn btn-outline-secondary" v-on:click="emit('downloadExcel')">
+      <button
+        class="btn btn-outline-secondary"
+        v-on:click="emit('downloadExcel')"
+        v-bind:class="{ disabled: props.disabled }"
+      >
         Excel <i class="fa-solid fa-download"></i>
       </button>
     </div>

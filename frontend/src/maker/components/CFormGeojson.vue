@@ -11,7 +11,7 @@ const props = defineProps<{
   geoUrl?: string
 }>()
 
-const emit = defineEmits(['changed'])
+const emit = defineEmits(['changed', 'reset'])
 const fileEl = ref()
 let geojsonData = {} as FeatureCollection
 
@@ -27,9 +27,13 @@ const state = reactive({
 
 async function loadGeoJson() {
   fileEl.value.value = null
+  state.selectedFileName = ''
   geojsonData = {} as FeatureCollection
   state.geojsonUniqueProperties = []
-  if (!state.handler) return
+  if (!state.handler) {
+    emit('reset')
+    return
+  }
 
   const basedUrl = '/static/cartdata/' + state.handler
   HTTP.get(basedUrl + '/Geographic Area.json').then(function (response: any) {

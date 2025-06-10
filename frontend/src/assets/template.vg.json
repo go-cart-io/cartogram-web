@@ -25,7 +25,7 @@
       ]
     },
     {
-      "name": "colorScheme",
+      "name": "color_scheme",
       "value": "pastel1"
     }
   ],
@@ -135,7 +135,7 @@
       "name": "color_group",
       "type": "ordinal",
       "domain": { "data": "source_csv", "field": "ColorGroup" },
-      "range": { "scheme": { "signal": "colorScheme" } }
+      "range": { "scheme": { "signal": "color_scheme" } }
     }
   ],
   "marks": [

@@ -23,6 +23,7 @@ const state = reactive({
 })
 
 defineExpose({
+  reset,
   initDataTableWGeojson,
   updateDataTable,
   getCSV,
@@ -78,6 +79,7 @@ function reset() {
     }
   ]
   state.displayTable = false
+  document.getElementById('map-vis')!.innerHTML = ''
 }
 
 function initDataTableWGeojson(
@@ -87,7 +89,6 @@ function initDataTableWGeojson(
 ) {
   reset()
 
-  document.getElementById('map-vis')!.innerHTML = ''
   state.dataTable.fields.splice(config.NUM_RESERVED_FILEDS)
   state.dataTable.items = []
   state.displayTable = displayTable
@@ -149,7 +150,7 @@ async function initDataTableWArray(data: KeyValueArray, isReplace = true) {
   })
   visView = container.view
   if (props.mapColorScheme !== 'custom')
-    visView.signal('colorScheme', props.mapColorScheme).runAsync()
+    visView.signal('color_scheme', props.mapColorScheme).runAsync()
 }
 
 function validateCSV(csvData: KeyValueArray): boolean {
@@ -258,7 +259,7 @@ function changeColor(scheme: string, oldScheme: string) {
     }
 
     state.dataTable.fields[config.COL_COLOR].show = false
-    visView.signal('colorScheme', scheme).runAsync()
+    visView.signal('color_scheme', scheme).runAsync()
   }
 }
 
@@ -287,104 +288,104 @@ function onValueChange(rIndex: number, label: string, event: Event) {
 }
 </script>
 <template>
-    <!-- Overview Message -->
-    <div class="p-2">
-      <span class="badge text-bg-secondary">Input Overview</span>
-    </div>
-    <div class="p-2" v-if="state.dataTable.items.length < 1">
-      <p>Please follow steps on the left panel.</p>
-      <p>
-        Don't know where to start? You may try editing one of our
-        <a href="/cartogram">examples</a>. If you have any questions or issues about cartogram
-        generation, refer to the <a href="//guides.go-cart.io/quick-start">guides</a> or
-        <a href="/contact">contact us</a>.
-      </p>
-    </div>
+  <!-- Overview Message -->
+  <div class="p-2">
+    <span class="badge text-bg-secondary">Input Overview</span>
+  </div>
+  <div class="p-2" v-if="state.dataTable.items.length < 1">
+    <p>Please follow steps on the left panel.</p>
+    <p>
+      Don't know where to start? You may try editing one of our
+      <a href="/cartogram">examples</a>. If you have any questions or issues about cartogram
+      generation, refer to the <a href="//guides.go-cart.io/quick-start">guides</a> or
+      <a href="/contact">contact us</a>.
+    </p>
+  </div>
 
-    <!-- Map Container -->
-    <div id="map-vis" class="vis-area p-2"></div>
+  <!-- Map Container -->
+  <div id="map-vis" class="vis-area p-2"></div>
 
-    <!-- Data Table -->
-    <div class="d-table p-2" v-if="state.displayTable && state.dataTable.items.length > 0">
-      Please remove unrelated columns by clicking the minus icon.
-      <table class="table table-bordered">
-        <thead>
-          <tr class="table-light">
-            <th
-              v-for="(field, index) in state.dataTable.fields"
-              v-show="field.show"
-              v-bind:key="index"
-            >
-              <!-- Wrap header content in a container for tooltip -->
-              <div
-                class="header-cell"
-                v-bind:class="{ 'header-error': field.label === 'Region' && field.headerError }"
-              >
-                <span v-if="!field.editableHead">{{ field.label }}</span>
-                <div v-else>
-                  <i
-                    v-if="state.dataTable.fields[index].name !== 'Geographic Area'"
-                    class="position-absolute top-0 end-0 btn-icon text-secondary fas fa-minus-circle"
-                    v-on:click="state.dataTable.fields[index].show = false"
-                    v-bind:title="'Remove ' + state.dataTable.fields[index].name + ' column'"
-                  ></i>
-                  <!-- TODO ask for the confirmation and completely remove it so it'll beremove from the popup. -->
-                  <input
-                    class="form-control"
-                    v-model="state.dataTable.fields[index].name"
-                    v-bind:type="field.name"
-                    placeholder="Data name"
-                  />
-                  <input
-                    class="form-control"
-                    v-model="state.dataTable.fields[index].unit"
-                    v-bind:type="field.unit"
-                    placeholder="Unit"
-                  />
-                </div>
-                <!-- Tooltip for header error -->
-                <div v-if="field.label === 'Region' && field.headerError" class="tooltip">
-                  {{ field.errorMessage }}
-                </div>
-              </div>
-            </th>
-          </tr>
-        </thead>
-        <tr v-for="(row, rIndex) in state.dataTable.items" v-bind:key="rIndex">
-        <td v-for="(field, index) in state.dataTable.fields" v-show="field.show" v-bind:key="index">
+  <!-- Data Table -->
+  <div class="d-table p-2" v-if="state.displayTable && state.dataTable.items.length > 0">
+    Please remove unrelated columns by clicking the minus icon.
+    <table class="table table-bordered">
+      <thead>
+        <tr class="table-light">
+          <th
+            v-for="(field, index) in state.dataTable.fields"
+            v-show="field.show"
+            v-bind:key="index"
+          >
+            <!-- Wrap header content in a container for tooltip -->
             <div
-              class="cell-content"
-              v-bind:class="{ 'error-cell': field.label === 'Region' && row.regionError }"
+              class="header-cell"
+              v-bind:class="{ 'header-error': field.label === 'Region' && field.headerError }"
             >
-              <span v-if="!field.editable">{{ row[field.label] }}</span>
-              <select
-                v-else-if="field.type === 'select'"
-                class="form-control"
-                v-model="state.dataTable.items[rIndex][field.label]"
-              >
-                <option
-                  v-for="option in field.options"
-                  v-bind:value="option.value"
-                  v-bind:key="option.value"
-                >
-                  {{ option.text }}
-                </option>
-              </select>
-              <input
-                v-else-if="field.show"
-                class="form-control"
-                v-bind:type="field.type"
-                v-bind:value="state.dataTable.items[rIndex][field.label]"
-                v-on:change="($event: any) => onValueChange(rIndex, field.label, $event)"
-              />
-              <!-- Tooltip for cell error -->
-              <div v-if="field.label === 'Region' && row.regionError" class="tooltip">
-                {{ row.regionError }}
+              <span v-if="!field.editableHead">{{ field.label }}</span>
+              <div v-else>
+                <i
+                  v-if="state.dataTable.fields[index].name !== 'Geographic Area'"
+                  class="position-absolute top-0 end-0 btn-icon text-secondary fas fa-minus-circle"
+                  v-on:click="state.dataTable.fields[index].show = false"
+                  v-bind:title="'Remove ' + state.dataTable.fields[index].name + ' column'"
+                ></i>
+                <!-- TODO ask for the confirmation and completely remove it so it'll beremove from the popup. -->
+                <input
+                  class="form-control"
+                  v-model="state.dataTable.fields[index].name"
+                  v-bind:type="field.name"
+                  placeholder="Data name"
+                />
+                <input
+                  class="form-control"
+                  v-model="state.dataTable.fields[index].unit"
+                  v-bind:type="field.unit"
+                  placeholder="Unit"
+                />
+              </div>
+              <!-- Tooltip for header error -->
+              <div v-if="field.label === 'Region' && field.headerError" class="tooltip">
+                {{ field.errorMessage }}
               </div>
             </div>
-          </td>
+          </th>
         </tr>
-      </table>
+      </thead>
+      <tr v-for="(row, rIndex) in state.dataTable.items" v-bind:key="rIndex">
+        <td v-for="(field, index) in state.dataTable.fields" v-show="field.show" v-bind:key="index">
+          <div
+            class="cell-content"
+            v-bind:class="{ 'error-cell': field.label === 'Region' && row.regionError }"
+          >
+            <span v-if="!field.editable">{{ row[field.label] }}</span>
+            <select
+              v-else-if="field.type === 'select'"
+              class="form-control"
+              v-model="state.dataTable.items[rIndex][field.label]"
+            >
+              <option
+                v-for="option in field.options"
+                v-bind:value="option.value"
+                v-bind:key="option.value"
+              >
+                {{ option.text }}
+              </option>
+            </select>
+            <input
+              v-else-if="field.show"
+              class="form-control"
+              v-bind:type="field.type"
+              v-bind:value="state.dataTable.items[rIndex][field.label]"
+              v-on:change="($event: any) => onValueChange(rIndex, field.label, $event)"
+            />
+            <!-- Tooltip for cell error -->
+            <div v-if="field.label === 'Region' && row.regionError" class="tooltip">
+              {{ row.regionError }}
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
   </div>
 </template>
 

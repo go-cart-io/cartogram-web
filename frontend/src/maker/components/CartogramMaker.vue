@@ -35,6 +35,7 @@ const state = reactive({
   handler: props.mapName ? props.mapName : '',
   geojsonData: {} as FeatureCollection,
   geojsonRegionCol: '',
+  isInitialized: false,
   csvFile: '',
   colorScheme: props.mapColorScheme ? props.mapColorScheme : 'pastel1',
   useInset: false
@@ -59,6 +60,7 @@ function onGeoJsonChanged(
   state.handler = handler
   state.geojsonData = geojsonData
   state.geojsonRegionCol = regionCol
+  state.isInitialized = displayTable
   state.csvFile = csvFile
   dataTableEl.value.initDataTableWGeojson(geojsonData, regionCol, displayTable)
 
@@ -177,6 +179,12 @@ async function getGeneratedCartogram() {
           v-bind:maps="props.maps"
           v-bind:geoUrl="props.geoUrl"
           v-on:changed="onGeoJsonChanged"
+          v-on:reset="
+            () => {
+              state.isInitialized = false
+              dataTableEl.reset()
+            }
+          "
         />
       </div>
 
@@ -191,7 +199,7 @@ async function getGeneratedCartogram() {
       </button>
       <div id="step2" class="accordion-collapse collapse show p-2">
         <c-form-csv
-          v-bind:disabled="!('features' in state.geojsonData)"
+          v-bind:disabled="!state.isInitialized"
           v-on:changed="onCsvUpdate"
           v-on:downloadCSV="dataTableEl.getCSV(true)"
           v-on:downloadExcel="dataTableEl.getExcel()"
@@ -219,7 +227,7 @@ async function getGeneratedCartogram() {
               class="form-check-input"
               type="checkbox"
               v-model="state.useInset"
-              v-bind:disabled="!('features' in state.geojsonData)"
+              v-bind:disabled="!state.isInitialized"
               id="chk-inset"
             />
             <label class="form-check-label" for="chk-inset"> Define inset </label>
@@ -229,7 +237,7 @@ async function getGeneratedCartogram() {
         <div class="p-2">
           <c-select-color
             v-bind:key="state.colorScheme"
-            v-bind:disabled="!('features' in state.geojsonData)"
+            v-bind:disabled="!state.isInitialized"
             v-bind:scheme="state.colorScheme"
             v-on:changed="(scheme) => (state.colorScheme = scheme)"
           />
@@ -255,7 +263,7 @@ async function getGeneratedCartogram() {
           </p>
           <button
             class="btn btn-primary"
-            v-bind:disabled="state.isProcessing || !('features' in state.geojsonData)"
+            v-bind:disabled="state.isProcessing || !state.isInitialized"
             v-on:click="getGeneratedCartogram"
           >
             Generate
