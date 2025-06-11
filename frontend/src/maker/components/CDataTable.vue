@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FeatureCollection } from 'geojson'
 
-import { reactive, watch } from 'vue'
+import { reactive, watch, toRaw } from 'vue'
 import embed, { type VisualizationSpec } from 'vega-embed'
 
 import type { KeyValueArray, DataTable } from '../lib/interface'
@@ -98,16 +98,12 @@ function initDataTableWGeojson(
   if (geoProperties.length === 0) return
 
   geoProperties = util.deleteKeysInArray(geoProperties, 'cartogram_id')
-  if (!Object.keys(geoProperties[0]).some((key) => key.startsWith('Population')))
-    geoProperties = util.addKeyInArray(geoProperties, 'Population (people)', 0)
 
   const areaKey = Object.keys(geoProperties[0]).find((key) => key.startsWith('Geographic Area'))
   if (areaKey) geoProperties = util.renameKeyInArray(geoProperties, areaKey, 'Geographic Area')
   geoProperties = util.renameKeyInArray(geoProperties, geojsonRegionCol, 'Region')
-  geoProperties = util.arrangeKeysInArray(geoProperties, [
-    ...config.RESERVE_FIELDS,
-    'Population (people)'
-  ])
+  geoProperties = util.arrangeKeysInArray(geoProperties, [...config.RESERVE_FIELDS])
+  geoProperties = util.addKeyInArray(geoProperties, '', 0)
   geoProperties.sort((a, b) => a.Region.localeCompare(b.Region))
 
   versionSpec.data[1].values = geojsonData
@@ -151,6 +147,29 @@ async function initDataTableWArray(data: KeyValueArray, isReplace = true) {
   visView = container.view
   if (props.mapColorScheme !== 'custom')
     visView.signal('color_scheme', props.mapColorScheme).runAsync()
+}
+
+function addColumn() {
+  const index = state.dataTable.fields.findIndex((item) => item.name === '')
+  if (index > -1) {
+    const nameInput = document.getElementById('formFieldName' + index) as HTMLInputElement
+    if (nameInput) {
+      nameInput.reportValidity()
+    }
+    return
+  }
+
+  const label = Date.now().toString()
+  state.dataTable.fields.push({
+    label: label,
+    name: '',
+    unit: '',
+    type: 'number',
+    editable: true,
+    editableHead: true,
+    show: true
+  })
+  state.dataTable.items = util.addKeyInArray(toRaw(state.dataTable.items), label, 0)
 }
 
 function validateCSV(csvData: KeyValueArray): boolean {
@@ -274,6 +293,24 @@ async function getExcel() {
   return await util.getGeneratedExcel(state.dataTable)
 }
 
+function updateLabel(index: number) {
+  const oldLabel = state.dataTable.fields[index].label
+  let newLabel = state.dataTable.fields[index].name
+  if (state.dataTable.fields[index].unit)
+    newLabel = newLabel + ' (' + state.dataTable.fields[index].unit + ')'
+
+  state.dataTable.fields[index].label = newLabel
+  state.dataTable.items = util.renameKeyInArray(toRaw(state.dataTable.items), oldLabel, newLabel)
+  visView.data('source_csv', state.dataTable.items).runAsync()
+}
+
+function validateInput(event: Event) {
+  const inputElement = event.target as HTMLInputElement
+  if (!inputElement.checkValidity()) {
+    inputElement.reportValidity()
+  }
+}
+
 function onValueChange(rIndex: number, label: string, event: Event) {
   const target = <HTMLInputElement>event.target
   state.dataTable.items[rIndex][label] = target.value
@@ -307,7 +344,9 @@ function onValueChange(rIndex: number, label: string, event: Event) {
 
   <!-- Data Table -->
   <div class="d-table p-2" v-if="state.displayTable && state.dataTable.items.length > 0">
-    Please remove unrelated columns by clicking the minus icon.
+    <button class="btn btn-outline-secondary mb-2 float-end" v-on:click="addColumn">
+      Add column <i class="btn-icon fas fa-plus-circle"></i>
+    </button>
     <table class="table table-bordered">
       <thead>
         <tr class="table-light">
@@ -333,14 +372,18 @@ function onValueChange(rIndex: number, label: string, event: Event) {
                 <input
                   class="form-control"
                   v-model="state.dataTable.fields[index].name"
-                  v-bind:type="field.name"
                   placeholder="Data name"
+                  required
+                  v-bind:id="'formFieldName' + index"
+                  v-on:blur="validateInput"
+                  v-on:change="updateLabel(index)"
                 />
                 <input
                   class="form-control"
                   v-model="state.dataTable.fields[index].unit"
-                  v-bind:type="field.unit"
                   placeholder="Unit"
+                  v-bind:id="'formFieldUnit' + index"
+                  v-on:change="updateLabel(index)"
                 />
               </div>
               <!-- Tooltip for header error -->
@@ -360,7 +403,7 @@ function onValueChange(rIndex: number, label: string, event: Event) {
             <span v-if="!field.editable">{{ row[field.label] }}</span>
             <select
               v-else-if="field.type === 'select'"
-              class="form-control"
+              class="form-select"
               v-model="state.dataTable.items[rIndex][field.label]"
             >
               <option
