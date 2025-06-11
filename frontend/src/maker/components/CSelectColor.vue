@@ -82,6 +82,9 @@ function changeScheme(scheme: string) {
         </a>
       </li>
     </ul>
+    <small v-if="state.scheme === 'custom'" class="text-muted">
+      Go back to step 2 if needed.
+    </small>
   </div>
 </template>
 

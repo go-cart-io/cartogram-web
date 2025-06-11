@@ -230,7 +230,9 @@ async function getGeneratedCartogram() {
               v-bind:disabled="!state.isInitialized"
               id="chk-inset"
             />
-            <label class="form-check-label" for="chk-inset"> Define inset </label>
+            <label class="form-check-label" for="chk-inset">
+              Define inset of specific regions
+            </label>
           </div>
         </div>
 
@@ -256,10 +258,9 @@ async function getGeneratedCartogram() {
       <div id="step4" class="accordion-collapse collapse show p-2">
         <div class="p-2">
           <p class="bg-warning-subtle p-1 rounded">
-            <span class="badge text-bg-warning">Important</span> The data will be pruned from our
-            server within 1-2 days, unless you share and access a non-preview link. We strongly
-            advise you to back up your original data in a safe place so you can regenerate the
-            cartogram if needed.
+            <span class="badge text-bg-warning">Important</span> Your data will be deleted from our
+            server within 2 days unless you share and access a non-preview link. Please back up your
+            original data.
           </p>
           <button
             class="btn btn-primary"

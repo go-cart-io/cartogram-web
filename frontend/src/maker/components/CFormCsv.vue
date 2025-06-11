@@ -72,8 +72,9 @@ async function uploadCsvData(event: Event) {
 
 <template>
   <div class="p-2">
-    Input your data to the table on the right panel. Alternatively, download data for editing on
-    your device, then upload the edited file.
+    Input your data to the table in the input overview panel<span class="d-inline d-sm-none">
+      below</span
+    >. Alternatively, download data for editing on your device, then upload the edited file.
   </div>
   <div class="p-2">
     <div class="badge text-bg-secondary mb-2">Download</div>
@@ -113,7 +114,7 @@ async function uploadCsvData(event: Event) {
         class="d-none"
         v-on:change="uploadCsvData"
       />
-      <div class="text-truncate">
+      <div class="small text-truncate text-muted">
         {{ state.selectedFileName || 'No file chosen' }}
       </div>
     </div>

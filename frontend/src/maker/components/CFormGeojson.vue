@@ -126,7 +126,7 @@ async function uploadGeoJson(event: Event) {
           class="d-none"
           v-on:change="uploadGeoJson"
         />
-        <div class="text-truncate">
+        <div class="small text-truncate text-muted">
           {{ state.selectedFileName || 'No file chosen' }}
         </div>
         <div class="d-block invalid-feedback">{{ state.error }}</div>

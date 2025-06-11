@@ -330,7 +330,11 @@ function onValueChange(rIndex: number, label: string, event: Event) {
     <span class="badge text-bg-secondary">Input Overview</span>
   </div>
   <div class="p-2" v-if="state.dataTable.items.length < 1">
-    <p>Please follow steps on the left panel.</p>
+    <p>
+      Please follow the steps
+      <span class="d-none d-sm-inline">on the left panel</span>
+      <span class="d-inline d-sm-none">above</span>.
+    </p>
     <p>
       Don't know where to start? You may try editing one of our
       <a href="/cartogram">examples</a>. If you have any questions or issues about cartogram
