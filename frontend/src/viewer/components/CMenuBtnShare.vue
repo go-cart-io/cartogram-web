@@ -40,6 +40,8 @@ function access() {
 <template>
   <!-- Button trigger modal -->
   <button
+    id="shareBtn"
+    id="shareBtn"
     class="btn btn-primary me-2 d-flex align-items-center"
     data-bs-toggle="modal"
     data-bs-target="#shareModal"

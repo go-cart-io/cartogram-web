@@ -102,6 +102,7 @@ function downloadJson() {
   <button
     class="btn btn-primary"
     data-bs-toggle="modal"
+    v-bind:id="props.panelID + 'DownloadBtn'"
     v-bind:data-bs-target="'#downloadModal' + version.key"
     v-bind:title="'Download ' + version.name"
   >

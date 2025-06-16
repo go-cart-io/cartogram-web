@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import * as util from '../src/maker/lib/util'
+import * as util from '../../../src/maker/lib/util'
 
 describe('maker.lib.util', () => {
   describe('renameKeyInArray', () => {

@@ -55,9 +55,11 @@ async function switchMap() {
   <div v-if="!props.isEmbed" class="d-flex p-2">
     <select
       v-if="!props.mapDBKey"
+      id="mapSelect"
       class="form-select"
       v-model="store.currentMapName"
       v-on:change="switchMap"
+      title="Select map"
     >
       <option v-for="(mapItem, mapKey) in props.maps" v-bind:value="mapKey" v-bind:key="mapKey">
         {{ mapItem.name }}

@@ -8,6 +8,7 @@
     "test:once": "vitest run",
     "test:unit": "vitest",
     "test:e2e": "playwright test",
+    "cy:open": "cypress open",
     "build": "run-p type-check build-only",
     "build-only": "vite build --base=/static/dist",
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false",
@@ -26,7 +27,6 @@
     "xlsx": "npm:@e965/xlsx@^0.20.3"
   },
   "devDependencies": {
-    "@playwright/test": "^1.50.1",
     "@tsconfig/node22": "^22.0.0",
     "@types/bootstrap": "^5.2.10",
     "@types/d3": "^7.4.3",
@@ -39,18 +39,18 @@
     "@vue/eslint-config-typescript": "^14.3.0",
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.7.0",
+    "cypress": "^14.4.1",
     "eslint": "^9.18.0",
-    "eslint-plugin-playwright": "^2.2.0",
     "eslint-plugin-vue": "^9.32.0",
     "jiti": "^2.4.2",
-    "jsdom": "^26.0.0",
+    "jsdom": "^26.1.0",
     "npm-run-all2": "^7.0.2",
     "prettier": "^3.4.2",
     "sass": "1.77.6",
     "typescript": "^5.7.3",
     "vite": "^6.0.11",
     "vite-plugin-vue-devtools": "^7.7.1",
-    "vitest": "^3.0.5",
+    "vitest": "^3.2.3",
     "vue-tsc": "^2.2.0"
   },
   "overrides": {

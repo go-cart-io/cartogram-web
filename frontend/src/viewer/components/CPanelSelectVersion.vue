@@ -5,6 +5,7 @@ import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
 const props = defineProps<{
+  panelID: string
   currentVersionName: string
 }>()
 
@@ -50,9 +51,11 @@ function playVersions() {
       v-for="(version, index) in store.versions"
       type="button"
       class="btn btn-outline-primary version"
+      v-bind:id="props.panelID + 'toV' + index + 'Btn'"
       v-bind:class="{ active: props.currentVersionName === index.toString() }"
-      v-on:click="emit('version_changed', index.toString())"
+      v-bind:title="'Switch to ' + version.name"
       v-bind:key="index"
+      v-on:click="emit('version_changed', index.toString())"
     >
       {{ version.name }}
       <i

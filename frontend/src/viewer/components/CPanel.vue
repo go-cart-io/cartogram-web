@@ -282,6 +282,7 @@ function snapToBetterNumber() {
 
     <div class="card-footer d-flex justify-content-between">
       <c-panel-select-version
+        v-bind:panelID="props.panelID"
         v-bind:currentVersionName="state.versionKey"
         v-on:version_changed="(version) => (state.versionKey = version)"
       />
