@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
 import * as vega from 'vega'
+
+import { useProjectStore } from '../stores/project'
+const store = useProjectStore()
 
 const schemeNames = [
   'accent',
@@ -26,48 +28,38 @@ const schemeObject = schemeNames.reduce((acc: any, name: string) => {
 
 const props = defineProps<{
   disabled: boolean
-  scheme: string
 }>()
-
-const state = reactive({
-  scheme: props.scheme
-})
-
-const emit = defineEmits(['changed'])
-
-function changeScheme(scheme: string) {
-  state.scheme = scheme
-  emit('changed', state.scheme)
-}
 </script>
 
 <template>
-  Color
+  Region Colors
   <div class="dropdown">
     <button
+      id="colorDropdownBtn"
       class="btn btn-outline-secondary dropdown-toggle w-100"
       type="button"
       data-bs-toggle="dropdown"
       aria-expanded="false"
       v-bind:disabled="props.disabled"
     >
-      {{ state.scheme }}
+      {{ store.colorRegion }}
     </button>
-    <ul class="dropdown-menu">
+    <ul id="colorDropdownList" class="dropdown-menu">
       <li>
         <a
           class="dropdown-item"
-          v-bind:class="{ 'bg-secondary text-white': 'custom' === state.scheme }"
-          v-on:click="changeScheme('custom')"
-          >Custom</a
+          v-bind:class="{ 'bg-secondary text-white': store.colorRegion === 'custom' }"
+          v-on:click="store.colorRegion = 'custom'"
         >
+          Custom
+        </a>
       </li>
       <li
         v-for="scheme in schemeNames"
         v-bind:key="scheme"
-        v-bind:class="{ 'bg-secondary': scheme === state.scheme }"
+        v-bind:class="{ 'bg-secondary': store.colorRegion === scheme }"
       >
-        <a class="dropdown-item" v-on:click="changeScheme(scheme)">
+        <a class="dropdown-item" v-on:click="store.colorRegion = scheme">
           <div class="d-inline swatch">
             <div
               v-for="color in schemeObject[scheme]"
@@ -76,13 +68,13 @@ function changeScheme(scheme: string) {
               v-bind:key="color"
             ></div>
           </div>
-          <span class="ms-2" v-bind:class="{ 'text-white': scheme === state.scheme }">{{
+          <span class="ms-2" v-bind:class="{ 'text-white': store.colorRegion === scheme }">{{
             scheme
           }}</span>
         </a>
       </li>
     </ul>
-    <small v-if="state.scheme === 'custom'" class="text-muted">
+    <small v-if="store.colorRegion === 'custom'" class="text-muted">
       Go back to step 2 if needed.
     </small>
   </div>

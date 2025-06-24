@@ -4,21 +4,18 @@ import type { FeatureCollection } from 'geojson'
 import { reactive, watch, toRaw } from 'vue'
 import embed, { type VisualizationSpec } from 'vega-embed'
 
-import type { KeyValueArray, DataTable } from '../lib/interface'
+import type { KeyValueArray } from '../lib/interface'
 import spec from '../../assets/template.vg.json' with { type: 'json' }
 import * as config from '../../common/config'
 import * as util from '../lib/util'
 
+import { useProjectStore } from '../stores/project'
+const store = useProjectStore()
+
 const versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
 let visView: any
 
-const props = defineProps<{
-  mapColorScheme: string
-  useInset: boolean
-}>()
-
 const state = reactive({
-  dataTable: { fields: [], items: [] } as DataTable,
   displayTable: false
 })
 
@@ -32,22 +29,22 @@ defineExpose({
 })
 
 watch(
-  () => props.mapColorScheme,
+  () => store.colorRegion,
   (newValue, oldValue) => {
     changeColor(newValue, oldValue)
   }
 )
 
 watch(
-  () => props.useInset,
+  () => store.useInset,
   () => {
-    state.dataTable.fields[config.COL_INSET].show = props.useInset
+    store.dataTable.fields[config.COL_INSET].show = store.useInset
   }
 )
 
 function reset() {
-  state.dataTable.items = []
-  state.dataTable.fields = [
+  store.dataTable.items = []
+  store.dataTable.fields = [
     {
       label: 'Region',
       name: 'Region',
@@ -89,8 +86,8 @@ function initDataTableWGeojson(
 ) {
   reset()
 
-  state.dataTable.fields.splice(config.NUM_RESERVED_FILEDS)
-  state.dataTable.items = []
+  store.dataTable.fields.splice(config.NUM_RESERVED_FILEDS)
+  store.dataTable.items = []
   state.displayTable = displayTable
 
   // Transform geojson to data fields
@@ -115,16 +112,16 @@ function initDataTableWGeojson(
 async function initDataTableWArray(data: KeyValueArray, isReplace = true) {
   data = util.filterKeyValueInArray(data, config.RESERVE_FIELDS)
   if (isReplace) {
-    state.dataTable.items = data
+    store.dataTable.items = data
   } else {
-    state.dataTable.items = util.mergeObjInArray(state.dataTable.items, data, 'Region')
+    store.dataTable.items = util.mergeObjInArray(store.dataTable.items, data, 'Region')
   }
 
-  const keys = Object.keys(state.dataTable.items[0])
+  const keys = Object.keys(store.dataTable.items[0])
   for (let i = 0; i < keys.length; i++) {
     if (!config.RESERVE_FIELDS.includes(keys[i])) {
       const [fieldname, unit] = util.getNameUnit(keys[i])
-      state.dataTable.fields.push({
+      store.dataTable.fields.push({
         label: keys[i],
         name: fieldname,
         unit: unit,
@@ -136,7 +133,7 @@ async function initDataTableWArray(data: KeyValueArray, isReplace = true) {
     }
   }
 
-  versionSpec.data[0].values = state.dataTable.items
+  versionSpec.data[0].values = store.dataTable.items
   versionSpec.data[0].format = 'json'
 
   const container = await embed('#map-vis', <VisualizationSpec>versionSpec, {
@@ -145,12 +142,11 @@ async function initDataTableWArray(data: KeyValueArray, isReplace = true) {
     tooltip: config.tooltipOptions
   })
   visView = container.view
-  if (props.mapColorScheme !== 'custom')
-    visView.signal('color_scheme', props.mapColorScheme).runAsync()
+  if (store.colorRegion !== 'custom') visView.signal('color_scheme', store.colorRegion).runAsync()
 }
 
 function addColumn() {
-  const index = state.dataTable.fields.findIndex((item) => item.name === '')
+  const index = store.dataTable.fields.findIndex((item) => item.name === '')
   if (index > -1) {
     const nameInput = document.getElementById('formFieldName' + index) as HTMLInputElement
     if (nameInput) {
@@ -160,7 +156,7 @@ function addColumn() {
   }
 
   const label = Date.now().toString()
-  state.dataTable.fields.push({
+  store.dataTable.fields.push({
     label: label,
     name: '',
     unit: '',
@@ -169,7 +165,7 @@ function addColumn() {
     editableHead: true,
     show: true
   })
-  state.dataTable.items = util.addKeyInArray(toRaw(state.dataTable.items), label, 0)
+  store.dataTable.items = util.addKeyInArray(toRaw(store.dataTable.items), label, 0)
 }
 
 function validateCSV(csvData: KeyValueArray): boolean {
@@ -178,7 +174,7 @@ function validateCSV(csvData: KeyValueArray): boolean {
   // 1. Check if the CSV header contains the "Region" column.
   if (!csvData[0].hasOwnProperty('Region')) {
     // Mark error on the header for the Region field.
-    const regionField = state.dataTable.fields.find((field) => field.label === 'Region')
+    const regionField = store.dataTable.fields.find((field) => field.label === 'Region')
     if (regionField) {
       regionField.errorMessage = 'Region column not found in the uploaded CSV'
       regionField.headerError = true // Custom property for header errors.
@@ -186,7 +182,7 @@ function validateCSV(csvData: KeyValueArray): boolean {
     return false
   } else {
     // Clear any header error if the Region column is present.
-    const regionField = state.dataTable.fields.find((field) => field.label === 'Region')
+    const regionField = store.dataTable.fields.find((field) => field.label === 'Region')
     if (regionField) {
       regionField.errorMessage = ''
       regionField.headerError = false
@@ -195,13 +191,13 @@ function validateCSV(csvData: KeyValueArray): boolean {
 
   // 2. Compare Region values row by row.
   const csvRegions = csvData.map((row) => row['Region'])
-  const mapRegions = state.dataTable.items.map((row) => row['Region'])
+  const mapRegions = store.dataTable.items.map((row) => row['Region'])
 
   let valid = true
 
   // Check row count mismatch and mark header error.
   if (csvRegions.length !== mapRegions.length) {
-    const regionField = state.dataTable.fields.find((field) => field.label === 'Region')
+    const regionField = store.dataTable.fields.find((field) => field.label === 'Region')
     if (regionField) {
       regionField.errorMessage = `Row count mismatch: CSV has ${csvRegions.length} rows, but expected ${mapRegions.length}`
       regionField.headerError = true
@@ -213,12 +209,12 @@ function validateCSV(csvData: KeyValueArray): boolean {
   for (let i = 0; i < Math.min(csvRegions.length, mapRegions.length); i++) {
     if (csvRegions[i] !== mapRegions[i]) {
       // Mark error on the specific row's Region cell.
-      state.dataTable.items[i].regionError =
+      store.dataTable.items[i].regionError =
         `Region mismatch at row ${i + 1}: CSV has "${csvRegions[i]}", expected "${mapRegions[i]}"`
       valid = false
     } else {
       // Clear any previous error if the values match.
-      delete state.dataTable.items[i].regionError
+      delete store.dataTable.items[i].regionError
     }
   }
 
@@ -231,77 +227,72 @@ function updateDataTable(csvData: KeyValueArray) {
   const areaKey = Object.keys(csvData[0]).find((key) => key.startsWith('Geographic Area'))
   if (areaKey) {
     const [, unit] = util.getNameUnit(areaKey)
-    state.dataTable.fields[config.COL_AREA].unit = unit
+    store.dataTable.fields[config.COL_AREA].unit = unit
     csvData = util.renameKeyInArray(csvData, areaKey, 'Geographic Area')
   }
 
-  state.dataTable.items = util.filterKeyValueInArray(
-    state.dataTable.items,
+  store.dataTable.items = util.filterKeyValueInArray(
+    store.dataTable.items,
     config.RESERVE_FIELDS,
     null
   )
-  state.dataTable.fields.splice(config.NUM_RESERVED_FILEDS)
-  state.dataTable.fields[config.COL_COLOR].show = csvData[0].hasOwnProperty('Color')
-  state.dataTable.fields[config.COL_INSET].show = csvData[0].hasOwnProperty('Inset')
+  store.dataTable.fields.splice(config.NUM_RESERVED_FILEDS)
+  store.dataTable.fields[config.COL_COLOR].show = csvData[0].hasOwnProperty('Color')
+  store.dataTable.fields[config.COL_INSET].show = csvData[0].hasOwnProperty('Inset')
   initDataTableWArray(csvData, false)
 
-  return {
-    customColor: state.dataTable.fields[config.COL_COLOR].show,
-    useInset: state.dataTable.fields[config.COL_INSET].show
-  }
+  store.colorRegion = store.dataTable.fields[config.COL_COLOR].show ? 'custom' : store.colorRegion
+  store.useInset = store.dataTable.fields[config.COL_INSET].show
 }
 
 function changeColor(scheme: string, oldScheme: string) {
   if (scheme === 'custom') {
     if (oldScheme !== 'custom') {
-      // Copy colors from Vega to the data table **only if no color is already assigned**
-      // The condition is crucial because csv uploading populates the color column before applies the custom scheme
-      if (state.dataTable.items[0] && !state.dataTable.items[0]['Color']) {
-        const colorScale = visView.scale('color_group')
-        for (let i = 0; i < state.dataTable.items.length; i++) {
-          state.dataTable.items[i]['Color'] = colorScale(state.dataTable.items[i]['ColorGroup'])
-        }
+      // No color assigned - Copy all color from Vega to data table
+      const colorScale = visView.scale('color_group')
+      for (let i = 0; i < store.dataTable.items.length; i++) {
+        store.dataTable.items[i]['Color'] = colorScale(store.dataTable.items[i]['ColorGroup'])
       }
     } else {
       // Assign white to empty color
-      for (let i = 0; i < state.dataTable.items.length; i++) {
-        state.dataTable.items[i]['Color'] = state.dataTable.items[i]['Color']
-          ? state.dataTable.items[i]['Color']
+      for (let i = 0; i < store.dataTable.items.length; i++) {
+        store.dataTable.items[i]['Color'] = store.dataTable.items[i]['Color']
+          ? store.dataTable.items[i]['Color']
           : '#ffffff'
       }
     }
 
-    state.dataTable.fields[config.COL_COLOR].show = true
+    store.dataTable.fields[config.COL_COLOR].show = true
   } else {
-    for (let i = 0; i < state.dataTable.items.length; i++) {
-      delete state.dataTable.items[i]['Color']
+    for (let i = 0; i < store.dataTable.items.length; i++) {
+      delete store.dataTable.items[i]['Color']
     }
 
-    state.dataTable.fields[config.COL_COLOR].show = false
+    store.dataTable.fields[config.COL_COLOR].show = false
     visView.signal('color_scheme', scheme).runAsync()
   }
 }
 
 async function getCSV(isGetFile = false) {
-  if (!isGetFile) state.dataTable.fields[config.COL_AREA].show = true // Force include Geographic Area when generate cartogram
-  const csv = await util.getGeneratedCSV(state.dataTable, isGetFile)
-  state.dataTable.fields[config.COL_AREA].show = false
+  if (!isGetFile) store.dataTable.fields[config.COL_AREA].show = true // Force include Geographic Area when generate cartogram
+  const csv = await util.getGeneratedCSV(store.dataTable, isGetFile)
+  store.dataTable.fields[config.COL_AREA].show = false
   return csv
 }
 
 async function getExcel() {
-  return await util.getGeneratedExcel(state.dataTable)
+  return await util.getGeneratedExcel(store.dataTable)
 }
 
 function updateLabel(index: number) {
-  const oldLabel = state.dataTable.fields[index].label
-  let newLabel = state.dataTable.fields[index].name
-  if (state.dataTable.fields[index].unit)
-    newLabel = newLabel + ' (' + state.dataTable.fields[index].unit + ')'
+  const oldLabel = store.dataTable.fields[index].label
+  let newLabel = store.dataTable.fields[index].name
+  if (store.dataTable.fields[index].unit)
+    newLabel = newLabel + ' (' + store.dataTable.fields[index].unit + ')'
 
-  state.dataTable.fields[index].label = newLabel
-  state.dataTable.items = util.renameKeyInArray(toRaw(state.dataTable.items), oldLabel, newLabel)
-  visView.data('source_csv', state.dataTable.items).runAsync()
+  store.dataTable.fields[index].label = newLabel
+  store.dataTable.items = util.renameKeyInArray(toRaw(store.dataTable.items), oldLabel, newLabel)
+  visView.data('source_csv', store.dataTable.items).runAsync()
 }
 
 function validateInput(event: Event) {
@@ -313,11 +304,11 @@ function validateInput(event: Event) {
 
 function onValueChange(rIndex: number, label: string, event: Event) {
   const target = <HTMLInputElement>event.target
-  state.dataTable.items[rIndex][label] = target.value
+  store.dataTable.items[rIndex][label] = target.value
   const changeset = visView
     .changeset()
     .modify(
-      (item: any) => item.Region === state.dataTable.items[rIndex].Region,
+      (item: any) => item.Region === store.dataTable.items[rIndex].Region,
       label,
       target.value
     )
@@ -329,7 +320,7 @@ function onValueChange(rIndex: number, label: string, event: Event) {
   <div class="p-2">
     <span class="badge text-bg-secondary">Input Overview</span>
   </div>
-  <div class="p-2" v-if="state.dataTable.items.length < 1">
+  <div class="p-2" v-if="store.dataTable.items.length < 1">
     <p>
       Please follow the steps
       <span class="d-none d-sm-inline">on the left panel</span>
@@ -347,7 +338,7 @@ function onValueChange(rIndex: number, label: string, event: Event) {
   <div id="map-vis" class="vis-area p-2"></div>
 
   <!-- Data Table -->
-  <div class="d-table p-2" v-if="state.displayTable && state.dataTable.items.length > 0">
+  <div class="d-table p-2" v-if="state.displayTable && store.dataTable.items.length > 0">
     <button class="btn btn-outline-secondary mb-2 float-end" v-on:click="addColumn">
       Add column <i class="btn-icon fas fa-plus-circle"></i>
     </button>
@@ -355,7 +346,7 @@ function onValueChange(rIndex: number, label: string, event: Event) {
       <thead>
         <tr class="table-light">
           <th
-            v-for="(field, index) in state.dataTable.fields"
+            v-for="(field, index) in store.dataTable.fields"
             v-show="field.show"
             v-bind:key="index"
           >
@@ -367,15 +358,15 @@ function onValueChange(rIndex: number, label: string, event: Event) {
               <span v-if="!field.editableHead">{{ field.label }}</span>
               <div v-else>
                 <i
-                  v-if="state.dataTable.fields[index].name !== 'Geographic Area'"
+                  v-if="store.dataTable.fields[index].name !== 'Geographic Area'"
                   class="position-absolute top-0 end-0 btn-icon text-secondary fas fa-minus-circle"
-                  v-on:click="state.dataTable.fields[index].show = false"
-                  v-bind:title="'Remove ' + state.dataTable.fields[index].name + ' column'"
+                  v-on:click="store.dataTable.fields[index].show = false"
+                  v-bind:title="'Remove ' + store.dataTable.fields[index].name + ' column'"
                 ></i>
                 <!-- TODO ask for the confirmation and completely remove it so it'll beremove from the popup. -->
                 <input
                   class="form-control"
-                  v-model="state.dataTable.fields[index].name"
+                  v-model="store.dataTable.fields[index].name"
                   placeholder="Data name"
                   required
                   v-bind:id="'formFieldName' + index"
@@ -384,7 +375,7 @@ function onValueChange(rIndex: number, label: string, event: Event) {
                 />
                 <input
                   class="form-control"
-                  v-model="state.dataTable.fields[index].unit"
+                  v-model="store.dataTable.fields[index].unit"
                   placeholder="Unit"
                   v-bind:id="'formFieldUnit' + index"
                   v-on:change="updateLabel(index)"
@@ -398,8 +389,8 @@ function onValueChange(rIndex: number, label: string, event: Event) {
           </th>
         </tr>
       </thead>
-      <tr v-for="(row, rIndex) in state.dataTable.items" v-bind:key="rIndex">
-        <td v-for="(field, index) in state.dataTable.fields" v-show="field.show" v-bind:key="index">
+      <tr v-for="(row, rIndex) in store.dataTable.items" v-bind:key="rIndex">
+        <td v-for="(field, index) in store.dataTable.fields" v-show="field.show" v-bind:key="index">
           <div
             class="cell-content"
             v-bind:class="{ 'error-cell': field.label === 'Region' && row.regionError }"
@@ -408,7 +399,7 @@ function onValueChange(rIndex: number, label: string, event: Event) {
             <select
               v-else-if="field.type === 'select'"
               class="form-select"
-              v-model="state.dataTable.items[rIndex][field.label]"
+              v-model="store.dataTable.items[rIndex][field.label]"
             >
               <option
                 v-for="option in field.options"
@@ -422,7 +413,7 @@ function onValueChange(rIndex: number, label: string, event: Event) {
               v-else-if="field.show"
               class="form-control"
               v-bind:type="field.type"
-              v-bind:value="state.dataTable.items[rIndex][field.label]"
+              v-bind:value="store.dataTable.items[rIndex][field.label]"
               v-on:change="($event: any) => onValueChange(rIndex, field.label, $event)"
             />
             <!-- Tooltip for cell error -->

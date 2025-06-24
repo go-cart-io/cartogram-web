@@ -6,13 +6,16 @@ import { reactive, ref, onMounted } from 'vue'
 
 import * as util from '../lib/util'
 import HTTP from '../lib/http'
-import type { KeyValueArray } from '../lib/interface'
 import type { MapHandlers } from '../../common/interface'
 
 import CFormGeojson from './CFormGeojson.vue'
 import CFormCsv from './CFormCsv.vue'
-import CSelectColor from './CSelectColor.vue'
+import CFormSettings from './CFormSettings.vue'
 import CDataTable from './CDataTable.vue'
+
+import { useProjectStore } from '../stores/project'
+import type { KeyValueArray } from 'maker/lib/interface'
+const store = useProjectStore()
 
 const mapDBKey = util.generateShareKey(32)
 const dataTableEl = ref()
@@ -31,19 +34,18 @@ const state = reactive({
   progressName: '',
   progressPercentage: 0,
   error: '',
-  title: props.mapTitle ? props.mapTitle : '',
   handler: props.mapName ? props.mapName : '',
   geojsonData: {} as FeatureCollection,
   geojsonRegionCol: '',
   isInitialized: false,
-  csvFile: '',
-  colorScheme: props.mapColorScheme ? props.mapColorScheme : 'pastel1',
-  useInset: false
+  csvFile: ''
 })
 
 onMounted(() => {
   if (!props.mapName || !props.geoUrl || !props.csvUrl) return
 
+  store.title = props.mapTitle ? props.mapTitle : ''
+  store.colorRegion = props.mapColorScheme ? props.mapColorScheme : 'pastel1'
   const projectedUrl = props.geoUrl.replace('/Input.json', '/Geographic Area.json')
   HTTP.get(projectedUrl).then(function (response: any) {
     onGeoJsonChanged(props.mapName!, response, 'Region', props.csvUrl)
@@ -57,6 +59,8 @@ function onGeoJsonChanged(
   csvFile = '',
   displayTable: boolean = true
 ) {
+  store.useInset = false
+
   state.handler = handler
   state.geojsonData = geojsonData
   state.geojsonRegionCol = regionCol
@@ -87,9 +91,7 @@ function onCsvUpdate(csvData: KeyValueArray) {
   // if (!isCSVValid) {
   //   return
   // }
-  const updatedProps = dataTableEl.value.updateDataTable(csvData)
-  state.colorScheme = updatedProps.customColor ? 'custom' : state.colorScheme
-  state.useInset = updatedProps.useInset
+  dataTableEl.value.updateDataTable(csvData)
 }
 
 async function getGeneratedCartogram() {
@@ -104,8 +106,8 @@ async function getGeneratedCartogram() {
 
   await new Promise<any>(function (resolve, reject) {
     const req_body = JSON.stringify({
-      title: state.title,
-      scheme: state.colorScheme,
+      title: store.title,
+      scheme: store.colorRegion,
       handler: state.handler,
       csv: csvData,
       geojsonRegionCol: state.geojsonRegionCol,
@@ -182,6 +184,7 @@ async function getGeneratedCartogram() {
           v-on:reset="
             () => {
               state.isInitialized = false
+              store.useInset = false
               dataTableEl.reset()
             }
           "
@@ -216,34 +219,7 @@ async function getGeneratedCartogram() {
         3. Specify visualization
       </button>
       <div id="step3" class="accordion-collapse collapse show p-2">
-        <div class="p-2">
-          Project Title
-          <input class="form-control" type="text" v-model="state.title" maxlength="100" />
-        </div>
-
-        <div class="p-2">
-          <div class="form-check">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              v-model="state.useInset"
-              v-bind:disabled="!state.isInitialized"
-              id="chk-inset"
-            />
-            <label class="form-check-label" for="chk-inset">
-              Define inset of specific regions
-            </label>
-          </div>
-        </div>
-
-        <div class="p-2">
-          <c-select-color
-            v-bind:key="state.colorScheme"
-            v-bind:disabled="!state.isInitialized"
-            v-bind:scheme="state.colorScheme"
-            v-on:changed="(scheme) => (state.colorScheme = scheme)"
-          />
-        </div>
+        <c-form-settings v-bind:disabled="!state.isInitialized"></c-form-settings>
       </div>
 
       <button
@@ -263,6 +239,7 @@ async function getGeneratedCartogram() {
             original data.
           </p>
           <button
+            id="generateBtn"
             class="btn btn-primary"
             v-bind:disabled="state.isProcessing || !state.isInitialized"
             v-on:click="getGeneratedCartogram"
@@ -274,11 +251,7 @@ async function getGeneratedCartogram() {
     </div>
 
     <div class="col-12 col-sm-8 col-md-9">
-      <c-data-table
-        ref="dataTableEl"
-        v-bind:mapColorScheme="state.colorScheme"
-        v-bind:useInset="state.useInset"
-      />
+      <c-data-table ref="dataTableEl" />
     </div>
   </div>
 
