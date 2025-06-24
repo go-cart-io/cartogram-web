@@ -26,10 +26,8 @@ async function uploadCsvData(event: Event) {
   const files = input.files
   if (!files || files.length === 0) return
 
-  // Store the file name before clearing so that selecting the same file again triggers a change event.
   const file = files[0]
-  state.selectedFileName = file.name
-  input.value = ''
+  state.selectedFileName = 'Uploading...'
 
   const data = await util.readFile(file)
   const type = file.name.split('.').pop()?.toLowerCase()
@@ -66,15 +64,21 @@ async function uploadCsvData(event: Event) {
     return aRegion.localeCompare(bRegion)
   })
 
+  // Store the file name before clearing so that selecting the same file again triggers a change event.
+  state.selectedFileName = file.name
+  input.value = ''
+
   emit('changed', csvData)
 }
 </script>
 
 <template>
   <div class="p-2">
-    Input your data to the table in the input overview panel<span class="d-inline d-sm-none">
-      below</span
-    >. Alternatively, download data for editing on your device, then upload the edited file.
+    Input your data to the table in the input overview panel
+    <span class="d-inline d-sm-none">below</span>.
+  </div>
+  <div class="p-2">
+    Alternatively, download data for editing on your device, then upload the edited file.
   </div>
   <div class="p-2">
     <div class="badge text-bg-secondary mb-2">Download</div>
@@ -100,6 +104,9 @@ async function uploadCsvData(event: Event) {
   <div class="p-2">
     <div class="badge text-bg-secondary mb-2">Upload</div>
     <div class="mb-2">
+      Please ensure the first column contains the same region names you chose in step 1.
+    </div>
+    <div class="mb-2">
       <label
         for="csvInput"
         class="btn btn-outline-secondary"
@@ -114,13 +121,9 @@ async function uploadCsvData(event: Event) {
         class="d-none"
         v-on:change="uploadCsvData"
       />
-      <div class="small text-truncate text-muted">
+      <div id="csvFileName" class="small text-truncate text-muted">
         {{ state.selectedFileName || 'No file chosen' }}
       </div>
-    </div>
-
-    <div class="bg-info-subtle p-1 rounded">
-      Please ensure the first column contains the same region names you chose in step 1.
     </div>
   </div>
 </template>

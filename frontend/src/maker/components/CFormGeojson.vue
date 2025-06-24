@@ -55,10 +55,8 @@ async function uploadGeoJson(event: Event) {
   const formData = new FormData()
   formData.append('file', files[0])
 
-  // Store the file name before clearing so that selecting the same file again triggers a change event.
   const file = files[0]
-  state.selectedFileName = file.name
-  input.value = ''
+  state.selectedFileName = 'Uploading...'
 
   const response = await new Promise<any>(function (resolve, reject) {
     HTTP.post('/api/v1/cartogram/preprocess/' + props.mapDBKey, formData).then(
@@ -93,6 +91,11 @@ async function uploadGeoJson(event: Event) {
   state.isLoading = false
   state.warnings = response.warnings
   const firstUniqueProprety = state.geojsonUniqueProperties[0]
+
+  // Store the file name before clearing so that selecting the same file again triggers a change event.
+  state.selectedFileName = file.name
+  input.value = ''
+
   emit('changed', state.handler, geojsonData, firstUniqueProprety, '', false)
 }
 </script>
@@ -105,7 +108,7 @@ async function uploadGeoJson(event: Event) {
     <div class="p-2">
       Select an appropriate map for your data.
 
-      <select class="form-select" v-model="state.handler" v-on:change="loadGeoJson">
+      <select id="mapSelect" class="form-select" v-model="state.handler" v-on:change="loadGeoJson">
         <option></option>
         <option v-for="(mapItem, mapKey) in props.maps" v-bind:value="mapKey" v-bind:key="mapKey">
           {{ mapItem.name }}
@@ -115,18 +118,18 @@ async function uploadGeoJson(event: Event) {
     <div class="p-2">
       OR upload your GeoJSONs or Shapefiles (.shp, .shx, and .dbf in zip).
       <div>
-        <label for="fileInput" class="btn btn-outline-secondary">
+        <label for="geoFileInput" class="btn btn-outline-secondary">
           Choose file <i class="fa-solid fa-upload"></i>
         </label>
         <input
-          id="fileInput"
+          id="geoFileInput"
           ref="fileEl"
           type="file"
           accept=".geojson,.json,.zip"
           class="d-none"
           v-on:change="uploadGeoJson"
         />
-        <div class="small text-truncate text-muted">
+        <div id="geoFileName" class="small text-truncate text-muted">
           {{ state.selectedFileName || 'No file chosen' }}
         </div>
         <div class="d-block invalid-feedback">{{ state.error }}</div>
@@ -149,6 +152,7 @@ async function uploadGeoJson(event: Event) {
     <div class="p-2" v-if="state.geojsonUniqueProperties.length > 0">
       Which property contain unique region names (e.g., country names)?
       <select
+        id="regionColSelect"
         class="form-select"
         v-model="state.geojsonRegionCol"
         v-on:change="emit('changed', state.handler, geojsonData, state.geojsonRegionCol)"
