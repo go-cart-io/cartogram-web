@@ -3,7 +3,11 @@ import * as d3 from 'd3'
 import * as XLSX from 'xlsx'
 import { reactive } from 'vue'
 
+import * as datatable from '../lib/datatable'
 import * as util from '../lib/util'
+
+import { useProjectStore } from '../stores/project'
+const store = useProjectStore()
 
 const props = withDefaults(
   defineProps<{
@@ -14,7 +18,7 @@ const props = withDefaults(
   }
 )
 
-const emit = defineEmits(['changed', 'downloadCSV', 'downloadExcel'])
+const emit = defineEmits(['changed'])
 
 const state = reactive({
   selectedFileName: ''
@@ -48,14 +52,7 @@ async function uploadCsvData(event: Event) {
   // Rename the first column key to "Region" if "Region" key does not exist
   if (!('Region' in csvData[0])) {
     const firstKey = Object.keys(csvData[0])[0]
-
-    // Copy current row then add new key "Region"
-    csvData = csvData.map((row) => {
-      const newRow: { [key: string]: any } = { ...row }
-      newRow['Region'] = newRow[firstKey]
-      delete newRow[firstKey]
-      return newRow
-    })
+    csvData = util.renameKeyInArray(csvData, firstKey, 'Region')
   }
 
   csvData.sort((a: { [key: string]: any }, b: { [key: string]: any }) => {
@@ -68,7 +65,8 @@ async function uploadCsvData(event: Event) {
   state.selectedFileName = file.name
   input.value = ''
 
-  emit('changed', csvData)
+  datatable.updateDataTable(csvData)
+  emit('changed')
 }
 </script>
 
@@ -85,7 +83,7 @@ async function uploadCsvData(event: Event) {
     <div>
       <button
         class="btn btn-outline-secondary"
-        v-on:click="emit('downloadCSV')"
+        v-on:click="util.getGeneratedCSV(store.dataTable, true)"
         v-bind:class="{ disabled: props.disabled }"
       >
         CSV <i class="fa-solid fa-download"></i>
@@ -93,7 +91,7 @@ async function uploadCsvData(event: Event) {
       or
       <button
         class="btn btn-outline-secondary"
-        v-on:click="emit('downloadExcel')"
+        v-on:click="util.getGeneratedExcel(store.dataTable)"
         v-bind:class="{ disabled: props.disabled }"
       >
         Excel <i class="fa-solid fa-download"></i>

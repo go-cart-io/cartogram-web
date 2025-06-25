@@ -42,14 +42,14 @@ const props = defineProps<{
       aria-expanded="false"
       v-bind:disabled="props.disabled"
     >
-      {{ store.colorRegion }}
+      {{ store.colorRegionScheme }}
     </button>
     <ul id="colorDropdownList" class="dropdown-menu">
       <li>
         <a
           class="dropdown-item"
-          v-bind:class="{ 'bg-secondary text-white': store.colorRegion === 'custom' }"
-          v-on:click="store.colorRegion = 'custom'"
+          v-bind:class="{ 'bg-secondary text-white': store.colorRegionScheme === 'custom' }"
+          v-on:click="store.colorRegionScheme = 'custom'"
         >
           Custom
         </a>
@@ -57,9 +57,9 @@ const props = defineProps<{
       <li
         v-for="scheme in schemeNames"
         v-bind:key="scheme"
-        v-bind:class="{ 'bg-secondary': store.colorRegion === scheme }"
+        v-bind:class="{ 'bg-secondary': store.colorRegionScheme === scheme }"
       >
-        <a class="dropdown-item" v-on:click="store.colorRegion = scheme">
+        <a class="dropdown-item" v-on:click="store.colorRegionScheme = scheme">
           <div class="d-inline swatch">
             <div
               v-for="color in schemeObject[scheme]"
@@ -68,13 +68,13 @@ const props = defineProps<{
               v-bind:key="color"
             ></div>
           </div>
-          <span class="ms-2" v-bind:class="{ 'text-white': store.colorRegion === scheme }">{{
+          <span class="ms-2" v-bind:class="{ 'text-white': store.colorRegionScheme === scheme }">{{
             scheme
           }}</span>
         </a>
       </li>
     </ul>
-    <small v-if="store.colorRegion === 'custom'" class="text-muted">
+    <small v-if="store.colorRegionScheme === 'custom'" class="text-muted">
       Go back to step 2 if needed.
     </small>
   </div>

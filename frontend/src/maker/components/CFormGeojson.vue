@@ -3,6 +3,7 @@ import type { FeatureCollection } from 'geojson'
 import { ref, reactive } from 'vue'
 
 import HTTP from '../lib/http'
+import * as datatable from '../lib/datatable'
 import type { MapHandlers } from '../../common/interface'
 
 const props = defineProps<{
@@ -36,9 +37,10 @@ async function loadGeoJson() {
   }
 
   const basedUrl = '/static/cartdata/' + state.handler
-  HTTP.get(basedUrl + '/Geographic Area.json').then(function (response: any) {
+  HTTP.get(basedUrl + '/Geographic Area.json').then(async function (response: any) {
     state.geojsonRegionCol = 'Region'
-    emit('changed', state.handler, response, state.geojsonRegionCol, basedUrl + '/data.csv')
+    await datatable.initDataTableWGeojson(response, state.geojsonRegionCol, basedUrl + '/data.csv')
+    emit('changed', state.handler, response, state.geojsonRegionCol, true)
   })
 }
 
@@ -74,6 +76,10 @@ async function uploadGeoJson(event: Event) {
     return
   })
 
+  // Store the file name before clearing so that selecting the same file again triggers a change event.
+  state.selectedFileName = file.name
+  input.value = ''
+
   if (!response || !response.geojson) return
   const geojson = response.geojson
   // Check whether the GeoJSON contains any polygons or multipolygons and remove all other objects.
@@ -92,11 +98,13 @@ async function uploadGeoJson(event: Event) {
   state.warnings = response.warnings
   const firstUniqueProprety = state.geojsonUniqueProperties[0]
 
-  // Store the file name before clearing so that selecting the same file again triggers a change event.
-  state.selectedFileName = file.name
-  input.value = ''
+  await datatable.initDataTableWGeojson(geojsonData, firstUniqueProprety)
+  emit('changed', state.handler, geojsonData, firstUniqueProprety, false)
+}
 
-  emit('changed', state.handler, geojsonData, firstUniqueProprety, '', false)
+async function onRegionColChanged() {
+  await datatable.initDataTableWGeojson(geojsonData, state.geojsonRegionCol)
+  emit('changed', state.handler, geojsonData, state.geojsonRegionCol, true)
 }
 </script>
 
@@ -155,7 +163,7 @@ async function uploadGeoJson(event: Event) {
         id="regionColSelect"
         class="form-select"
         v-model="state.geojsonRegionCol"
-        v-on:change="emit('changed', state.handler, geojsonData, state.geojsonRegionCol)"
+        v-on:change="onRegionColChanged"
       >
         <option v-for="(item, index) in state.geojsonUniqueProperties" v-bind:key="index">
           {{ item }}

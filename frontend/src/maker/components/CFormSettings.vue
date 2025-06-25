@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import CSelectColor from './CSelectColor.vue'
+import * as config from '../../common/config'
 
 import { useProjectStore } from '../stores/project'
 const store = useProjectStore()
@@ -28,6 +29,7 @@ const props = defineProps<{
         type="checkbox"
         v-model="store.useInset"
         v-bind:disabled="props.disabled"
+        v-on:change="store.dataTable.fields[config.COL_INSET].show = store.useInset"
       />
       <label class="form-check-label" for="chk-inset"> Define inset of specific regions </label>
     </div>

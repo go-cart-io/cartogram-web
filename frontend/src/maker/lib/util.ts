@@ -51,10 +51,19 @@ export function addKeyInArray(data: KeyValueArray, keyName: string, defaultValue
   })
 }
 
+/**
+ * Filter an array of key-value objects so it only includes properties of the allowed type
+ * and of the except. If the allowed type is null, it only includes properties of the except.
+ * Empty value are also preserved.
+ * @param data Key-value array to be filtered
+ * @param except Specified keys to be preserved unconditionally
+ * @param allow Allowed type. Currently support only 'number' or null
+ * @returns Filtered array
+ */
 export function filterKeyValueInArray(
   data: KeyValueArray,
   except: Array<string>,
-  allow: string | null = 'number'
+  allow: 'number' | null = 'number'
 ): KeyValueArray {
   return data.map((item) => {
     return Object.keys(item).reduce((accumulator: { [key: string]: any }, key: string) => {

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import * as d3 from 'd3'
 import type { FeatureCollection } from 'geojson'
 import { Toast, Modal } from 'bootstrap'
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, nextTick } from 'vue'
 
+import * as config from '../../common/config'
+import * as datatable from '../lib/datatable'
 import * as util from '../lib/util'
 import HTTP from '../lib/http'
 import type { MapHandlers } from '../../common/interface'
@@ -11,14 +12,15 @@ import type { MapHandlers } from '../../common/interface'
 import CFormGeojson from './CFormGeojson.vue'
 import CFormCsv from './CFormCsv.vue'
 import CFormSettings from './CFormSettings.vue'
+import CVisualization from './CVisualization.vue'
 import CDataTable from './CDataTable.vue'
 
 import { useProjectStore } from '../stores/project'
-import type { KeyValueArray } from 'maker/lib/interface'
 const store = useProjectStore()
 
 const mapDBKey = util.generateShareKey(32)
 const dataTableEl = ref()
+const visEl = ref()
 
 const props = defineProps<{
   maps: MapHandlers
@@ -35,63 +37,32 @@ const state = reactive({
   progressPercentage: 0,
   error: '',
   handler: props.mapName ? props.mapName : '',
-  geojsonData: {} as FeatureCollection,
   geojsonRegionCol: '',
-  isInitialized: false,
-  csvFile: ''
+  isInitialized: false
 })
 
 onMounted(() => {
   if (!props.mapName || !props.geoUrl || !props.csvUrl) return
 
   store.title = props.mapTitle ? props.mapTitle : ''
-  store.colorRegion = props.mapColorScheme ? props.mapColorScheme : 'pastel1'
+  store.colorRegionScheme = props.mapColorScheme ? props.mapColorScheme : 'pastel1'
   const projectedUrl = props.geoUrl.replace('/Input.json', '/Geographic Area.json')
-  HTTP.get(projectedUrl).then(function (response: any) {
-    onGeoJsonChanged(props.mapName!, response, 'Region', props.csvUrl)
+  HTTP.get(projectedUrl).then(async function (response: any) {
+    await datatable.initDataTableWGeojson(response, 'Region', props.csvUrl)
+    onGeoJsonChanged(props.mapName!, response, 'Region', true)
   })
 })
 
-function onGeoJsonChanged(
+async function onGeoJsonChanged(
   handler: string,
   geojsonData: FeatureCollection,
   regionCol: string,
-  csvFile = '',
-  displayTable: boolean = true
+  isInitialized: boolean = true
 ) {
-  store.useInset = false
-
   state.handler = handler
-  state.geojsonData = geojsonData
   state.geojsonRegionCol = regionCol
-  state.isInitialized = displayTable
-  state.csvFile = csvFile
-  dataTableEl.value.initDataTableWGeojson(geojsonData, regionCol, displayTable)
-
-  // Immediately populate data if a CSV file is supplied
-  if (csvFile) {
-    d3.csv(csvFile)
-      .then((csvData) => {
-        if (!csvData || !Array.isArray(csvData)) {
-          console.error('Invalid CSV data')
-          return
-        }
-        onCsvUpdate(csvData)
-      })
-      .catch((error) => {
-        console.error('Error loading CSV:', error)
-      })
-  }
-}
-
-function onCsvUpdate(csvData: KeyValueArray) {
-  // const isCSVValid = dataTableEl.value.validateCSV(csvData)
-
-  // // Do not update the data table if the CSV is invalid
-  // if (!isCSVValid) {
-  //   return
-  // }
-  dataTableEl.value.updateDataTable(csvData)
+  state.isInitialized = isInitialized
+  await visEl.value.init(geojsonData, regionCol)
 }
 
 async function getGeneratedCartogram() {
@@ -102,12 +73,14 @@ async function getGeneratedCartogram() {
   })
   progressModal.show()
 
-  const csvData = await dataTableEl.value.getCSV()
+  store.dataTable.fields[config.COL_AREA].show = true // Force include Geographic Area when generate cartogram
+  const csvData = await util.getGeneratedCSV(store.dataTable)
+  store.dataTable.fields[config.COL_AREA].show = false
 
   await new Promise<any>(function (resolve, reject) {
     const req_body = JSON.stringify({
       title: store.title,
-      scheme: store.colorRegion,
+      scheme: store.colorRegionScheme,
       handler: state.handler,
       csv: csvData,
       geojsonRegionCol: state.geojsonRegionCol,
@@ -184,8 +157,8 @@ async function getGeneratedCartogram() {
           v-on:reset="
             () => {
               state.isInitialized = false
-              store.useInset = false
-              dataTableEl.reset()
+              datatable.reset()
+              visEl.reset()
             }
           "
         />
@@ -201,12 +174,7 @@ async function getGeneratedCartogram() {
         2. Input your data
       </button>
       <div id="step2" class="accordion-collapse collapse show p-2">
-        <c-form-csv
-          v-bind:disabled="!state.isInitialized"
-          v-on:changed="onCsvUpdate"
-          v-on:downloadCSV="dataTableEl.getCSV(true)"
-          v-on:downloadExcel="dataTableEl.getExcel()"
-        />
+        <c-form-csv v-bind:disabled="!state.isInitialized" v-on:changed="visEl.updateData()" />
       </div>
 
       <button
@@ -251,7 +219,31 @@ async function getGeneratedCartogram() {
     </div>
 
     <div class="col-12 col-sm-8 col-md-9">
-      <c-data-table ref="dataTableEl" />
+      <div class="p-2">
+        <span class="badge text-bg-secondary">Input Overview</span>
+      </div>
+      <div class="p-2" v-if="store.dataTable.items.length < 1">
+        <p>
+          Please follow the steps
+          <span class="d-none d-sm-inline">on the left panel</span>
+          <span class="d-inline d-sm-none">above</span>.
+        </p>
+        <p>
+          Don't know where to start? You may try editing one of our
+          <a href="/cartogram">examples</a>. If you have any questions or issues about cartogram
+          generation, refer to the <a href="//guides.go-cart.io/quick-start">guides</a> or
+          <a href="/contact">contact us</a>.
+        </p>
+      </div>
+
+      <c-visualization ref="visEl" />
+
+      <c-data-table
+        ref="dataTableEl"
+        v-if="state.isInitialized && store.dataTable.items.length > 0"
+        v-on:labelChanged="visEl.updateData()"
+        v-on:valueChanged="(row, col, value) => visEl.setDataItem(row, col, value)"
+      />
     </div>
   </div>
 
