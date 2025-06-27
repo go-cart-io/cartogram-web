@@ -27,6 +27,10 @@
     {
       "name": "color_scheme",
       "value": "pastel1"
+    },
+    {
+      "name": "color_field",
+      "value": "ColorGroup"
     }
   ],
   "data": [
@@ -154,18 +158,9 @@
             "signal": "datum[\"properties\"][\"cartogram_id\"] == active? 1 : 0.2"
           },
           "tooltip": { "signal": "datum.cartogram_data" },
-          "fill": [
-            {
-              "test": "isValid(datum.cartogram_data.Color)",
-              "field": "cartogram_data.Color"
-            },
-            {
-              "test": "isValid(datum.cartogram_data.ColorGroup)",
-              "scale": "color_group",
-              "field": "cartogram_data.ColorGroup"
-            },
-            { "value": "lightgrey" }
-          ],
+          "fill": {
+            "signal": "color_field === 'Color' ? {'field': datum.cartogram_data.Color} : color_field === 'ColorGroup' ? scale('color_group', datum.cartogram_data.ColorGroup) : scale(color_field, datum.cartogram_data[color_field])"
+          },
           "ariaRoleDescription": { "value": "geoshape" }
         }
       },

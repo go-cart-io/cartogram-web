@@ -100,6 +100,7 @@ export function initDataTableWArray(data: KeyValueArray, isReplace = true) {
         name: fieldname,
         unit: unit,
         type: 'number',
+        vis: '',
         editable: true,
         editableHead: true,
         show: true

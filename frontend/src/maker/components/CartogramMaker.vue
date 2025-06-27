@@ -12,6 +12,8 @@ import type { MapHandlers } from '../../common/interface'
 import CFormGeojson from './CFormGeojson.vue'
 import CFormCsv from './CFormCsv.vue'
 import CFormSettings from './CFormSettings.vue'
+import CFormCartogram from './CFormCartogram.vue'
+import CFormChoropleth from './CFormChoropleth.vue'
 import CVisualization from './CVisualization.vue'
 import CDataTable from './CDataTable.vue'
 
@@ -77,6 +79,8 @@ async function getGeneratedCartogram() {
   const csvData = await util.getGeneratedCSV(store.dataTable)
   store.dataTable.fields[config.COL_AREA].show = false
 
+  store.updateChoroSpec()
+
   await new Promise<any>(function (resolve, reject) {
     const req_body = JSON.stringify({
       title: store.title,
@@ -84,6 +88,8 @@ async function getGeneratedCartogram() {
       handler: state.handler,
       csv: csvData,
       geojsonRegionCol: state.geojsonRegionCol,
+      visTypes: JSON.stringify(store.visTypes),
+      spec: store.choroSettings.spec,
       mapDBKey: mapDBKey,
       persist: true,
       editedFrom: props.geoUrl
@@ -188,6 +194,32 @@ async function getGeneratedCartogram() {
       </button>
       <div id="step3" class="accordion-collapse collapse show p-2">
         <c-form-settings v-bind:disabled="!state.isInitialized"></c-form-settings>
+      </div>
+
+      <button
+        class="accordion-button p-2 bg-light border"
+        data-bs-toggle="collapse"
+        data-bs-target="#step3-1"
+        aria-expanded="true"
+        aria-controls="step3-1"
+      >
+        3.1 Cartogram
+      </button>
+      <div id="step3-1" class="accordion-collapse collapse show p-2">
+        <c-form-cartogram v-bind:disabled="!state.isInitialized" />
+      </div>
+
+      <button
+        class="accordion-button p-2 bg-light border"
+        data-bs-toggle="collapse"
+        data-bs-target="#step3-2"
+        aria-expanded="true"
+        aria-controls="step3-2"
+      >
+        3.2 Choropleth
+      </button>
+      <div id="step3-2" class="accordion-collapse collapse show p-2">
+        <c-form-choropleth v-bind:disabled="!state.isInitialized" />
       </div>
 
       <button

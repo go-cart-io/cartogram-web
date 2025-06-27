@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, watch } from 'vue'
+import { computed, nextTick, reactive, watch } from 'vue'
 import embed, { vega, type VisualizationSpec } from 'vega-embed'
 
 import type { FeatureCollection } from 'geojson'
@@ -9,8 +9,14 @@ import { useProjectStore } from '../stores/project'
 const store = useProjectStore()
 
 import spec from '../../assets/template.vg.json' with { type: 'json' }
-const versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
 let visView: any
+let currentGeojsonData: FeatureCollection | null
+let currentGeojsonRegionCol: string
+
+const state = reactive({
+  isInit: false,
+  currentColorCol: 'Region'
+})
 
 defineExpose({
   reset,
@@ -27,16 +33,37 @@ watch(
 )
 
 function reset() {
+  state.isInit = false
   document.getElementById('map-vis')!.innerHTML = ''
+  currentGeojsonData = null
+  currentGeojsonRegionCol = ''
+}
+
+function refresh() {
+  if (currentGeojsonData) init(currentGeojsonData, currentGeojsonRegionCol)
 }
 
 async function init(geojsonData: FeatureCollection, geojsonRegionCol: string) {
   reset()
+  currentGeojsonData = geojsonData
+  currentGeojsonRegionCol = geojsonRegionCol
+
+  const versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
   versionSpec.data[1].values = geojsonData
   versionSpec.data[2].transform[2].fields = ['properties.' + geojsonRegionCol]
   versionSpec.data[0].values = store.dataTable.items
   versionSpec.data[0].format = 'json'
-  if (store.colorRegionScheme !== 'custom') versionSpec.signals[3].value = store.colorRegionScheme
+
+  store.updateChoroSpec()
+  const customScaleSpec = JSON.parse(store.choroSettings.spec)
+  versionSpec.scales = versionSpec.scales.concat(customScaleSpec.scales)
+  versionSpec.signals[3].value = store.colorRegionScheme
+  versionSpec.signals[4].value =
+    state.currentColorCol && state.currentColorCol !== 'Region'
+      ? state.currentColorCol
+      : store.colorRegionScheme === 'custom'
+        ? 'Color'
+        : 'ColorGroup'
 
   const container = await embed('#map-vis', <VisualizationSpec>versionSpec, {
     renderer: 'svg',
@@ -44,6 +71,7 @@ async function init(geojsonData: FeatureCollection, geojsonRegionCol: string) {
     tooltip: config.tooltipOptions
   })
   visView = container.view
+  state.isInit = true
 }
 
 function updateData() {
@@ -79,6 +107,31 @@ function updateColorAndDataTable(scheme: string, oldScheme: string) {
 
 <template>
   <div id="map-vis" class="vis-area p-2"></div>
+
+  <div v-if="state.isInit" class="position-absolute d-flex p-2" style="max-width: 50%">
+    <div class="input-group pe-2">
+      <span class="input-group-text">Preview by</span>
+      <select
+        id="color-options"
+        class="form-select"
+        title="Select map/cartogram color strategy"
+        v-model="state.currentColorCol"
+        v-on:change="refresh"
+      >
+        <option value="Region">Region</option>
+        <option
+          v-for="label in store.visTypes['choropleth']"
+          v-bind:value="label"
+          v-bind:key="label"
+        >
+          {{ label }}
+        </option>
+      </select>
+    </div>
+    <button class="btn btn-outline-secondary" type="button" v-on:click="refresh">
+      <i class="btn-icon fa fa-refresh"></i>
+    </button>
+  </div>
 </template>
 
 <style scoped>

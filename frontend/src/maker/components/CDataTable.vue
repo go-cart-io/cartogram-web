@@ -24,11 +24,29 @@ function addColumn() {
     name: '',
     unit: '',
     type: 'number',
+    vis: '',
     editable: true,
     editableHead: true,
     show: true
   })
   store.dataTable.items = util.addKeyInArray(toRaw(store.dataTable.items), label, 0)
+}
+
+function updateVisType(index: number, event: Event) {
+  const selectElement = event.target as HTMLSelectElement
+  const oldType = store.dataTable.fields[index].vis
+  const newType = selectElement.value
+  if (oldType === newType) return
+
+  // Remove from existing list
+  if (oldType)
+    store.visTypes[oldType] = store.visTypes[oldType].filter(
+      (item) => item !== store.dataTable.fields[index].label
+    )
+
+  store.visTypes[newType].push(store.dataTable.fields[index].label)
+  store.visTypes[newType].sort()
+  store.dataTable.fields[index].vis = newType
 }
 
 function updateLabel(index: number) {
@@ -37,8 +55,15 @@ function updateLabel(index: number) {
   if (store.dataTable.fields[index].unit)
     newLabel = newLabel + ' (' + store.dataTable.fields[index].unit + ')'
 
+  // Update data table
   store.dataTable.fields[index].label = newLabel
   store.dataTable.items = util.renameKeyInArray(toRaw(store.dataTable.items), oldLabel, newLabel)
+
+  // Update label in vis type
+  const visTpe = store.dataTable.fields[index].vis
+  if (visTpe)
+    store.visTypes[visTpe] = store.visTypes[visTpe].map((item) => item.replace(oldLabel, newLabel))
+
   emit('labelChanged')
 }
 
@@ -59,10 +84,37 @@ function onValueChange(rIndex: number, label: string, event: Event) {
 <template>
   <div class="d-table p-2">
     <button class="btn btn-outline-secondary mb-2 float-end" v-on:click="addColumn">
-      Add column <i class="btn-icon fas fa-plus-circle"></i>
+      <span class="d-inline d-sm-none d-md-inline">Add column </span>
+      <i class="btn-icon fas fa-plus-circle"></i>
     </button>
     <table class="table table-bordered">
       <thead>
+        <tr class="table-light">
+          <th
+            v-for="(field, index) in store.dataTable.fields"
+            v-show="field.show"
+            v-bind:key="index"
+          >
+            <select
+              class="form-select"
+              v-if="field.editableHead"
+              required
+              v-bind:id="'formFieldVis' + index"
+              v-bind:value="store.dataTable.fields[index].vis"
+              v-on:blur="validateInput"
+              v-on:change="updateVisType(index, $event)"
+            >
+              <option value="" selected disabled>Select visualization</option>
+              <option
+                v-for="option in ['Cartogram', 'Choropleth']"
+                v-bind:value="option.toLowerCase()"
+                v-bind:key="option"
+              >
+                {{ option }}
+              </option>
+            </select>
+          </th>
+        </tr>
         <tr class="table-light">
           <th
             v-for="(field, index) in store.dataTable.fields"

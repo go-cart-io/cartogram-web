@@ -6,6 +6,7 @@ export type DataTable = {
     name: string
     unit?: string
     type: string
+    vis?: string
     options?: Array<{ text: string; value: string }>
     show: boolean
     editable: boolean

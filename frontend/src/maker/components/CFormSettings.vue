@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import CSelectColor from './CSelectColor.vue'
 import * as config from '../../common/config'
 
 import { useProjectStore } from '../stores/project'
@@ -11,11 +10,6 @@ const props = defineProps<{
 </script>
 
 <template>
-  <div class="p-2">
-    Review data and select a visualization method for each column in the input overview panel.
-    Configure visualization options below.
-  </div>
-
   <div class="p-2">
     Project Title
     <input type="text" class="form-control" v-model="store.title" maxlength="100" />
@@ -36,6 +30,6 @@ const props = defineProps<{
   </div>
 
   <div class="p-2">
-    <c-select-color v-bind:disabled="props.disabled" />
+    Review data and select a visualization method for each column in the input overview panel.
   </div>
 </template>
