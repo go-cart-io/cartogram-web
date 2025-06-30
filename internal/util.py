@@ -105,3 +105,51 @@ def add_attributes(geojson, is_projected=False, is_world=False):
         geojson["extent"] = "world"
 
     return geojson
+
+
+def label_to_name_unit(label: str):
+    """
+    Parses a label string to extract the name and unit.
+
+    Args:
+        label: The input string, e.g., "Geographic Area (sq. km)".
+
+    Returns:
+        A dictionary containing the original header, extracted name, and unit.
+    """
+    unit_match = re.search(r"\(([^)]+)\)$", label)
+    unit = unit_match.group(1).strip() if unit_match else ""
+    name = label.replace(f"({unit})", "").strip()
+    return {"header": label, "name": name, "unit": unit}
+
+
+def map_types_to_versions(may_types):
+    carto_versions = {}
+    carto_versions["0"] = {
+        "key": "0",
+        "header": "Geographic Area (sq. km)",
+        "name": "Geographic Area",
+        "unit": "sq. km",
+    }
+    if "cartogram" in may_types:
+        for i, cartogram_label in enumerate(may_types["cartogram"]):
+            info = label_to_name_unit(cartogram_label)
+            carto_versions[str(i + 1)] = {
+                "key": str(i + 1),
+                "header": info["header"],
+                "name": info["name"],
+                "unit": info["unit"],
+            }
+
+    choro_versions = {}
+    if "choropleth" in may_types:
+        for i, cartogram_label in enumerate(may_types["choropleth"]):
+            info = label_to_name_unit(cartogram_label)
+            choro_versions[str(i)] = {
+                "key": str(i),
+                "header": info["header"],
+                "name": info["name"],
+                "unit": info["unit"],
+            }
+
+    return carto_versions, choro_versions

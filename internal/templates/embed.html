@@ -60,12 +60,17 @@
   <!-- /container -->
 
   <script>
-    var mapName = "{{ map_name }}";
-    var maps = JSON.parse('{{ maps | default({}) | tojson | safe }}');
-    var mapTitle = "{{ map_title }}";
-    var mapColorScheme = "{{ map_color_scheme }}";
-    var mapDBKey = "{{ map_data_key }}";
-    var mode = "embed";
+    window.CARTOGRAM_CONFIG = {
+      mode: "embed",
+      maps: JSON.parse('{{ maps | default({}) | tojson | safe }}'),
+      mapName: "{{ map_name }}",
+      mapTitle: "{{ map_title }}",
+      mapDBKey: "{{ map_data_key }}",
+      cartoVersions: JSON.parse('{{ carto_versions | default({}) | tojson | safe }}'),
+      cartoColorScheme: "{{ map_color_scheme }}",
+      choroVersions: JSON.parse('{{ choro_versions | default({}) | tojson | safe }}'),
+      choroSpec: JSON.parse('{{ map_spec | default({}) | tojson | safe }}')
+    };
   </script>
 </body>
 

@@ -106,12 +106,17 @@ def create_app():
         if not cartogram_handler.has_handler(map_name):
             return Response("Not found", status=404)
 
+        carto_versions, choro_versions = util.map_types_to_versions(
+            {"cartogram": ["Population (people)"]}
+        )
         return render_template(
             template,
             page_active="cartogram",
             maps=cartogram_handler.get_sorted_handler_names(),
             map_name=map_name,
             map_color_scheme="pastel1",
+            carto_versions=carto_versions,
+            choro_versions=choro_versions,
             mode=mode,
             tracking=tracking.determine_tracking_action(request),
         )
@@ -144,6 +149,18 @@ def create_app():
             except Exception:
                 db.session.rollback()
 
+        map_types = (
+            json.loads(cartogram_entry.types)
+            if type(cartogram_entry.types) is str
+            else {}
+        )
+        carto_versions, choro_versions = util.map_types_to_versions(map_types)
+        map_spec = (
+            json.loads(cartogram_entry.spec)
+            if type(cartogram_entry.spec) is str
+            else {}
+        )
+
         return render_template(
             template,
             page_active="cartogram",
@@ -152,6 +169,9 @@ def create_app():
             map_data_key=string_key,
             map_title=cartogram_entry.title,
             map_color_scheme=cartogram_entry.scheme,
+            carto_versions=carto_versions,
+            choro_versions=choro_versions,
+            map_spec=map_spec,
             mode=mode,
             tracking=tracking.determine_tracking_action(request),
         )
@@ -278,6 +298,22 @@ def create_app():
                 content_type="application/json",
             )
 
+        if "visTypes" not in data:
+            return Response(
+                '{"error":"Invalid visualization specification."}',
+                status=400,
+                content_type="application/json",
+            )
+
+        try:
+            vis_types = json.loads(data["visTypes"])
+        except Exception:
+            return Response(
+                '{"error":"Invalid visualization specification."}',
+                status=400,
+                content_type="application/json",
+            )
+
         datacsv = data["csv"] if "csv" in data else util.get_csv(data)
         string_key = util.sanitize_filename(data["mapDBKey"])
         userdata_path = None
@@ -323,7 +359,12 @@ def create_app():
                     clean_by = data.get("geojsonRegionCol", "Region")
 
             cartogram.generate_cartogram(
-                datacsv, gen_file, string_key, userdata_path, clean_by=clean_by
+                datacsv,
+                vis_types,
+                gen_file,
+                string_key,
+                userdata_path,
+                clean_by=clean_by,
             )
 
             if "persist" in data and settings.USE_DATABASE:
@@ -332,9 +373,11 @@ def create_app():
                     date_created=datetime.datetime.today(),
                     date_accessed=datetime.datetime.now(datetime.UTC)
                     - datetime.timedelta(days=365),
+                    handler=handler,
                     title=data["title"],
                     scheme=data["scheme"],
-                    handler=handler,
+                    types=data["visTypes"],
+                    spec=data["spec"],
                 )
                 db.session.add(new_cartogram_entry)
                 db.session.commit()

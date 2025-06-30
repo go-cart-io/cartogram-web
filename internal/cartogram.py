@@ -108,6 +108,7 @@ def preprocess_boundary(input, mapDBKey="temp_filename", based_path="tmp"):
 
 def generate_cartogram(
     datacsv,
+    vis_types,
     input_file,
     cartogram_key,
     project_path,
@@ -115,7 +116,7 @@ def generate_cartogram(
     print_progress=False,
     flags=[],
 ):
-    datacsv, data_cols, prefered_names_dict = process_data(datacsv)
+    datacsv, data_cols, prefered_names_dict = process_data(datacsv, vis_types)
     area_data_path = util.get_safepath(project_path, "data.csv")
     with open(area_data_path, "w") as outfile:
         outfile.write(datacsv)
@@ -236,7 +237,12 @@ def generate_cartogram(
     return
 
 
-def process_data(csv_string):
+def process_data(csv_string, vis_types):
+    if "cartogram" in vis_types:
+        vis_types["cartogram"] = [
+            util.sanitize_filename(col) for col in vis_types["cartogram"]
+        ]
+
     df = pd.read_csv(StringIO(csv_string), keep_default_na=False, na_values=[""])
     df.columns = [util.sanitize_filename(col) for col in df.columns]
     df["Color"] = df["Color"] if "Color" in df else None
@@ -283,7 +289,8 @@ def process_data(csv_string):
                     f"Cannot process {column}: Sum is zero. Please ensure the sum of data is not zero."
                 )
 
-            data_cols.append({"name": name, "column_name": column})
+            if column in vis_types.get("cartogram", []):
+                data_cols.append({"name": name, "column_name": column})
 
     df = df.reindex(columns=cols_order)
 
