@@ -4,7 +4,7 @@ import { defineStore } from 'pinia'
 // Should contain only reactive variables that are passed more than one level
 export const useCartogramStore = defineStore('cartogram', () => {
   const currentMapName = ref('')
-  const versions = ref({} as { [key: string]: any })
+  const currentColorCol = ref('Region')
   const highlightedRegionID = ref('')
   const options = ref({
     showGrid: true,
@@ -17,7 +17,7 @@ export const useCartogramStore = defineStore('cartogram', () => {
 
   return {
     currentMapName,
-    versions,
+    currentColorCol,
     highlightedRegionID,
     options
   }

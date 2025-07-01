@@ -6,6 +6,8 @@ import CTextCitation from './CTextCitation.vue'
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
+const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
+
 const props = defineProps<{
   mapDBKey: string
   versionKey: string
@@ -13,16 +15,18 @@ const props = defineProps<{
 }>()
 
 const version = computed(() => {
-  return store.versions[props.versionKey]
+  return CARTOGRAM_CONFIG.cartoVersions[props.versionKey]
 })
 
 const geolink = computed(() => {
   const ext =
-    store.versions[props.versionKey].name === 'Geographic Area' ? '.json' : '_simplified.json'
+    CARTOGRAM_CONFIG.cartoVersions[props.versionKey].name === 'Geographic Area'
+      ? '.json'
+      : '_simplified.json'
   return util.getGeojsonURL(
     store.currentMapName,
     props.mapDBKey,
-    store.versions[props.versionKey].name + ext
+    CARTOGRAM_CONFIG.cartoVersions[props.versionKey].name + ext
   )
 })
 
@@ -75,7 +79,7 @@ function downloadSVG() {
   const url = URL.createObjectURL(svgBlob)
   a.href = url
 
-  a.download = store.versions[props.versionKey].name + '.svg'
+  a.download = CARTOGRAM_CONFIG.cartoVersions[props.versionKey].name + '.svg'
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)

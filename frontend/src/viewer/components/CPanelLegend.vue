@@ -5,24 +5,19 @@
 
 import { onMounted, nextTick, reactive, ref, watch, inject } from 'vue'
 import * as d3 from 'd3'
-import embed, { type VisualizationSpec } from 'vega-embed'
 
-import * as config from '../../common/config'
-
+import * as visualization from '../lib/visualization'
 import * as util from '../lib/util'
-
-import spec from '../../assets/template.vg.json' with { type: 'json' }
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
+const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
 const NUM_GRID_OPTIONS = 3
 const LOCALE =
   navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language
 const DEFAULT_OPACITY = 0.3
-const COLOR_SCHEME = inject('colorScheme')
 
-const versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
 const legendSvgEl = ref()
 let visEl: any
 let offscreenEl: any
@@ -45,7 +40,7 @@ const props = withDefaults(
 )
 
 const state = reactive({
-  version: store.versions[props.versionKey],
+  version: CARTOGRAM_CONFIG.cartoVersions[props.versionKey],
   legendUnit: '' as string,
   legendTotal: '' as string,
 
@@ -70,7 +65,7 @@ const emit = defineEmits(['gridChanged', 'versionUpdated'])
 watch(
   () => props.versionKey,
   () => {
-    state.version = store.versions[props.versionKey]
+    state.version = CARTOGRAM_CONFIG.cartoVersions[props.versionKey]
     switchVersion()
   }
 )
@@ -90,6 +85,13 @@ watch(
 )
 
 watch(
+  () => store.currentColorCol,
+  () => {
+    init()
+  }
+)
+
+watch(
   () => props.affineScale,
   () => {
     formatLegendValue()
@@ -100,31 +102,15 @@ watch(
 onMounted(async () => {
   if (!state.version) return
 
-  versionSpec.signals[3]['value'] =
-    !COLOR_SCHEME || COLOR_SCHEME === 'custom' ? 'pastel1' : COLOR_SCHEME
-  versionSpec.data[0].url = util.getCsvURL(store.currentMapName, props.mapDBKey)
-  versionSpec.data[1].url = util.getGeojsonURL(
-    store.currentMapName,
-    props.mapDBKey,
-    state.version.name + '.json'
-  )
-
-  // if (store.currentMapName === "world" && state.version.name === 'Geographic Area') {
-  //   // Gall–Peters projection
-  //   vega.projection('cylindricalEqualArea', geoCylindricalEqualArea)
-  //   versionSpec.projections[0].type = "cylindricalEqualArea"
-  //   versionSpec.projections[0].reflectY = false
-  //   versionSpec.projections[0].parallel = 45
-  // }
-
   visEl = d3.select('#' + props.panelID + '-vis')
   offscreenEl = d3.select('#' + props.panelID + '-offscreen')
-  const container = await embed('#' + props.panelID + '-vis', <VisualizationSpec>versionSpec, {
-    renderer: 'svg',
-    actions: false,
-    tooltip: config.tooltipOptions
-  })
-  visView = container.view
+
+  await init()
+  update()
+})
+
+async function init() {
+  visView = (await visualization.init(props.panelID + '-vis', state.version.name)).view
 
   const [area, sum] = util.getTotalAreasAndValuesForVersion(
     state.version.header,
@@ -147,23 +133,12 @@ onMounted(async () => {
     const value = item?.datum.cartogram_data
     visView.tooltip()(visView, event, item, value)
   })
-
-  update()
-})
+}
 
 async function switchVersion() {
-  versionSpec.data[1].url = util.getGeojsonURL(
-    store.currentMapName,
-    props.mapDBKey,
-    state.version.name + '.json'
-  )
-
   let transitions = 0
-  const container = await embed(
-    '#' + props.panelID + '-offscreen',
-    <VisualizationSpec>versionSpec,
-    { renderer: 'svg', actions: false, tooltip: config.tooltipOptions }
-  )
+  const container = await visualization.init(props.panelID + '-offscreen', state.version.name)
+
   const [area, sum] = util.getTotalAreasAndValuesForVersion(
     state.version.header,
     container.view.data('geo_1'),

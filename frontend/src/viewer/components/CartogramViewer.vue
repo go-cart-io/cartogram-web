@@ -12,6 +12,8 @@ import type { MapHandlers } from '../../common/interface'
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
+const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
+
 const props = defineProps<{
   maps: MapHandlers
   mapName?: string
@@ -35,7 +37,7 @@ onBeforeMount(() => {
  */
 async function switchMap() {
   state.mapkey = Date.now()
-  state.versionKeys = Object.keys(store.versions)
+  state.versionKeys = Object.keys(CARTOGRAM_CONFIG.cartoVersions)
 }
 </script>
 

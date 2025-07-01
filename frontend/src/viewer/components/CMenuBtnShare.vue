@@ -41,14 +41,13 @@ function access() {
   <!-- Button trigger modal -->
   <button
     id="shareBtn"
-    id="shareBtn"
     class="btn btn-primary me-2 d-flex align-items-center"
     data-bs-toggle="modal"
     data-bs-target="#shareModal"
     title="Save and share cartogram"
     v-on:click="access()"
   >
-    <span class="d-none d-md-block me-2">Share</span>
+    <span class="d-none d-lg-block me-2">Share</span>
     <i class="fas fa-share-alt"></i>
   </button>
 
