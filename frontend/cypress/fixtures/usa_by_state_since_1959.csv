@@ -1,0 +1,52 @@
+Region,RegionLabel,Inset,ColorGroup,Geographic Area (sq. km),Population (million people),GDP (billion chained 2017 $US)
+Alabama,AL,,4,131171,5.11,245.35
+Alaska,AK,L,1,1477953,0.73,54.06
+Arizona,AZ,,5,294207,7.43,422.4
+Arkansas,AR,,2,134771,3.07,142.86
+California,CA,,4,403466,38.97,3248.66
+Colorado,CO,,2,268431,5.88,437.06
+Connecticut,CT,,4,12542,3.62,286.63
+Delaware,DE,,4,5047,1.03,78.01
+District of Columbia,DC,,1,158,0.68,146.02
+Florida,FL,,1,138887,22.61,1292.79
+Georgia,GA,,2,148959,11.03,678.2
+Hawaii,HI,D,2,16635,1.44,88.61
+Idaho,ID,,5,214045,1.96,95.9
+Illinois,IL,,4,143793,12.55,885.65
+Indiana,IN,,5,92789,6.86,404.29
+Iowa,IA,,5,144669,3.21,202.05
+Kansas,KS,,3,211754,2.94,183.8
+Kentucky,KY,,3,102269,4.53,224.42
+Louisiana,LA,,3,111898,4.57,248.62
+Maine,ME,,1,79883,1.4,75.2
+Maryland,MD,,0,25142,6.18,422.87
+Massachusetts,MA,,0,20202,7,615.5
+Michigan,MI,,3,146435,10.04,554.26
+Minnesota,MN,,0,206232,5.74,390.91
+Mississippi,MS,,5,121531,2.94,119.55
+Missouri,MO,,0,178040,6.2,348.49
+Montana,MT,,2,376962,1.13,57.37
+Nebraska,NE,,1,198974,1.98,145.02
+Nevada,NV,,1,284332,3.19,195.41
+New Hampshire,NH,,5,23187,1.4,93.47
+New Jersey,NJ,,3,19047,9.29,663.89
+New Mexico,NM,,3,314161,2.11,110.32
+New York,NY,,1,122057,19.57,1791.21
+North Carolina,NC,,0,125920,10.84,638.07
+North Dakota,ND,,1,178711,0.78,60.35
+Ohio,OH,,0,105829,11.79,709.82
+Oklahoma,OK,,4,177660,4.05,207.92
+Oregon,OR,,3,248608,4.23,261.95
+Pennsylvania,PA,,2,115883,12.96,799.23
+Rhode Island,RI,,2,2678,1.1,63.28
+South Carolina,SC,,4,77857,5.37,262.3
+South Dakota,SD,,3,196350,0.92,57.28
+Tennessee,TN,,1,106798,7.13,422.09
+Texas,TX,,1,676587,30.5,2097.09
+Utah,UT,,0,212818,3.42,225.46
+Vermont,VT,,3,23871,0.65,35.24
+Virginia,VA,,5,102279,8.72,597.6
+Washington,WA,,0,172119,7.81,677.24
+West Virginia,WV,,4,62259,1.77,80.8
+Wisconsin,WI,,2,140268,5.91,344.57
+Wyoming,WY,,4,251470,0.58,40.21
