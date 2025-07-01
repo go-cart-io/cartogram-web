@@ -1,18 +1,25 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import * as visualization from '../lib/visualization'
+import * as visualization from '../../common/visualization'
+import * as util from '../lib/util'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
-const choroVersions = window.CARTOGRAM_CONFIG.choroVersions
+const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
 
 onMounted(async () => {
-  await visualization.initLegend()
+  await updateVis()
 })
 
 async function updateVis() {
-  await visualization.initLegend()
+  let csvUrl = util.getCsvURL(store.currentMapName, CARTOGRAM_CONFIG.mapDBKey)
+  await visualization.initLegend(
+    csvUrl,
+    store.currentColorCol,
+    CARTOGRAM_CONFIG.cartoColorScheme,
+    CARTOGRAM_CONFIG.choroSpec
+  )
 }
 </script>
 
@@ -30,7 +37,7 @@ async function updateVis() {
       >
         <option value="Region">Region</option>
         <option
-          v-for="(versionItem, versionKey) in choroVersions"
+          v-for="(versionItem, versionKey) in CARTOGRAM_CONFIG.choroVersions"
           v-bind:value="versionItem.header"
           v-bind:key="versionKey"
         >

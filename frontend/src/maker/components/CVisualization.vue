@@ -3,12 +3,12 @@ import { computed, nextTick, reactive, watch } from 'vue'
 import embed, { vega, type VisualizationSpec } from 'vega-embed'
 
 import type { FeatureCollection } from 'geojson'
+import * as visualization from '../../common/visualization'
 import * as config from '../../common/config'
 
 import { useProjectStore } from '../stores/project'
 const store = useProjectStore()
 
-import spec from '../../assets/template.vg.json' with { type: 'json' }
 let visView: any
 let currentGeojsonData: FeatureCollection | null
 let currentGeojsonRegionCol: string
@@ -45,31 +45,20 @@ function refresh() {
 
 async function init(geojsonData: FeatureCollection, geojsonRegionCol: string) {
   reset()
+  store.updateChoroSpec()
   currentGeojsonData = geojsonData
   currentGeojsonRegionCol = geojsonRegionCol
 
-  const versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
-  versionSpec.data[1].values = geojsonData
-  versionSpec.data[2].transform[2].fields = ['properties.' + geojsonRegionCol]
-  versionSpec.data[0].values = store.dataTable.items
-  versionSpec.data[0].format = 'json'
-
-  store.updateChoroSpec()
   const customScaleSpec = JSON.parse(store.choroSettings.spec)
-  versionSpec.scales = versionSpec.scales.concat(customScaleSpec.scales)
-  versionSpec.signals[3].value = store.colorRegionScheme
-  versionSpec.signals[4].value =
-    state.currentColorCol && state.currentColorCol !== 'Region'
-      ? state.currentColorCol
-      : store.colorRegionScheme === 'custom'
-        ? 'Color'
-        : 'ColorGroup'
-
-  const container = await embed('#map-vis', <VisualizationSpec>versionSpec, {
-    renderer: 'svg',
-    actions: false,
-    tooltip: config.tooltipOptions
-  })
+  const container = await visualization.initWithValues(
+    'map-vis',
+    store.dataTable.items,
+    geojsonData,
+    geojsonRegionCol,
+    state.currentColorCol,
+    store.colorRegionScheme,
+    customScaleSpec
+  )
   visView = container.view
   state.isInit = true
 }

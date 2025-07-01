@@ -6,7 +6,7 @@
 import { onMounted, nextTick, reactive, ref, watch, inject } from 'vue'
 import * as d3 from 'd3'
 
-import * as visualization from '../lib/visualization'
+import * as visualization from '../../common/visualization'
 import * as util from '../lib/util'
 
 import { useCartogramStore } from '../stores/cartogram'
@@ -110,7 +110,21 @@ onMounted(async () => {
 })
 
 async function init() {
-  visView = (await visualization.init(props.panelID + '-vis', state.version.name)).view
+  let csvUrl = util.getCsvURL(store.currentMapName, CARTOGRAM_CONFIG.mapDBKey)
+  let jsonUrl = util.getGeojsonURL(
+    store.currentMapName,
+    CARTOGRAM_CONFIG.mapDBKey,
+    state.version.name + '.json'
+  )
+  const container = await visualization.initWithURL(
+    props.panelID + '-vis',
+    csvUrl,
+    jsonUrl,
+    store.currentColorCol,
+    CARTOGRAM_CONFIG.cartoColorScheme,
+    CARTOGRAM_CONFIG.choroSpec
+  )
+  visView = container.view
 
   const [area, sum] = util.getTotalAreasAndValuesForVersion(
     state.version.header,
@@ -137,7 +151,20 @@ async function init() {
 
 async function switchVersion() {
   let transitions = 0
-  const container = await visualization.init(props.panelID + '-offscreen', state.version.name)
+  let csvUrl = util.getCsvURL(store.currentMapName, CARTOGRAM_CONFIG.mapDBKey)
+  let jsonUrl = util.getGeojsonURL(
+    store.currentMapName,
+    CARTOGRAM_CONFIG.mapDBKey,
+    state.version.name + '.json'
+  )
+  const container = await visualization.initWithURL(
+    props.panelID + '-offscreen',
+    csvUrl,
+    jsonUrl,
+    store.currentColorCol,
+    CARTOGRAM_CONFIG.cartoColorScheme,
+    CARTOGRAM_CONFIG.choroSpec
+  )
 
   const [area, sum] = util.getTotalAreasAndValuesForVersion(
     state.version.header,
