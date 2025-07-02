@@ -45,7 +45,6 @@ const state = reactive({
   legendTotal: '' as string,
 
   currentGridIndex: 1 as number,
-  gridDataKeys: [1],
   gridData: {} as {
     [key: number]: {
       scaleNiceNumber: number
@@ -201,7 +200,7 @@ function getLegendData() {
     valuePerSquare *= 2
     baseWidth = Math.sqrt(valuePerSquare / valuePerPixel)
   }
-  const width = [] as Array<number>
+
   const [scaleNiceNumber0, scalePowerOf10] = util.findNearestNiceNumber(valuePerSquare)
   const niceIndex = util.NICE_NUMBERS.indexOf(scaleNiceNumber0)
   let beginIndex = niceIndex === 0 ? niceIndex : niceIndex - 1
@@ -221,7 +220,6 @@ function getLegendData() {
     }
   }
 
-  state.gridDataKeys = [state.currentGridIndex]
   state.scalePowerOf10 = scalePowerOf10
 }
 
@@ -234,14 +232,7 @@ function getCurrentScale() {
 
 async function changeTo(key: number) {
   state.currentGridIndex = key
-  state.gridDataKeys = [state.currentGridIndex]
   await nextTick()
-
-  for (let i = 0; i <= NUM_GRID_OPTIONS; i++) {
-    if (i <= key) {
-      d3.select('#' + props.panelID + '-legend' + i + ' rect').attr('fill', '#EEEEEE')
-    } else d3.select('#' + props.panelID + '-legend' + i + ' rect').attr('fill', '#D6D6D6')
-  }
   formatLegendValue()
   updateGridLines(state.gridData[key]?.width)
 }
@@ -367,19 +358,12 @@ function highlight(itemID: any) {
         v-bind:width="state.gridData[state.currentGridIndex].width + 2"
         v-bind:height="state.gridData[state.currentGridIndex].width + 2"
       >
-        <g
-          v-for="key in state.gridDataKeys"
-          v-bind:id="props.panelID + '-legend' + key"
-          stroke-width="2px"
-          fill="#EEEEEE"
-          stroke="#AAAAAA"
-          v-bind:key="key"
-        >
+        <g stroke-width="2px" fill="#EEEEEE" stroke="#AAAAAA">
           <rect
             x="1"
             y="1"
-            v-bind:width="state.gridData[key].width"
-            v-bind:height="state.gridData[key].width"
+            v-bind:width="state.gridData[state.currentGridIndex].width"
+            v-bind:height="state.gridData[state.currentGridIndex].width"
           ></rect>
         </g>
       </svg>
