@@ -9,7 +9,6 @@ const store = useCartogramStore()
 const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
 
 const props = defineProps<{
-  mapDBKey: string
   versionKey: string
   panelID: string
 }>()
@@ -25,13 +24,13 @@ const geolink = computed(() => {
       : '_simplified.json'
   return util.getGeojsonURL(
     store.currentMapName,
-    props.mapDBKey,
+    CARTOGRAM_CONFIG.mapDBKey,
     CARTOGRAM_CONFIG.cartoVersions[props.versionKey].name + ext
   )
 })
 
 const csvlink = computed(() => {
-  return util.getCsvURL(store.currentMapName, props.mapDBKey)
+  return util.getCsvURL(store.currentMapName, CARTOGRAM_CONFIG.mapDBKey)
 })
 /**
  * Generates download links for the map(s) and/or cartogram(s) displayed on the left and

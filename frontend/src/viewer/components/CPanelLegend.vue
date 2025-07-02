@@ -7,6 +7,7 @@ import { onMounted, nextTick, reactive, ref, watch, inject } from 'vue'
 import * as d3 from 'd3'
 
 import * as visualization from '../../common/visualization'
+import * as animate from '../lib/animate'
 import * as util from '../lib/util'
 
 import { useCartogramStore } from '../stores/cartogram'
@@ -30,7 +31,6 @@ let handlePointerPosition = 0
 const props = withDefaults(
   defineProps<{
     panelID: string
-    mapDBKey: string
     versionKey: string
     affineScale?: any
   }>(),
@@ -48,8 +48,8 @@ const state = reactive({
   gridDataKeys: [1],
   gridData: {} as {
     [key: number]: {
-      width: number
       scaleNiceNumber: number
+      width: number
     }
   },
   handlePosition: 0 as number,
@@ -110,29 +110,8 @@ onMounted(async () => {
 })
 
 async function init() {
-  let csvUrl = util.getCsvURL(store.currentMapName, CARTOGRAM_CONFIG.mapDBKey)
-  let jsonUrl = util.getGeojsonURL(
-    store.currentMapName,
-    CARTOGRAM_CONFIG.mapDBKey,
-    state.version.name + '.json'
-  )
-  const container = await visualization.initWithURL(
-    props.panelID + '-vis',
-    csvUrl,
-    jsonUrl,
-    store.currentColorCol,
-    CARTOGRAM_CONFIG.cartoColorScheme,
-    CARTOGRAM_CONFIG.choroSpec
-  )
+  const container = await initContainer(props.panelID + '-vis')
   visView = container.view
-
-  const [area, sum] = util.getTotalAreasAndValuesForVersion(
-    state.version.header,
-    visView.data('geo_1'),
-    visView.data('source_csv')
-  )
-  totalArea = area
-  totalValue = sum
 
   visView.addResizeListener(function () {
     totalArea = util.getTotalAreas(visView.data('geo_1'))
@@ -149,8 +128,7 @@ async function init() {
   })
 }
 
-async function switchVersion() {
-  let transitions = 0
+async function initContainer(canvasId: string) {
   let csvUrl = util.getCsvURL(store.currentMapName, CARTOGRAM_CONFIG.mapDBKey)
   let jsonUrl = util.getGeojsonURL(
     store.currentMapName,
@@ -158,7 +136,7 @@ async function switchVersion() {
     state.version.name + '.json'
   )
   const container = await visualization.initWithURL(
-    props.panelID + '-offscreen',
+    canvasId,
     csvUrl,
     jsonUrl,
     store.currentColorCol,
@@ -173,6 +151,12 @@ async function switchVersion() {
   )
   totalArea = area
   totalValue = sum
+
+  return container
+}
+
+async function switchVersion() {
+  const container = await initContainer(props.panelID + '-offscreen')
   update()
 
   function finalize() {
@@ -181,43 +165,7 @@ async function switchVersion() {
     visView = container.view
   }
 
-  visEl.selectAll('path[aria-roledescription="geoshape"]').each(function (this: any) {
-    const geoID = d3.select(this).attr('aria-label')
-    const labelID = geoID.replace('geoshape', 'geolabel')
-
-    const newD = offscreenEl.select('path[aria-label="' + geoID + '"]').attr('d')
-    d3.select(this)
-      .transition()
-      .ease(d3.easeCubic)
-      .duration(1000)
-      .attr('d', newD)
-      .on('start', function () {
-        transitions++
-      })
-      .on('end', function () {
-        if (--transitions === 0) finalize()
-      })
-
-    if (!labelID || labelID === 'dividers') return
-    const labelEl = offscreenEl.select('text[aria-label="' + labelID + '"]')
-    const newLabelPos = labelEl.attr('transform')
-    const newLabelOpacity = labelEl.attr('opacity')
-    const newLabelSize = labelEl.attr('font-size')
-    visEl
-      .select('text[aria-label="' + labelID + '"]')
-      .transition()
-      .ease(d3.easeCubic)
-      .duration(1000)
-      .attr('transform', newLabelPos)
-      .attr('opacity', newLabelOpacity)
-      .attr('font-size', newLabelSize)
-      .on('start', function () {
-        transitions++
-      })
-      .on('end', function () {
-        if (--transitions === 0) finalize()
-      })
-  })
+  animate.transition(visEl, offscreenEl, finalize)
 }
 
 async function resizeViewWidth() {
@@ -263,15 +211,13 @@ function getLegendData() {
     beginIndex--
   }
   const scaleNiceNumber = util.NICE_NUMBERS.slice(beginIndex, endIndex)
-  for (let i = 0; i <= NUM_GRID_OPTIONS; i++) {
-    width[i] =
-      baseWidth * Math.sqrt((scaleNiceNumber[i] * Math.pow(10, scalePowerOf10)) / valuePerSquare)
-  }
+
   // Store legend Information
   for (let i = 0; i <= NUM_GRID_OPTIONS; i++) {
     state.gridData[i] = {
-      width: width[i],
-      scaleNiceNumber: scaleNiceNumber[i]
+      scaleNiceNumber: scaleNiceNumber[i],
+      width:
+        baseWidth * Math.sqrt((scaleNiceNumber[i] * Math.pow(10, scalePowerOf10)) / valuePerSquare)
     }
   }
 

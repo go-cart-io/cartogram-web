@@ -24,16 +24,10 @@ const SUPPORT_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints
 
 const legendEl = ref()
 
-const props = withDefaults(
-  defineProps<{
-    panelID: string
-    defaultVersionKey: string
-    mapDBKey?: string
-  }>(),
-  {
-    mapDBKey: ''
-  }
-)
+const props = defineProps<{
+  panelID: string
+  defaultVersionKey: string
+}>()
 
 const state = reactive({
   versionKey: props.defaultVersionKey,
@@ -249,7 +243,6 @@ function snapToBetterNumber() {
         style="touch-action: none"
         v-bind:style="{ cursor: state.cursor }"
         v-bind:panelID="props.panelID"
-        v-bind:mapDBKey="props.mapDBKey"
         v-bind:versionKey="state.versionKey"
         v-bind:affineScale="state.affineScale"
         v-on:gridChanged="snapToBetterNumber"
@@ -286,11 +279,7 @@ function snapToBetterNumber() {
         v-bind:currentVersionName="state.versionKey"
         v-on:version_changed="(version) => (state.versionKey = version)"
       />
-      <c-panel-btn-download
-        v-bind:mapDBKey="props.mapDBKey"
-        v-bind:versionKey="state.versionKey"
-        v-bind:panelID="props.panelID"
-      />
+      <c-panel-btn-download v-bind:versionKey="state.versionKey" v-bind:panelID="props.panelID" />
     </div>
   </div>
 

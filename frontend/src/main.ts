@@ -10,16 +10,8 @@ import './assets/styles.scss'
 
 const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
 if (document.getElementById('cartogram-app')) {
-  const app = createApp(App, {
-    maps: CARTOGRAM_CONFIG.maps,
-    mapName: CARTOGRAM_CONFIG.mapName,
-    mapTitle: CARTOGRAM_CONFIG.mapTitle,
-    mapDBKey: CARTOGRAM_CONFIG.mapDBKey,
-    mode: CARTOGRAM_CONFIG.mode
-  })
+  const app = createApp(App)
   app.use(createPinia())
-
-  // app.config.compilerOptions.delimiters = ['[[', ']]']
   app.mount('#cartogram-app')
 }
 

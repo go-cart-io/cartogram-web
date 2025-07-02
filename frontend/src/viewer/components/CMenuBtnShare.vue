@@ -6,13 +6,11 @@ import CTextCitation from './CTextCitation.vue'
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
-const props = defineProps<{
-  mapDBKey?: string
-}>()
+const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
 
 const socialURL = computed(() => {
-  if (props.mapDBKey && props.mapDBKey !== '')
-    return location.protocol + '//' + location.host + '/cartogram/key/' + props.mapDBKey
+  if (CARTOGRAM_CONFIG.mapDBKey && CARTOGRAM_CONFIG.mapDBKey !== '')
+    return location.protocol + '//' + location.host + '/cartogram/key/' + CARTOGRAM_CONFIG.mapDBKey
 
   return location.protocol + '//' + location.host + '/cartogram/map/' + store.currentMapName
 })

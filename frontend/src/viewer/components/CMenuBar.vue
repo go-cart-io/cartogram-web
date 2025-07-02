@@ -1,24 +1,13 @@
 <script setup lang="ts">
 import { onMounted, reactive } from 'vue'
 
-import type { MapHandlers } from '../../common/interface'
 import CMenuColor from './CMenuColor.vue'
 import CMenuBtnShare from './CMenuBtnShare.vue'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
-const props = withDefaults(
-  defineProps<{
-    isEmbed: boolean
-    maps: MapHandlers
-    mapTitle?: string
-    mapDBKey?: string
-  }>(),
-  {
-    isEmbed: false
-  }
-)
+const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
 
 const state = reactive({
   mapkey: -1
@@ -39,27 +28,31 @@ function switchMap() {
 <template>
   <nav class="navbar bg-light p-0">
     <div class="w-100 mw-100 d-flex justify-content-between">
-      <div class="p-2" v-if="props.isEmbed">
+      <div class="p-2" v-if="CARTOGRAM_CONFIG.mode === 'embed'">
         <img src="/static/img/gocart_final.svg" width="80" alt="go-cart.io logo" />
       </div>
 
-      <div v-if="!props.isEmbed" class="d-flex p-2" style="max-width: 20%">
+      <div v-else class="d-flex p-2" style="max-width: 20%">
         <select
-          v-if="!props.mapDBKey"
+          v-if="!CARTOGRAM_CONFIG.mapDBKey"
           id="mapSelect"
           class="form-select"
           v-model="store.currentMapName"
           v-on:change="switchMap"
           title="Select map"
         >
-          <option v-for="(mapItem, mapKey) in props.maps" v-bind:value="mapKey" v-bind:key="mapKey">
+          <option
+            v-for="(mapItem, mapKey) in CARTOGRAM_CONFIG.maps"
+            v-bind:value="mapKey"
+            v-bind:key="mapKey"
+          >
             {{ mapItem.name }}
           </option>
         </select>
-        <span v-else>{{ props.mapTitle }}</span>
+        <span v-else>{{ CARTOGRAM_CONFIG.mapTitle }}</span>
       </div>
 
-      <c-menu-color v-bind:mapDBKey="props.mapDBKey" v-bind:key="state.mapkey" />
+      <c-menu-color v-bind:key="state.mapkey" />
 
       <div class="dropdown d-flex py-2 me-2">
         <button
@@ -116,8 +109,8 @@ function switchMap() {
           class="btn btn-primary me-2 d-flex align-items-center"
           title="Edit cartogram"
           v-bind:href="
-            props.mapDBKey
-              ? '/cartogram/edit/key/' + props.mapDBKey
+            CARTOGRAM_CONFIG.mapDBKey
+              ? '/cartogram/edit/key/' + CARTOGRAM_CONFIG.mapDBKey
               : '/cartogram/edit/map/' + store.currentMapName
           "
         >
@@ -125,7 +118,7 @@ function switchMap() {
           <i class="far fa-edit"></i>
         </a>
 
-        <c-menu-btn-share v-bind:mapDBKey="props.mapDBKey" />
+        <c-menu-btn-share />
       </div>
     </div>
   </nav>
