@@ -6,6 +6,7 @@ from database import db
 # flask db migrate -m "Migration log"
 #    If you get “Target database is not up to date” error, run "flask db stamp head" before migrate
 # flask db upgrade
+# Remember: you must commit migrations/versions/<your script> to git.
 class CartogramEntry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     string_key = db.Column(db.String(32), unique=True, nullable=False)

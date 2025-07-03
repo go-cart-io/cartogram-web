@@ -51,11 +51,6 @@ def create_app():
         db.init_app(app)
         Migrate(app, db)
 
-        try:
-            db.create_all()
-        except Exception as err:
-            app.logger.error(err)
-
     default_cartogram_handler = "usa"
     cartogram_handler = CartogramHandler()
 
