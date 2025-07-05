@@ -3,9 +3,10 @@
  * Legend wrapper for map with functions for managing grid size.
  */
 
-import { onMounted, nextTick, reactive, ref, watch } from 'vue'
+import { onMounted, nextTick, reactive, watch, ref } from 'vue'
 import * as d3 from 'd3'
 
+import CPanelLegendLine from '../components/CPanelLegendLine.vue'
 import { useLegend } from '../composables/useLegend'
 
 import * as config from '../../common/config'
@@ -19,12 +20,10 @@ const store = useCartogramStore()
 const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
 const DEFAULT_OPACITY = 0.3
 
-const legendSvgEl = ref()
+const legendLineEl = ref()
 let visEl: any
 let offscreenEl: any
 let visView: any
-let handlePointerId = -1
-let handlePointerPosition = 0
 
 const props = withDefaults(
   defineProps<{
@@ -39,7 +38,6 @@ const props = withDefaults(
 
 const state = reactive({
   version: CARTOGRAM_CONFIG.cartoVersions[props.versionKey],
-  handlePosition: 0 as number,
   currentGridIndex: 1 as number
 })
 
@@ -62,14 +60,16 @@ watch(
 watch(
   () => store.highlightedRegionID,
   (id) => {
-    highlight(id)
+    visView?.signal('active', id).runAsync()
   }
 )
 
 watch(
   () => store.options.numberOfPanels,
-  () => {
-    resizeViewWidth()
+  async () => {
+    await visView.resize()
+    await visView.width(visView.container().offsetWidth).runAsync()
+    update()
   }
 )
 
@@ -148,13 +148,7 @@ async function switchVersion() {
     visView = container.view
   }
 
-  animate.transition(visEl, offscreenEl, finalize)
-}
-
-async function resizeViewWidth() {
-  await visView.resize()
-  await visView.width(visView.container().offsetWidth).runAsync()
-  update()
+  animate.geoTransition(visEl, offscreenEl, finalize)
 }
 
 async function update() {
@@ -163,7 +157,15 @@ async function update() {
   legend.updateGridData()
   await nextTick()
   changeTo(state.currentGridIndex)
-  drawGridLines()
+}
+
+async function changeTo(key: number) {
+  state.currentGridIndex = key
+  await nextTick()
+  legend.updateLegendValue(state.currentGridIndex, props.affineScale)
+  animate.gridTransition(props.panelID + '-grid', legend.stateGridData.value[key]?.width)
+  legendLineEl.value.setHandlePosition(legend.stateGridData.value[key]?.width)
+  emit('gridChanged')
 }
 
 function getCurrentScale() {
@@ -172,117 +174,18 @@ function getCurrentScale() {
     (props.affineScale[0] * props.affineScale[1])
   )
 }
-
-async function changeTo(key: number) {
-  state.currentGridIndex = key
-  await nextTick()
-  legend.updateLegendValue(state.currentGridIndex, props.affineScale)
-  updateGridLines(legend.stateGridData.value[key]?.width)
-}
-
-function onHandleDown(event: PointerEvent) {
-  if (!event.isPrimary) return
-  legendSvgEl.value.setPointerCapture(event.pointerId)
-  handlePointerId = event.pointerId
-  state.handlePosition = event.offsetX
-}
-
-function onHandleMove(event: PointerEvent) {
-  if (handlePointerId !== event.pointerId) return
-
-  const direction = event.pageX - handlePointerPosition
-  const pos = state.handlePosition + direction
-  state.handlePosition = Math.max(
-    0,
-    Math.min(pos, legend.stateGridData.value[config.NUM_GRID_OPTIONS].width)
-  )
-  handlePointerPosition = event.pageX
-}
-
-function onHandleUp(event: any) {
-  if (handlePointerId !== event.pointerId) return
-  legendSvgEl.value.releasePointerCapture(event.pointerId)
-  handlePointerId = -1
-
-  let key = 0
-  let minDiff = Number.MAX_VALUE
-  for (let i = 0; i <= config.NUM_GRID_OPTIONS; i++) {
-    const diff = Math.abs(state.handlePosition - legend.stateGridData.value[i]['width'])
-    if (diff < minDiff) {
-      minDiff = diff
-      key = i
-    }
-  }
-  changeTo(key)
-  emit('gridChanged')
-}
-
-function drawGridLines() {
-  if (!legend.stateGridData.value[config.NUM_GRID_OPTIONS]) return
-  const gridWidth = legend.stateGridData.value[state.currentGridIndex]['width'] || 20
-  updateGridLines(gridWidth)
-}
-
-function updateGridLines(gridWidth: number) {
-  if (isNaN(gridWidth)) return
-  const stroke_opacity = store.options.showGrid ? DEFAULT_OPACITY : 0
-  const gridPattern = d3.select('#' + props.panelID + '-grid')
-  gridPattern
-    .select('path')
-    .attr('stroke-opacity', stroke_opacity)
-    .attr('d', 'M ' + gridWidth * 5 + ' 0 L 0 0 0 ' + gridWidth * 5) // *5 for pretty transition when resize grid
-  if (gridPattern.attr('width')) {
-    // To prevent transition from 0
-    gridPattern
-      .transition()
-      .ease(d3.easeCubic)
-      .duration(1000)
-      .attr('width', gridWidth)
-      .attr('height', gridWidth)
-  } else {
-    gridPattern.attr('width', gridWidth).attr('height', gridWidth)
-  }
-  state.handlePosition = gridWidth
-}
-
-function highlight(itemID: any) {
-  visView?.signal('active', itemID).runAsync()
-}
 </script>
 
 <template>
   <div class="d-flex flex-column card-body p-0">
     <div class="d-flex position-absolute z-1">
-      <svg
-        v-if="legend.stateGridData.value[config.NUM_GRID_OPTIONS]"
-        ref="legendSvgEl"
-        class="d-flex position-absolute z-2"
-        style="cursor: pointer; top: -15px; touch-action: none"
-        height="30px"
-        stroke="#AAAAAA"
-        stroke-width="2px"
-        v-bind:id="props.panelID + '-slider'"
-        v-bind:width="legend.stateGridData.value[config.NUM_GRID_OPTIONS].width + 15"
-        v-on:pointerdown.stop.prevent="onHandleDown"
-        v-on:pointermove.stop.prevent="onHandleMove"
-        v-on:pointerup.stop.prevent="onHandleUp"
-      >
-        <line
-          x1="0"
-          y1="15"
-          v-bind:x2="legend.stateGridData.value[config.NUM_GRID_OPTIONS].width"
-          y2="15"
-        ></line>
-        <line
-          v-for="(grid, index) in legend.stateGridData.value"
-          v-bind:x1="grid.width"
-          y1="8"
-          v-bind:x2="grid.width"
-          y2="16"
-          v-bind:key="index"
-        ></line>
-        <circle id="handle" r="5" v-bind:cx="state.handlePosition" cy="15" stroke-width="0px" />
-      </svg>
+      <c-panel-legend-line
+        ref="legendLineEl"
+        v-bind:panelID="props.panelID"
+        v-bind:gridIndex="state.currentGridIndex"
+        v-bind:gridData="legend.stateGridData.value"
+        v-on:change="changeTo"
+      />
       <svg
         v-if="legend.stateGridData.value[config.NUM_GRID_OPTIONS]"
         v-bind:id="props.panelID + '-legend'"
@@ -315,15 +218,15 @@ function highlight(itemID: any) {
       <svg width="100%" height="100%" v-bind:id="props.panelID + '-grid-area'">
         <defs>
           <pattern v-bind:id="props.panelID + '-grid'" patternUnits="userSpaceOnUse">
-            <path fill="none" stroke="#5A5A5A" stroke-width="2" stroke-opacity="0.3"></path>
+            <path
+              fill="none"
+              stroke="#5A5A5A"
+              stroke-width="2"
+              v-bind:stroke-opacity="store.options.showGrid ? DEFAULT_OPACITY : 0"
+            ></path>
           </pattern>
         </defs>
-        <rect
-          v-if="store.options.showGrid"
-          width="100%"
-          height="100%"
-          v-bind:fill="'url(#' + props.panelID + '-grid)'"
-        ></rect>
+        <rect width="100%" height="100%" v-bind:fill="'url(#' + props.panelID + '-grid)'"></rect>
       </svg>
     </div>
   </div>
