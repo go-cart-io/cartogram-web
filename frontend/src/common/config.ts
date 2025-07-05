@@ -1,7 +1,8 @@
 import { formatValue } from 'vega-tooltip'
 
-const LOCALE =
+export const LOCALE =
   navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language
+export const NUM_GRID_OPTIONS = 3
 
 export const RESERVE_FIELDS = [
   'Region',

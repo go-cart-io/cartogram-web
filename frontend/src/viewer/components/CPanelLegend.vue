@@ -3,9 +3,12 @@
  * Legend wrapper for map with functions for managing grid size.
  */
 
-import { onMounted, nextTick, reactive, ref, watch, inject } from 'vue'
+import { onMounted, nextTick, reactive, ref, watch } from 'vue'
 import * as d3 from 'd3'
 
+import { useLegend } from '../composables/useLegend'
+
+import * as config from '../../common/config'
 import * as visualization from '../../common/visualization'
 import * as animate from '../lib/animate'
 import * as util from '../lib/util'
@@ -14,17 +17,12 @@ import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
 const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
-const NUM_GRID_OPTIONS = 3
-const LOCALE =
-  navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language
 const DEFAULT_OPACITY = 0.3
 
 const legendSvgEl = ref()
 let visEl: any
 let offscreenEl: any
 let visView: any
-let totalArea: number
-let totalValue: number
 let handlePointerId = -1
 let handlePointerPosition = 0
 
@@ -41,19 +39,11 @@ const props = withDefaults(
 
 const state = reactive({
   version: CARTOGRAM_CONFIG.cartoVersions[props.versionKey],
-  legendUnit: '' as string,
-  legendTotal: '' as string,
-
-  currentGridIndex: 1 as number,
-  gridData: {} as {
-    [key: number]: {
-      scaleNiceNumber: number
-      width: number
-    }
-  },
   handlePosition: 0 as number,
-  scalePowerOf10: 1 as number
+  currentGridIndex: 1 as number
 })
+
+const legend = useLegend()
 
 defineExpose({
   getCurrentScale
@@ -93,7 +83,7 @@ watch(
 watch(
   () => props.affineScale,
   () => {
-    formatLegendValue()
+    legend.updateLegendValue(state.currentGridIndex, props.affineScale)
   },
   { deep: true }
 )
@@ -107,25 +97,6 @@ onMounted(async () => {
   await init()
   update()
 })
-
-async function init() {
-  const container = await initContainer(props.panelID + '-vis')
-  visView = container.view
-
-  visView.addResizeListener(function () {
-    totalArea = util.getTotalAreas(visView.data('geo_1'))
-    update()
-  })
-
-  visView.addSignalListener('active', function (name: string, value: any) {
-    store.highlightedRegionID = value
-  })
-
-  visView.addEventListener('pointerup', function (event: any, item: any) {
-    const value = item?.datum.cartogram_data
-    visView.tooltip()(visView, event, item, value)
-  })
-}
 
 async function initContainer(canvasId: string) {
   let csvUrl = util.getCsvURL(store.currentMapName, CARTOGRAM_CONFIG.mapDBKey)
@@ -143,15 +114,28 @@ async function initContainer(canvasId: string) {
     CARTOGRAM_CONFIG.choroSpec
   )
 
-  const [area, sum] = util.getTotalAreasAndValuesForVersion(
-    state.version.header,
-    container.view.data('geo_1'),
-    container.view.data('source_csv')
-  )
-  totalArea = area
-  totalValue = sum
+  legend.init(state.version.header, container.view.data('geo_1'), container.view.data('source_csv'))
 
   return container
+}
+
+async function init() {
+  const container = await initContainer(props.panelID + '-vis')
+  visView = container.view
+
+  visView.addResizeListener(function () {
+    legend.updateTotalArea(visView.data('geo_1'))
+    update()
+  })
+
+  visView.addSignalListener('active', function (name: string, value: any) {
+    store.highlightedRegionID = value
+  })
+
+  visView.addEventListener('pointerup', function (event: any, item: any) {
+    const value = item?.datum.cartogram_data
+    visView.tooltip()(visView, event, item, value)
+  })
 }
 
 async function switchVersion() {
@@ -176,56 +160,15 @@ async function resizeViewWidth() {
 async function update() {
   if (!state.version) return
 
-  getLegendData()
+  legend.updateGridData()
   await nextTick()
   changeTo(state.currentGridIndex)
-  const totalScalePowerOfTen = Math.floor(Math.log10(totalValue))
-  const totalNiceNumber = totalValue / Math.pow(10, totalScalePowerOfTen)
-  state.legendTotal = formatLegendText(totalNiceNumber, totalScalePowerOfTen)
   drawGridLines()
-}
-
-/**
- * Calculates legend information of the map version
- */
-function getLegendData() {
-  if (totalValue === 0 || totalArea === 0) return
-
-  const valuePerPixel = totalValue / totalArea
-  // Each square to be in the whereabouts of 1% of totalValue.
-  let valuePerSquare = totalValue / 100
-  let baseWidth = Math.sqrt(valuePerSquare / valuePerPixel)
-  // If width is too small, we increment the percentage.
-  while (baseWidth < 20) {
-    valuePerSquare *= 2
-    baseWidth = Math.sqrt(valuePerSquare / valuePerPixel)
-  }
-
-  const [scaleNiceNumber0, scalePowerOf10] = util.findNearestNiceNumber(valuePerSquare)
-  const niceIndex = util.NICE_NUMBERS.indexOf(scaleNiceNumber0)
-  let beginIndex = niceIndex === 0 ? niceIndex : niceIndex - 1
-  let endIndex = beginIndex + NUM_GRID_OPTIONS + 1
-  while (endIndex >= util.NICE_NUMBERS.length && beginIndex > 0) {
-    endIndex--
-    beginIndex--
-  }
-  const scaleNiceNumber = util.NICE_NUMBERS.slice(beginIndex, endIndex)
-
-  // Store legend Information
-  for (let i = 0; i <= NUM_GRID_OPTIONS; i++) {
-    state.gridData[i] = {
-      scaleNiceNumber: scaleNiceNumber[i],
-      width:
-        baseWidth * Math.sqrt((scaleNiceNumber[i] * Math.pow(10, scalePowerOf10)) / valuePerSquare)
-    }
-  }
-
-  state.scalePowerOf10 = scalePowerOf10
 }
 
 function getCurrentScale() {
   return (
-    state.gridData[state.currentGridIndex]?.scaleNiceNumber /
+    legend.stateGridData.value[state.currentGridIndex]?.scaleNiceNumber /
     (props.affineScale[0] * props.affineScale[1])
   )
 }
@@ -233,8 +176,8 @@ function getCurrentScale() {
 async function changeTo(key: number) {
   state.currentGridIndex = key
   await nextTick()
-  formatLegendValue()
-  updateGridLines(state.gridData[key]?.width)
+  legend.updateLegendValue(state.currentGridIndex, props.affineScale)
+  updateGridLines(legend.stateGridData.value[key]?.width)
 }
 
 function onHandleDown(event: PointerEvent) {
@@ -249,7 +192,10 @@ function onHandleMove(event: PointerEvent) {
 
   const direction = event.pageX - handlePointerPosition
   const pos = state.handlePosition + direction
-  state.handlePosition = Math.max(0, Math.min(pos, state.gridData[NUM_GRID_OPTIONS].width))
+  state.handlePosition = Math.max(
+    0,
+    Math.min(pos, legend.stateGridData.value[config.NUM_GRID_OPTIONS].width)
+  )
   handlePointerPosition = event.pageX
 }
 
@@ -260,8 +206,8 @@ function onHandleUp(event: any) {
 
   let key = 0
   let minDiff = Number.MAX_VALUE
-  for (let i = 0; i <= NUM_GRID_OPTIONS; i++) {
-    const diff = Math.abs(state.handlePosition - state.gridData[i]['width'])
+  for (let i = 0; i <= config.NUM_GRID_OPTIONS; i++) {
+    const diff = Math.abs(state.handlePosition - legend.stateGridData.value[i]['width'])
     if (diff < minDiff) {
       minDiff = diff
       key = i
@@ -271,28 +217,9 @@ function onHandleUp(event: any) {
   emit('gridChanged')
 }
 
-function formatLegendValue() {
-  if (!state.gridData[NUM_GRID_OPTIONS]) return
-
-  let value = state.gridData[state.currentGridIndex].scaleNiceNumber
-  value = value / (props.affineScale[0] * props.affineScale[1])
-  state.legendUnit = formatLegendText(value, state.scalePowerOf10)
-}
-
-function formatLegendText(value: number, scalePowerOf10: number): string {
-  const originalValue = value * Math.pow(10, scalePowerOf10)
-  const formatter = Intl.NumberFormat(LOCALE, {
-    notation: 'compact',
-    compactDisplay: 'short'
-  })
-  let formated = ''
-  formated += formatter.format(originalValue)
-  return formated
-}
-
 function drawGridLines() {
-  if (!state.gridData[NUM_GRID_OPTIONS]) return
-  const gridWidth = state.gridData[state.currentGridIndex]['width'] || 20
+  if (!legend.stateGridData.value[config.NUM_GRID_OPTIONS]) return
+  const gridWidth = legend.stateGridData.value[state.currentGridIndex]['width'] || 20
   updateGridLines(gridWidth)
 }
 
@@ -327,7 +254,7 @@ function highlight(itemID: any) {
   <div class="d-flex flex-column card-body p-0">
     <div class="d-flex position-absolute z-1">
       <svg
-        v-if="state.gridData[NUM_GRID_OPTIONS]"
+        v-if="legend.stateGridData.value[config.NUM_GRID_OPTIONS]"
         ref="legendSvgEl"
         class="d-flex position-absolute z-2"
         style="cursor: pointer; top: -15px; touch-action: none"
@@ -335,14 +262,19 @@ function highlight(itemID: any) {
         stroke="#AAAAAA"
         stroke-width="2px"
         v-bind:id="props.panelID + '-slider'"
-        v-bind:width="state.gridData[NUM_GRID_OPTIONS].width + 15"
+        v-bind:width="legend.stateGridData.value[config.NUM_GRID_OPTIONS].width + 15"
         v-on:pointerdown.stop.prevent="onHandleDown"
         v-on:pointermove.stop.prevent="onHandleMove"
         v-on:pointerup.stop.prevent="onHandleUp"
       >
-        <line x1="0" y1="15" v-bind:x2="state.gridData[NUM_GRID_OPTIONS].width" y2="15"></line>
         <line
-          v-for="(grid, index) in state.gridData"
+          x1="0"
+          y1="15"
+          v-bind:x2="legend.stateGridData.value[config.NUM_GRID_OPTIONS].width"
+          y2="15"
+        ></line>
+        <line
+          v-for="(grid, index) in legend.stateGridData.value"
           v-bind:x1="grid.width"
           y1="8"
           v-bind:x2="grid.width"
@@ -352,25 +284,25 @@ function highlight(itemID: any) {
         <circle id="handle" r="5" v-bind:cx="state.handlePosition" cy="15" stroke-width="0px" />
       </svg>
       <svg
-        v-if="state.gridData[NUM_GRID_OPTIONS]"
+        v-if="legend.stateGridData.value[config.NUM_GRID_OPTIONS]"
         v-bind:id="props.panelID + '-legend'"
         style="cursor: pointer; opacity: 0.5"
-        v-bind:width="state.gridData[state.currentGridIndex].width + 2"
-        v-bind:height="state.gridData[state.currentGridIndex].width + 2"
+        v-bind:width="legend.stateGridData.value[state.currentGridIndex].width + 2"
+        v-bind:height="legend.stateGridData.value[state.currentGridIndex].width + 2"
       >
         <g stroke-width="2px" fill="#EEEEEE" stroke="#AAAAAA">
           <rect
             x="1"
             y="1"
-            v-bind:width="state.gridData[state.currentGridIndex].width"
-            v-bind:height="state.gridData[state.currentGridIndex].width"
+            v-bind:width="legend.stateGridData.value[state.currentGridIndex].width"
+            v-bind:height="legend.stateGridData.value[state.currentGridIndex].width"
           ></rect>
         </g>
       </svg>
       <div v-bind:id="props.panelID + '-legend-num'" class="flex-fill p-1">
-        <span v-html="state.legendUnit"></span>
+        <span v-html="legend.stateValue.value"></span>
         {{ state.version?.unit }}
-        <div>Total: <span v-html="state.legendTotal"></span></div>
+        <div>Total: <span v-html="legend.stateTotalValue.value"></span></div>
       </div>
     </div>
 
