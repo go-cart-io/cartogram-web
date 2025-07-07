@@ -7,7 +7,7 @@ import vue from '@vitejs/plugin-vue'
 export default ({ mode }: UserConfig): UserConfigExport => {
   const env = loadEnv(mode || 'development', process.cwd())
   const SERVER_PORT = Number(env.VITE_SERVER_PORT ?? '5173')
-  const SERVER_ORIGIN = `${env.VITE_SERVER_ORIGIN ?? 'http://localhost:5173'}`
+  const SERVER_ORIGIN = `${env.VITE_SERVER_ORIGIN ?? 'http://0.0.0.0:5173'}`
 
   return defineConfig({
     plugins: [
@@ -40,6 +40,8 @@ export default ({ mode }: UserConfig): UserConfigExport => {
       }
     },
     server: {
+      cors: true,
+      host: true,
       port: SERVER_PORT,
       origin: SERVER_ORIGIN,
       watch: {
