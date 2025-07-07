@@ -1,10 +1,10 @@
-import { ref, reactive, type Ref } from 'vue'
+import { ref, type Ref } from 'vue'
 import * as d3 from 'd3'
 
 import TouchInfo from '../lib/touchInfo'
 import * as util from '../lib/util'
 
-export const useTransform = (legendEl: Ref, panelID: string) => {
+export const useTransform = (panelID: string) => {
   const DELAY_THRESHOLD = 300
   const touchInfo = new TouchInfo()
 
@@ -17,6 +17,7 @@ export const useTransform = (legendEl: Ref, panelID: string) => {
     pointerdistance: number | boolean // (C)
   let lastTouch = 0
   let affineMatrix = util.getOriginalMatrix()
+  let gridScaleNiceNumber = 1
 
   // https://observablehq.com/@d3/multitouch
   function onPointerdown(event: any) {
@@ -42,7 +43,7 @@ export const useTransform = (legendEl: Ref, panelID: string) => {
   }
 
   function onPointerup(event: any) {
-    legendEl.value.$el.releasePointerCapture(event.pointerId)
+    document.getElementById(panelID)!.releasePointerCapture(event.pointerId)
     touchInfo.clear(event)
     stateTouchLenght.value = touchInfo.length()
 
@@ -65,7 +66,7 @@ export const useTransform = (legendEl: Ref, panelID: string) => {
 
     // Capture pointer so gesture can be beyond the panel
     document.getElementById('vg-tooltip-element')?.classList.remove('visible')
-    legendEl.value.$el.setPointerCapture(event.pointerId)
+    document.getElementById(panelID)!.setPointerCapture(event.pointerId)
 
     const t = touchInfo.getMergedPoints()
     let matrix = util.getOriginalMatrix()
@@ -186,8 +187,12 @@ export const useTransform = (legendEl: Ref, panelID: string) => {
     _apply(affineMatrix, affineMatrix)
   }
 
+  function setGridScaleNiceNumber(value: number) {
+    gridScaleNiceNumber = value
+  }
+
   function snapToBetterNumber() {
-    const value = legendEl.value.getCurrentScale()
+    const value = gridScaleNiceNumber / (stateAffineScale.value[0] * stateAffineScale.value[1])
     if (value === 0) return
 
     const [scaleNiceNumber, scalePowerOf10] = util.findNearestNiceNumber(value)
@@ -211,6 +216,7 @@ export const useTransform = (legendEl: Ref, panelID: string) => {
     onWheel,
     applyCurrent,
     reset,
+    setGridScaleNiceNumber,
     snapToBetterNumber
   }
 }

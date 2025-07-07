@@ -1,7 +1,9 @@
 import * as d3 from 'd3'
 
-export function geoTransition(fromEl: any, toEl: any, callback: () => void) {
+export function geoTransition(id: string, callback: () => void) {
   let transitions = 0
+  const fromEl = d3.select('#' + id + '-vis')
+  const toEl = d3.select('#' + id + '-offscreen')
 
   fromEl.selectAll('path[aria-roledescription="geoshape"]').each(function (this: any) {
     const geoID = d3.select(this).attr('aria-label')

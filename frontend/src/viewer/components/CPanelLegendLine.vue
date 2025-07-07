@@ -88,4 +88,20 @@ function onHandleUp(event: any) {
     ></line>
     <circle id="handle" r="5" v-bind:cx="state.handlePosition" cy="15" stroke-width="0px" />
   </svg>
+  <svg
+    v-if="props.gridData[config.NUM_GRID_OPTIONS]"
+    v-bind:id="props.panelID + '-legend'"
+    style="cursor: pointer; opacity: 0.5"
+    v-bind:width="props.gridData[gridIndex].width + 2"
+    v-bind:height="props.gridData[gridIndex].width + 2"
+  >
+    <g stroke-width="2px" fill="#EEEEEE" stroke="#AAAAAA">
+      <rect
+        x="1"
+        y="1"
+        v-bind:width="props.gridData[gridIndex].width"
+        v-bind:height="props.gridData[gridIndex].width"
+      ></rect>
+    </g>
+  </svg>
 </template>
