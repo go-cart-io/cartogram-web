@@ -2,14 +2,12 @@
 /**
  * The map panel with functions for interactivity to manipulate viewport and managing grid size.
  */
-import * as d3 from 'd3'
 import { onMounted, nextTick, reactive, watch, ref } from 'vue'
 
-import CPanelLegendLine from '../components/CPanelLegendLine.vue'
+import CPanelLegend from './CPanelLegend.vue'
 import CPanelSelectVersion from './CPanelSelectVersion.vue'
 import CPanelBtnDownload from './CPanelBtnDownload.vue'
 import CTouchVis from './CTouchVis.vue'
-import * as config from '../../common/config'
 import * as visualization from '../../common/visualization'
 import * as animate from '../lib/animate'
 import * as util from '../lib/util'
@@ -160,7 +158,7 @@ function switchMode() {
     <div class="d-flex flex-column card-body">
       <div class="d-flex flex-column card-body p-0">
         <div class="d-flex position-absolute z-1">
-          <c-panel-legend-line
+          <c-panel-legend
             ref="legendLineEl"
             v-bind:panelID="props.panelID"
             v-bind:gridIndex="state.currentGridIndex"
