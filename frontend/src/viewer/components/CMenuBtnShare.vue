@@ -39,7 +39,7 @@ function access() {
   <!-- Button trigger modal -->
   <button
     id="shareBtn"
-    class="btn btn-primary me-2 d-flex align-items-center"
+    class="btn btn-primary d-flex align-items-center"
     data-bs-toggle="modal"
     data-bs-target="#shareModal"
     title="Save and share cartogram"

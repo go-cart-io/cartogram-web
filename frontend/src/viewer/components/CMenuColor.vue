@@ -7,14 +7,11 @@ import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
 const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
-
-onMounted(async () => {
-  await updateVis()
-})
+const choroLenght = Object.keys(CARTOGRAM_CONFIG.choroVersions).length
 
 async function updateVis() {
   let csvUrl = util.getCsvURL(store.currentMapName, CARTOGRAM_CONFIG.mapDBKey)
-  await visualization.initLegend(
+  await visualization.initLegendWithURL(
     csvUrl,
     store.currentColorCol,
     CARTOGRAM_CONFIG.cartoColorScheme,
@@ -24,28 +21,34 @@ async function updateVis() {
 </script>
 
 <template>
-  <div class="d-flex flex-fill py-2 pe-2" style="min-width: 400px">
-    <!-- Color selection -->
-    <div class="input-group pe-2" style="max-width: 200px">
-      <span class="input-group-text">By</span>
-      <select
-        id="color-options"
-        class="form-select"
-        title="Select map/cartogram color strategy"
-        v-model="store.currentColorCol"
-        v-on:change="updateVis"
-      >
-        <option value="Region">Region</option>
-        <option
-          v-for="(versionItem, versionKey) in CARTOGRAM_CONFIG.choroVersions"
-          v-bind:value="versionItem.header"
-          v-bind:key="versionKey"
-        >
-          {{ versionItem.name }}
-        </option>
-      </select>
-    </div>
+  <div v-if="choroLenght > 0" class="order-last order-sm-2 flex-grow-1" style="min-width: 250px">
+    <div class="container">
+      <div class="row">
+        <!-- Color selection -->
+        <div class="col-4 p-0 pe-2">
+          <div class="input-group flex-nowrap">
+            <span class="input-group-text">By</span>
+            <select
+              id="color-options"
+              class="form-select"
+              title="Select map/cartogram color strategy"
+              v-model="store.currentColorCol"
+              v-on:change="updateVis"
+            >
+              <option value="Region">Region</option>
+              <option
+                v-for="(versionItem, versionKey) in CARTOGRAM_CONFIG.choroVersions"
+                v-bind:value="versionItem.header"
+                v-bind:key="versionKey"
+              >
+                {{ versionItem.name }}
+              </option>
+            </select>
+          </div>
+        </div>
 
-    <div id="legend" class="flex-grow-1"></div>
+        <div id="legend" class="col-8 p-0"></div>
+      </div>
+    </div>
   </div>
 </template>
