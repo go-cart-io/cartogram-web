@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, reactive, watch } from 'vue'
-import embed, { vega, type VisualizationSpec } from 'vega-embed'
+import { nextTick, reactive, watch } from 'vue'
 
 import type { FeatureCollection } from 'geojson'
 import * as visualization from '../../common/visualization'
@@ -35,6 +34,7 @@ watch(
 function reset() {
   state.isInit = false
   document.getElementById('map-vis')!.innerHTML = ''
+  document.getElementById('legend')!.innerHTML = ''
   currentGeojsonData = null
   currentGeojsonRegionCol = ''
 }
@@ -60,6 +60,13 @@ async function init(geojsonData: FeatureCollection, geojsonRegionCol: string) {
     customScaleSpec
   )
   visView = container.view
+
+  await visualization.initLegendWithValues(
+    store.dataTable.items,
+    state.currentColorCol,
+    store.colorRegionScheme,
+    customScaleSpec
+  )
   state.isInit = true
 }
 
@@ -95,37 +102,45 @@ function updateColorAndDataTable(scheme: string, oldScheme: string) {
 </script>
 
 <template>
-  <div id="map-vis" class="vis-area p-2"></div>
-
-  <div v-if="state.isInit" class="position-absolute d-flex p-2" style="max-width: 50%">
-    <div class="input-group pe-2">
-      <span class="input-group-text">Preview by</span>
-      <select
-        id="color-options"
-        class="form-select"
-        title="Select map/cartogram color strategy"
-        v-model="state.currentColorCol"
-        v-on:change="refresh"
-      >
-        <option value="Region">Region</option>
-        <option
-          v-for="label in store.visTypes['choropleth']"
-          v-bind:value="label"
-          v-bind:key="label"
+  <div class="row p-2">
+    <div class="col-6 col-lg-4" v-bind:style="{ visibility: state.isInit ? 'visible' : 'hidden' }">
+      <div class="input-group flex-nowrap">
+        <span class="input-group-text">Colored by</span>
+        <select
+          id="color-options"
+          class="form-select"
+          title="Select map/cartogram color strategy"
+          v-model="state.currentColorCol"
+          v-on:change="refresh"
         >
-          {{ label }}
-        </option>
-      </select>
+          <option value="Region">Region</option>
+          <option
+            v-for="label in store.visTypes['choropleth']"
+            v-bind:value="label"
+            v-bind:key="label"
+          >
+            {{ label }}
+          </option>
+        </select>
+        <button class="btn btn-outline-secondary" type="button" v-on:click="refresh">
+          <i class="btn-icon fa fa-refresh"></i>
+        </button>
+      </div>
     </div>
-    <button class="btn btn-outline-secondary" type="button" v-on:click="refresh">
-      <i class="btn-icon fa fa-refresh"></i>
-    </button>
+
+    <div id="legend" class="col-6 col-lg-8 p-0"></div>
   </div>
+
+  <div id="map-vis" class="vis-area p-2"></div>
 </template>
 
 <style scoped>
 .vis-area {
   width: 100%;
   height: 300px;
+}
+
+#legend svg {
+  height: 100%;
 }
 </style>

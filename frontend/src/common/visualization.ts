@@ -81,15 +81,38 @@ export async function init(
   return container
 }
 
-export async function initLegend(
+export async function initLegendWithURL(
   csvUrl: string,
   currentColorCol: string,
   cartoColorScheme: string,
   choroSpec: any
 ) {
-  reset('legend')
   const versionSpec = JSON.parse(JSON.stringify(specLegend)) // copy the template
   versionSpec.data[0].url = csvUrl
+
+  return await initLegend(versionSpec, currentColorCol, cartoColorScheme, choroSpec)
+}
+
+export async function initLegendWithValues(
+  csvValues: any,
+  currentColorCol: string,
+  cartoColorScheme: string,
+  choroSpec: any
+) {
+  const versionSpec = JSON.parse(JSON.stringify(specLegend)) // copy the template
+  versionSpec.data[0].values = csvValues
+  versionSpec.data[0].format = 'json'
+
+  return await initLegend(versionSpec, currentColorCol, cartoColorScheme, choroSpec)
+}
+
+export async function initLegend(
+  versionSpec: any,
+  currentColorCol: string,
+  cartoColorScheme: string,
+  choroSpec: any
+) {
+  reset('legend')
 
   // For color
   versionSpec.signals[2]['value'] =
