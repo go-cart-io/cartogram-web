@@ -35,8 +35,8 @@ function switchMode() {
       class="form-check-input"
       type="checkbox"
       role="switch"
-      v-bind:value="store.choroSettings.isAdvanceMode"
-      v-on:click="switchMode"
+      v-bind:checked="store.choroSettings.isAdvanceMode"
+      v-on:change="switchMode"
     />
     <label class="form-check-label" for="modeSwitch">Advance mode</label>
   </div>

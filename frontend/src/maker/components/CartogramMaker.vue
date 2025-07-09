@@ -28,9 +28,11 @@ const props = defineProps<{
   maps: MapHandlers
   mapName?: string
   mapTitle?: string
-  mapColorScheme?: string
   geoUrl?: string
   csvUrl?: string
+  mapTypes?: { [key: string]: Array<string> }
+  cartoColorScheme?: string
+  choroSettings?: any
 }>()
 
 const state = reactive({
@@ -47,7 +49,10 @@ onMounted(() => {
   if (!props.mapName || !props.geoUrl || !props.csvUrl) return
 
   store.title = props.mapTitle ? props.mapTitle : ''
-  store.colorRegionScheme = props.mapColorScheme ? props.mapColorScheme : 'pastel1'
+  store.visTypes = props.mapTypes ? props.mapTypes : { cartogram: [], choropleth: [] }
+  store.cartoColorScheme = props.cartoColorScheme ? props.cartoColorScheme : 'pastel1'
+  if (props.choroSettings) store.choroSettings = props.choroSettings
+
   const projectedUrl = props.geoUrl.replace('/Input.json', '/Geographic Area.json')
   HTTP.get(projectedUrl).then(async function (response: any) {
     await datatable.initDataTableWGeojson(response, 'Region', props.csvUrl)
@@ -84,7 +89,7 @@ async function getGeneratedCartogram() {
   await new Promise<any>(function (resolve, reject) {
     const req_body = JSON.stringify({
       title: store.title,
-      scheme: store.colorRegionScheme,
+      scheme: store.cartoColorScheme,
       handler: state.handler,
       csv: csvData,
       geojsonRegionCol: state.geojsonRegionCol,

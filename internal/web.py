@@ -193,15 +193,17 @@ def create_app():
             tracking=tracking.determine_tracking_action(request),
         )
 
-    @app.route("/cartogram/edit/<type>/<name_or_key>", methods=["GET"])
-    def edit_cartogram(type, name_or_key):
-        if type == "map":
+    @app.route("/cartogram/edit/<store_type>/<name_or_key>", methods=["GET"])
+    def edit_cartogram(store_type, name_or_key):
+        if store_type == "map":
             handler = name_or_key
             csv_url = f"/static/cartdata/{handler}/data.csv"
             title = name_or_key
             scheme = "pastel1"
+            map_types = {"cartogram": ["Population (people)"]}
+            map_settings = util.spec_to_choro_settings(None)
 
-        elif type == "key":
+        elif store_type == "key":
             if not settings.USE_DATABASE:
                 return Response("Not found", status=404)
 
@@ -219,6 +221,12 @@ def create_app():
             csv_url = f"/static/userdata/{name_or_key}/data.csv"
             title = cartogram_entry.title
             scheme = cartogram_entry.scheme if cartogram_entry.scheme else "pastel1"
+            map_types = (
+                json.loads(cartogram_entry.types)
+                if type(cartogram_entry.types) is str
+                else {}
+            )
+            map_settings = util.spec_to_choro_settings(cartogram_entry.spec)
 
         else:
             return Response("Not found", status=404)
@@ -234,6 +242,8 @@ def create_app():
             csv_url=csv_url,
             map_title=title,
             map_color_scheme=scheme,
+            map_types=map_types,
+            map_settings=map_settings,
             tracking=tracking.determine_tracking_action(request),
         )
 

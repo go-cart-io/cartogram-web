@@ -42,14 +42,14 @@ const props = defineProps<{
       aria-expanded="false"
       v-bind:disabled="props.disabled"
     >
-      {{ store.colorRegionScheme }}
+      {{ store.cartoColorScheme }}
     </button>
     <ul id="colorDropdownList" class="dropdown-menu">
       <li>
         <a
           class="dropdown-item"
-          v-bind:class="{ 'bg-secondary text-white': store.colorRegionScheme === 'custom' }"
-          v-on:click="store.colorRegionScheme = 'custom'"
+          v-bind:class="{ 'bg-secondary text-white': store.cartoColorScheme === 'custom' }"
+          v-on:click="store.cartoColorScheme = 'custom'"
         >
           Custom
         </a>
@@ -57,9 +57,9 @@ const props = defineProps<{
       <li
         v-for="scheme in schemeNames"
         v-bind:key="scheme"
-        v-bind:class="{ 'bg-secondary': store.colorRegionScheme === scheme }"
+        v-bind:class="{ 'bg-secondary': store.cartoColorScheme === scheme }"
       >
-        <a class="dropdown-item" v-on:click="store.colorRegionScheme = scheme">
+        <a class="dropdown-item" v-on:click="store.cartoColorScheme = scheme">
           <div class="d-inline swatch">
             <div
               v-for="color in schemeObject[scheme]"
@@ -68,13 +68,13 @@ const props = defineProps<{
               v-bind:key="color"
             ></div>
           </div>
-          <span class="ms-2" v-bind:class="{ 'text-white': store.colorRegionScheme === scheme }">{{
+          <span class="ms-2" v-bind:class="{ 'text-white': store.cartoColorScheme === scheme }">{{
             scheme
           }}</span>
         </a>
       </li>
     </ul>
-    <small v-if="store.colorRegionScheme === 'custom'" class="text-muted">
+    <small v-if="store.cartoColorScheme === 'custom'" class="text-muted">
       Go back to step 2 if needed.
     </small>
   </div>

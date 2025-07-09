@@ -5,7 +5,7 @@ import type { DataTable } from '../lib/interface'
 export const useProjectStore = defineStore('project', () => {
   const title = ref('')
   const useInset = ref(false)
-  const colorRegionScheme = ref('pastel1')
+  const cartoColorScheme = ref('pastel1')
   const choroSettings = ref({
     isAdvanceMode: false,
     scheme: 'blues',
@@ -35,7 +35,7 @@ export const useProjectStore = defineStore('project', () => {
   return {
     title,
     useInset,
-    colorRegionScheme,
+    cartoColorScheme,
     choroSettings,
     visTypes,
     dataTable,

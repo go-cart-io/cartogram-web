@@ -25,7 +25,7 @@ defineExpose({
 })
 
 watch(
-  () => store.colorRegionScheme,
+  () => store.cartoColorScheme,
   (newValue, oldValue) => {
     updateColorAndDataTable(newValue, oldValue)
   }
@@ -56,7 +56,7 @@ async function init(geojsonData: FeatureCollection, geojsonRegionCol: string) {
     geojsonData,
     geojsonRegionCol,
     state.currentColorCol,
-    store.colorRegionScheme,
+    store.cartoColorScheme,
     customScaleSpec
   )
   visView = container.view
@@ -64,7 +64,7 @@ async function init(geojsonData: FeatureCollection, geojsonRegionCol: string) {
   await visualization.initLegendWithValues(
     store.dataTable.items,
     state.currentColorCol,
-    store.colorRegionScheme,
+    store.cartoColorScheme,
     customScaleSpec
   )
   state.isInit = true

@@ -20,9 +20,11 @@ if (document.getElementById('cartogram-maker')) {
     maps,
     mapName,
     mapTitle,
-    mapColorScheme,
     geoUrl,
-    csvUrl
+    csvUrl,
+    mapTypes,
+    cartoColorScheme,
+    choroSettings
   })
   maker.use(createPinia())
   maker.mount('#cartogram-maker')

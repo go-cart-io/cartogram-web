@@ -9,11 +9,13 @@
 
 {% block javascript %}
 <script>
-	var mapName = "{{ map_name }}";
 	var maps = JSON.parse('{{ maps | default({}) | tojson | safe }}');
+	var mapName = "{{ map_name }}";
 	var mapTitle = "{{ map_title }}";
-	var mapColorScheme = "{{ map_color_scheme }}";
 	var geoUrl = "{{ geo_url }}";
 	var csvUrl = "{{ csv_url }}";
+	var mapTypes = JSON.parse('{{ map_types | default({}) | tojson | safe }}');
+	var cartoColorScheme = "{{ map_color_scheme }}";
+	var choroSettings = JSON.parse('{{ map_settings | default({}) | tojson | safe }}');
 </script>
 {% endblock javascript %}

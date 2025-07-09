@@ -82,6 +82,21 @@ export async function initDataTableWGeojson(
   }
 }
 
+function _getVisTypeForColumn(
+  visTypes: { [key: string]: Array<string> },
+  columnName: string
+): string {
+  for (const visType in visTypes) {
+    if (Object.prototype.hasOwnProperty.call(visTypes, visType)) {
+      const columns = visTypes[visType]
+      if (columns.includes(columnName)) {
+        return visType
+      }
+    }
+  }
+  return ''
+}
+
 export function initDataTableWArray(data: KeyValueArray, isReplace = true) {
   const store = useProjectStore()
   data = util.filterKeyValueInArray(data, config.RESERVE_FIELDS)
@@ -100,7 +115,7 @@ export function initDataTableWArray(data: KeyValueArray, isReplace = true) {
         name: fieldname,
         unit: unit,
         type: 'number',
-        vis: '',
+        vis: _getVisTypeForColumn(store.visTypes, keys[i]),
         editable: true,
         editableHead: true,
         show: true
@@ -132,8 +147,8 @@ export function updateDataTable(csvData: KeyValueArray) {
   store.dataTable.fields[config.COL_INSET].show = csvData[0].hasOwnProperty('Inset')
   initDataTableWArray(csvData, false)
 
-  store.colorRegionScheme = store.dataTable.fields[config.COL_COLOR].show
+  store.cartoColorScheme = store.dataTable.fields[config.COL_COLOR].show
     ? 'custom'
-    : store.colorRegionScheme
+    : store.cartoColorScheme
   store.useInset = store.dataTable.fields[config.COL_INSET].show
 }
