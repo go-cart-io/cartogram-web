@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FeatureCollection } from 'geojson'
 import { Toast, Modal } from 'bootstrap'
-import { reactive, ref, onMounted, nextTick } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 
 import * as config from '../../common/config'
 import * as datatable from '../lib/datatable'
@@ -70,6 +70,12 @@ async function onGeoJsonChanged(
   state.geojsonRegionCol = regionCol
   state.isInitialized = isInitialized
   await visEl.value.init(geojsonData, regionCol)
+
+  if (isInitialized) collapseStep('1')
+}
+
+function collapseStep(step: string) {
+  document.getElementById('step' + step + '-btn')?.click()
 }
 
 async function getGeneratedCartogram() {
@@ -149,8 +155,9 @@ async function getGeneratedCartogram() {
 
 <template>
   <div class="row">
-    <div class="accordion col-12 col-sm-4 col-md-3 p-0 bg-light">
+    <div id="stepAccordion" class="accordion col-12 col-sm-4 col-md-3 p-0 bg-light">
       <button
+        id="step1-btn"
         class="accordion-button p-2 bg-light border"
         data-bs-toggle="collapse"
         data-bs-target="#step1"
@@ -176,6 +183,7 @@ async function getGeneratedCartogram() {
       </div>
 
       <button
+        id="step2-btn"
         class="accordion-button p-2 bg-light border"
         data-bs-toggle="collapse"
         data-bs-target="#step2"
@@ -185,10 +193,19 @@ async function getGeneratedCartogram() {
         2. Input your data
       </button>
       <div id="step2" class="accordion-collapse collapse show p-2">
-        <c-form-csv v-bind:disabled="!state.isInitialized" v-on:changed="visEl.updateData()" />
+        <c-form-csv
+          v-bind:disabled="!state.isInitialized"
+          v-on:changed="
+            () => {
+              visEl.updateData()
+              collapseStep('2')
+            }
+          "
+        />
       </div>
 
       <button
+        id="step3-btn"
         class="accordion-button p-2 bg-light border"
         data-bs-toggle="collapse"
         data-bs-target="#step3"
@@ -202,19 +219,21 @@ async function getGeneratedCartogram() {
       </div>
 
       <button
+        id="step3.1-btn"
         class="accordion-button p-2 bg-light border"
         data-bs-toggle="collapse"
         data-bs-target="#step3-1"
         aria-expanded="true"
         aria-controls="step3-1"
       >
-        3.1 Cartogram
+        3.1 Map/Cartogram
       </button>
       <div id="step3-1" class="accordion-collapse collapse show p-2">
         <c-form-cartogram v-bind:disabled="!state.isInitialized" />
       </div>
 
       <button
+        id="step3.2-btn"
         class="accordion-button p-2 bg-light border"
         data-bs-toggle="collapse"
         data-bs-target="#step3-2"
@@ -228,6 +247,7 @@ async function getGeneratedCartogram() {
       </div>
 
       <button
+        id="step4-btn"
         class="accordion-button p-2 bg-light border"
         data-bs-toggle="collapse"
         data-bs-target="#step4"
@@ -263,7 +283,8 @@ async function getGeneratedCartogram() {
         <p>
           Please follow the steps
           <span class="d-none d-sm-inline">on the left panel</span>
-          <span class="d-inline d-sm-none">above</span>.
+          <span class="d-inline d-sm-none">above</span>. Once a step is completed, you can collapse
+          the step panel for more space or re-expand it if you need to revisit it.
         </p>
         <p>
           Don't know where to start? You may try editing one of our

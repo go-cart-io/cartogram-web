@@ -33,7 +33,7 @@ const props = defineProps<{
 
 <template>
   Region Colors
-  <div class="dropdown">
+  <div class="dropdown mb-2">
     <button
       id="colorDropdownBtn"
       class="btn btn-outline-secondary dropdown-toggle w-100"

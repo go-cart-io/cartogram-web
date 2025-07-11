@@ -128,7 +128,12 @@ function updateColorAndDataTable(scheme: string, oldScheme: string) {
       </div>
     </div>
 
-    <div id="legend" class="col-6 col-lg-8 p-0"></div>
+    <div class="col-6 col-lg-8 p-0">
+      <div v-if="state.isInit && !store.visTypes['choropleth'].length" class="position-absolute">
+        Select visualization type as "Choropleth" for more color options.
+      </div>
+      <div id="legend" class="d-block"></div>
+    </div>
   </div>
 
   <div id="map-vis" class="vis-area p-2"></div>
@@ -140,6 +145,7 @@ function updateColorAndDataTable(scheme: string, oldScheme: string) {
   height: 300px;
 }
 
+#legend,
 #legend svg {
   height: 100%;
 }
