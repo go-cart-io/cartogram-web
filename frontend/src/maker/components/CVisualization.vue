@@ -72,7 +72,7 @@ async function init(geojsonData: FeatureCollection, geojsonRegionCol: string) {
 
 function updateData() {
   nextTick() // Ensure that dataTable is updated
-  visView.data('source_csv', store.dataTable.items).runAsync()
+  refresh()
 }
 
 function setDataItem(row: string, col: string, value: string) {
@@ -83,10 +83,13 @@ function setDataItem(row: string, col: string, value: string) {
 function updateColorAndDataTable(scheme: string, oldScheme: string) {
   if (scheme === oldScheme) return
   if (scheme === 'custom') {
-    // Copy all color from Vega to data table
-    const colorScale = visView.scale('color_group')
-    for (let i = 0; i < store.dataTable.items.length; i++) {
-      store.dataTable.items[i]['Color'] = colorScale(store.dataTable.items[i]['ColorGroup'])
+    // Copy colors from Vega to the data table **only if no color is already assigned**
+    // The condition is crucial because csv uploading populates the color column before applies the custom scheme
+    if (store.dataTable.items[0] && !store.dataTable.items[0]['Color']) {
+      const colorScale = visView.scale('color_group')
+      for (let i = 0; i < store.dataTable.items.length; i++) {
+        store.dataTable.items[i]['Color'] = colorScale(store.dataTable.items[i]['ColorGroup'])
+      }
     }
 
     store.dataTable.fields[config.COL_COLOR].show = true

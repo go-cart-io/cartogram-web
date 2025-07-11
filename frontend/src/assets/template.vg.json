@@ -159,7 +159,7 @@
           },
           "tooltip": { "signal": "datum.cartogram_data" },
           "fill": {
-            "signal": "color_field === 'Color' ? {'field': datum.cartogram_data.Color} : color_field === 'ColorGroup' ? scale('color_group', datum.cartogram_data.ColorGroup) : scale(color_field, datum.cartogram_data[color_field])"
+            "signal": "color_field === 'Color' && isValid(datum.cartogram_data.Color) ? datum.cartogram_data.Color : color_field === 'ColorGroup' ? scale('color_group', datum.cartogram_data.ColorGroup) : scale(color_field, datum.cartogram_data[color_field])"
           },
           "ariaRoleDescription": { "value": "geoshape" }
         }
