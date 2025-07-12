@@ -358,6 +358,9 @@ def create_app():
             )
         except CartogramError as e:
             db.session.rollback()
+            if userdata_path and os.path.exists(userdata_path):
+                shutil.rmtree(userdata_path)
+
             return e.response(app.logger)
         except Exception as e:
             db.session.rollback()
