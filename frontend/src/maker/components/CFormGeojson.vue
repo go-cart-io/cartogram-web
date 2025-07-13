@@ -114,18 +114,18 @@ async function uploadGeoJson(event: Event) {
           <label for="fileInput" class="btn btn-outline-secondary">
             Choose file <i class="fa-solid fa-upload"></i>
           </label>
-        <input
+          <input
             id="fileInput"
-          ref="fileEl"
-          type="file"
-          accept=".geojson,.json,.zip"
+            ref="fileEl"
+            type="file"
+            accept=".geojson,.json,.zip"
             class="d-none"
-          v-on:change="uploadGeoJson"
-        />
+            v-on:change="uploadGeoJson"
+          />
           <div class="text-truncate">
             {{ state.selectedFileName || 'No file chosen' }}
           </div>
-        <div class="invalid-feedback">{{ state.error }}</div>
+          <div class="d-block invalid-feedback">{{ state.error }}</div>
         </div>
       </div>
       <div class="d-flex justify-content-center" v-if="state.isLoading">
