@@ -45,10 +45,8 @@ def preprocess(input, mapDBKey="temp_filename", based_path="tmp"):
         # Temporary project it so we can calculate the area
         # NSIDC EASE-Grid 2.0 Global https://epsg.io/6933
         cdf.to_crs("EPSG:6933", inplace=True)
-        tmp_cdf = cdf
-    else:
-        # Forced projected file just for surprass mapclassify's warning
-        tmp_cdf = cdf.to_crs("EPSG:6933", force=True)
+
+    tmp_cdf = cdf
 
     if not any(cdf.columns.str.startswith("Geographic Area")):
         cdf["Geographic Area (sq. km)"] = round(tmp_cdf.area / 10**6)

@@ -1,5 +1,4 @@
 import json
-import warnings
 from typing import Any
 
 import geopandas as gpd
@@ -70,16 +69,11 @@ class CartoDataFrame(gpd.GeoDataFrame):
         gdf = gpd.read_file(filepath)
         return cls(gdf, extra_attributes=extra_attributes)
 
-    def to_crs(self, *args, force: bool = False, **kwargs) -> Any:
+    def to_crs(self, *args, **kwargs) -> Any:
         """
         Overrides GeoDataFrame's to_crs method.
         If the GeoDataFrame is already projected, prints a warning before reprojecting.
         """
-        if self.is_projected and not force:
-            warnings.warn(
-                "The file is already projected. This reprojection may be incorrect.",
-                UserWarning,
-            )
         if "crs" in self.extra_attributes:
             del self.extra_attributes["crs"]
 
