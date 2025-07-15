@@ -158,9 +158,7 @@ async function getGeneratedCartogram() {
       }
     )
   }).catch(function (error: any) {
-    state.error =
-      error +
-      ' Try refresh this page, then re-upload your map and data. If the issue persists, please contact us.'
+    state.error = error
     progressModal.hide()
     state.isProcessing = false
     Toast.getOrCreateInstance(document.getElementById('errorToast')!).show()

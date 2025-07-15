@@ -293,7 +293,7 @@ def create_app():
                 ).first()
 
                 if cartogram_entry is not None:
-                    raise CartogramError("Duplicated database key.")
+                    raise CartogramError("Duplicated database key.", True)
 
             if "persist" in data:
                 userdata_path = util.get_safepath("static/userdata", string_key)
@@ -352,7 +352,12 @@ def create_app():
             db.session.rollback()
             app.logger.warning(f"Error: {str(e)}")
             return Response(
-                '{"error":"Files for cartogram generation not found."}',
+                json.dumps(
+                    {
+                        "error": "Files for cartogram generation not found."
+                        + CartogramError.SUGGEST_REFRESH_TXT
+                    }
+                ),
                 status=400,
                 content_type="application/json",
             )
@@ -369,7 +374,9 @@ def create_app():
                 shutil.rmtree(userdata_path)
 
             return Response(
-                json.dumps({"error": "Unknown error."}),
+                json.dumps(
+                    {"error": "Unknown error." + CartogramError.SUGGEST_REFRESH_TXT}
+                ),
                 status=400,
                 content_type="application/json",
             )
