@@ -3,6 +3,7 @@ from typing import Any
 
 import geopandas as gpd
 import util
+from errors import CartogramError
 
 
 class CartoDataFrame(gpd.GeoDataFrame):
@@ -19,7 +20,16 @@ class CartoDataFrame(gpd.GeoDataFrame):
 
     def __init__(self, *args, extra_attributes={}, **kwargs):
         super().__init__(*args, **kwargs)
-        object.__setattr__(self, "extra_attributes", extra_attributes or {})
+
+        # Maintain only reserved attributes, discard others
+        # This is to prevent conflicts with topojson
+        reserved_keys = ["crs", "extent", "properties"]
+        filtered_extra_attributes = {
+            key: extra_attributes[key]
+            for key in reserved_keys
+            if key in extra_attributes
+        }
+        object.__setattr__(self, "extra_attributes", filtered_extra_attributes or {})
 
         self.is_projected = (
             extra_attributes.get("crs", {}).get("properties", {}).get("name")
@@ -67,6 +77,20 @@ class CartoDataFrame(gpd.GeoDataFrame):
                 pass
 
         gdf = gpd.read_file(filepath)
+
+        # Deal with topojson
+        if gdf.crs is None:
+            gdf.set_crs("EPSG:4326", inplace=True)
+        if not gdf.is_simple.all():
+            if extra_attributes.get("type", "") == "Topology":
+                raise CartogramError(
+                    "TopoJSON is not fully supported. Please convert your file to GeoJSON and try again."
+                )
+            else:
+                raise CartogramError(
+                    "Geometries are not simple. Fix the boundary file and try again."
+                )
+
         return cls(gdf, extra_attributes=extra_attributes)
 
     def to_crs(self, *args, **kwargs) -> Any:
