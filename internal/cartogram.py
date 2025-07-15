@@ -1,5 +1,6 @@
 import json
 import re
+import warnings
 from io import StringIO
 
 import mapclassify
@@ -14,6 +15,29 @@ from shapely.geometry import shape
 
 
 def preprocess(input, mapDBKey="temp_filename", based_path="tmp"):
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        result = preprocess_boundary(input, mapDBKey, based_path)
+
+        result["warnings"] = []
+        for warning_message in w:
+            if (
+                "Geometry is in a geographic CRS. Results from 'area' are likely incorrect."
+                in str(warning_message.message)
+            ):
+                result["warnings"].append(
+                    "Geometry is in a geographic CRS. The geographic area calculation (in sq. km) is likely incorrect, but your cartogram will still render accurately."
+                )
+
+            elif "More than one layer found" in str(warning_message.message):
+                result["warnings"].append(
+                    "Multiple map layers found. If the preview isn't what you expected, please remove unwanted map layers and re-upload your boundary file."
+                )
+
+    return result
+
+
+def preprocess_boundary(input, mapDBKey="temp_filename", based_path="tmp"):
     # Input can be anything that is supported by geopandas.read_file
     # Standardize input to geojson file path
     file_path = util.get_safepath(based_path, f"{mapDBKey}.json")

@@ -18,6 +18,7 @@ let geojsonData = {} as FeatureCollection
 const state = reactive({
   isLoading: false,
   error: '',
+  warnings: [] as Array<string>,
   handler: '',
   selectedFileName: '',
   geojsonUniqueProperties: [] as Array<string>,
@@ -43,6 +44,7 @@ async function uploadGeoJson(event: Event) {
 
   const input = event.target as HTMLInputElement
   const files = input.files
+  state.error = ''
   if (!files || files.length == 0) return
 
   state.isLoading = true
@@ -85,6 +87,7 @@ async function uploadGeoJson(event: Event) {
   state.geojsonRegionCol = ''
   state.handler = 'custom'
   state.isLoading = false
+  state.warnings = response.warnings
   const firstUniqueProprety = state.geojsonUniqueProperties[0]
   emit('changed', state.handler, geojsonData, firstUniqueProprety, '', false)
 }
@@ -128,11 +131,21 @@ async function uploadGeoJson(event: Event) {
           <div class="d-block invalid-feedback">{{ state.error }}</div>
         </div>
       </div>
+
       <div class="d-flex justify-content-center" v-if="state.isLoading">
         <div class="p-2 spinner-border" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
       </div>
+      <div
+        v-else
+        v-for="(warning, index) in state.warnings"
+        class="p-2 bg-warning-subtle"
+        v-bind:key="index"
+      >
+        <i class="fa-solid fa-triangle-exclamation text-warning"></i> {{ warning }}
+      </div>
+
       <div class="p-2" v-if="state.geojsonUniqueProperties.length > 0">
         Which property contain unique region names (e.g., country names)?
         <select
