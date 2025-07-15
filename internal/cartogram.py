@@ -94,7 +94,9 @@ def generate_cartogram(
     data_length = len(data_cols)
 
     if data_length == 0:
-        raise CartogramError("Cannot find data column.")
+        raise CartogramError(
+            "Missing data. Please add at least one data column to the table."
+        )
 
     # Process the boundary file
     cdf = CartoDataFrame.read_file(input_file)
@@ -217,6 +219,18 @@ def process_data(csv_string):
                 name = column.strip()
 
             df[column] = pd.to_numeric(df[column], errors="coerce")
+
+            if name == "":
+                raise CartogramError(
+                    "Missing data name. Please ensure each data column has a name in its header."
+                )
+
+            sum = df[column].sum()
+            if sum == 0:
+                raise CartogramError(
+                    f"Cannot process {column}: Sum is zero. Please ensure the sum of data is not zero."
+                )
+
             data_cols.append({"name": name, "column_name": column})
 
     df = df.reindex(columns=cols_order)

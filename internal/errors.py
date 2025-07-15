@@ -8,9 +8,14 @@ from flask import Response
 class CartogramError(Exception):
     """Custom exception for user-facing errors with automated logging. DO NOT include sensitive data."""
 
-    def __init__(self, message: str = "Error occurred"):
+    SUGGEST_REFRESH_TXT = " Try refresh this page, then re-upload your map and data. If the issue persists, please contact us."
+
+    def __init__(self, message: str = "Error occurred", suggest_refresh=False):
         if not message.endswith("."):
             message = message + "."
+
+        if suggest_refresh:
+            message = message + self.SUGGEST_REFRESH_TXT
 
         self.message = message
         super().__init__(message)
