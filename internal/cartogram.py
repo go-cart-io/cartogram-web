@@ -69,6 +69,9 @@ def preprocess_boundary(input, mapDBKey="temp_filename", based_path="tmp"):
         # Temporary project it so we can calculate the area
         # NSIDC EASE-Grid 2.0 Global https://epsg.io/6933
         cdf.to_crs("EPSG:6933", inplace=True)
+        color_method = "centroid"
+    else:
+        color_method = "count"
 
     tmp_cdf = cdf
 
@@ -78,7 +81,7 @@ def preprocess_boundary(input, mapDBKey="temp_filename", based_path="tmp"):
 
     if "ColorGroup" not in cdf.columns:
         cdf["ColorGroup"] = mapclassify.greedy(
-            tmp_cdf, min_colors=6, balance="distance"
+            tmp_cdf, min_colors=6, balance=color_method
         )
         cdf["ColorGroup"] = cdf["ColorGroup"].astype(int)
 
