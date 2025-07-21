@@ -38,7 +38,7 @@ async function uploadCsvData(event: Event) {
   if (type === 'xls' || type === 'xlsx') {
     const wb = XLSX.read(data, { type: 'array' })
     const ws = wb.Sheets[wb.SheetNames[0]]
-    csvData = XLSX.utils.sheet_to_json(ws)
+    csvData = XLSX.utils.sheet_to_json(ws, { defval: '' })
   } else {
     // Assume CSV: decode ArrayBuffer to a UTF‑8 string before parsing
     const text = new TextDecoder('utf-8').decode(data)

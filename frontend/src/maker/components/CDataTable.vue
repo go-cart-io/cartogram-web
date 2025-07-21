@@ -234,10 +234,13 @@ function updateDataTable(csvData: KeyValueArray) {
 function changeColor(scheme: string, oldScheme: string) {
   if (scheme === 'custom') {
     if (oldScheme !== 'custom') {
-      // No color assigned - Copy all color from Vega to data table
-      const colorScale = visView.scale('color_group')
-      for (let i = 0; i < state.dataTable.items.length; i++) {
-        state.dataTable.items[i]['Color'] = colorScale(state.dataTable.items[i]['ColorGroup'])
+      // Copy colors from Vega to the data table **only if no color is already assigned**
+      // The condition is crucial because csv uploading populates the color column before applies the custom scheme
+      if (state.dataTable.items[0] && !state.dataTable.items[0]['Color']) {
+        const colorScale = visView.scale('color_group')
+        for (let i = 0; i < state.dataTable.items.length; i++) {
+          state.dataTable.items[i]['Color'] = colorScale(state.dataTable.items[i]['ColorGroup'])
+        }
       }
     } else {
       // Assign white to empty color
