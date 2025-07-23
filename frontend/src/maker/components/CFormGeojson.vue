@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FeatureCollection } from 'geojson'
-import { ref, reactive } from 'vue'
+import { ref, reactive, nextTick } from 'vue'
 
 import HTTP from '../lib/http'
 import * as datatable from '../lib/datatable'
@@ -100,6 +100,10 @@ async function uploadGeoJson(event: Event) {
 
   await datatable.initDataTableWGeojson(geojsonData, firstUniqueProprety)
   emit('changed', state.handler, geojsonData, firstUniqueProprety, false)
+
+  nextTick()
+  const selectEl = document.getElementById('regionColSelect') as HTMLSelectElement
+  selectEl.reportValidity()
 }
 
 async function onRegionColChanged() {
@@ -162,6 +166,7 @@ async function onRegionColChanged() {
       <select
         id="regionColSelect"
         class="form-select"
+        required
         v-model="state.geojsonRegionCol"
         v-on:change="onRegionColChanged"
       >
