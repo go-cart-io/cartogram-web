@@ -21,7 +21,8 @@ defineExpose({
   reset,
   init,
   updateData,
-  setDataItem
+  setDataItem,
+  resolveRegionIssues
 })
 
 watch(
@@ -85,11 +86,10 @@ function updateColorAndDataTable(scheme: string, oldScheme: string) {
   if (scheme === 'custom') {
     // Copy colors from Vega to the data table **only if no color is already assigned**
     // The condition is crucial because csv uploading populates the color column before applies the custom scheme
-    if (store.dataTable.items[0] && !store.dataTable.items[0]['Color']) {
-      const colorScale = visView.scale('color_group')
-      for (let i = 0; i < store.dataTable.items.length; i++) {
+    const colorScale = visView.scale('color_group')
+    for (let i = 0; i < store.dataTable.items.length; i++) {
+      if (!store.dataTable.items[i]['Color'])
         store.dataTable.items[i]['Color'] = colorScale(store.dataTable.items[i]['ColorGroup'])
-      }
     }
 
     store.dataTable.fields[config.COL_COLOR].show = true
@@ -101,6 +101,64 @@ function updateColorAndDataTable(scheme: string, oldScheme: string) {
     store.dataTable.fields[config.COL_COLOR].show = false
     visView.signal('color_scheme', scheme).runAsync()
   }
+}
+
+async function resolveRegionIssues() {
+  if (store.regionWarnings.size <= 0) return
+  if (
+    !window.confirm(
+      'Click "OK" to apply changes. The changes cannot be undone unless re-uploading the data.'
+    )
+  )
+    return
+
+  // Apply changes
+  let deletedIndexTotal = 0 // We need to re-adjust the indexes if we delete an item
+  for (const index of store.regionWarnings) {
+    // The id of HTML select element remains the same regardless to deleted item
+    const actionEl = document.getElementById('regionWarningAction' + index) as HTMLSelectElement
+    const action = actionEl?.value
+
+    // Index of data items must be adjusted
+    let rIndex = index - deletedIndexTotal
+    if (action === 'dropRegion') {
+      deleteRegion(rIndex)
+      deletedIndexTotal++
+    } else if (store.dataTable.items[rIndex].Region !== action) {
+      renameRegion(rIndex, action)
+    }
+  }
+
+  // Clear warnings
+  store.regionWarnings.clear()
+  store.regionData = []
+
+  updateData()
+}
+
+function deleteRegion(rIndex: number) {
+  const region = store.dataTable.items.splice(rIndex, 1)
+
+  if (!currentGeojsonData) return
+  const filteredFeatures = currentGeojsonData.features.filter((feature) => {
+    return feature.properties?.Region !== region[0].Region
+  })
+  currentGeojsonData = { ...currentGeojsonData, features: filteredFeatures }
+}
+
+function renameRegion(rIndex: number, action: string) {
+  const oldName = store.dataTable.items[rIndex].Region
+  const baseItem = store.dataTable.items[rIndex]
+  const newItem = store.regionData[parseInt(action)]
+  store.dataTable.items[rIndex] = { ...baseItem, ...newItem }
+  const newName = store.dataTable.items[rIndex].Region
+
+  if (!currentGeojsonData) return
+  currentGeojsonData.features.forEach((feature) => {
+    if (feature.properties && feature.properties.Region === oldName) {
+      feature.properties.Region = newName
+    }
+  })
 }
 </script>
 

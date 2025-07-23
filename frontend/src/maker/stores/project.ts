@@ -15,6 +15,8 @@ export const useProjectStore = defineStore('project', () => {
   })
   const visTypes = ref({ cartogram: [], choropleth: [] } as { [key: string]: Array<string> })
   const dataTable = ref<DataTable>({ fields: [], items: [] })
+  const regionWarnings = ref(new Set() as Set<number>)
+  const regionData = ref([] as Array<{ [key: string]: any }>)
 
   function updateChoroSpec() {
     // Do not override spec if the user is in advance mode
@@ -39,6 +41,8 @@ export const useProjectStore = defineStore('project', () => {
     choroSettings,
     visTypes,
     dataTable,
+    regionWarnings,
+    regionData,
     updateChoroSpec
   }
 })

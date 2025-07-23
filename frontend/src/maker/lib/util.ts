@@ -105,11 +105,50 @@ export function arrangeKeysInArray(
   })
 }
 
-export function mergeObjInArray(baseData: KeyValueArray, newData: KeyValueArray, mergeKey: string) {
-  return baseData.map((item) => {
-    const csvItems = newData.find((c) => c[mergeKey] === item[mergeKey])
-    return csvItems ? { ...item, ...csvItems } : item
+export function updateObjInArray(
+  baseData: KeyValueArray,
+  newData: KeyValueArray,
+  mergeKey: string
+) {
+  // Create a Map for efficient lookup of newData items by region.
+  // We'll use a copy of newData to modify it as we process items.
+  const newDataMap = new Map<string, { [key: string]: any }>()
+  newData.forEach((item) => {
+    newDataMap.set(item[mergeKey], { ...item })
   })
+
+  // Iterate through baseData to find matches and identify items only in baseData
+  let fields = [] as Array<string>
+  let updatedData = [] as KeyValueArray
+  let unupdatedIndex = [] as Array<number>
+  for (let i = 0; i < baseData.length; i++) {
+    let baseItem = baseData[i]
+    if (newDataMap.has(baseItem[mergeKey])) {
+      // If a match is found in newData, use the newData item for updatedData
+      const newItem = newDataMap.get(baseItem[mergeKey])!
+      const updatedItem = { ...baseItem, ...newItem }
+      updatedData.push({ ...baseItem, ...newItem })
+      newDataMap.delete(baseItem[mergeKey]) // Remove from map as it's been processed
+      if (fields.length === 0) fields = Object.keys(updatedItem) // Extract fields (headers)
+    } else {
+      // If no match in newData, this item is only in baseData
+      unupdatedIndex.push(i)
+      updatedData.push(baseItem)
+    }
+  }
+
+  // Any remaining items in newDataMap are only in newData
+  let unmatchedData = [] as KeyValueArray
+  newDataMap.forEach((item) => {
+    unmatchedData.push(item)
+  })
+
+  return {
+    updated: updatedData,
+    fields: fields,
+    unupdatedIndex: unupdatedIndex,
+    unmatched: unmatchedData
+  }
 }
 
 export function tableToArray(dataTable: DataTable): KeyValueArray {

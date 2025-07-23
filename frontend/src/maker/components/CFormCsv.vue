@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import * as d3 from 'd3'
 import * as XLSX from 'xlsx'
-import { reactive } from 'vue'
+import { nextTick, reactive } from 'vue'
 
 import * as datatable from '../lib/datatable'
 import * as util from '../lib/util'
@@ -18,7 +18,7 @@ const props = withDefaults(
   }
 )
 
-const emit = defineEmits(['changed'])
+const emit = defineEmits(['changed', 'regionResolve'])
 
 const state = reactive({
   selectedFileName: ''
@@ -102,9 +102,6 @@ async function uploadCsvData(event: Event) {
   <div class="p-2">
     <div class="badge text-bg-secondary mb-2">Upload</div>
     <div class="mb-2">
-      Please ensure the first column contains the same region names you chose in step 1.
-    </div>
-    <div class="mb-2">
       <label
         for="csvInput"
         class="btn btn-outline-secondary"
@@ -123,5 +120,19 @@ async function uploadCsvData(event: Event) {
         {{ state.selectedFileName || 'No file chosen' }}
       </div>
     </div>
+  </div>
+
+  <div v-if="store.regionWarnings.size > 0" class="p-2 bg-warning-subtle">
+    <i class="fa-solid fa-triangle-exclamation text-warning"></i>
+    Data regions don't match the map. Review and resolve mismatches in the "Region" column in the
+    "Input Overview" panel, then apply the changes before proceeding.
+
+    <button
+      class="btn btn-secondary mt-2"
+      v-on:click="emit('regionResolve')"
+      v-bind:class="{ disabled: props.disabled }"
+    >
+      Apply Changes
+    </button>
   </div>
 </template>

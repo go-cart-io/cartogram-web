@@ -98,13 +98,20 @@ function _getVisTypeForColumn(
 export function initDataTableWArray(data: KeyValueArray, isReplace = true) {
   const store = useProjectStore()
   data = util.filterKeyValueInArray(data, config.RESERVE_FIELDS)
+
+  let keys = [] as Array<string>
   if (isReplace) {
     store.dataTable.items = data
+    keys = Object.keys(store.dataTable.items[0])
   } else {
-    store.dataTable.items = util.mergeObjInArray(store.dataTable.items, data, 'Region')
+    const result = util.updateObjInArray(store.dataTable.items, data, 'Region')
+    keys = result.fields
+    store.dataTable.items = result.updated
+    store.regionData = result.unmatched
+    if (result.unupdatedIndex.length > 0) store.regionWarnings = new Set(result.unupdatedIndex)
+    else store.regionWarnings = new Set()
   }
 
-  const keys = Object.keys(store.dataTable.items[0])
   for (let i = 0; i < keys.length; i++) {
     if (!config.RESERVE_FIELDS.includes(keys[i])) {
       const [fieldname, unit] = util.getNameUnit(keys[i])

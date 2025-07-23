@@ -198,6 +198,12 @@ async function getGeneratedCartogram() {
           v-on:changed="
             () => {
               visEl.updateData()
+              if (store.regionWarnings.size <= 0) collapseStep('2')
+            }
+          "
+          v-on:regionResolve="
+            () => {
+              visEl.resolveRegionIssues()
               collapseStep('2')
             }
           "

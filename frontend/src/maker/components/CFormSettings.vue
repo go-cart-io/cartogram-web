@@ -30,6 +30,6 @@ const props = defineProps<{
   </div>
 
   <div class="p-2">
-    Review data and select a visualization method for each column in the input overview panel.
+    Review data and select a visualization method for each column in the "Input Overview" panel.
   </div>
 </template>

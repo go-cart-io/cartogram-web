@@ -28,7 +28,9 @@ export default ({ mode }: UserConfig): UserConfigExport => {
     },
     test: {
       globals: true,
-      environment: 'jsdom'
+      environment: 'node',
+      isolate: false,
+      pool: 'threads'
     },
     build: {
       manifest: true,

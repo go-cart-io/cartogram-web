@@ -1,12 +1,30 @@
 <script setup lang="ts">
-import { toRaw } from 'vue'
+import { computed, toRaw } from 'vue'
 
+import * as config from '../../common/config'
 import * as util from '../lib/util'
 
 import { useProjectStore } from '../stores/project'
 const store = useProjectStore()
 
 const emit = defineEmits(['labelChanged', 'valueChanged'])
+
+// Sample from uploaded data that cannot be matched with the map
+const sampleRegionDataKey = computed<string[]>(() => {
+  const keys: string[] = []
+  const regionData = store.regionData[0]
+
+  for (const key in regionData) {
+    if (
+      Object.prototype.hasOwnProperty.call(regionData, key) &&
+      !config.RESERVE_FIELDS.includes(key)
+    ) {
+      keys.push(key)
+      if (keys.length === 2) break
+    }
+  }
+  return keys
+})
 
 function addColumn() {
   const index = store.dataTable.fields.findIndex((item) => item.name === '')
@@ -67,17 +85,17 @@ function updateLabel(index: number) {
   emit('labelChanged')
 }
 
+function onValueChange(rIndex: number, label: string, event: Event) {
+  const target = <HTMLInputElement>event.target
+  store.dataTable.items[rIndex][label] = target.value
+  emit('valueChanged', store.dataTable.items[rIndex].Region, label, target.value)
+}
+
 function validateInput(event: Event) {
   const inputElement = event.target as HTMLInputElement
   if (!inputElement.checkValidity()) {
     inputElement.reportValidity()
   }
-}
-
-function onValueChange(rIndex: number, label: string, event: Event) {
-  const target = <HTMLInputElement>event.target
-  store.dataTable.items[rIndex][label] = target.value
-  emit('valueChanged', store.dataTable.items[rIndex].Region, label, target.value)
 }
 </script>
 
@@ -152,11 +170,33 @@ function onValueChange(rIndex: number, label: string, event: Event) {
       </thead>
       <tr v-for="(row, rIndex) in store.dataTable.items" v-bind:key="rIndex">
         <td v-for="(field, index) in store.dataTable.fields" v-show="field.show" v-bind:key="index">
-          <div
-            class="cell-content"
-            v-bind:class="{ 'error-cell': field.label === 'Region' && row.regionError }"
-          >
-            <span v-if="!field.editable">{{ row[field.label] }}</span>
+          <div>
+            <!-- Select action if the map regions and the uploaded data's regions mismatched -->
+            <select
+              v-if="field.label === 'Region' && store.regionWarnings.has(rIndex)"
+              class="form-select"
+              v-bind:id="'regionWarningAction' + rIndex"
+            >
+              <option disabled selected>Choose action</option>
+              <option disabled>Keep original name and values:</option>
+              <option v-bind:value="row[field.label]" v-bind:key="row[field.label]">
+                = {{ row[field.label] }}
+              </option>
+              <option disabled>Drop the region from map and data:</option>
+              <option value="dropRegion">x {{ row[field.label] }}</option>
+              <option disabled>Rename region and use values from:</option>
+              <option
+                v-for="(data, index) in store.regionData"
+                v-bind:value="index"
+                v-bind:key="data.Region"
+              >
+                &gt; {{ data.Region }} ({{
+                  sampleRegionDataKey.map((key) => key + ': ' + data[key]).join(', ')
+                }}, ...)
+              </option>
+            </select>
+            <!-- Other field types -->
+            <span v-else-if="!field.editable">{{ row[field.label] }}</span>
             <select
               v-else-if="field.type === 'select'"
               class="form-select"
