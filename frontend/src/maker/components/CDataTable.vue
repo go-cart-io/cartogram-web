@@ -121,41 +121,31 @@ function onValueChange(rIndex: number, label: string, event: Event) {
             v-show="field.show"
             v-bind:key="index"
           >
-            <!-- Wrap header content in a container for tooltip -->
-            <div
-              class="header-cell"
-              v-bind:class="{ 'header-error': field.label === 'Region' && field.headerError }"
-            >
-              <span v-if="!field.editableHead">{{ field.label }}</span>
-              <div v-else>
-                <i
-                  v-if="store.dataTable.fields[index].name !== 'Geographic Area'"
-                  class="position-absolute top-0 end-0 btn-icon text-secondary fas fa-minus-circle"
-                  v-on:click="store.dataTable.fields[index].show = false"
-                  v-bind:title="'Remove ' + store.dataTable.fields[index].name + ' column'"
-                ></i>
-                <!-- TODO ask for the confirmation and completely remove it so it'll beremove from the popup. -->
-                <input
-                  class="form-control"
-                  v-model="store.dataTable.fields[index].name"
-                  placeholder="Data name"
-                  required
-                  v-bind:id="'formFieldName' + index"
-                  v-on:blur="validateInput"
-                  v-on:change="updateLabel(index)"
-                />
-                <input
-                  class="form-control"
-                  v-model="store.dataTable.fields[index].unit"
-                  placeholder="Unit"
-                  v-bind:id="'formFieldUnit' + index"
-                  v-on:change="updateLabel(index)"
-                />
-              </div>
-              <!-- Tooltip for header error -->
-              <div v-if="field.label === 'Region' && field.headerError" class="tooltip">
-                {{ field.errorMessage }}
-              </div>
+            <span v-if="!field.editableHead">{{ field.label }}</span>
+            <div class="position-relative" v-else>
+              <i
+                v-if="store.dataTable.fields[index].name !== 'Geographic Area'"
+                class="position-absolute top-0 end-0 btn-icon text-secondary fas fa-minus-circle"
+                v-on:click="store.dataTable.fields[index].show = false"
+                v-bind:title="'Remove ' + store.dataTable.fields[index].name + ' column'"
+              ></i>
+              <!-- TODO ask for the confirmation and completely remove it so it'll beremove from the popup. -->
+              <input
+                class="form-control"
+                v-model="store.dataTable.fields[index].name"
+                placeholder="Data name"
+                required
+                v-bind:id="'formFieldName' + index"
+                v-on:blur="validateInput"
+                v-on:change="updateLabel(index)"
+              />
+              <input
+                class="form-control"
+                v-model="store.dataTable.fields[index].unit"
+                placeholder="Unit"
+                v-bind:id="'formFieldUnit' + index"
+                v-on:change="updateLabel(index)"
+              />
             </div>
           </th>
         </tr>
@@ -181,16 +171,12 @@ function onValueChange(rIndex: number, label: string, event: Event) {
               </option>
             </select>
             <input
-              v-else-if="field.show"
+              v-else
               class="form-control"
               v-bind:type="field.type"
               v-bind:value="store.dataTable.items[rIndex][field.label]"
               v-on:change="($event: any) => onValueChange(rIndex, field.label, $event)"
             />
-            <!-- Tooltip for cell error -->
-            <div v-if="field.label === 'Region' && row.regionError" class="tooltip">
-              {{ row.regionError }}
-            </div>
           </div>
         </td>
       </tr>
@@ -213,31 +199,5 @@ table input[type='color'] {
 
 .btn-icon {
   cursor: pointer;
-}
-
-/* Header error highlighting */
-.header-error {
-  background-color: #f8d7da;
-  /* Light red background */
-}
-
-/* Cell error highlighting */
-.error-cell {
-  background-color: #f8d7da;
-}
-
-/* Tooltip container styles */
-.header-cell,
-.cell-content {
-  position: relative;
-  display: inline-block;
-}
-
-/* Show tooltip immediately on hover */
-.header-cell:hover .tooltip,
-.cell-content:hover .tooltip {
-  visibility: visible;
-  opacity: 1;
-  transition: opacity 0s;
 }
 </style>

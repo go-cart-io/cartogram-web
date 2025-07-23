@@ -16,9 +16,7 @@ export function reset() {
       name: 'Region',
       type: 'text',
       editable: false,
-      show: true,
-      headerError: false,
-      errorMessage: ''
+      show: true
     },
     { label: 'RegionLabel', name: 'RegionLabel', type: 'text', editable: true, show: true },
     { label: 'Color', name: 'Color', type: 'color', editable: true, show: false },
