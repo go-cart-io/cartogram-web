@@ -101,7 +101,7 @@ async function uploadGeoJson(event: Event) {
   await datatable.initDataTableWGeojson(geojsonData, firstUniqueProprety)
   emit('changed', state.handler, geojsonData, firstUniqueProprety, false)
 
-  nextTick()
+  await nextTick()
   const selectEl = document.getElementById('regionColSelect') as HTMLSelectElement
   selectEl.reportValidity()
 }
@@ -162,7 +162,7 @@ async function onRegionColChanged() {
     </div>
 
     <div class="p-2" v-if="state.geojsonUniqueProperties.length > 0">
-      Which property contain unique region names (e.g., country names)?
+      Which property contains unique region names (e.g., country names)?
       <select
         id="regionColSelect"
         class="form-select"

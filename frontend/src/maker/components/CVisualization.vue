@@ -71,8 +71,8 @@ async function init(geojsonData: FeatureCollection, geojsonRegionCol: string) {
   state.isInit = true
 }
 
-function updateData() {
-  nextTick() // Ensure that dataTable is updated
+async function updateData() {
+  await nextTick() // Ensure that dataTable is updated
   refresh()
 }
 
