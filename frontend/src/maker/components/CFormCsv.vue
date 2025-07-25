@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import * as d3 from 'd3'
 import * as XLSX from 'xlsx'
-import { nextTick, reactive } from 'vue'
+import { nextTick, reactive, ref } from 'vue'
 
 import * as datatable from '../lib/datatable'
 import * as util from '../lib/util'
 
 import { useProjectStore } from '../stores/project'
+import type { KeyValueArray } from 'maker/lib/interface'
 const store = useProjectStore()
 
 const props = withDefaults(
@@ -20,8 +21,13 @@ const props = withDefaults(
 
 const emit = defineEmits(['changed', 'regionResolve'])
 
+const csvRegionColSelect = ref<HTMLSelectElement | null>(null)
+let csvData = [] as KeyValueArray
+
 const state = reactive({
-  selectedFileName: ''
+  selectedFileName: '',
+  csvCols: [] as Array<string>,
+  csvRegionCol: ''
 })
 
 async function uploadCsvData(event: Event) {
@@ -35,7 +41,6 @@ async function uploadCsvData(event: Event) {
 
   const data = await util.readFile(file)
   const type = file.name.split('.').pop()?.toLowerCase()
-  let csvData = [{}]
 
   if (type === 'xls' || type === 'xlsx') {
     const wb = XLSX.read(data, { type: 'array' })
@@ -47,25 +52,41 @@ async function uploadCsvData(event: Event) {
     csvData = d3.csvParse(text)
   }
 
+  // Store the file name before clearing so that selecting the same file again triggers a change event.
+  state.selectedFileName = file.name
+  input.value = ''
+
+  if ('Region' in csvData[0]) {
+    state.csvRegionCol = 'Region'
+    state.csvCols = []
+    onRegionColChanged()
+  } else {
+    state.csvRegionCol = ''
+    state.csvCols = Object.keys(csvData[0])
+
+    await nextTick()
+    if (csvRegionColSelect.value) {
+      csvRegionColSelect.value.reportValidity()
+    }
+  }
+}
+
+async function onRegionColChanged() {
   if (!csvData || csvData.length < 1) return
 
-  // Rename the first column key to "Region" if "Region" key does not exist
-  if (!('Region' in csvData[0])) {
-    const firstKey = Object.keys(csvData[0])[0]
-    csvData = util.renameKeyInArray(csvData, firstKey, 'Region')
-  }
+  // Rename the column key to "Region" if "Region" key does not exist
+  let newCsvData
+  if (state.csvRegionCol !== 'Region')
+    newCsvData = util.renameKeyInArray(csvData, state.csvRegionCol, 'Region')
+  else newCsvData = csvData
 
-  csvData.sort((a: { [key: string]: any }, b: { [key: string]: any }) => {
+  newCsvData.sort((a: { [key: string]: any }, b: { [key: string]: any }) => {
     const aRegion = (a['Region'] || '').toString()
     const bRegion = (b['Region'] || '').toString()
     return aRegion.localeCompare(bRegion)
   })
 
-  // Store the file name before clearing so that selecting the same file again triggers a change event.
-  state.selectedFileName = file.name
-  input.value = ''
-
-  datatable.updateDataTable(csvData)
+  datatable.updateDataTable(newCsvData)
   emit('changed')
 }
 </script>
@@ -120,6 +141,22 @@ async function uploadCsvData(event: Event) {
         {{ state.selectedFileName || 'No file chosen' }}
       </div>
     </div>
+  </div>
+
+  <div v-if="state.csvCols.length > 0" class="p-2">
+    Which column contains the region names that match your map?
+    <select
+      id="csvRegionColSelect"
+      ref="csvRegionColSelect"
+      class="form-select"
+      required
+      v-model="state.csvRegionCol"
+      v-on:change="onRegionColChanged"
+    >
+      <option v-for="item in state.csvCols" v-bind:key="item">
+        {{ item }}
+      </option>
+    </select>
   </div>
 
   <div v-if="store.regionWarnings.size > 0" class="p-2 bg-warning-subtle">
