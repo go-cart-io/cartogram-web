@@ -4,7 +4,7 @@ export default class TouchInfo {
   private thumbIndex = -1
 
   set(event: PointerEvent): void {
-    if (this.touches.size >= 3 || !event.pointerId) return // We only process 1-3 points
+    if (this.touches.size >= 3 || event.pointerId === null) return // We only process 1-3 points
 
     this.touchIds.push(event.pointerId)
     this.touches.set(event.pointerId, event)
