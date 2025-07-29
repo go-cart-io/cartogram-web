@@ -184,6 +184,12 @@ export function getNameUnit(label: string): [string, string] {
   return [name, unit]
 }
 
+export function sanitizeFilename(filename: string): string {
+  const invalidCharsRegex = /[\\/:*?'"<>|]/g
+  const sanitizedFilename = filename.replace(invalidCharsRegex, '_')
+  return sanitizedFilename
+}
+
 export async function getGeneratedCSV(dataTable: DataTable, isGetFile = false) {
   const data = tableToArray(dataTable)
   const csv = d3.csvFormat(data)

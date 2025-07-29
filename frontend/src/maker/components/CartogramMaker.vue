@@ -78,7 +78,29 @@ function collapseStep(step: string) {
   document.getElementById('step' + step + '-btn')?.click()
 }
 
+function isAllValid(): boolean {
+  let isAllValid = true
+  const elementsToValidate = document.querySelectorAll<
+    HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+  >('.need-validation')
+
+  elementsToValidate.forEach((element) => {
+    // Check the element's validity based on its HTML attributes (e.g., required, minlength, type="email")
+    if (!element.checkValidity()) {
+      element.classList.add('is-invalid')
+      element.reportValidity()
+      isAllValid = false
+    } else {
+      element.classList.remove('is-invalid')
+    }
+  })
+
+  return isAllValid
+}
+
 async function getGeneratedCartogram() {
+  if (!isAllValid()) return
+
   state.isProcessing = true
   const progressModal = new Modal('#progressBackdrop', {
     backdrop: 'static',
@@ -305,7 +327,6 @@ async function getGeneratedCartogram() {
       <c-visualization ref="visEl" />
 
       <c-data-table
-        ref="dataTableEl"
         v-if="state.isInitialized && store.dataTable.items.length > 0"
         v-on:labelChanged="visEl.updateData()"
         v-on:valueChanged="(row, col, value) => visEl.setDataItem(row, col, value)"

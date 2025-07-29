@@ -1,5 +1,6 @@
 import type { FeatureCollection } from 'geojson'
 import * as d3 from 'd3'
+import { toRaw } from 'vue'
 
 import type { KeyValueArray } from './interface'
 import * as config from '../../common/config'
@@ -116,9 +117,16 @@ export function initDataTableWArray(data: KeyValueArray, isReplace = true) {
 
   for (let i = 0; i < keys.length; i++) {
     if (!config.RESERVE_FIELDS.includes(keys[i])) {
-      const [fieldname, unit] = util.getNameUnit(keys[i])
+      let [fieldname, unit] = util.getNameUnit(keys[i])
+      fieldname = util.sanitizeFilename(fieldname)
+      const label = unit ? fieldname + ' (' + unit + ')' : fieldname
+      if (label !== keys[i]) {
+        store.dataTable.items = util.renameKeyInArray(toRaw(store.dataTable.items), keys[i], label)
+        store.regionData = util.renameKeyInArray(toRaw(store.regionData), keys[i], label)
+      }
+
       store.dataTable.fields.push({
-        label: keys[i],
+        label: label,
         name: fieldname,
         unit: unit,
         type: 'number',

@@ -68,7 +68,16 @@ function updateVisType(index: number, event: Event) {
 }
 
 function updateLabel(index: number) {
+  const nameInput = document.getElementById('formFieldName' + index) as HTMLInputElement
+  if (!nameInput) return
+  if (!nameInput.checkValidity()) {
+    nameInput.reportValidity()
+    return
+  }
+  nameInput.classList.remove('is-invalid')
+
   const oldLabel = store.dataTable.fields[index].label
+  store.dataTable.fields[index].name = store.dataTable.fields[index].name.trim()
   let newLabel = store.dataTable.fields[index].name
   if (store.dataTable.fields[index].unit)
     newLabel = newLabel + ' (' + store.dataTable.fields[index].unit + ')'
@@ -114,8 +123,8 @@ function validateInput(event: Event) {
             v-bind:key="index"
           >
             <select
-              class="form-select"
-              v-if="field.editableHead"
+              class="form-select need-validation"
+              v-if="field.editableHead && field.name !== 'Geographic Area'"
               required
               v-bind:id="'formFieldVis' + index"
               v-bind:value="store.dataTable.fields[index].vis"
@@ -149,18 +158,20 @@ function validateInput(event: Event) {
               ></i>
               <!-- TODO ask for the confirmation and completely remove it so it'll beremove from the popup. -->
               <input
-                class="form-control"
-                v-model="store.dataTable.fields[index].name"
+                class="form-control need-validation"
                 placeholder="Data name"
+                title='Data Name. Cannot contain \ / : * ? &#39; " &lt; &gt; |'
+                pattern='^[^\\\/:\*\?&#39;"&lt;&gt;\|]+$'
                 required
+                v-model="store.dataTable.fields[index].name"
                 v-bind:id="'formFieldName' + index"
-                v-on:blur="validateInput"
                 v-on:change="updateLabel(index)"
               />
               <input
                 class="form-control"
-                v-model="store.dataTable.fields[index].unit"
                 placeholder="Unit"
+                title="Data Unit"
+                v-model="store.dataTable.fields[index].unit"
                 v-bind:id="'formFieldUnit' + index"
                 v-on:change="updateLabel(index)"
               />
