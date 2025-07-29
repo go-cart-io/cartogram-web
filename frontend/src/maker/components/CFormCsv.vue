@@ -30,10 +30,22 @@ const state = reactive({
   csvRegionCol: ''
 })
 
+defineExpose({
+  reset
+})
+
+function reset() {
+  csvData = []
+  state.selectedFileName = ''
+  state.csvCols = []
+  state.csvRegionCol = ''
+}
+
 async function uploadCsvData(event: Event) {
   // TODO check region values as well as color and inset format
   const input = event.target as HTMLInputElement
   const files = input.files
+  reset()
   if (!files || files.length === 0) return
 
   const file = files[0]

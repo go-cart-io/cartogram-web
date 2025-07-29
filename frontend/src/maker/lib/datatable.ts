@@ -39,6 +39,8 @@ export function reset() {
       show: false
     }
   ]
+  store.regionData = []
+  store.regionWarnings.clear()
 }
 
 export async function initDataTableWGeojson(

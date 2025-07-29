@@ -21,7 +21,7 @@ import { useProjectStore } from '../stores/project'
 const store = useProjectStore()
 
 const mapDBKey = util.generateShareKey(32)
-const dataTableEl = ref()
+const csvFormEl = ref()
 const visEl = ref()
 
 const props = defineProps<{
@@ -176,6 +176,7 @@ async function getGeneratedCartogram() {
             () => {
               state.isInitialized = false
               datatable.reset()
+              csvFormEl.reset()
               visEl.reset()
             }
           "
@@ -194,6 +195,7 @@ async function getGeneratedCartogram() {
       </button>
       <div id="step2" class="accordion-collapse collapse show p-2">
         <c-form-csv
+          ref="csvFormEl"
           v-bind:disabled="!state.isInitialized"
           v-on:changed="
             () => {
