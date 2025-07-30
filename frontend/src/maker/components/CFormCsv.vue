@@ -68,6 +68,8 @@ async function uploadCsvData(event: Event) {
   state.selectedFileName = file.name
   input.value = ''
 
+  standardizeInset()
+
   if ('Region' in csvData[0]) {
     state.csvRegionCol = 'Region'
     state.csvCols = []
@@ -100,6 +102,37 @@ async function onRegionColChanged() {
 
   datatable.updateDataTable(newCsvData)
   emit('changed')
+}
+
+function standardizeInset() {
+  if (!('Inset' in csvData[0])) return
+  for (let i = 0; i < csvData.length; i++) {
+    let inset = csvData[i]['Inset'].toLowerCase().replace(/\s/g, '') // Remove space
+    switch (inset) {
+      case 'l':
+      case 'left':
+      case '(l)left':
+        csvData[i]['Inset'] = 'L'
+        break
+      case 'r':
+      case 'right':
+      case '(r)right':
+        csvData[i]['Inset'] = 'R'
+        break
+      case 't':
+      case 'top':
+      case '(t)top':
+        csvData[i]['Inset'] = 'T'
+        break
+      case 'b':
+      case 'bottom':
+      case '(b)bottom':
+        csvData[i]['Inset'] = 'B'
+        break
+      default:
+        csvData[i]['Inset'] = ''
+    }
+  }
 }
 </script>
 

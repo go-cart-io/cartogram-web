@@ -17,6 +17,7 @@ export const COL_COLOR = 2
 export const COL_INSET = 4
 export const COL_AREA = 5
 export const OPTIONS_INSET = [
+  { text: '', value: '' },
   { text: 'L (left)', value: 'L' },
   { text: 'R (right)', value: 'R' },
   { text: 'T (top)', value: 'T' },
