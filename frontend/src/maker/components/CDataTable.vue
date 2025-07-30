@@ -50,6 +50,28 @@ function addColumn() {
   store.dataTable.items = util.addKeyInArray(toRaw(store.dataTable.items), label, 0)
 }
 
+function removeColumn(index: number) {
+  if (
+    !window.confirm(
+      'Click "OK" to remove the column. The changes cannot be undone unless re-uploading the data.'
+    )
+  )
+    return
+
+  const visType = store.dataTable.fields[index].vis
+  if (visType) {
+    store.visTypes[visType] = store.visTypes[visType].filter(
+      (item) => item !== store.dataTable.fields[index].label
+    )
+  }
+
+  const key = store.dataTable.fields[index].label
+  store.dataTable.fields.splice(index, 1)
+  store.dataTable.items = util.deleteKeysInArray(store.dataTable.items, key)
+
+  emit('labelChanged')
+}
+
 function updateVisType(index: number, event: Event) {
   const selectElement = event.target as HTMLSelectElement
   const oldType = store.dataTable.fields[index].vis
@@ -153,10 +175,9 @@ function validateInput(event: Event) {
               <i
                 v-if="store.dataTable.fields[index].name !== 'Geographic Area'"
                 class="position-absolute top-0 end-0 btn-icon text-secondary fas fa-minus-circle"
-                v-on:click="store.dataTable.fields[index].show = false"
                 v-bind:title="'Remove ' + store.dataTable.fields[index].name + ' column'"
+                v-on:click="removeColumn(index)"
               ></i>
-              <!-- TODO ask for the confirmation and completely remove it so it'll beremove from the popup. -->
               <input
                 class="form-control need-validation"
                 placeholder="Data name"
