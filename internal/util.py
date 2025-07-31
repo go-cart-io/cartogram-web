@@ -9,9 +9,18 @@ def sanitize_filename(filename):
     if filename is None:
         return "default_name"
 
-    invalid_chars = r'[\\/:*?"<>|]'
+    invalid_chars = r'[\\/:*?\'"<>|]'
     sanitized_filename = re.sub(invalid_chars, "_", str(filename))
+    sanitized_filename = sanitized_filename.strip()
     return sanitized_filename
+
+
+def validate_filename(filename):
+    invalid_chars = r'[\\/:*?\'"<>|]'
+    if re.search(invalid_chars, filename):
+        raise CartogramError(
+            f"{filename} is invalid. Remove all invalid characters (\\ / : * ? ' \" < > |) to proceed."
+        )
 
 
 def get_safepath(*parts):

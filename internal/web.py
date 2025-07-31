@@ -312,6 +312,11 @@ def create_app():
 
         try:
             vis_types = json.loads(data["visTypes"])
+            for key in vis_types:
+                for header in vis_types[key]:
+                    util.validate_filename(header)
+        except CartogramError as e:
+            return e.response()
         except Exception:
             return Response(
                 '{"error":"Invalid visualization specification."}',

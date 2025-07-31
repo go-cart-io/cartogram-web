@@ -238,13 +238,10 @@ def generate_cartogram(
 
 
 def process_data(csv_string, vis_types):
-    if "cartogram" in vis_types:
-        vis_types["cartogram"] = [
-            util.sanitize_filename(col) for col in vis_types["cartogram"]
-        ]
-
     df = pd.read_csv(StringIO(csv_string), keep_default_na=False, na_values=[""])
-    df.columns = [util.sanitize_filename(col) for col in df.columns]
+    for col in df.columns:
+        util.validate_filename(col)
+
     df["Color"] = df["Color"] if "Color" in df else None
     df["Inset"] = df["Inset"] if "Inset" in df else None
     is_empty_color = df["Color"].isna().all()
@@ -283,8 +280,13 @@ def process_data(csv_string, vis_types):
                     "Missing data name. Please ensure each data column has a name in its header."
                 )
 
+            if df[column].isna().all():
+                raise CartogramError(
+                    f"Cannot process {column}: All rows are empty. Please enter some numeric values or remove the column."
+                )
+
             sum = df[column].sum()
-            if sum == 0:
+            if column in vis_types["cartogram"] and sum == 0:
                 raise CartogramError(
                     f"Cannot process {column}: Sum is zero. Please ensure the sum of data is not zero."
                 )
