@@ -122,11 +122,6 @@ def generate_cartogram(
         outfile.write(datacsv)
     data_length = len(data_cols)
 
-    if data_length == 0:
-        raise CartogramError(
-            "Missing data. Please add at least one data column to the table."
-        )
-
     # Process the boundary file
     cdf = CartoDataFrame.read_file(input_file)
     is_projected = cdf.is_projected
@@ -148,7 +143,7 @@ def generate_cartogram(
                 "--output_shifted_insets",
                 "--skip_projection",
                 "--area",
-                data_cols[0]["column_name"],
+                "Geographic Area (sq. km)",
             ],
         )
     else:
@@ -156,7 +151,7 @@ def generate_cartogram(
             cartogram_key,
             input_file,
             area_data_path,
-            flags + ["--output_equal_area_map", "--area", data_cols[0]["column_name"]],
+            flags + ["--output_equal_area_map", "--area", "Geographic Area (sq. km)"],
         )
 
     if equal_area_json is not None:
