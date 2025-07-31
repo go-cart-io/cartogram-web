@@ -61,7 +61,6 @@ export async function initDataTableWGeojson(
   if (areaKey) geoProperties = util.renameKeyInArray(geoProperties, areaKey, 'Geographic Area')
   geoProperties = util.renameKeyInArray(geoProperties, geojsonRegionCol, 'Region')
   geoProperties = util.arrangeKeysInArray(geoProperties, [...config.RESERVE_FIELDS])
-  geoProperties = util.addKeyInArray(geoProperties, '', 0)
   geoProperties.sort((a, b) => a.Region.localeCompare(b.Region))
 
   initDataTableWArray(geoProperties)
@@ -140,7 +139,10 @@ export function initDataTableWArray(data: KeyValueArray, isReplace = true) {
 }
 
 export function updateDataTable(csvData: KeyValueArray) {
-  if (csvData.length === 0) return
+  if (csvData.length === 0) {
+    reset()
+    return
+  }
   const store = useProjectStore()
 
   const areaKey = Object.keys(csvData[0]).find((key) => key.startsWith('Geographic Area'))
