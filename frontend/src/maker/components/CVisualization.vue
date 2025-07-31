@@ -82,7 +82,7 @@ function setDataItem(row: string, col: string, value: string) {
 }
 
 function updateColorAndDataTable(scheme: string, oldScheme: string) {
-  if (scheme === oldScheme) return
+  if (scheme === oldScheme || !visView || !store.dataTable.fields) return
   if (scheme === 'custom') {
     // Copy colors from Vega to the data table **only if no color is already assigned**
     // The condition is crucial because csv uploading populates the color column before applies the custom scheme
