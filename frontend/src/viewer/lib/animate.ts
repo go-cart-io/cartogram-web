@@ -9,7 +9,10 @@ export function geoTransition(id: string, callback: () => void) {
     const geoID = d3.select(this).attr('aria-label')
     const labelID = geoID.replace('geoshape', 'geolabel')
 
-    const newD = toEl.select('path[aria-label="' + geoID + '"]').attr('d')
+    const pathEl = toEl.select('path[aria-label="' + geoID + '"]')
+    if (pathEl.empty()) return
+
+    const newD = pathEl.attr('d')
     d3.select(this)
       .transition()
       .ease(d3.easeCubic)
