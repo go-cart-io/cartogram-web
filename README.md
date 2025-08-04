@@ -1,3 +1,6 @@
+**⚠ Experimental Branch Notice**
+This branch was used for experiments in the study "Effectiveness of Touch-Based View Adjustments for Contiguous Area Cartograms." It is preserved solely for reproducibility purposes. Not all features are functional—cartogram generation is disabled, and the contact form is non-operational. **This branch should not be used in production.**
+
 # Cartogram Web Visualization Project
 
 This project uses the cartogram generation algorithm written by Gastner et. al. in 2018 to create an interactive cartogram-generating website. The project consists of 4 main folders:
@@ -9,47 +12,37 @@ This project uses the cartogram generation algorithm written by Gastner et. al. 
 
 ## Installation
 
-We recommend using docker to get project running on your computer. You can follow the instruction on https://github.com/atima/cartogram-docker but use this repository when cloning cartogram-web.
+1. Install Docker and Docker Compose using [Official installation guide](https://docs.docker.com/engine/install/)
 
-```shell script
-git clone https://github.com/atima/cartogram-web.git
-```
+   - Add your user to the docker group by using a terminal to run:
 
-You should change `DEBUG` variable in `cartogram-web/internal/settings.py` to `False` before starting the docker. Then you can access the locally-running website at http://localhost:5000.
+   ```shell script
+   sudo usermod -aG docker $USER
+   ```
 
-## Development
+   - Sign out and back in again so your changes take effect.
 
-### Frontend
+2. Clone repository and switch to `exp-stretch` branch:
 
-You need to install [Node.js](https://nodejs.org), then run the following commands to start development server:
+   ```shell script
+   git clone https://github.com/go-cart-io/cartogram-web.git cartogram-web-exp
+   cd cartogram-web-exp
+   git checkout exp-stretch
+   ```
 
-```shell script
-# After install Nodejs
-cd part-to-cartogram-web/frontend
-npm install
-npm run dev
-```
+3. Run the following commands:
 
-Make sure that `DEBUG` variable in `cartogram-web/internal/settings.py` is set to `True`.
+   ```shell script
+   docker compose up -d
+   ```
 
-Once you finish modifying the code, you must build the project and change `DEBUG` variable to `False` so the changes reflect in the production server.
+   The first time you run this command, it may take a while to download and install dependencies. Once everything stats up, you should be able to access the locally-running instance of go-cart.io website at [http://localhost:5003](http://localhost:5003).
 
-```shell script
-npm run build
-```
+4. When you would like to stop the go-cart.io local instance, use the command:
 
-Now you should found updated frontend code in `internal/static/dist`.
-
-### Internal
-
-To get the python website running locally on your computer, please follow the Linux or Mac OS X setup guide in the `doc/` folder in this repository. To add a map to the website, please follow the Add Map Wizard guide at `doc/addmap/addmap.md`.
-
-Alternatively, you can use docker so you can make small changes without the need to setup python development environment. The following commands could be useful:
-
-- `docker-compose up -d` to start docker containers in the background (so you can use command line for other thing);
-- `docker exec -it cartogram-docker_web_1 /bin/bash` to access the cartogram-web container (so you can use python to run a file, such as `python addmap.py init test`);
-- `docker start cartogram-docker_web_1` to start the cartogram-web container (which is useful when the container stops because of error in python code);
-- `docker logs --follow cartogram-docker_web_1` to see the log in the cartogram-web container.
+   ```shell script
+   docker compose stop
+   ```
 
 ## Tablet testing via local network
 
@@ -72,7 +65,3 @@ You should be able to access the application using `http:\\your-local-ip:5000`
 ## Tablet testing via USB (Andriod)
 
 Please follow this tutorial https://developer.chrome.com/docs/devtools/remote-debugging/. Then, setup port forwarding for port 5000 and 5173, see https://developer.chrome.com/docs/devtools/remote-debugging/local-server/.
-
-# Contact
-
-If you encounter issues using this code, or have any questions, please contact Atima at atima.tharatipyakul@singaporetech.edu.sg.

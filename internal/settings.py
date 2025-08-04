@@ -14,6 +14,7 @@ if "CARTOGRAM_DATABASE_URI" in os.environ:
         DATABASE_URI = DATABASE_URI.format(f.read())
 else:
     USE_DATABASE = False
+    DATABASE_URI = None
 
 HOST = os.environ.get('CARTOGRAM_HOST')
 PORT = int(os.environ.get('CARTOGRAM_PORT'))
