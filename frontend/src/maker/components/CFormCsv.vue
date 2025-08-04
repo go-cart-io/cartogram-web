@@ -138,8 +138,9 @@ function standardizeInset() {
 
 <template>
   <div class="p-2">
-    Input your data to the table in the input overview panel
-    <span class="d-inline d-sm-none">below</span>.
+    Input your data to the table in the input overview panel<span class="d-inline d-sm-none">
+      below</span
+    >.
   </div>
   <div class="p-2">
     Alternatively, download data for editing on your device, then upload the edited file.

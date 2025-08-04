@@ -166,7 +166,8 @@ function renameRegion(rIndex: number, action: string) {
   <div class="row p-2">
     <div class="col-6 col-lg-4" v-bind:style="{ visibility: state.isInit ? 'visible' : 'hidden' }">
       <div class="input-group flex-nowrap">
-        <span class="input-group-text">Colored by</span>
+        <span class="input-group-text d-none d-md-inline">Colored by</span>
+        <span class="input-group-text d-inline d-md-none">By</span>
         <select
           id="color-options"
           class="form-select"
