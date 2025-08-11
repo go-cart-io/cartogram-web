@@ -58,7 +58,7 @@ export function filterKeyValueInArray(
 ): KeyValueArray {
   return data.map((item) => {
     return Object.keys(item).reduce((accumulator: { [key: string]: any }, key: string) => {
-      if (except.includes(key) || (allow !== null && !item[key])) accumulator[key] = item[key]
+      if (except.includes(key) || (allow !== null && item[key] === '')) accumulator[key] = item[key]
       else if (
         allow === 'number' &&
         (typeof item[key] === 'number' || !isNaN(parseFloat(item[key])))
