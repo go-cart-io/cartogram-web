@@ -485,4 +485,7 @@ path {
 path[aria-label='dividers'] {
   mix-blend-mode: normal;
 }
+g.root {
+  transform-origin: center;
+}
 </style>

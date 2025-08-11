@@ -256,6 +256,7 @@ function snapToBetterNumber() {
         v-on:pointerdown.stop.prevent="onPointerdown"
         v-on:pointermove.stop.prevent="onPointermove"
         v-on:pointerup.stop.prevent="onPointerup"
+        v-on:pointercancel.stop.prevent="onPointerup"
         v-on:wheel.stop.prevent="onWheel"
         v-on:versionUpdated="transformVersion(state.affineMatrix, util.getOriginalMatrix())"
       >

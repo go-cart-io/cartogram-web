@@ -20,7 +20,7 @@ export const OPTIONS_INSET = [
   { text: 'L (left)', value: 'L' },
   { text: 'R (right)', value: 'R' },
   { text: 'T (top)', value: 'T' },
-  { text: 'D (down)', value: 'D' }
+  { text: 'B (bottom)', value: 'B' }
 ]
 
 export const tooltipOptions = {
