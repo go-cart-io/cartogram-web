@@ -112,7 +112,7 @@
       "name": "font_size",
       "type": "band",
       "domain": { "data": "geo_1", "field": "Area", "sort": true },
-      "range": [8, 12]
+      "range": [7, 12]
     },
     {
       "name": "color_group",
@@ -212,7 +212,7 @@
             },
             { "value": 12 }
           ],
-          "opacity": { "signal": "datum.Area < 400 ? 0:1" },
+          "opacity": { "signal": "datum.Area < 250 ? 0:1" },
           "ariaRoleDescription": { "value": "geolabel" }
         }
       },
