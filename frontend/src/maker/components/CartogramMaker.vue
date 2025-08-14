@@ -228,7 +228,7 @@ async function getGeneratedCartogram() {
           v-on:regionResolve="
             () => {
               visEl.resolveRegionIssues()
-              collapseStep('2')
+              if (store.regionWarnings.size <= 0) collapseStep('2')
             }
           "
         />
