@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { nextTick, reactive } from 'vue'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
@@ -19,13 +19,15 @@ function playVersions() {
   const keys = Object.keys(store.versions)
   let i = 0
   emit('version_changed', keys[i++])
+  nextTick()
   const interval = setInterval(function () {
     emit('version_changed', keys[i++])
+    nextTick()
     if (i >= keys.length) {
       clearInterval(interval)
       state.isPlaying = false
     }
-  }, 1000)
+  }, 2000)
 }
 </script>
 
