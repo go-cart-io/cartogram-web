@@ -132,6 +132,26 @@ def label_to_name_unit(label: str):
     return {"header": label, "name": name, "unit": unit}
 
 
+# Cleanup so that visTypes only have existing columns, in the same order as csv
+def clean_map_types(vis_types, csv_cols):
+    based_set = set(csv_cols)
+    order_map = {element: i for i, element in enumerate(csv_cols)}
+
+    cleaned_vis_types = {}
+    for key in vis_types:
+        fields = vis_types[key]
+
+        # Filter the fields to include only elements present in csv
+        filtered_fields = [item for item in fields if item in based_set]
+
+        # Sort the fields using a custom key based on the order_map.
+        sorted_fields = sorted(filtered_fields, key=lambda x: order_map[x])
+
+        cleaned_vis_types[key] = sorted_fields
+
+    return cleaned_vis_types
+
+
 def map_types_to_versions(may_types):
     carto_versions = {}
     carto_versions["0"] = {

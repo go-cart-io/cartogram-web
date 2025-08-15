@@ -359,6 +359,7 @@ def create_app():
             )
 
             df = pd.read_csv(StringIO(datacsv))
+            cleaned_vis_types = util.clean_map_types(vis_types, df.columns)
 
             # Manage input file
             if handler == "custom":
@@ -383,7 +384,7 @@ def create_app():
 
             cartogram.generate_cartogram(
                 datacsv,
-                vis_types,
+                cleaned_vis_types,
                 gen_file,
                 string_key,
                 userdata_path,
@@ -399,7 +400,7 @@ def create_app():
                     handler=handler,
                     title=data["title"],
                     scheme=data["scheme"],
-                    types=data["visTypes"],
+                    types=json.dumps(cleaned_vis_types),
                     spec=data["spec"],
                 )
                 db.session.add(new_cartogram_entry)
