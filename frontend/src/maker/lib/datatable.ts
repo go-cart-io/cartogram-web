@@ -10,6 +10,7 @@ import { useProjectStore } from '../stores/project'
 export function reset() {
   const store = useProjectStore()
   store.useInset = false
+  if (store.cartoColorScheme === 'custom') store.cartoColorScheme = 'pastel1'
   store.dataTable.items = []
   store.dataTable.fields = [
     {
