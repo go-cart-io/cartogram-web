@@ -19,6 +19,7 @@ export function reset() {
       editable: false,
       show: true
     },
+    { label: 'RegionMap', name: 'RegionMap', type: 'text', editable: false, show: false },
     { label: 'RegionLabel', name: 'RegionLabel', type: 'text', editable: true, show: true },
     { label: 'Color', name: 'Color', type: 'color', editable: true, show: false },
     { label: 'ColorGroup', name: 'ColorGroup', type: 'number', editable: false, show: false },
@@ -60,6 +61,7 @@ export async function initDataTableWGeojson(
   const areaKey = Object.keys(geoProperties[0]).find((key) => key.startsWith('Geographic Area'))
   if (areaKey) geoProperties = util.renameKeyInArray(geoProperties, areaKey, 'Geographic Area')
   geoProperties = util.renameKeyInArray(geoProperties, geojsonRegionCol, 'Region')
+  geoProperties = util.copyKeyInArray(geoProperties, 'Region', 'RegionMap')
   geoProperties = util.arrangeKeysInArray(geoProperties, [...config.RESERVE_FIELDS])
   geoProperties.sort((a, b) => a.Region.localeCompare(b.Region))
 
@@ -101,6 +103,7 @@ export function initDataTableWArray(data: KeyValueArray, isReplace = true) {
   const store = useProjectStore()
   data = util.filterKeyValueInArray(data, config.RESERVE_FIELDS)
 
+  // Update data
   let keys = [] as Array<string>
   if (isReplace) {
     store.dataTable.items = data
@@ -114,6 +117,7 @@ export function initDataTableWArray(data: KeyValueArray, isReplace = true) {
     else store.regionWarnings = new Set()
   }
 
+  // Re-populate headers
   for (let i = 0; i < keys.length; i++) {
     if (!config.RESERVE_FIELDS.includes(keys[i])) {
       let [fieldname, unit] = util.getNameUnit(keys[i])

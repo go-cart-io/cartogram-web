@@ -5,8 +5,10 @@ import logging
 import os
 import shutil
 import traceback
+from io import StringIO
 
 import cartogram
+import pandas as pd
 import settings
 import util
 from asset import Asset
@@ -356,6 +358,9 @@ def create_app():
                 cartogram_handler.get_gen_file(handler, string_key)
             )
 
+            df = pd.read_csv(StringIO(datacsv))
+
+            # Manage input file
             if handler == "custom":
                 editedFrom = data.get("editedFrom", "")
                 if editedFrom and editedFrom != "" and editedFrom != gen_file:
@@ -367,6 +372,14 @@ def create_app():
                         util.get_safepath("tmp", f"{string_key}.json"), gen_file
                     )
                     clean_by = data.get("geojsonRegionCol", "Region")
+            elif "RegionMap" in df.columns and not df["RegionMap"].equals(df["Region"]):
+                # If regions are edited, handler should be custom
+                handler = "custom"
+                new_gen_file = util.get_safepath(
+                    cartogram_handler.get_gen_file(handler, string_key)
+                )
+                shutil.copyfile(gen_file, new_gen_file)
+                gen_file = new_gen_file
 
             cartogram.generate_cartogram(
                 datacsv,

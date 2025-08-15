@@ -46,6 +46,51 @@ describe('maker.lib.util', () => {
     })
   })
 
+  describe('copyKeyInArray', () => {
+    it('should copy the value from formKey to toKey for each object where formKey exists', () => {
+      const data = [
+        { a: 1, b: 2 },
+        { a: 3, b: 4 }
+      ]
+      const result = util.copyKeyInArray(data, 'a', 'c')
+      expect(result).toEqual([
+        { a: 1, b: 2, c: 1 },
+        { a: 3, b: 4, c: 3 }
+      ])
+    })
+
+    it('should not add toKey if formKey does not exist in the object', () => {
+      const data = [
+        { x: 10, y: 20 },
+        { a: 5, b: 6 }
+      ]
+      const result = util.copyKeyInArray(data, 'a', 'z')
+      expect(result).toEqual([
+        { x: 10, y: 20 },
+        { a: 5, b: 6, z: 5 }
+      ])
+    })
+
+    it('should handle empty array', () => {
+      const data: any[] = []
+      const result = util.copyKeyInArray(data, 'foo', 'bar')
+      expect(result).toEqual([])
+    })
+
+    it('should copy undefined if formKey exists but value is undefined', () => {
+      const data = [{ foo: undefined, bar: 1 }]
+      const result = util.copyKeyInArray(data, 'foo', 'baz')
+      expect(result).toEqual([{ foo: undefined, bar: 1, baz: undefined }])
+    })
+
+    it('should not mutate the original array', () => {
+      const data = [{ a: 1 }]
+      const copy = JSON.parse(JSON.stringify(data))
+      util.copyKeyInArray(data, 'a', 'b')
+      expect(data).toEqual(copy)
+    })
+  })
+
   describe('filterKeyValueInArray', () => {
     it('should filter objects to only include properties of the Number type and of the except', () => {
       const data = [

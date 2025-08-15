@@ -200,7 +200,7 @@ function validateInput(event: Event) {
           </th>
         </tr>
       </thead>
-      <tr v-for="(row, rIndex) in store.dataTable.items" v-bind:key="rIndex">
+      <tr v-for="(row, rIndex) in store.dataTable.items" v-show="row.Region" v-bind:key="rIndex">
         <td v-for="(field, index) in store.dataTable.fields" v-show="field.show" v-bind:key="index">
           <div>
             <!-- Select action if the map regions and the uploaded data's regions mismatched -->

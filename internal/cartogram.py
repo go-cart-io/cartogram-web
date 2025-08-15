@@ -5,6 +5,7 @@ import warnings
 from io import StringIO
 
 import mapclassify
+import numpy as np
 import pandas as pd
 import redis
 import settings
@@ -116,7 +117,7 @@ def generate_cartogram(
     print_progress=False,
     flags=[],
 ):
-    datacsv, data_cols, prefered_names_dict = process_data(datacsv, vis_types)
+    datacsv, data_cols, map_names_dict = process_data(datacsv, vis_types)
     area_data_path = util.get_safepath(project_path, "data.csv")
     with open(area_data_path, "w") as outfile:
         outfile.write(datacsv)
@@ -127,10 +128,9 @@ def generate_cartogram(
     is_projected = cdf.is_projected
     if cdf.is_world:
         flags = flags + ["--world"]
-    if clean_by is not None and clean_by != "":
-        cdf.clean_properties(
-            clean_by or "Region", prefered_names_dict=prefered_names_dict
-        )
+
+    if (clean_by is not None and clean_by != "") or map_names_dict != {}:
+        cdf.clean_properties(clean_by or "Region", map_names_dict=map_names_dict)
         cdf.to_carto_file(input_file)
 
     if is_projected:
@@ -242,11 +242,15 @@ def process_data(csv_string, vis_types):
     is_empty_color = df["Color"].isna().all()
     is_empty_inset = df["Inset"].isna().all()
 
-    prefered_names_dict = {}
-    if "PreferedName" in df.columns:
-        prefered_names_dict = dict(zip(df["Region"], df["PreferedName"]))
-        df["Region"] = df["PreferedName"]
-        df = df.drop(columns=["PreferedName"])
+    map_names_dict = {}
+    # Replace empty strings with NaN, then drop rows with NaN in the 'Region' column
+    initial_nrows = len(df)
+    df = df.replace(r"^\s*$", np.nan, regex=True).dropna(subset=["Region"])
+    # Create name map
+    if "RegionMap" in df.columns:
+        if not df["RegionMap"].equals(df["Region"]) or initial_nrows != len(df):
+            map_names_dict = dict(zip(df["RegionMap"], df["Region"]))
+        df = df.drop(columns=["RegionMap"])
 
     data_cols = []
     cols_order = ["Region", "RegionLabel", "Color", "ColorGroup", "Inset"]
@@ -301,7 +305,7 @@ def process_data(csv_string, vis_types):
     if is_empty_inset:
         df.drop(columns="Inset", inplace=True)
 
-    return df.to_csv(index=False), data_cols, prefered_names_dict
+    return df.to_csv(index=False), data_cols, map_names_dict
 
 
 def preprocess_geojson(mapDBKey, file_path, area_data_path=None, flags=[]):

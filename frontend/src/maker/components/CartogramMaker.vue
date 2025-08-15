@@ -108,8 +108,11 @@ async function getGeneratedCartogram() {
   })
   progressModal.show()
 
-  store.dataTable.fields[config.COL_AREA].show = true // Force include Geographic Area when generate cartogram
+  // Force include control fields when generate cartogram
+  store.dataTable.fields[config.COL_REGIONMAP].show = true
+  store.dataTable.fields[config.COL_AREA].show = true
   const csvData = await util.getGeneratedCSV(store.dataTable)
+  store.dataTable.fields[config.COL_REGIONMAP].show = false
   store.dataTable.fields[config.COL_AREA].show = false
 
   store.updateChoroSpec()

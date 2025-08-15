@@ -113,19 +113,14 @@ async function resolveRegionIssues() {
     return
 
   // Apply changes
-  let deletedIndexTotal = 0 // We need to re-adjust the indexes if we delete an item
   for (const index of store.regionWarnings) {
-    // The id of HTML select element remains the same regardless to deleted item
     const actionEl = document.getElementById('regionWarningAction' + index) as HTMLSelectElement
     const action = actionEl?.value
 
-    // Index of data items must be adjusted
-    let rIndex = index - deletedIndexTotal
     if (action === 'dropRegion') {
-      deleteRegion(rIndex)
-      deletedIndexTotal++
-    } else if (store.dataTable.items[rIndex].Region !== action) {
-      renameRegion(rIndex, action)
+      deleteRegion(index)
+    } else if (store.dataTable.items[index].Region !== action) {
+      renameRegion(index, action)
     }
   }
 
@@ -137,11 +132,12 @@ async function resolveRegionIssues() {
 }
 
 function deleteRegion(rIndex: number) {
-  const region = store.dataTable.items.splice(rIndex, 1)
+  const region = store.dataTable.items[rIndex].Region
+  store.dataTable.items[rIndex].Region = null
 
   if (!currentGeojsonData) return
   const filteredFeatures = currentGeojsonData.features.filter((feature) => {
-    return feature.properties?.Region !== region[0].Region
+    return feature.properties && feature.properties[currentGeojsonRegionCol] !== region
   })
   currentGeojsonData = { ...currentGeojsonData, features: filteredFeatures }
 }
@@ -155,8 +151,8 @@ function renameRegion(rIndex: number, action: string) {
 
   if (!currentGeojsonData) return
   currentGeojsonData.features.forEach((feature) => {
-    if (feature.properties && feature.properties.Region === oldName) {
-      feature.properties.Region = newName
+    if (feature.properties && feature.properties[currentGeojsonRegionCol] === oldName) {
+      feature.properties[currentGeojsonRegionCol] = newName
     }
   })
 }

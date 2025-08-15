@@ -51,6 +51,15 @@ export function addKeyInArray(data: KeyValueArray, keyName: string, defaultValue
   })
 }
 
+export function copyKeyInArray(data: KeyValueArray, fromKey: string, toKey: string): KeyValueArray {
+  return data.map((obj) => {
+    if (fromKey in obj) {
+      return { ...obj, [toKey]: obj[fromKey] }
+    }
+    return { ...obj }
+  })
+}
+
 /**
  * Filter an array of key-value objects so it only includes properties of the allowed type
  * and of the except. If the allowed type is null, it only includes properties of the except.

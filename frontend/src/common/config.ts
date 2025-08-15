@@ -6,6 +6,7 @@ export const NUM_GRID_OPTIONS = 3
 
 export const RESERVE_FIELDS = [
   'Region',
+  'RegionMap',
   'RegionLabel',
   'Color',
   'ColorGroup',
@@ -13,9 +14,10 @@ export const RESERVE_FIELDS = [
   'Geographic Area'
 ]
 export const NUM_RESERVED_FILEDS = RESERVE_FIELDS.length
-export const COL_COLOR = 2
-export const COL_INSET = 4
-export const COL_AREA = 5
+export const COL_REGIONMAP = 1
+export const COL_COLOR = 3
+export const COL_INSET = 5
+export const COL_AREA = 6
 export const OPTIONS_INSET = [
   { text: '', value: '' },
   { text: 'L (left)', value: 'L' },
