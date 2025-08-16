@@ -1,4 +1,5 @@
 import json
+import math
 import re
 import warnings
 from io import StringIO
@@ -7,11 +8,11 @@ import mapclassify
 import pandas as pd
 import redis
 import settings
+import shapely
 import util
 from carto_dataframe import CartoDataFrame
 from errors import CartogramError
 from executable import cartwrap
-from shapely.geometry import shape
 
 
 def preprocess(input, mapDBKey="temp_filename", based_path="tmp"):
@@ -162,6 +163,17 @@ def generate_cartogram(
         gen_file = util.get_safepath(project_path, "Geographic Area.json")
         with open(gen_file, "w") as outfile:
             outfile.write(json.dumps(equal_area_json))
+
+        # Prepare area and bounding box of the equal area map for cartogram visualization
+        geometries = [
+            shapely.geometry.shape(feature["geometry"])
+            for feature in equal_area_json["features"]
+        ]
+        geoms_info = util.get_geoms_info(geometries)
+        equal_area_area = geoms_info["area"]
+        equal_area_centroid = geoms_info["centroid"]
+        final_bbox = geoms_info["bbox"]
+
     else:
         raise CartogramError("Error while projecting the boundary file.")
 
@@ -192,7 +204,11 @@ def generate_cartogram(
         cartogram_gen_output_json = json.loads(cartogram_gen_output)
 
         cartogram_json = cartogram_gen_output_json["Original"]
-        cartogram_json = postprocess_geojson(cartogram_json)
+        cartogram_json = postprocess_geojson(
+            cartogram_json, equal_area_area, equal_area_centroid
+        )
+        final_bbox = util.union_bounding_boxes(final_bbox, cartogram_json["bbox"])
+
         with open(
             util.get_safepath(project_path, f"{data_col['name']}.json"), "w"
         ) as outfile:
@@ -207,6 +223,15 @@ def generate_cartogram(
                 cartogram_json_simplified, is_projected=True
             )
             outfile.write(json.dumps(cartogram_json_simplified))
+
+    # Update bbox so all visualized geojson have the same bounding box
+    for data_col in [{"name": "Geographic Area"}] + data_cols:
+        file_path = util.get_safepath(project_path, f"{data_col['name']}.json")
+        with open(file_path, "r") as f:
+            geo_json = json.load(f)
+        geo_json["bbox"] = final_bbox
+        with open(file_path, "w") as outfile:
+            outfile.write(json.dumps(geo_json))
 
     return
 
@@ -285,15 +310,74 @@ def preprocess_geojson(mapDBKey, file_path, area_data_path=None, flags=[]):
     return postprocess_geojson(json.loads(result["stdout"]))
 
 
-def postprocess_geojson(json_data):
-    for feature in json_data["features"]:
-        geom = shape(feature["geometry"])
-        point = geom.representative_point()
+def postprocess_geojson(json_data, target_area=None, target_centroid=None):
+    geometries = [
+        shapely.geometry.shape(feature["geometry"]) for feature in json_data["features"]
+    ]
+    geoms_info = util.get_geoms_info(geometries)
+
+    # Scale and translate to match with the target area and centroid
+    if target_area and target_centroid:
+        scale_factor = math.sqrt(target_area / geoms_info["area"])
+        origin_x = geoms_info["centroid"]["x"]
+        origin_y = geoms_info["centroid"]["y"]
+        diff_x = target_centroid["x"] - origin_x
+        diff_y = target_centroid["y"] - origin_y
+
+        for index, feature in enumerate(json_data["features"]):
+            geometries[index] = shapely.affinity.scale(
+                geometries[index],
+                xfact=scale_factor,
+                yfact=scale_factor,
+                origin=(origin_x, origin_y),
+            )
+            geometries[index] = shapely.affinity.translate(
+                geometries[index],
+                xoff=diff_x,
+                yoff=diff_y,
+            )
+            feature["geometry"] = shapely.geometry.mapping(geometries[index])
+
+        if "dividers" in json_data:
+            adjusted_dividers = shapely.affinity.scale(
+                shapely.geometry.shape(json_data["dividers"]["geometry"]),
+                xfact=scale_factor,
+                yfact=scale_factor,
+                origin=(origin_x, origin_y),
+            )
+            adjusted_dividers = shapely.affinity.translate(
+                adjusted_dividers,
+                xoff=diff_x,
+                yoff=diff_y,
+            )
+            json_data["dividers"]["geometry"] = shapely.geometry.mapping(
+                adjusted_dividers
+            )
+
+        geoms_info["bbox"][0] = (
+            origin_x + (geoms_info["bbox"][0] - origin_x) * scale_factor
+        ) + diff_x
+        geoms_info["bbox"][1] = (
+            origin_y + (geoms_info["bbox"][1] - origin_y) * scale_factor
+        ) + diff_y
+        geoms_info["bbox"][2] = (
+            origin_x + (geoms_info["bbox"][2] - origin_x) * scale_factor
+        ) + diff_x
+        geoms_info["bbox"][3] = (
+            origin_y + (geoms_info["bbox"][3] - origin_y) * scale_factor
+        ) + diff_y
+
+    # Get point to place the label
+    for index, feature in enumerate(json_data["features"]):
+        point = geometries[index].representative_point()
         feature["properties"]["label"] = {"x": point.x, "y": point.y}
 
-    # TODO This should be done in cpp - just change the format of divider_points
+    # Fix format of dividers
     if "dividers" in json_data:
         json_data["dividers"] = [json_data["dividers"]]
+
+    # Make sure that json file have bbox
+    json_data["bbox"] = geoms_info["bbox"]
 
     return json_data
 
