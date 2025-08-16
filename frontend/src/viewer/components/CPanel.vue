@@ -20,7 +20,6 @@ import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
 const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
-const DEFAULT_OPACITY = 0.3
 
 const legendLineEl = ref()
 let visView: any
@@ -224,7 +223,7 @@ function switchMode() {
                   fill="none"
                   stroke="#5A5A5A"
                   stroke-width="2"
-                  v-bind:stroke-opacity="store.options.showGrid ? DEFAULT_OPACITY : 0"
+                  v-bind:stroke-opacity="store.options.gridOpacity"
                 ></path>
               </pattern>
             </defs>

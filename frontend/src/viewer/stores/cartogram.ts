@@ -7,7 +7,7 @@ export const useCartogramStore = defineStore('cartogram', () => {
   const currentColorCol = ref('Region')
   const highlightedRegionID = ref('')
   const options = ref({
-    showGrid: true,
+    gridOpacity: 0.3,
     numberOfPanels: window.innerWidth > 768 ? 2 : 1
   })
 

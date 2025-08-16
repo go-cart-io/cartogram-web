@@ -52,6 +52,7 @@ function switchMap() {
         </select>
         <strong v-else class="text-truncate">{{ CARTOGRAM_CONFIG.mapTitle }}</strong>
       </div>
+      <div v-else class="order-1 flex-grow-1"></div>
 
       <!-- Color selector -->
       <c-menu-color v-bind:key="state.mapkey" />
@@ -69,27 +70,25 @@ function switchMap() {
             <span class="d-none d-lg-block me-2">Customize</span>
             <i class="fas fa-cog"></i>
           </button>
-          <div class="dropdown-menu dropdown-menu-end p-2 container" style="width: 250px">
-            <div class="row">
-              <div class="col-8">
-                <label class="form-check-label" for="optionsGridline">Show grid lines</label>
-              </div>
-              <div class="col-4 text-end">
+          <div class="dropdown-menu dropdown-menu-end p-2 container">
+            <div class="row mb-2">
+              <label class="form-check-label" for="optionsGridline">Grid lines opacity</label>
+              <div>
                 <input
                   id="optionsGridline"
-                  type="checkbox"
-                  class="form-check-input"
-                  v-model="store.options.showGrid"
-                  title="Toggle grid lines"
+                  type="range"
+                  class="form-range"
+                  min="0"
+                  max="0.5"
+                  step="0.1"
+                  v-model="store.options.gridOpacity"
                 />
               </div>
             </div>
 
-            <div class="row">
-              <div class="col-8">
-                <label class="form-label" for="optionsPanels">Number of panels</label>
-              </div>
-              <div class="col-4 text-end">
+            <div class="row mb-2">
+              <label class="form-label" for="optionsPanels">Number of panels</label>
+              <div>
                 <select
                   id="optionsPanels"
                   class="form-select"
