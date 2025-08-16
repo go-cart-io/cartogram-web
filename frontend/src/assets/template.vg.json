@@ -102,6 +102,10 @@
       "source": "source_geojson",
       "transform": [
         {
+          "type": "filter",
+          "expr": "datum.bbox"
+        },
+        {
           "type": "formula",
           "as": "features",
           "expr": "[{type: 'Feature', geometry: {type: 'Polygon', coordinates: [[[datum.bbox[0], datum.bbox[1]], [datum.bbox[2], datum.bbox[1]], [datum.bbox[2], datum.bbox[3]], [datum.bbox[0], datum.bbox[3]], [datum.bbox[0], datum.bbox[1]]]]}}]"
@@ -113,7 +117,9 @@
     {
       "name": "source_projection",
       "size": { "signal": "[width, height]" },
-      "fit": { "signal": "data('geo_1_bbox')" },
+      "fit": {
+        "signal": "length(data('geo_1_bbox')) ? data('geo_1_bbox') : data('source_geojson')"
+      },
       "type": "identity",
       "reflectY": true
     }
