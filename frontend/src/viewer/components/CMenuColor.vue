@@ -36,12 +36,13 @@ async function updateVis() {
               v-on:change="updateVis"
             >
               <option value="Region">Region</option>
+              <option disabled>Data:</option>
               <option
                 v-for="(versionItem, versionKey) in CARTOGRAM_CONFIG.choroVersions"
                 v-bind:value="versionItem.header"
                 v-bind:key="versionKey"
               >
-                {{ versionItem.name }}
+                &nbsp;&nbsp;{{ versionItem.header }}
               </option>
             </select>
           </div>

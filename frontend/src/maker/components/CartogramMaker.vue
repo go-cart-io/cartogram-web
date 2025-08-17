@@ -290,7 +290,7 @@ async function getGeneratedCartogram() {
         aria-expanded="true"
         aria-controls="step4"
       >
-        4. Generate cartogram
+        4. Generate visualization
       </button>
       <div id="step4" class="accordion-collapse collapse show p-2">
         <div class="p-2">

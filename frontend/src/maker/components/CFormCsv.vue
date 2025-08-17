@@ -208,7 +208,7 @@ function standardizeInset() {
   <div v-if="store.regionWarnings.size > 0" class="p-2 bg-warning-subtle">
     <i class="fa-solid fa-triangle-exclamation text-warning"></i>
     Data regions don't match the map. Review and resolve mismatches in the "Region" column in the
-    "Input Overview" panel, then apply the changes before proceeding.
+    "Input Overview" panel, then apply the changes before proceeding.<br />
 
     <button
       class="btn btn-secondary mt-2"

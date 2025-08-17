@@ -173,24 +173,22 @@ function renameRegion(rIndex: number, action: string) {
           v-on:change="refresh"
         >
           <option value="Region">Region</option>
+          <option disabled>Data:</option>
+          <option disabled v-if="!store.visTypes['choropleth'].length">
+            &nbsp;&nbsp;No choropleth column
+          </option>
           <option
             v-for="label in store.visTypes['choropleth']"
             v-bind:value="label"
             v-bind:key="label"
           >
-            {{ label }}
+            &nbsp;&nbsp;{{ label }}
           </option>
         </select>
-        <button class="btn btn-outline-secondary" type="button" v-on:click="refresh">
-          <i class="btn-icon fa fa-refresh"></i>
-        </button>
       </div>
     </div>
 
     <div class="col-6 col-lg-8 p-0">
-      <div v-if="state.isInit && !store.visTypes['choropleth'].length" class="position-absolute">
-        Select visualization type as "Choropleth" for more color options.
-      </div>
       <div id="legend" class="d-block"></div>
     </div>
   </div>
