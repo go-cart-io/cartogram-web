@@ -276,7 +276,10 @@ async function getGeneratedCartogram() {
         3.2 Choropleth
       </button>
       <div id="step3-2" class="accordion-collapse collapse show p-2">
-        <c-form-choropleth v-bind:disabled="!state.isInitialized" />
+        <c-form-choropleth
+          v-bind:disabled="!state.isInitialized"
+          v-on:specChanged="visEl.refresh()"
+        />
       </div>
 
       <button

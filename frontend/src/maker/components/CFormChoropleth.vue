@@ -178,6 +178,7 @@ function applySpec() {
           class="form-select"
           v-model="store.choroSettings.scheme"
           v-bind:disabled="props.disabled"
+          v-on:change="emit('specChanged')"
         >
           <option disabled>Sequential Single-Hue</option>
           <option v-for="scheme in cvega.sequentialSingleHueSchemes" v-bind:value="scheme">
@@ -202,6 +203,7 @@ function applySpec() {
           class="form-select"
           v-model="store.choroSettings.type"
           v-bind:disabled="props.disabled"
+          v-on:change="emit('specChanged')"
         >
           <option v-for="type in cvega.scaleTypeDiscretizing" v-bind:value="type">
             {{ type }}
@@ -221,6 +223,7 @@ function applySpec() {
           v-on:change="
             () => {
               store.choroSettings.step = Math.abs(Math.round(store.choroSettings.step))
+              emit('specChanged')
             }
           "
         />

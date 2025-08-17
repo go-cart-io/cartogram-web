@@ -19,6 +19,7 @@ const state = reactive({
 
 defineExpose({
   reset,
+  refresh,
   init,
   updateData,
   setDataItem,
