@@ -61,7 +61,7 @@ def preprocess_boundary(input, mapDBKey="temp_filename", based_path="tmp"):
     # Get nesseary information
     unique_columns = []
     for column in cdf.columns:
-        if column == "geometry":
+        if column == "geometry" or column == "label":
             continue
         cdf[column] = util.convert_col_to_serializable(cdf[column])
         if cdf[column].is_unique:
