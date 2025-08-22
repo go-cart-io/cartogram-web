@@ -8,6 +8,7 @@ import * as datatable from '../lib/datatable'
 import * as util from '../lib/util'
 import HTTP from '../lib/http'
 import type { MapHandlers } from '../../common/interface'
+import { disableLeaveConfirmOnce, useLeaveConfirm } from '../composables/useLeaveConfirm'
 
 import CFormGeojson from './CFormGeojson.vue'
 import CFormCsv from './CFormCsv.vue'
@@ -44,6 +45,8 @@ const state = reactive({
   geojsonRegionCol: '',
   isInitialized: false
 })
+
+useLeaveConfirm()
 
 onMounted(() => {
   if (!props.mapName || !props.geoUrl || !props.csvUrl) return
@@ -100,6 +103,14 @@ function isAllValid(): boolean {
 
 async function getGeneratedCartogram() {
   if (!isAllValid()) return
+
+  if (store.regionWarnings.size > 0)
+    if (
+      !window.confirm(
+        "Some region data don't align with the map. Click OK to continue or Cancel to review your data."
+      )
+    )
+      return
 
   state.isProcessing = true
   const progressModal = new Modal('#progressBackdrop', {
@@ -160,6 +171,7 @@ async function getGeneratedCartogram() {
         state.progressPercentage = 100
         window.clearInterval(progressUpdater)
         resolve(response)
+        disableLeaveConfirmOnce()
         window.location.href = '/cartogram/key/' + response.mapDBKey + '/preview'
       },
       function (error: any) {
