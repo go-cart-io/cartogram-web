@@ -94,6 +94,9 @@ async function onRegionColChanged() {
     newCsvData = util.renameKeyInArray(csvData, state.csvRegionCol, 'Region')
   else newCsvData = csvData
 
+  // Remove invalid characters \ "
+  newCsvData = cleanRegionNames(newCsvData)
+
   newCsvData.sort((a: { [key: string]: any }, b: { [key: string]: any }) => {
     const aRegion = (a['Region'] || '').toString()
     const bRegion = (b['Region'] || '').toString()
@@ -133,6 +136,19 @@ function standardizeInset() {
         csvData[i]['Inset'] = ''
     }
   }
+}
+
+/**
+ * Replaces backslashes and double quotes in the 'Region' property with underscores.
+ *
+ * @param dataArray Data to process.
+ * @returns A new data with the 'Region' values cleaned.
+ */
+function cleanRegionNames(dataArray: KeyValueArray): KeyValueArray {
+  return dataArray.map((item) => ({
+    ...item,
+    Region: item.Region.replace(/\\|"/g, '_')
+  }))
 }
 </script>
 

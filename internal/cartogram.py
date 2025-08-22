@@ -242,6 +242,10 @@ def process_data(csv_string, vis_types):
     is_empty_color = df["Color"].isna().all()
     is_empty_inset = df["Inset"].isna().all()
 
+    # Convert region names to string and replace invalid characters (\ ")
+    df["Region"] = df["Region"].astype(str)
+    df["Region"] = df["Region"].str.replace(r'\\|"', "_", regex=True)
+
     map_names_dict = {}
     # Replace empty strings with NaN, then drop rows with NaN in the 'Region' column
     initial_nrows = len(df)
