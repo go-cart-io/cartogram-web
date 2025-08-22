@@ -96,11 +96,21 @@ async function uploadGeoJson(event: Event) {
   state.handler = 'custom'
   state.isLoading = false
   state.warnings = response.warnings
-  const firstUniqueProprety = state.geojsonUniqueProperties[0]
+  const firstUniqueProprety = state.geojsonUniqueProperties.includes('Region')
+    ? 'Region'
+    : state.geojsonUniqueProperties[0]
 
   await datatable.initDataTableWGeojson(geojsonData, firstUniqueProprety)
-  emit('changed', state.handler, geojsonData, firstUniqueProprety, false)
 
+  // If 'Region' property exists, no need for the region column selector
+  if (firstUniqueProprety === 'Region') {
+    state.geojsonRegionCol = 'Region'
+    state.geojsonUniqueProperties = []
+    onRegionColChanged()
+    return
+  }
+
+  emit('changed', state.handler, geojsonData, firstUniqueProprety, false)
   await nextTick()
   const selectEl = document.getElementById('regionColSelect') as HTMLSelectElement
   selectEl.reportValidity()
