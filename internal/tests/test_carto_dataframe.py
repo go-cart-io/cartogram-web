@@ -9,8 +9,6 @@ def test_read_file(mocker):
     assert isinstance(carto_df, CartoDataFrame)
 
     expected_extra_attributes = {
-        "type": "FeatureCollection",
-        "name": "test",
         "crs": {"properties": {"name": "EPSG:cartesian"}},
     }
 
@@ -18,9 +16,7 @@ def test_read_file(mocker):
     assert carto_df.extra_attributes == expected_extra_attributes  # type: ignore[reportGeneralTypeIssues]
 
     carto_json = json.loads(carto_df.to_json())
-    assert "name" in carto_json
     assert "bbox" not in carto_json
-    assert carto_json["name"] == "test"
     assert carto_df.is_projected
     assert not carto_df.is_world
 
@@ -59,4 +55,3 @@ def test_clean_properties_with_other_region_column(mocker):
     assert "Region" in carto_json["features"][0]["properties"]
     assert "99" == carto_json["features"][0]["properties"]["Region"]
     assert "prop_non_unique" not in carto_json["features"][0]["properties"]
-    assert carto_json.get("name") == "test"

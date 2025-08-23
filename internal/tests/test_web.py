@@ -1,3 +1,4 @@
+import json
 import os
 import time
 
@@ -30,6 +31,7 @@ def test_cartogram_post(client):
             },
         },
         "mapDBKey": time.time(),
+        "visTypes": json.dumps({"cartogram": ["Population (people)"]}),
         "persist": "true",
     }
 
@@ -48,6 +50,7 @@ def test_cartogram_post_world(client):
         "scheme": "pastel1",
         "csv": csv_string,
         "mapDBKey": time.time(),
+        "visTypes": json.dumps({"cartogram": ["Population (people)"]}),
         "persist": "true",
     }
 
@@ -80,6 +83,7 @@ def test_cartogram_post_inset(client):
         "scheme": "pastel1",
         "csv": csv_string,
         "mapDBKey": key,
+        "visTypes": json.dumps({"cartogram": ["Population (people)"]}),
         "persist": "true",
     }
 
