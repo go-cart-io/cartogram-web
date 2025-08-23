@@ -307,7 +307,7 @@ def create_app():
 
         if "visTypes" not in data:
             return Response(
-                '{"error":"Invalid visualization specification."}',
+                '{"error":"Visualization specification not found."}',
                 status=400,
                 content_type="application/json",
             )
@@ -398,10 +398,10 @@ def create_app():
                     date_accessed=datetime.datetime.now(datetime.UTC)
                     - datetime.timedelta(days=365),
                     handler=handler,
-                    title=data["title"],
-                    scheme=data["scheme"],
+                    title=data.get("title"),
+                    scheme=data.get("scheme"),
                     types=json.dumps(cleaned_vis_types),
-                    spec=data["spec"],
+                    spec=data.get("spec"),
                 )
                 db.session.add(new_cartogram_entry)
                 db.session.commit()
