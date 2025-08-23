@@ -2,6 +2,12 @@
 
 {% block content %}
 
+{% if config['ENV'] == "production" %}
+<script type="module" src="/static/dist/{{ asset.url_for('src/viewer.ts').file }}"></script>
+{% else %}
+<script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/viewer.ts') }}"></script>
+{% endif %}
+
 <div id="cartogram-app" class="d-flex flex-column flex-fill">
 </div>
 

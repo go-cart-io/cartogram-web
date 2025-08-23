@@ -2,6 +2,12 @@
 
 {% block content %}
 
+{% if config['ENV'] == "production" %}
+<script type="module" src="/static/dist/{{ asset.url_for('src/maker.ts').file }}"></script>
+{% else %}
+<script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/maker.ts') }}"></script>
+{% endif %}
+
 <div id="cartogram-maker" class="container-fluid">
 </div>
 
