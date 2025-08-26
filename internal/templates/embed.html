@@ -21,9 +21,6 @@
 
   <title>Creating Cartograms Online</title>
 
-  <!-- Bootstrap core CSS -->
-  <!--<link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet">-->
-
   <!-- Custom styles for this template -->
   <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400&display=swap" rel="stylesheet">
@@ -60,18 +57,14 @@
 
   {% if config['ENV'] == "production" %}
 
-  {% endif %}
+  {% for url in asset.all_cdn_scripts('common') %}
+  <script src="{{ url }}"></script>
+  {% endfor %}
+  {% for url in asset.all_cdn_scripts('app') %}
+  <script src="{{ url }}"></script>
+  {% endfor %}
 
-  {% if config['ENV'] == "production" %}
-
-  <script src="{{ asset.cdn_url_for('@popperjs/core', 'dist/umd/popper.min.js') }}"></script>
-  <script src="{{ asset.cdn_url_for('bootstrap', 'dist/js/bootstrap.min.js') }}"></script>
-  <script src="{{ asset.cdn_url_for('vue', 'dist/vue.global.prod.js') }}"></script>
-  <script src="{{ asset.cdn_url_for('d3', 'dist/d3.min.js') }}"></script>
-  <script src="{{ asset.cdn_url_for('vega', 'build/vega.min.js') }}"></script>
-  <script src="{{ asset.cdn_url_for('vega-embed', 'build/vega-embed.min.js') }}"></script>
-  <script type="module" src="{{ asset.cdn_url_for('vega-tooltip') }}"></script>
-  {% set assets = asset.get_vite_assets('src/viewer.ts') %}
+  {% set assets = asset.all_vite_assets('src/viewer.ts') %}
   {% for js in assets.js %}
   <script type="module" src="{{ url_for('static', filename=js) }}"></script>
   {% endfor %}

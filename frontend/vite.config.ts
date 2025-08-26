@@ -4,7 +4,7 @@ import { defineConfig, loadEnv, UserConfig, UserConfigExport } from 'vite'
 import { analyzer } from 'vite-bundle-analyzer'
 import vue from '@vitejs/plugin-vue'
 import importToCDN from 'vite-plugin-cdn-import'
-import pkg from './package.json'
+import cdnPackages from './cdn-packages.json'
 
 // https://vitejs.dev/config/
 export default ({ mode }: UserConfig): UserConfigExport => {
@@ -26,43 +26,7 @@ export default ({ mode }: UserConfig): UserConfigExport => {
       // Only enable CDN in production
       mode === 'production' &&
         importToCDN({
-          modules: [
-            {
-              name: '@popperjs/core',
-              var: 'Popper',
-              path: 'https://cdn.jsdelivr.net/npm/@popperjs/core@${pkg.dependencies.@popperjs/core}/dist/umd/popper.min.js'
-            },
-            {
-              name: 'bootstrap',
-              var: 'bootstrap',
-              path: 'https://cdn.jsdelivr.net/npm/bootstrap@${pkg.dependencies.bootstrap}/dist/js/bootstrap.min.js'
-            },
-            {
-              name: 'vue',
-              var: 'Vue',
-              path: 'https://cdn.jsdelivr.net/npm/vue@${pkg.dependencies.vue}/dist/vue.global.prod.js'
-            },
-            {
-              name: 'd3',
-              var: 'd3',
-              path: 'https://cdn.jsdelivr.net/npm/d3@${pkg.dependencies.d3}/dist/d3.min.js'
-            },
-            {
-              name: 'vega',
-              var: 'vega',
-              path: 'https://cdn.jsdelivr.net/npm/vega@${pkg.dependencies.vega}/build/vega.min.js'
-            },
-            {
-              name: 'vega-embed',
-              var: 'vegaEmbed',
-              path: 'https://cdn.jsdelivr.net/npm/vega-embed@${pkg.dependencies.vega-embed}/build/vega-embed.min.js'
-            },
-            {
-              name: 'vega-tooltip',
-              var: 'vegaTooltip',
-              path: 'https://cdn.jsdelivr.net/npm/vega-tooltip@${pkg.dependencies.vega-tooltip}'
-            }
-          ]
+          modules: cdnPackages
         })
     ].filter(Boolean),
     optimizeDeps: {

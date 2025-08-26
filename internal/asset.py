@@ -7,10 +7,16 @@ from flask import current_app
 
 
 class Asset:
+    CDN_LIST = {
+        "common": ["@popperjs/core", "bootstrap"],
+        "app": ["vue", "d3", "vega", "vega-embed", "vega-tooltip"],
+    }
+
     def __init__(self, app=None):
         self.app = app
         self.manifest = {}
         self.pkg = {}
+        self.cdn = {}
         if app is not None:
             self.init_app(app)
 
@@ -19,7 +25,7 @@ class Asset:
             app.static_folder, "dist", ".vite", "manifest.json"
         )
         self._load_webpack_assets(app)
-        self._load_package_json(app)
+        self._load_package_and_cdn_json(app)
 
         if settings.IS_DEBUG:
             app.before_request(self.reload_webpack_assets)
@@ -33,12 +39,17 @@ class Asset:
         with app.open_resource(self.manifest_path) as manifest_file:
             self.manifest = json.load(manifest_file)
 
-    def _load_package_json(self, app):
+    def _load_package_and_cdn_json(self, app):
         package_path = os.path.join(app.root_path, "..", "frontend", "package.json")
         with open(package_path, "r") as f:
             self.pkg = json.load(f)
 
-    def get_vite_assets(self, entry_name):
+        cdn_path = os.path.join(app.root_path, "..", "frontend", "cdn-packages.json")
+        with open(cdn_path, "r") as f:
+            cdn_json = json.load(f)
+            self.cdn = {pkg["name"]: pkg["path"] for pkg in cdn_json}
+
+    def all_vite_assets(self, entry_name):
         """Get CSS and JS assets for a specific entry point"""
         assets = {"css": [], "js": []}
 
@@ -67,6 +78,9 @@ class Asset:
 
         return assets
 
+    def all_cdn_scripts(self, name) -> list[str]:
+        return [self.cdn_url_for(pkg) for pkg in self.CDN_LIST.get(name, "")]
+
     def url_for(self, file):
         return self.manifest.get(file)
 
@@ -79,9 +93,9 @@ class Asset:
         )
         return "//" + o.hostname + ":" + port + "/" + file
 
-    def cdn_url_for(self, package_name, file_path=None):
+    def cdn_url_for(self, package_name):
         """Get CDN URL for a package with version from package.json"""
-        file_path = "/" + file_path if file_path else ""
+        file_path = "/" + self.cdn[package_name] if self.cdn[package_name] else ""
 
         version = self.pkg.get("dependencies", {}).get(package_name, "latest")
         version = version.lstrip("^~")  # Remove ^ or ~ from version if present

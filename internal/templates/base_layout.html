@@ -107,8 +107,9 @@
   {% endif %}
 
   {% if config['ENV'] == "production" %}
-  <script src="{{ asset.cdn_url_for('@popperjs/core', 'dist/umd/popper.min.js') }}"></script>
-  <script src="{{ asset.cdn_url_for('bootstrap', 'dist/js/bootstrap.min.js') }}"></script>
+  {% for url in asset.all_cdn_scripts('common') %}
+  <script src="{{ url }}"></script>
+  {% endfor %}
   {% endif %}
 
   {% block javascript %}{% endblock %}

@@ -11,12 +11,11 @@
 
 {% if config['ENV'] == "production" %}
 
-<script src="{{ asset.cdn_url_for('vue', 'dist/vue.global.prod.js') }}"></script>
-<script src="{{ asset.cdn_url_for('d3', 'dist/d3.min.js') }}"></script>
-<script src="{{ asset.cdn_url_for('vega', 'build/vega.min.js') }}"></script>
-<script src="{{ asset.cdn_url_for('vega-embed', 'build/vega-embed.min.js') }}"></script>
-<script type="module" src="{{ asset.cdn_url_for('vega-tooltip') }}"></script>
-{% set assets = asset.get_vite_assets('src/maker.ts') %}
+{% for url in asset.all_cdn_scripts('app') %}
+<script src="{{ url }}"></script>
+{% endfor %}
+
+{% set assets = asset.all_vite_assets('src/maker.ts') %}
 {% for js in assets.js %}
 <script type="module" src="{{ url_for('static', filename=js) }}"></script>
 {% endfor %}
