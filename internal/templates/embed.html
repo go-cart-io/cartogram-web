@@ -19,14 +19,6 @@
   <meta name="twitter:image" content="{{ url_for('static', filename='img/favicon.png') }}" />
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}" />
 
-  {% if config['ENV'] == "production" %}
-  <link rel="stylesheet" href="/static/dist/{{ asset.url_for('style.css').file }}" />
-  <script type="module" src="/static/dist/{{ asset.url_for('src/main.ts').file }}"></script>
-  {% else %}
-  <script type="module" src="{{ asset.webpack_url_for(request.host_url, '@vite/client') }}"></script>
-  <script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/main.ts') }}"></script>
-  {% endif %}
-
   <title>Creating Cartograms Online</title>
 
   <!-- Bootstrap core CSS -->
@@ -36,6 +28,13 @@
   <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+  {% if config['ENV'] == "production" %}
+  <link rel="stylesheet" href="/static/dist/{{ asset.url_for('style.css').file }}" />
+  {% else %}
+  <script type="module" src="{{ asset.webpack_url_for(request.host_url, '@vite/client') }}"></script>
+  {% endif %}
+
   <base target="_parent" />
   <style>
     footer p {
@@ -58,6 +57,28 @@
     </footer>
   </div>
   <!-- /container -->
+
+  {% if config['ENV'] == "production" %}
+
+  {% endif %}
+
+  {% if config['ENV'] == "production" %}
+
+  <script src="{{ asset.cdn_url_for('@popperjs/core', 'dist/umd/popper.min.js') }}"></script>
+  <script src="{{ asset.cdn_url_for('bootstrap', 'dist/js/bootstrap.min.js') }}"></script>
+  <script src="{{ asset.cdn_url_for('vue', 'dist/vue.global.prod.js') }}"></script>
+  <script src="{{ asset.cdn_url_for('d3', 'dist/d3.min.js') }}"></script>
+  <script src="{{ asset.cdn_url_for('vega', 'build/vega.min.js') }}"></script>
+  <script src="{{ asset.cdn_url_for('vega-embed', 'build/vega-embed.min.js') }}"></script>
+  <script type="module" src="{{ asset.cdn_url_for('vega-tooltip') }}"></script>
+  {% set assets = asset.get_vite_assets('src/viewer.ts') %}
+  {% for js in assets.js %}
+  <script type="module" src="{{ url_for('static', filename=js) }}"></script>
+  {% endfor %}
+
+  {% else %}
+  <script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/viewer.ts') }}"></script>
+  {% endif %}
 
   <script>
     window.CARTOGRAM_CONFIG = {

@@ -16,16 +16,20 @@
     "format": "prettier --write src/",
     "preview": "vite preview"
   },
+  "//dependencies": {
+    "note": "Ensure production CDN dependencies are pinned to an exact version (e.g., '5.33.0', not '^5.33.0')."
+  },
   "dependencies": {
-    "@popperjs/core": "^2.11.8",
+    "@popperjs/core": "2.11.8",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
-    "bootstrap": "^5.3.3",
-    "d3": "^7.9.0",
+    "bootstrap": "5.3.3",
+    "d3": "7.9.0",
     "pinia": "^3.0.1",
-    "vega": "^5.31.0",
-    "vega-embed": "^6.29.0",
-    "vue": "^3.3.2",
+    "vega": "5.33.0",
+    "vega-embed": "6.29.0",
+    "vega-tooltip": "0.35.2",
+    "vue": "3.5.13",
     "xlsx": "npm:@e965/xlsx@^0.20.3"
   },
   "devDependencies": {
@@ -51,6 +55,8 @@
     "sass": "1.77.6",
     "typescript": "^5.7.3",
     "vite": "^6.0.11",
+    "vite-bundle-analyzer": "^1.2.1",
+    "vite-plugin-cdn-import": "^1.0.1",
     "vite-plugin-vue-devtools": "^7.7.1",
     "vitest": "^3.2.3",
     "vue-tsc": "^2.2.0"
