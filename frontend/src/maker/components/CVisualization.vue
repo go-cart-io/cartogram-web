@@ -115,7 +115,7 @@ async function resolveRegionIssues() {
 
   // Apply changes
   for (const index of store.regionWarnings) {
-    const actionEl = document.getElementById('regionWarningAction' + index) as HTMLSelectElement
+    const actionEl = document.getElementById('dtable-region-' + index) as HTMLSelectElement
     const action = actionEl?.value
 
     if (action === 'dropRegion') {

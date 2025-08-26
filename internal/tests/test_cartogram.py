@@ -1,8 +1,9 @@
 import cartogram
 
 
-def test_preprocess():
-    result = cartogram.preprocess("tests/data/geojson_test.geojson")
+def test_preprocess(test_data_dir):
+    geojson_file = test_data_dir / "geojson_test.geojson"
+    result = cartogram.preprocess(str(geojson_file))
     assert "geojson" in result
 
     # Should only allow Polygon and MultiPolygon

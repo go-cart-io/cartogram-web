@@ -1,5 +1,4 @@
 import json
-import os
 import time
 
 import util
@@ -59,17 +58,16 @@ def test_cartogram_post_world(client):
     assert response.status_code == 200
 
 
-def test_cartogram_post_inset(client):
+def test_cartogram_post_inset(client, test_data_dir):
     key = time.time()
 
-    with open(
-        os.path.join(os.path.dirname(__file__), "data/usa_by_state_since_1959.csv"), "r"
-    ) as file:
+    csv_file = test_data_dir / "usa_by_state_since_1959.csv"
+    geojson_file = test_data_dir / "usa_by_state_since_1959_region.geojson"
+
+    with open(str(csv_file), "r") as file:
         csv_string = file.read()
-    with open(
-        os.path.join(os.path.dirname(__file__), "data/usa_by_state_since_1959.geojson"),
-        "rb",
-    ) as file:
+
+    with open(str(geojson_file), "rb") as file:
         data = {"file": (file, "filename")}
         response = client.post(
             f"/api/v1/cartogram/preprocess/{key}",

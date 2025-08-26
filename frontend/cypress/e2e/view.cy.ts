@@ -12,20 +12,20 @@ describe('View cartogram', () => {
 
   it('can switch between datasets', () => {
     cy.intercept('GET', '/static/cartdata/usa/Geographic%20Area.json').as('gotoGeographicArea')
-    cy.get('#c-area2toV3Btn').click()
+    cy.get('#c-area2toV0Btn').click()
     cy.wait('@gotoGeographicArea').its('response.statusCode').should('be.oneOf', [200, 304])
-    cy.get('#c-area2toV4Btn').click()
+    cy.get('#c-area2toV1Btn').click()
   })
 
   it('can download svg, geojson, and data', () => {
     cy.get('#c-area2DownloadBtn').click()
-    cy.get('#downloadModal4 a').contains('SVG').click()
+    cy.get('#downloadModal1 a').contains('SVG').click()
     cy.readFile('cypress/downloads/Population.svg').should('exist')
-    cy.get('#downloadModal4 a').contains('GeoJSON').click()
+    cy.get('#downloadModal1 a').contains('GeoJSON').click()
     cy.readFile('cypress/downloads/Population_simplified.json').should('exist')
-    cy.get('#downloadModal4 a').contains('CSV').click()
+    cy.get('#downloadModal1 a').contains('CSV').click()
     cy.readFile('cypress/downloads/data.csv').should('exist')
-    cy.get('#downloadModal4 > .modal-dialog > .modal-content > .modal-header > .btn-close').click()
+    cy.get('#downloadModal1 > .modal-dialog > .modal-content > .modal-header > .btn-close').click()
   })
 
   it('can copy share and embed link to clipboard', () => {

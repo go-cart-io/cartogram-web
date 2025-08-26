@@ -28,11 +28,12 @@ def get_safepath(*parts):
     filepath = os.path.dirname(__file__)
     if not os.path.isabs(fullpath):
         fullpath = os.path.join(filepath, fullpath)
+    testpath = os.path.abspath(os.path.join(filepath, "..", "test-data"))
 
     if (
         not fullpath.startswith(filepath + "/tmp")
         and not fullpath.startswith(filepath + "/static")
-        and not fullpath.startswith(filepath + "/tests")
+        and not fullpath.startswith(testpath)
     ):
         raise CartogramError(f"Invalid file path: {fullpath}.")
 

@@ -29,7 +29,7 @@ const sampleRegionDataKey = computed<string[]>(() => {
 function addColumn() {
   const index = store.dataTable.fields.findIndex((item) => item.name === '')
   if (index > -1) {
-    const nameInput = document.getElementById('formFieldName' + index) as HTMLInputElement
+    const nameInput = document.getElementById('dtable-name-' + index) as HTMLInputElement
     if (nameInput) {
       nameInput.reportValidity()
     }
@@ -91,7 +91,7 @@ function updateVisType(index: number, event: Event) {
 }
 
 function updateLabel(index: number) {
-  const nameInput = document.getElementById('formFieldName' + index) as HTMLInputElement
+  const nameInput = document.getElementById('dtable-name-' + index) as HTMLInputElement
   if (!nameInput) return
   if (!nameInput.checkValidity()) {
     nameInput.reportValidity()
@@ -149,7 +149,7 @@ function validateInput(event: Event) {
               class="form-select need-validation"
               v-if="field.editableHead && field.name !== 'Geographic Area'"
               required
-              v-bind:id="'formFieldVis' + index"
+              v-bind:id="'dtable-vis-' + index"
               v-bind:value="store.dataTable.fields[index].vis"
               v-on:blur="validateInput"
               v-on:change="updateVisType(index, $event)"
@@ -186,7 +186,7 @@ function validateInput(event: Event) {
                 pattern='^[^\\\/:\*\?&#39;"&lt;&gt;\|]+$'
                 required
                 v-model="store.dataTable.fields[index].name"
-                v-bind:id="'formFieldName' + index"
+                v-bind:id="'dtable-name-' + index"
                 v-on:change="updateLabel(index)"
               />
               <input
@@ -194,7 +194,7 @@ function validateInput(event: Event) {
                 placeholder="Unit"
                 title="Data Unit"
                 v-model="store.dataTable.fields[index].unit"
-                v-bind:id="'formFieldUnit' + index"
+                v-bind:id="'dtable-unit-' + index"
                 v-on:change="updateLabel(index)"
               />
             </div>
@@ -208,7 +208,7 @@ function validateInput(event: Event) {
             <select
               v-if="field.label === 'Region' && store.regionWarnings.has(rIndex)"
               class="form-select"
-              v-bind:id="'regionWarningAction' + rIndex"
+              v-bind:id="'dtable-region-' + rIndex"
             >
               <option disabled selected>Choose action</option>
               <option disabled>Keep original name and values:</option>
@@ -246,6 +246,7 @@ function validateInput(event: Event) {
             <input
               v-else
               class="form-control"
+              v-bind:id="'dtable-cell-' + rIndex + '-' + index"
               v-bind:type="field.type"
               v-bind:value="store.dataTable.items[rIndex][field.label]"
               v-on:change="($event: any) => onValueChange(rIndex, field.label, $event)"
