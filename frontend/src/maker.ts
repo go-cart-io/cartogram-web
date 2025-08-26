@@ -4,9 +4,7 @@ import 'vite/modulepreload-polyfill'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
-import './assets/main.css'
-import './assets/styles.scss'
-
+import './common'
 import CartogramMaker from './maker/components/CartogramMaker.vue'
 
 if (document.getElementById('cartogram-maker')) {

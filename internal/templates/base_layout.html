@@ -30,6 +30,7 @@
   <link rel="stylesheet" href="/static/dist/{{ asset.url_for('style.css').file }}" />
   {% else %}
   <script type="module" src="{{ asset.webpack_url_for(request.host_url, '@vite/client') }}"></script>
+  <script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/common.ts') }}"></script>
   {% endif %}
 
   {% block head_extra %}
