@@ -84,6 +84,7 @@ function updateVisType(index: number, event: Event) {
       (item) => item !== store.dataTable.fields[index].label
     )
 
+  if (!store.visTypes[newType]) store.visTypes[newType] = []
   store.visTypes[newType].push(store.dataTable.fields[index].label)
   store.visTypes[newType].sort()
   store.dataTable.fields[index].vis = newType

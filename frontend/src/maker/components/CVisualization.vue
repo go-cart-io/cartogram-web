@@ -174,7 +174,10 @@ function renameRegion(rIndex: number, action: string) {
         >
           <option value="Region">Region</option>
           <option disabled>Data:</option>
-          <option disabled v-if="!store.visTypes['choropleth'].length">
+          <option
+            disabled
+            v-if="!store.visTypes['choropleth'] || !store.visTypes['choropleth'].length"
+          >
             &nbsp;&nbsp;No choropleth column
           </option>
           <option
