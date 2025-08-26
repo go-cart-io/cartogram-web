@@ -9,9 +9,18 @@ def sanitize_filename(filename):
     if filename is None:
         return "default_name"
 
-    invalid_chars = r'[\\/:*?"<>|]'
+    invalid_chars = r'[\\/:*?\'"<>|]'
     sanitized_filename = re.sub(invalid_chars, "_", str(filename))
+    sanitized_filename = sanitized_filename.strip()
     return sanitized_filename
+
+
+def validate_filename(filename):
+    invalid_chars = r'[\\/:*?\'"<>|]'
+    if re.search(invalid_chars, filename):
+        raise CartogramError(
+            f"{filename} is invalid. Remove all invalid characters (\\ / : * ? ' \" < > |) to proceed."
+        )
 
 
 def get_safepath(*parts):
@@ -19,11 +28,12 @@ def get_safepath(*parts):
     filepath = os.path.dirname(__file__)
     if not os.path.isabs(fullpath):
         fullpath = os.path.join(filepath, fullpath)
+    testpath = os.path.abspath(os.path.join(filepath, "..", "test-data"))
 
     if (
         not fullpath.startswith(filepath + "/tmp")
         and not fullpath.startswith(filepath + "/static")
-        and not fullpath.startswith(filepath + "/tests")
+        and not fullpath.startswith(testpath)
     ):
         raise CartogramError(f"Invalid file path: {fullpath}.")
 
@@ -105,3 +115,116 @@ def add_attributes(geojson, is_projected=False, is_world=False):
         geojson["extent"] = "world"
 
     return geojson
+
+
+def label_to_name_unit(label: str):
+    """
+    Parses a label string to extract the name and unit.
+
+    Args:
+        label: The input string, e.g., "Geographic Area (sq. km)".
+
+    Returns:
+        A dictionary containing the original header, extracted name, and unit.
+    """
+    unit_match = re.search(r"\(([^)]+)\)$", label)
+    unit = unit_match.group(1).strip() if unit_match else ""
+    name = label.replace(f"({unit})", "").strip()
+    return {"header": label, "name": name, "unit": unit}
+
+
+# Cleanup so that visTypes only have existing columns, in the same order as csv
+def clean_map_types(vis_types, csv_cols):
+    based_set = set(csv_cols)
+    order_map = {element: i for i, element in enumerate(csv_cols)}
+
+    cleaned_vis_types = {}
+    for key in vis_types:
+        fields = vis_types[key]
+
+        # Filter the fields to include only elements present in csv
+        filtered_fields = [item for item in fields if item in based_set]
+
+        # Sort the fields using a custom key based on the order_map.
+        sorted_fields = sorted(filtered_fields, key=lambda x: order_map[x])
+
+        cleaned_vis_types[key] = sorted_fields
+
+    return cleaned_vis_types
+
+
+def map_types_to_versions(may_types):
+    carto_versions = {}
+    carto_versions["0"] = {
+        "key": "0",
+        "header": "Geographic Area (sq. km)",
+        "name": "Geographic Area",
+        "unit": "sq. km",
+    }
+    if "cartogram" in may_types:
+        for i, cartogram_label in enumerate(may_types["cartogram"]):
+            info = label_to_name_unit(cartogram_label)
+            carto_versions[str(i + 1)] = {
+                "key": str(i + 1),
+                "header": info["header"],
+                "name": info["name"],
+                "unit": info["unit"],
+            }
+
+    choro_versions = {}
+    if "choropleth" in may_types:
+        for i, cartogram_label in enumerate(may_types["choropleth"]):
+            info = label_to_name_unit(cartogram_label)
+            choro_versions[str(i)] = {
+                "key": str(i),
+                "header": info["header"],
+                "name": info["name"],
+                "unit": info["unit"],
+            }
+
+    return carto_versions, choro_versions
+
+
+def spec_to_choro_settings(spec_str):
+    settings = {
+        "isAdvanceMode": False,
+        "scheme": "blues",
+        "type": "quantile",
+        "step": 5,
+        "spec": "",
+    }
+
+    if type(spec_str) is not str:
+        return settings
+
+    spec = json.loads(spec_str)
+    if (
+        "scales" not in spec
+        or not isinstance(spec["scales"], list)
+        or len(spec["scales"]) == 0
+    ):
+        return settings
+
+    settings["spec"] = json.dumps(spec_str)[1:-1]
+    for index, scale in enumerate(spec["scales"]):
+        if index == 0:
+            if (
+                scale.get("range", {}).get("scheme") is None
+                or scale.get("type") is None
+                or scale.get("range", {}).get("count") is None
+            ):
+                settings["isAdvanceMode"] = True
+                break
+
+            settings["scheme"] = scale.get("range", {}).get("scheme", "blues")
+            settings["type"] = scale.get("type", "quantile")
+            settings["step"] = scale.get("range", {}).get("count", 5)
+        elif (
+            settings["scheme"] != scale.get("range", {}).get("scheme")
+            or settings["type"] != scale.get("type")
+            or settings["step"] != scale.get("range", {}).get("count")
+        ):
+            settings["isAdvanceMode"] = True
+            break
+
+    return settings

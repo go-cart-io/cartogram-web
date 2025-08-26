@@ -1,10 +1,12 @@
 import { formatValue } from 'vega-tooltip'
 
-const LOCALE =
+export const LOCALE =
   navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language
+export const NUM_GRID_OPTIONS = 3
 
 export const RESERVE_FIELDS = [
   'Region',
+  'RegionMap',
   'RegionLabel',
   'Color',
   'ColorGroup',
@@ -12,11 +14,12 @@ export const RESERVE_FIELDS = [
   'Geographic Area'
 ]
 export const NUM_RESERVED_FILEDS = RESERVE_FIELDS.length
-export const COL_COLOR = 2
-export const COL_INSET = 4
-export const COL_AREA = 5
+export const COL_REGIONMAP = 1
+export const COL_COLOR = 3
+export const COL_INSET = 5
+export const COL_AREA = 6
 export const OPTIONS_INSET = [
-  { text: 'C (center)', value: 'C' },
+  { text: '', value: '' },
   { text: 'L (left)', value: 'L' },
   { text: 'R (right)', value: 'R' },
   { text: 'T (top)', value: 'T' },

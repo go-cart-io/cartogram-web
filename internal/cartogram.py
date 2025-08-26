@@ -5,6 +5,7 @@ import warnings
 from io import StringIO
 
 import mapclassify
+import numpy as np
 import pandas as pd
 import redis
 import settings
@@ -60,7 +61,7 @@ def preprocess_boundary(input, mapDBKey="temp_filename", based_path="tmp"):
     # Get nesseary information
     unique_columns = []
     for column in cdf.columns:
-        if column == "geometry":
+        if column == "geometry" or column == "label":
             continue
         cdf[column] = util.convert_col_to_serializable(cdf[column])
         if cdf[column].is_unique:
@@ -108,6 +109,7 @@ def preprocess_boundary(input, mapDBKey="temp_filename", based_path="tmp"):
 
 def generate_cartogram(
     datacsv,
+    vis_types,
     input_file,
     cartogram_key,
     project_path,
@@ -115,26 +117,20 @@ def generate_cartogram(
     print_progress=False,
     flags=[],
 ):
-    datacsv, data_cols, prefered_names_dict = process_data(datacsv)
+    datacsv, data_cols, map_names_dict = process_data(datacsv, vis_types)
     area_data_path = util.get_safepath(project_path, "data.csv")
     with open(area_data_path, "w") as outfile:
         outfile.write(datacsv)
     data_length = len(data_cols)
-
-    if data_length == 0:
-        raise CartogramError(
-            "Missing data. Please add at least one data column to the table."
-        )
 
     # Process the boundary file
     cdf = CartoDataFrame.read_file(input_file)
     is_projected = cdf.is_projected
     if cdf.is_world:
         flags = flags + ["--world"]
-    if clean_by is not None and clean_by != "":
-        cdf.clean_properties(
-            clean_by or "Region", prefered_names_dict=prefered_names_dict
-        )
+
+    if (clean_by is not None and clean_by != "") or map_names_dict != {}:
+        cdf.clean_properties(clean_by or "Region", map_names_dict=map_names_dict)
         cdf.to_carto_file(input_file)
 
     if is_projected:
@@ -147,7 +143,7 @@ def generate_cartogram(
                 "--output_shifted_insets",
                 "--skip_projection",
                 "--area",
-                data_cols[0]["column_name"],
+                "Geographic Area (sq. km)",
             ],
         )
     else:
@@ -155,7 +151,7 @@ def generate_cartogram(
             cartogram_key,
             input_file,
             area_data_path,
-            flags + ["--output_equal_area_map", "--area", data_cols[0]["column_name"]],
+            flags + ["--output_equal_area_map", "--area", "Geographic Area (sq. km)"],
         )
 
     if equal_area_json is not None:
@@ -236,19 +232,29 @@ def generate_cartogram(
     return
 
 
-def process_data(csv_string):
+def process_data(csv_string, vis_types):
     df = pd.read_csv(StringIO(csv_string), keep_default_na=False, na_values=[""])
-    df.columns = [util.sanitize_filename(col) for col in df.columns]
+    for col in df.columns:
+        util.validate_filename(col)
+
     df["Color"] = df["Color"] if "Color" in df else None
     df["Inset"] = df["Inset"] if "Inset" in df else None
     is_empty_color = df["Color"].isna().all()
     is_empty_inset = df["Inset"].isna().all()
 
-    prefered_names_dict = {}
-    if "PreferedName" in df.columns:
-        prefered_names_dict = dict(zip(df["Region"], df["PreferedName"]))
-        df["Region"] = df["PreferedName"]
-        df = df.drop(columns=["PreferedName"])
+    # Convert region names to string and replace invalid characters (\ ")
+    df["Region"] = df["Region"].astype(str)
+    df["Region"] = df["Region"].str.replace(r'\\|"', "_", regex=True)
+
+    map_names_dict = {}
+    # Replace empty strings with NaN, then drop rows with NaN in the 'Region' column
+    initial_nrows = len(df)
+    df = df.replace(r"^\s*$", np.nan, regex=True).dropna(subset=["Region"])
+    # Create name map
+    if "RegionMap" in df.columns:
+        if not df["RegionMap"].equals(df["Region"]) or initial_nrows != len(df):
+            map_names_dict = dict(zip(df["RegionMap"], df["Region"]))
+        df = df.drop(columns=["RegionMap"])
 
     data_cols = []
     cols_order = ["Region", "RegionLabel", "Color", "ColorGroup", "Inset"]
@@ -277,13 +283,19 @@ def process_data(csv_string):
                     "Missing data name. Please ensure each data column has a name in its header."
                 )
 
+            if df[column].isna().all():
+                raise CartogramError(
+                    f"Cannot process {column}: All rows are empty. Please enter some numeric values or remove the column."
+                )
+
             sum = df[column].sum()
-            if sum == 0:
+            if column in vis_types["cartogram"] and sum == 0:
                 raise CartogramError(
                     f"Cannot process {column}: Sum is zero. Please ensure the sum of data is not zero."
                 )
 
-            data_cols.append({"name": name, "column_name": column})
+            if column in vis_types.get("cartogram", []):
+                data_cols.append({"name": name, "column_name": column})
 
     df = df.reindex(columns=cols_order)
 
@@ -297,7 +309,7 @@ def process_data(csv_string):
     if is_empty_inset:
         df.drop(columns="Inset", inplace=True)
 
-    return df.to_csv(index=False), data_cols, prefered_names_dict
+    return df.to_csv(index=False), data_cols, map_names_dict
 
 
 def preprocess_geojson(mapDBKey, file_path, area_data_path=None, flags=[]):

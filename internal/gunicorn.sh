@@ -1,3 +1,0 @@
-#!/bin/bash
-
-gunicorn --bind $CARTOGRAM_HOST:$CARTOGRAM_PORT -w $CARTOGRAM_GUNICORN_WORKERS $CARTOGRAM_GUNICORN_OPTIONS "web:create_app()"

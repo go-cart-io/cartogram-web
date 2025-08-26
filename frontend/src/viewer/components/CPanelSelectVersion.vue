@@ -4,7 +4,10 @@ import { nextTick, reactive } from 'vue'
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
+const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
+
 const props = defineProps<{
+  panelID: string
   currentVersionName: string
 }>()
 
@@ -16,7 +19,7 @@ const state = reactive({
 
 function playVersions() {
   state.isPlaying = true
-  const keys = Object.keys(store.versions)
+  const keys = Object.keys(CARTOGRAM_CONFIG.cartoVersions)
   let i = 0
   emit('version_changed', keys[i++])
   nextTick()
@@ -39,7 +42,7 @@ function playVersions() {
     aria-label="Data"
   >
     <button
-      v-if="Object.keys(store.versions).length > 2"
+      v-if="Object.keys(CARTOGRAM_CONFIG.cartoVersions).length > 2"
       class="btn btn-primary"
       v-bind:disabled="state.isPlaying"
       v-on:click="playVersions()"
@@ -47,17 +50,22 @@ function playVersions() {
       <i class="fas fa-play"></i>
     </button>
     <button
-      v-for="(version, index) in store.versions"
+      v-for="(version, index) in CARTOGRAM_CONFIG.cartoVersions"
       type="button"
       class="btn btn-outline-primary version"
+      v-bind:id="props.panelID + 'toV' + index + 'Btn'"
       v-bind:class="{ active: props.currentVersionName === index.toString() }"
-      v-on:click="emit('version_changed', index.toString())"
+      v-bind:title="'Switch to ' + version.name"
       v-bind:key="index"
+      v-on:click="emit('version_changed', index.toString())"
     >
       {{ version.name }}
       <i
         class="fas fa-check"
-        v-if="store.versions.length === 2 && props.currentVersionName === index.toString()"
+        v-if="
+          CARTOGRAM_CONFIG.cartoVersions.length === 2 &&
+          props.currentVersionName === index.toString()
+        "
       ></i>
     </button>
   </div>

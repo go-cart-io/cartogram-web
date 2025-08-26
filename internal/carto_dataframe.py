@@ -135,7 +135,7 @@ class CartoDataFrame(gpd.GeoDataFrame):
         self,
         region_col,
         base_columns=["Region", "label", "cartogram_id", "geometry"],
-        prefered_names_dict={},
+        map_names_dict={},
     ):
         """
         Cleans the GeoDataFrame by:
@@ -149,10 +149,13 @@ class CartoDataFrame(gpd.GeoDataFrame):
                 self.drop(columns=["Region"], inplace=True)
             self.rename(columns={region_col: "Region"}, inplace=True)
 
-        if prefered_names_dict != {}:
-            self["Region"] = self["Region"].apply(
-                lambda x: prefered_names_dict.get(x, x)
-            )
+        if map_names_dict != {}:
+            # Drop the rows where 'Region' is not found
+            rows_to_drop = ~self["Region"].isin(map_names_dict.keys())
+            self.drop(self[rows_to_drop].index, inplace=True)
+
+            # If x is found as a key in prefered_names_dict, it replaces x with the corresponding value from the dictionary.
+            self["Region"] = self["Region"].apply(lambda x: map_names_dict.get(x, x))
 
         # Identify columns to keep
         area_columns = [

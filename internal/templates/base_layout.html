@@ -19,20 +19,20 @@
   <meta name="twitter:image" content="{{ url_for('static', filename='img/favicon.png') }}">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
 
-  {% if config['ENV'] == "production" %}
-  <link rel="stylesheet" href="/static/dist/{{ asset.url_for('style.css').file }}" />
-  <script type="module" src="/static/dist/{{ asset.url_for('src/main.ts').file }}"></script>
-  {% else %}
-  <script type="module" src="{{ asset.webpack_url_for(request.host_url, '@vite/client') }}"></script>
-  <script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/main.ts') }}"></script>
-  {% endif %}
-
   <title>Creating Cartograms Online</title>
 
   <!-- Custom styles for this template -->
   <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+  {% if config['ENV'] == "production" %}
+  <link rel="stylesheet" href="/static/dist/{{ asset.url_for('style.css').file }}" />
+  {% else %}
+  <script type="module" src="{{ asset.webpack_url_for(request.host_url, '@vite/client') }}"></script>
+  <script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/common.ts') }}"></script>
+  {% endif %}
+
   {% block head_extra %}
   {% endblock %}
 </head>
@@ -105,6 +105,12 @@
 
   {% else %}
 
+  {% endif %}
+
+  {% if config['ENV'] == "production" %}
+  {% for url in asset.all_cdn_scripts('common') %}
+  <script src="{{ url }}"></script>
+  {% endfor %}
   {% endif %}
 
   {% block javascript %}{% endblock %}

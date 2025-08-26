@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import * as util from '../src/maker/lib/util'
+import * as util from '../../../src/maker/lib/util'
 
 describe('maker.lib.util', () => {
   describe('renameKeyInArray', () => {
@@ -43,6 +43,51 @@ describe('maker.lib.util', () => {
         { name: 'Alice', age: 30 },
         { name: 'Bob', age: 50 }
       ])
+    })
+  })
+
+  describe('copyKeyInArray', () => {
+    it('should copy the value from formKey to toKey for each object where formKey exists', () => {
+      const data = [
+        { a: 1, b: 2 },
+        { a: 3, b: 4 }
+      ]
+      const result = util.copyKeyInArray(data, 'a', 'c')
+      expect(result).toEqual([
+        { a: 1, b: 2, c: 1 },
+        { a: 3, b: 4, c: 3 }
+      ])
+    })
+
+    it('should not add toKey if formKey does not exist in the object', () => {
+      const data = [
+        { x: 10, y: 20 },
+        { a: 5, b: 6 }
+      ]
+      const result = util.copyKeyInArray(data, 'a', 'z')
+      expect(result).toEqual([
+        { x: 10, y: 20 },
+        { a: 5, b: 6, z: 5 }
+      ])
+    })
+
+    it('should handle empty array', () => {
+      const data: any[] = []
+      const result = util.copyKeyInArray(data, 'foo', 'bar')
+      expect(result).toEqual([])
+    })
+
+    it('should copy undefined if formKey exists but value is undefined', () => {
+      const data = [{ foo: undefined, bar: 1 }]
+      const result = util.copyKeyInArray(data, 'foo', 'baz')
+      expect(result).toEqual([{ foo: undefined, bar: 1, baz: undefined }])
+    })
+
+    it('should not mutate the original array', () => {
+      const data = [{ a: 1 }]
+      const copy = JSON.parse(JSON.stringify(data))
+      util.copyKeyInArray(data, 'a', 'b')
+      expect(data).toEqual(copy)
     })
   })
 
@@ -104,24 +149,52 @@ describe('maker.lib.util', () => {
     })
   })
 
-  describe('mergeObjInArray', () => {
-    it('should merge objects from baseData and newData when keys match', () => {
-      const baseData = [
-        { Region: 'North', value: 10 },
-        { Region: 'South', value: 20 },
-        { Region: 'West', value: 30 }
-      ]
-      const newData = [
-        { Region: 'North', additionalValue: 5 },
-        { Region: 'East', additionalValue: 15 },
-        { Region: 'West', value: 50, additionalValue: 25 }
-      ]
-      const result = util.mergeObjInArray(baseData, newData, 'Region')
-      expect(result).toEqual([
-        { Region: 'North', value: 10, additionalValue: 5 },
-        { Region: 'South', value: 20 },
-        { Region: 'West', value: 50, additionalValue: 25 }
+  describe('updateObjInArray', () => {
+    const baseData = [
+      { id: 1, name: 'A', value: 10 },
+      { id: 2, name: 'B', value: 20 },
+      { id: 3, name: 'C', value: 30 }
+    ]
+    const newData = [
+      { id: 2, name: 'B2', value: 200, extra: true },
+      { id: 3, name: 'C2', value: 300 },
+      { id: 4, name: 'D', value: 400 }
+    ]
+
+    it('should update matching objects and track unmatched', () => {
+      const result = util.updateObjInArray(baseData, newData, 'id')
+      expect(result.updated).toEqual([
+        { id: 1, name: 'A', value: 10 },
+        { id: 2, name: 'B2', value: 200, extra: true },
+        { id: 3, name: 'C2', value: 300 }
       ])
+      expect(result.fields).toEqual(['id', 'name', 'value', 'extra'])
+      expect(result.unupdatedIndex).toEqual([0])
+      expect(result.unmatched).toEqual([{ id: 4, name: 'D', value: 400 }])
+    })
+
+    it('should handle empty newData', () => {
+      const result = util.updateObjInArray(baseData, [], 'id')
+      expect(result.updated).toEqual(baseData)
+      expect(result.fields).toEqual([])
+      expect(result.unupdatedIndex).toEqual([0, 1, 2])
+      expect(result.unmatched).toEqual([])
+    })
+
+    it('should handle empty baseData', () => {
+      const result = util.updateObjInArray([], newData, 'id')
+      expect(result.updated).toEqual([])
+      expect(result.fields).toEqual([])
+      expect(result.unupdatedIndex).toEqual([])
+      expect(result.unmatched).toEqual(newData)
+    })
+
+    it('should not mutate input arrays', () => {
+      const baseCopy = JSON.parse(JSON.stringify(baseData))
+      const newCopy = JSON.parse(JSON.stringify(newData))
+      util.updateObjInArray(baseData, newData, 'id')
+      expect(baseData).toEqual(baseCopy)
+      expect(newData).toEqual(newCopy)
     })
   })
 

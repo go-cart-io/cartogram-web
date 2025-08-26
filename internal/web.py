@@ -5,8 +5,10 @@ import logging
 import os
 import shutil
 import traceback
+from io import StringIO
 
 import cartogram
+import pandas as pd
 import settings
 import util
 from asset import Asset
@@ -50,11 +52,6 @@ def create_app():
     if settings.USE_DATABASE:
         db.init_app(app)
         Migrate(app, db)
-
-        try:
-            db.create_all()
-        except Exception as err:
-            app.logger.error(err)
 
     default_cartogram_handler = "usa"
     cartogram_handler = CartogramHandler()
@@ -106,12 +103,17 @@ def create_app():
         if not cartogram_handler.has_handler(map_name):
             return Response("Not found", status=404)
 
+        carto_versions, choro_versions = util.map_types_to_versions(
+            {"cartogram": ["Population (people)"]}
+        )
         return render_template(
             template,
             page_active="cartogram",
             maps=cartogram_handler.get_sorted_handler_names(),
             map_name=map_name,
             map_color_scheme="pastel1",
+            carto_versions=carto_versions,
+            choro_versions=choro_versions,
             mode=mode,
             tracking=tracking.determine_tracking_action(request),
         )
@@ -144,6 +146,18 @@ def create_app():
             except Exception:
                 db.session.rollback()
 
+        map_types = (
+            json.loads(cartogram_entry.types)
+            if type(cartogram_entry.types) is str
+            else {}
+        )
+        carto_versions, choro_versions = util.map_types_to_versions(map_types)
+        map_spec = (
+            json.loads(cartogram_entry.spec)
+            if type(cartogram_entry.spec) is str
+            else {}
+        )
+
         return render_template(
             template,
             page_active="cartogram",
@@ -152,6 +166,9 @@ def create_app():
             map_data_key=string_key,
             map_title=cartogram_entry.title,
             map_color_scheme=cartogram_entry.scheme,
+            carto_versions=carto_versions,
+            choro_versions=choro_versions,
+            map_spec=map_spec,
             mode=mode,
             tracking=tracking.determine_tracking_action(request),
         )
@@ -178,15 +195,17 @@ def create_app():
             tracking=tracking.determine_tracking_action(request),
         )
 
-    @app.route("/cartogram/edit/<type>/<name_or_key>", methods=["GET"])
-    def edit_cartogram(type, name_or_key):
-        if type == "map":
+    @app.route("/cartogram/edit/<store_type>/<name_or_key>", methods=["GET"])
+    def edit_cartogram(store_type, name_or_key):
+        if store_type == "map":
             handler = name_or_key
             csv_url = f"/static/cartdata/{handler}/data.csv"
             title = name_or_key
             scheme = "pastel1"
+            map_types = {"cartogram": ["Population (people)"]}
+            map_settings = util.spec_to_choro_settings(None)
 
-        elif type == "key":
+        elif store_type == "key":
             if not settings.USE_DATABASE:
                 return Response("Not found", status=404)
 
@@ -204,6 +223,12 @@ def create_app():
             csv_url = f"/static/userdata/{name_or_key}/data.csv"
             title = cartogram_entry.title
             scheme = cartogram_entry.scheme if cartogram_entry.scheme else "pastel1"
+            map_types = (
+                json.loads(cartogram_entry.types)
+                if type(cartogram_entry.types) is str
+                else {}
+            )
+            map_settings = util.spec_to_choro_settings(cartogram_entry.spec)
 
         else:
             return Response("Not found", status=404)
@@ -219,6 +244,8 @@ def create_app():
             csv_url=csv_url,
             map_title=title,
             map_color_scheme=scheme,
+            map_types=map_types,
+            map_settings=map_settings,
             tracking=tracking.determine_tracking_action(request),
         )
 
@@ -278,6 +305,27 @@ def create_app():
                 content_type="application/json",
             )
 
+        if "visTypes" not in data:
+            return Response(
+                '{"error":"Visualization specification not found."}',
+                status=400,
+                content_type="application/json",
+            )
+
+        try:
+            vis_types = json.loads(data["visTypes"])
+            for key in vis_types:
+                for header in vis_types[key]:
+                    util.validate_filename(header)
+        except CartogramError as e:
+            return e.response()
+        except Exception:
+            return Response(
+                '{"error":"Invalid visualization specification."}',
+                status=400,
+                content_type="application/json",
+            )
+
         datacsv = data["csv"] if "csv" in data else util.get_csv(data)
         string_key = util.sanitize_filename(data["mapDBKey"])
         userdata_path = None
@@ -310,6 +358,10 @@ def create_app():
                 cartogram_handler.get_gen_file(handler, string_key)
             )
 
+            df = pd.read_csv(StringIO(datacsv))
+            cleaned_vis_types = util.clean_map_types(vis_types, df.columns)
+
+            # Manage input file
             if handler == "custom":
                 editedFrom = data.get("editedFrom", "")
                 if editedFrom and editedFrom != "" and editedFrom != gen_file:
@@ -321,9 +373,22 @@ def create_app():
                         util.get_safepath("tmp", f"{string_key}.json"), gen_file
                     )
                     clean_by = data.get("geojsonRegionCol", "Region")
+            elif "RegionMap" in df.columns and not df["RegionMap"].equals(df["Region"]):
+                # If regions are edited, handler should be custom
+                handler = "custom"
+                new_gen_file = util.get_safepath(
+                    cartogram_handler.get_gen_file(handler, string_key)
+                )
+                shutil.copyfile(gen_file, new_gen_file)
+                gen_file = new_gen_file
 
             cartogram.generate_cartogram(
-                datacsv, gen_file, string_key, userdata_path, clean_by=clean_by
+                datacsv,
+                cleaned_vis_types,
+                gen_file,
+                string_key,
+                userdata_path,
+                clean_by=clean_by,
             )
 
             if "persist" in data and settings.USE_DATABASE:
@@ -332,9 +397,11 @@ def create_app():
                     date_created=datetime.datetime.today(),
                     date_accessed=datetime.datetime.now(datetime.UTC)
                     - datetime.timedelta(days=365),
-                    title=data["title"],
-                    scheme=data["scheme"],
                     handler=handler,
+                    title=data.get("title"),
+                    scheme=data.get("scheme"),
+                    types=json.dumps(cleaned_vis_types),
+                    spec=data.get("spec"),
                 )
                 db.session.add(new_cartogram_entry)
                 db.session.commit()

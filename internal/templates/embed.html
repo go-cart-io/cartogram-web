@@ -19,23 +19,19 @@
   <meta name="twitter:image" content="{{ url_for('static', filename='img/favicon.png') }}" />
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}" />
 
-  {% if config['ENV'] == "production" %}
-  <link rel="stylesheet" href="/static/dist/{{ asset.url_for('style.css').file }}" />
-  <script type="module" src="/static/dist/{{ asset.url_for('src/main.ts').file }}"></script>
-  {% else %}
-  <script type="module" src="{{ asset.webpack_url_for(request.host_url, '@vite/client') }}"></script>
-  <script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/main.ts') }}"></script>
-  {% endif %}
-
   <title>Creating Cartograms Online</title>
-
-  <!-- Bootstrap core CSS -->
-  <!--<link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet">-->
 
   <!-- Custom styles for this template -->
   <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+  {% if config['ENV'] == "production" %}
+  <link rel="stylesheet" href="/static/dist/{{ asset.url_for('style.css').file }}" />
+  {% else %}
+  <script type="module" src="{{ asset.webpack_url_for(request.host_url, '@vite/client') }}"></script>
+  {% endif %}
+
   <base target="_parent" />
   <style>
     footer p {
@@ -59,13 +55,36 @@
   </div>
   <!-- /container -->
 
+  {% if config['ENV'] == "production" %}
+
+  {% for url in asset.all_cdn_scripts('common') %}
+  <script src="{{ url }}"></script>
+  {% endfor %}
+  {% for url in asset.all_cdn_scripts('app') %}
+  <script src="{{ url }}"></script>
+  {% endfor %}
+
+  {% set assets = asset.all_vite_assets('src/viewer.ts') %}
+  {% for js in assets.js %}
+  <script type="module" src="{{ url_for('static', filename=js) }}"></script>
+  {% endfor %}
+
+  {% else %}
+  <script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/viewer.ts') }}"></script>
+  {% endif %}
+
   <script>
-    var mapName = "{{ map_name }}";
-    var maps = JSON.parse('{{ maps | default({}) | tojson | safe }}');
-    var mapTitle = "{{ map_title }}";
-    var mapColorScheme = "{{ map_color_scheme }}";
-    var mapDBKey = "{{ map_data_key }}";
-    var mode = "embed";
+    window.CARTOGRAM_CONFIG = {
+      mode: "embed",
+      maps: JSON.parse('{{ maps | default({}) | tojson | safe }}'),
+      mapName: "{{ map_name }}",
+      mapTitle: "{{ map_title }}",
+      mapDBKey: "{{ map_data_key }}",
+      cartoVersions: JSON.parse('{{ carto_versions | default({}) | tojson | safe }}'),
+      cartoColorScheme: "{{ map_color_scheme }}",
+      choroVersions: JSON.parse('{{ choro_versions | default({}) | tojson | safe }}'),
+      choroSpec: JSON.parse('{{ map_spec | default({}) | tojson | safe }}')
+    };
   </script>
 </body>
 

@@ -6,11 +6,18 @@ RUN pip install --upgrade pip setuptools wheel
 
 COPY ./internal /root/internal
 RUN pip install -r /root/internal/requirements.txt
+
 # Download and chmod +x the executable
 COPY ./tools/pull-executable.sh /root/tools/pull-executable.sh
 RUN bash /root/tools/pull-executable.sh
 
+# Set up script to clean up temporary and unused files everyday
 RUN (crontab -l ; echo "0 0 * * * wget -O /root/cron.txt http://localhost:5000/cleanup") | crontab
 
 EXPOSE 5000
 WORKDIR /root/internal
+
+# Set the entrypoint that will always be executed when the container starts
+COPY ./tools/entrypoint.sh /root/tools/entrypoint.sh
+RUN chmod +x /root/tools/entrypoint.sh
+ENTRYPOINT ["/root/tools/entrypoint.sh"]

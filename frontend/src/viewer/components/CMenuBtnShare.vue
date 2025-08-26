@@ -6,13 +6,11 @@ import CTextCitation from './CTextCitation.vue'
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
-const props = defineProps<{
-  mapDBKey?: string
-}>()
+const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
 
 const socialURL = computed(() => {
-  if (props.mapDBKey && props.mapDBKey !== '')
-    return location.protocol + '//' + location.host + '/cartogram/key/' + props.mapDBKey
+  if (CARTOGRAM_CONFIG.mapDBKey && CARTOGRAM_CONFIG.mapDBKey !== '')
+    return location.protocol + '//' + location.host + '/cartogram/key/' + CARTOGRAM_CONFIG.mapDBKey
 
   return location.protocol + '//' + location.host + '/cartogram/map/' + store.currentMapName
 })
@@ -40,13 +38,14 @@ function access() {
 <template>
   <!-- Button trigger modal -->
   <button
-    class="btn btn-primary me-2 d-flex align-items-center"
+    id="shareBtn"
+    class="btn btn-primary d-flex align-items-center"
     data-bs-toggle="modal"
     data-bs-target="#shareModal"
     title="Save and share cartogram"
     v-on:click="access()"
   >
-    <span class="d-none d-md-block me-2">Share</span>
+    <span class="d-none d-lg-block me-2">Share</span>
     <i class="fas fa-share-alt"></i>
   </button>
 

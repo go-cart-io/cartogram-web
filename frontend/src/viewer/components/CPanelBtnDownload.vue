@@ -6,28 +6,31 @@ import CTextCitation from './CTextCitation.vue'
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
+const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
+
 const props = defineProps<{
-  mapDBKey: string
   versionKey: string
   panelID: string
 }>()
 
 const version = computed(() => {
-  return store.versions[props.versionKey]
+  return CARTOGRAM_CONFIG.cartoVersions[props.versionKey]
 })
 
 const geolink = computed(() => {
   const ext =
-    store.versions[props.versionKey].name === 'Geographic Area' ? '.json' : '_simplified.json'
+    CARTOGRAM_CONFIG.cartoVersions[props.versionKey].name === 'Geographic Area'
+      ? '.json'
+      : '_simplified.json'
   return util.getGeojsonURL(
     store.currentMapName,
-    props.mapDBKey,
-    store.versions[props.versionKey].name + ext
+    CARTOGRAM_CONFIG.mapDBKey,
+    CARTOGRAM_CONFIG.cartoVersions[props.versionKey].name + ext
   )
 })
 
 const csvlink = computed(() => {
-  return util.getCsvURL(store.currentMapName, props.mapDBKey)
+  return util.getCsvURL(store.currentMapName, CARTOGRAM_CONFIG.mapDBKey)
 })
 /**
  * Generates download links for the map(s) and/or cartogram(s) displayed on the left and
@@ -75,7 +78,7 @@ function downloadSVG() {
   const url = URL.createObjectURL(svgBlob)
   a.href = url
 
-  a.download = store.versions[props.versionKey].name + '.svg'
+  a.download = CARTOGRAM_CONFIG.cartoVersions[props.versionKey].name + '.svg'
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
@@ -102,6 +105,7 @@ function downloadJson() {
   <button
     class="btn btn-primary"
     data-bs-toggle="modal"
+    v-bind:id="props.panelID + 'DownloadBtn'"
     v-bind:data-bs-target="'#downloadModal' + version.key"
     v-bind:title="'Download ' + version.name"
   >

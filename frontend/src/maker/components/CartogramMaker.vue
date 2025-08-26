@@ -1,29 +1,39 @@
 <script setup lang="ts">
-import * as d3 from 'd3'
 import type { FeatureCollection } from 'geojson'
 import { Toast, Modal } from 'bootstrap'
 import { reactive, ref, onMounted } from 'vue'
 
+import * as config from '../../common/config'
+import * as datatable from '../lib/datatable'
 import * as util from '../lib/util'
 import HTTP from '../lib/http'
-import type { KeyValueArray } from '../lib/interface'
 import type { MapHandlers } from '../../common/interface'
+import { disableLeaveConfirmOnce, useLeaveConfirm } from '../composables/useLeaveConfirm'
 
 import CFormGeojson from './CFormGeojson.vue'
 import CFormCsv from './CFormCsv.vue'
-import CSelectColor from './CSelectColor.vue'
+import CFormSettings from './CFormSettings.vue'
+import CFormCartogram from './CFormCartogram.vue'
+import CFormChoropleth from './CFormChoropleth.vue'
+import CVisualization from './CVisualization.vue'
 import CDataTable from './CDataTable.vue'
 
+import { useProjectStore } from '../stores/project'
+const store = useProjectStore()
+
 const mapDBKey = util.generateShareKey(32)
-const dataTableEl = ref()
+const csvFormEl = ref()
+const visEl = ref()
 
 const props = defineProps<{
   maps: MapHandlers
   mapName?: string
   mapTitle?: string
-  mapColorScheme?: string
   geoUrl?: string
   csvUrl?: string
+  mapTypes?: { [key: string]: Array<string> }
+  cartoColorScheme?: string
+  choroSettings?: any
 }>()
 
 const state = reactive({
@@ -31,74 +41,77 @@ const state = reactive({
   progressName: '',
   progressPercentage: 0,
   error: '',
-  title: props.mapTitle ? props.mapTitle : '',
   handler: props.mapName ? props.mapName : '',
-  geojsonData: {} as FeatureCollection,
   geojsonRegionCol: '',
-  csvFile: '',
-  colorScheme: props.mapColorScheme ? props.mapColorScheme : 'pastel1',
-  useInset: false
+  isInitialized: false
 })
+
+useLeaveConfirm()
 
 onMounted(() => {
   if (!props.mapName || !props.geoUrl || !props.csvUrl) return
 
+  store.title = props.mapTitle ? props.mapTitle : ''
+  store.visTypes = props.mapTypes ? props.mapTypes : { cartogram: [], choropleth: [] }
+  store.cartoColorScheme = props.cartoColorScheme ? props.cartoColorScheme : 'pastel1'
+  if (props.choroSettings) store.choroSettings = props.choroSettings
+
   const projectedUrl = props.geoUrl.replace('/Input.json', '/Geographic Area.json')
-  HTTP.get(projectedUrl).then(function (response: any) {
-    onGeoJsonChanged(props.mapName!, response, 'Region', props.csvUrl)
+  HTTP.get(projectedUrl).then(async function (response: any) {
+    await datatable.initDataTableWGeojson(response, 'Region', props.csvUrl)
+    onGeoJsonChanged(props.mapName!, response, 'Region', true)
   })
 })
 
-function onGeoJsonChanged(
+async function onGeoJsonChanged(
   handler: string,
   geojsonData: FeatureCollection,
   regionCol: string,
-  csvFile = '',
-  displayTable: boolean = true
+  isInitialized: boolean = true
 ) {
   state.handler = handler
-  state.geojsonData = geojsonData
   state.geojsonRegionCol = regionCol
-  state.csvFile = csvFile
-  dataTableEl.value.initDataTableWGeojson(geojsonData, regionCol, displayTable)
+  state.isInitialized = isInitialized
+  await visEl.value.init(geojsonData, regionCol)
 
-  // Immediately populate data if a CSV file is supplied
-  if (csvFile) {
-    d3.csv(csvFile)
-      .then((csvData) => {
-        if (!csvData || !Array.isArray(csvData)) {
-          console.error('Invalid CSV data')
-          return
-        }
-        onCsvUpdate(csvData)
-      })
-      .catch((error) => {
-        console.error('Error loading CSV:', error)
-      })
-  }
+  if (isInitialized) collapseStep('1')
 }
 
-async function onCsvBtnClick() {
-  await dataTableEl.value.getCSV(true)
+function collapseStep(step: string) {
+  document.getElementById('step' + step + '-btn')?.click()
 }
 
-async function onExcelBtnClick() {
-  await dataTableEl.value.getExcel()
-}
+function isAllValid(): boolean {
+  let isAllValid = true
+  const elementsToValidate = document.querySelectorAll<
+    HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+  >('.need-validation')
 
-function onCsvUpdate(csvData: KeyValueArray) {
-  // const isCSVValid = dataTableEl.value.validateCSV(csvData)
+  elementsToValidate.forEach((element) => {
+    // Check the element's validity based on its HTML attributes (e.g., required, minlength, type="email")
+    if (!element.checkValidity()) {
+      element.classList.add('is-invalid')
+      element.reportValidity()
+      isAllValid = false
+    } else {
+      element.classList.remove('is-invalid')
+    }
+  })
 
-  // // Do not update the data table if the CSV is invalid
-  // if (!isCSVValid) {
-  //   return
-  // }
-  const updatedProps = dataTableEl.value.updateDataTable(csvData)
-  state.colorScheme = updatedProps.customColor ? 'custom' : state.colorScheme
-  state.useInset = updatedProps.useInset
+  return isAllValid
 }
 
 async function getGeneratedCartogram() {
+  if (!isAllValid()) return
+
+  if (store.regionWarnings.size > 0)
+    if (
+      !window.confirm(
+        "Some region data don't align with the map. Click OK to continue or Cancel to review your data."
+      )
+    )
+      return
+
   state.isProcessing = true
   const progressModal = new Modal('#progressBackdrop', {
     backdrop: 'static',
@@ -106,15 +119,24 @@ async function getGeneratedCartogram() {
   })
   progressModal.show()
 
-  const csvData = await dataTableEl.value.getCSV()
+  // Force include control fields when generate cartogram
+  store.dataTable.fields[config.COL_REGIONMAP].show = true
+  store.dataTable.fields[config.COL_AREA].show = true
+  const csvData = await util.getGeneratedCSV(store.dataTable)
+  store.dataTable.fields[config.COL_REGIONMAP].show = false
+  store.dataTable.fields[config.COL_AREA].show = false
+
+  store.updateChoroSpec()
 
   await new Promise<any>(function (resolve, reject) {
     const req_body = JSON.stringify({
-      title: state.title,
-      scheme: state.colorScheme,
+      title: store.title,
+      scheme: store.cartoColorScheme,
       handler: state.handler,
       csv: csvData,
       geojsonRegionCol: state.geojsonRegionCol,
+      visTypes: JSON.stringify(store.visTypes),
+      spec: store.choroSettings.spec,
       mapDBKey: mapDBKey,
       persist: true,
       editedFrom: props.geoUrl
@@ -149,6 +171,7 @@ async function getGeneratedCartogram() {
         state.progressPercentage = 100
         window.clearInterval(progressUpdater)
         resolve(response)
+        disableLeaveConfirmOnce()
         window.location.href = '/cartogram/key/' + response.mapDBKey + '/preview'
       },
       function (error: any) {
@@ -168,98 +191,165 @@ async function getGeneratedCartogram() {
 </script>
 
 <template>
-  <div class="d-flex flex-fill">
-    <div class="card w-25 m-2">
-      <c-form-geojson
-        v-bind:mapDBKey="mapDBKey"
-        v-bind:maps="props.maps"
-        v-bind:geoUrl="props.geoUrl"
-        v-on:changed="onGeoJsonChanged"
-      />
-
-      <div class="p-2">
-        <div class="badge text-bg-secondary">2. Specify visualization</div>
-
-        <div class="p-2">
-          Title
-          <input class="form-control" type="text" v-model="state.title" maxlength="100" />
-        </div>
-
-        <div class="p-2">
-          <c-select-color
-            v-bind:key="state.colorScheme"
-            v-bind:disabled="!('features' in state.geojsonData)"
-            v-bind:scheme="state.colorScheme"
-            v-on:changed="(scheme) => (state.colorScheme = scheme)"
-          />
-        </div>
-
-        <div class="p-2">
-          <div class="form-check">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              v-model="state.useInset"
-              v-bind:disabled="!('features' in state.geojsonData)"
-              id="chk-inset"
-            />
-            <label class="form-check-label" for="chk-inset"> Define inset </label>
-          </div>
-        </div>
+  <div class="row">
+    <div id="stepAccordion" class="accordion col-12 col-sm-4 col-md-3 p-0 bg-light">
+      <button
+        id="step1-btn"
+        class="accordion-button p-2 bg-light border"
+        data-bs-toggle="collapse"
+        data-bs-target="#step1"
+        aria-expanded="true"
+        aria-controls="step1"
+      >
+        1. Define a map
+      </button>
+      <div id="step1" class="accordion-collapse collapse show p-2">
+        <c-form-geojson
+          v-bind:mapDBKey="mapDBKey"
+          v-bind:maps="props.maps"
+          v-bind:geoUrl="props.geoUrl"
+          v-on:changed="onGeoJsonChanged"
+          v-on:reset="
+            () => {
+              state.isInitialized = false
+              datatable.reset()
+              csvFormEl.reset()
+              visEl.reset()
+            }
+          "
+        />
       </div>
 
-      <div class="p-2">
-        <div class="badge text-bg-secondary">3. Download data (optional)</div>
-        <div class="p-2">
-          <button
-            class="btn btn-outline-secondary"
-            v-bind:disabled="!('features' in state.geojsonData)"
-            v-on:click="onCsvBtnClick"
-          >
-            CSV <i class="fa-solid fa-download"></i>
-          </button>
-          or
-          <button
-            class="btn btn-outline-secondary"
-            v-bind:disabled="!('features' in state.geojsonData)"
-            v-on:click="onExcelBtnClick"
-          >
-            Excel <i class="fa-solid fa-download"></i>
-          </button>
-          for editing on your device.
-        </div>
+      <button
+        id="step2-btn"
+        class="accordion-button p-2 bg-light border"
+        data-bs-toggle="collapse"
+        data-bs-target="#step2"
+        aria-expanded="true"
+        aria-controls="step2"
+      >
+        2. Input your data
+      </button>
+      <div id="step2" class="accordion-collapse collapse show p-2">
+        <c-form-csv
+          ref="csvFormEl"
+          v-bind:disabled="!state.isInitialized"
+          v-on:changed="
+            () => {
+              visEl.updateData()
+              if (store.regionWarnings.size <= 0) collapseStep('2')
+            }
+          "
+          v-on:regionResolve="
+            () => {
+              visEl.resolveRegionIssues()
+              if (store.regionWarnings.size <= 0) collapseStep('2')
+            }
+          "
+        />
       </div>
 
-      <c-form-csv v-bind:disabled="!('features' in state.geojsonData)" v-on:changed="onCsvUpdate" />
+      <button
+        id="step3-btn"
+        class="accordion-button p-2 bg-light border"
+        data-bs-toggle="collapse"
+        data-bs-target="#step3"
+        aria-expanded="true"
+        aria-controls="step3"
+      >
+        3. Specify visualization
+      </button>
+      <div id="step3" class="accordion-collapse collapse show p-2">
+        <c-form-settings v-bind:disabled="!state.isInitialized"></c-form-settings>
+      </div>
 
-      <div class="p-2">
-        <div class="badge text-bg-secondary">5. Generate cartogram</div>
+      <button
+        id="step3.1-btn"
+        class="accordion-button p-2 bg-light border"
+        data-bs-toggle="collapse"
+        data-bs-target="#step3-1"
+        aria-expanded="true"
+        aria-controls="step3-1"
+      >
+        3.1 Map/Cartogram
+      </button>
+      <div id="step3-1" class="accordion-collapse collapse show p-2">
+        <c-form-cartogram v-bind:disabled="!state.isInitialized" />
+      </div>
 
-        <div class="row p-2">
-          <div class="col-auto p-2">
-            <p class="bg-warning-subtle p-1 rounded">
-              <span class="badge text-bg-warning">Important</span> The data will be pruned from our
-              server within 1-2 days, unless you share and access a non-preview link. We strongly
-              advise you to back up your original data in a safe place so you can regenerate the
-              cartogram if needed.
-            </p>
-            <button
-              class="btn btn-primary"
-              v-bind:disabled="state.isProcessing || !('features' in state.geojsonData)"
-              v-on:click="getGeneratedCartogram"
-            >
-              Generate
-            </button>
-          </div>
+      <button
+        id="step3.2-btn"
+        class="accordion-button p-2 bg-light border"
+        data-bs-toggle="collapse"
+        data-bs-target="#step3-2"
+        aria-expanded="true"
+        aria-controls="step3-2"
+      >
+        3.2 Choropleth
+      </button>
+      <div id="step3-2" class="accordion-collapse collapse show p-2">
+        <c-form-choropleth
+          v-bind:disabled="!state.isInitialized"
+          v-on:specChanged="visEl.refresh()"
+        />
+      </div>
+
+      <button
+        id="step4-btn"
+        class="accordion-button p-2 bg-light border"
+        data-bs-toggle="collapse"
+        data-bs-target="#step4"
+        aria-expanded="true"
+        aria-controls="step4"
+      >
+        4. Generate visualization
+      </button>
+      <div id="step4" class="accordion-collapse collapse show p-2">
+        <div class="p-2">
+          <p class="bg-warning-subtle p-1 rounded">
+            <span class="badge text-bg-warning">Important</span> Your data will be deleted from our
+            server within 2 days unless you share and access a non-preview link. Please back up your
+            original data.
+          </p>
+          <button
+            id="generateBtn"
+            class="btn btn-primary"
+            v-bind:disabled="state.isProcessing || !state.isInitialized"
+            v-on:click="getGeneratedCartogram"
+          >
+            Generate
+          </button>
         </div>
       </div>
     </div>
 
-    <c-data-table
-      ref="dataTableEl"
-      v-bind:mapColorScheme="state.colorScheme"
-      v-bind:useInset="state.useInset"
-    />
+    <div class="col-12 col-sm-8 col-md-9">
+      <div class="p-2">
+        <span class="badge text-bg-secondary">Input Overview</span>
+      </div>
+      <div class="p-2" v-if="store.dataTable.items.length < 1">
+        <p>
+          Please follow the steps
+          <span class="d-none d-sm-inline">on the left panel</span>
+          <span class="d-inline d-sm-none">above</span>. Once a step is completed, you can collapse
+          the step panel for more space or re-expand it if you need to revisit it.
+        </p>
+        <p>
+          Don't know where to start? You may try editing one of our
+          <a href="/cartogram">examples</a>. If you have any questions or issues about cartogram
+          generation, refer to the <a href="//guides.go-cart.io/quick-start">guides</a> or
+          <a href="/contact">contact us</a>.
+        </p>
+      </div>
+
+      <c-visualization ref="visEl" />
+
+      <c-data-table
+        v-if="state.isInitialized && store.dataTable.items.length > 0"
+        v-on:labelChanged="visEl.updateData()"
+        v-on:valueChanged="(row, col, value) => visEl.setDataItem(row, col, value)"
+      />
+    </div>
   </div>
 
   <div

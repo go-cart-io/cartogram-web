@@ -7,18 +7,11 @@ import { reactive, onBeforeMount } from 'vue'
 
 import CMenuBar from './CMenuBar.vue'
 import CPanel from './CPanel.vue'
-import type { MapHandlers } from '../../common/interface'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
-const props = defineProps<{
-  maps: MapHandlers
-  mapName?: string
-  mapTitle?: string
-  mapDBKey?: string
-  mode?: string
-}>()
+const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
 
 const state = reactive({
   mapkey: -1,
@@ -26,7 +19,7 @@ const state = reactive({
 })
 
 onBeforeMount(() => {
-  store.currentMapName = props.mapName ? props.mapName : ''
+  store.currentMapName = CARTOGRAM_CONFIG.mapName ? CARTOGRAM_CONFIG.mapName : ''
 })
 
 /**
@@ -35,18 +28,12 @@ onBeforeMount(() => {
  */
 async function switchMap() {
   state.mapkey = Date.now()
-  state.versionKeys = Object.keys(store.versions)
+  state.versionKeys = Object.keys(CARTOGRAM_CONFIG.cartoVersions)
 }
 </script>
 
 <template>
-  <c-menu-bar
-    v-bind:isEmbed="props.mode === 'embed'"
-    v-bind:maps="props.maps"
-    v-bind:mapTitle="props.mapTitle"
-    v-bind:mapDBKey="props.mapDBKey"
-    v-on:map_changed="switchMap"
-  ></c-menu-bar>
+  <c-menu-bar v-on:map_changed="switchMap"></c-menu-bar>
 
   <div
     id="cartogram"
@@ -64,7 +51,6 @@ async function switchMap() {
             ? state.versionKeys[0]
             : state.versionKeys[state.versionKeys.length - 1]
       "
-      v-bind:mapDBKey="props.mapDBKey"
       v-bind:key="index"
     />
   </div>
