@@ -79,15 +79,22 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Set Docker tags
+        id: set-tags
+        run: |
+          if [ "${GITHUB_REF##*/}" = "main" ]; then
+            echo "tags=gocartio/cartogram-web:latest,gocartio/cartogram-web:${{ steps.vars.outputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "tags=gocartio/cartogram-web:${{ steps.vars.outputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and push multi-arch image
         if: ${{ steps.vars.outputs.version_changed == 'true' }}
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: |
-            gocartio/cartogram-web:latest
-            gocartio/cartogram-web:${{ steps.vars.outputs.version }}
+          tags: ${{ steps.set-tags.outputs.tags }}
           platforms: linux/amd64,linux/arm64
 
       - name: Set release URLs
