@@ -7,7 +7,7 @@ from web import create_app, db
 app = create_app()
 with app.app_context():
     print('Database connection check passed')
-" 2>/dev/null; do
+" 2>&1; do
   sleep 1
 done
 echo "Database ready! Applying migrations..."
