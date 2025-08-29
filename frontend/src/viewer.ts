@@ -4,7 +4,7 @@ import 'vite/modulepreload-polyfill'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
-import './common'
+import './styles'
 import App from './viewer/components/CartogramViewer.vue'
 
 const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG

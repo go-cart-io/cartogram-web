@@ -62,7 +62,7 @@ export default ({ mode }: UserConfig): UserConfigExport => {
         input: {
           viewer: './src/viewer.ts',
           maker: './src/maker.ts',
-          'bootstrap-custom': './src/assets/styles.scss'
+          styles: './src/styles.ts' // Ensure that all styles are build to style.css. The styles.js should be empty.
         },
         // Tree shaking optimization
         treeshake: {
