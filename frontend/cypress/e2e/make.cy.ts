@@ -10,7 +10,7 @@ describe('Make cartogram', () => {
     cy.get('#dtable-cell-8-7').type('14239980190')
     cy.get('#colorDropdownBtn').click()
     cy.get('#colorDropdownList').contains('a', 'accent').click()
-    cy.get('#dtable-vis-7', { timeout: 10000 }).select('Cartogram')
+    cy.get('#dtable-vis-7', { timeout: 10000 }).select('Area: Cartogram')
 
     cy.get('#generateBtn').click()
     cy.location('pathname', { timeout: 20000 }).should('match', /\/cartogram\/key\/[^/]+\/preview$/)
@@ -28,8 +28,8 @@ describe('Make cartogram', () => {
     cy.get('#dtable-name-7', { timeout: 10000 }).should('have.value', 'Population')
     cy.get('#dtable-unit-7', { timeout: 10000 }).should('have.value', 'million people')
 
-    cy.get('#dtable-vis-7', { timeout: 10000 }).select('Cartogram')
-    cy.get('#dtable-vis-8', { timeout: 10000 }).select('Cartogram')
+    cy.get('#dtable-vis-7', { timeout: 10000 }).select('Area: Cartogram')
+    cy.get('#dtable-vis-8', { timeout: 10000 }).select('Area: Cartogram')
     cy.get('#generateBtn').click()
   })
 })
