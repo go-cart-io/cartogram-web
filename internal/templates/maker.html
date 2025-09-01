@@ -27,7 +27,7 @@
 <script>
 	window.CARTOGRAM_CONFIG = {
 		maps: JSON.parse('{{ maps | default({}) | tojson | safe }}'),
-		maxCartogram: 3
+		maxCartogram: parseInt("{{ count_limit }}")
 	};
 
 	var mapName = "{{ map_name }}";

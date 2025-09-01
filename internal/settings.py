@@ -11,6 +11,10 @@ if not SECRET_KEY or SECRET_KEY == "":
     SECRET_KEY = "LTTNWg8luqfWKfDxjFaeC3vYoGrC2r2f5mtXo5IE/jt1GcY7/JaSq8V/tB"
 
 CARTOGRAM_RATE_LIMIT = os.environ.get("CARTOGRAM_RATE_LIMIT", "100 per hour")
+try:
+    CARTOGRAM_COUNT_LIMIT = int(os.environ.get("CARTOGRAM_COUNT_LIMIT", ""))
+except (TypeError, ValueError):
+    CARTOGRAM_COUNT_LIMIT = None
 
 if "CARTOGRAM_DATABASE_URI" in os.environ:
     DATABASE_URI = os.environ.get("CARTOGRAM_DATABASE_URI", None)

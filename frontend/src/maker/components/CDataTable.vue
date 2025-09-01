@@ -7,6 +7,8 @@ import * as util from '../lib/util'
 import { useProjectStore } from '../stores/project'
 const store = useProjectStore()
 
+const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
+
 const emit = defineEmits(['labelChanged', 'valueChanged'])
 
 // Sample from uploaded data that cannot be matched with the map
@@ -78,13 +80,32 @@ function updateVisType(index: number, event: Event) {
   const newType = selectElement.value
   if (oldType === newType) return
 
-  // Remove from existing list
+  if (!store.visTypes[newType]) store.visTypes[newType] = []
+
+  // Check limitation
+  if (
+    newType === 'cartogram' &&
+    CARTOGRAM_CONFIG.maxCartogram &&
+    !isNaN(CARTOGRAM_CONFIG.maxCartogram) &&
+    store.visTypes['cartogram'].length >= CARTOGRAM_CONFIG.maxCartogram
+  ) {
+    selectElement.value = ''
+    store.dataTable.fields[index].vis = ''
+    alert(
+      'Limit of ' +
+        CARTOGRAM_CONFIG.maxCartogram +
+        ' cartograms per data set. For unlimited use, consider running Go-Cart locally with Docker (see https://guides.go-cart.io/#/tutorials/local).'
+    )
+    return
+  }
+
   if (oldType)
+    // Remove from existing list
     store.visTypes[oldType] = store.visTypes[oldType].filter(
       (item) => item !== store.dataTable.fields[index].label
     )
 
-  if (!store.visTypes[newType]) store.visTypes[newType] = []
+  // Update the list and data table
   store.visTypes[newType].push(store.dataTable.fields[index].label)
   store.visTypes[newType].sort()
   store.dataTable.fields[index].vis = newType
@@ -156,11 +177,11 @@ function validateInput(event: Event) {
             >
               <option value="" selected disabled>Select visualization</option>
               <option
-                v-for="option in ['Cartogram', 'Choropleth']"
+                v-for="(option, value) in { Area: 'Cartogram', Color: 'Choropleth' }"
                 v-bind:value="option.toLowerCase()"
                 v-bind:key="option"
               >
-                {{ option }}
+                {{ value }}: {{ option }}
               </option>
             </select>
           </th>

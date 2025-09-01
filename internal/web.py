@@ -192,6 +192,7 @@ def create_app():
             "maker.html",
             page_active="maker",
             maps=cartogram_handler.get_sorted_handler_names(),
+            count_limit=settings.CARTOGRAM_COUNT_LIMIT,
             tracking=tracking.determine_tracking_action(request),
         )
 
@@ -239,6 +240,7 @@ def create_app():
             "maker.html",
             page_active="maker",
             maps=cartogram_handler.get_sorted_handler_names(),
+            count_limit=settings.CARTOGRAM_COUNT_LIMIT,
             map_name=handler,
             geo_url=geo_url,
             csv_url=csv_url,
@@ -317,6 +319,15 @@ def create_app():
             for key in vis_types:
                 for header in vis_types[key]:
                     util.validate_filename(header)
+
+            if (
+                "cartogram" in vis_types
+                and settings.CARTOGRAM_COUNT_LIMIT
+                and len(vis_types["cartogram"]) >= settings.CARTOGRAM_COUNT_LIMIT
+            ):
+                raise CartogramError(
+                    f"Limit of {settings.CARTOGRAM_COUNT_LIMIT} cartograms per data set."
+                )
         except CartogramError as e:
             return e.response()
         except Exception:
