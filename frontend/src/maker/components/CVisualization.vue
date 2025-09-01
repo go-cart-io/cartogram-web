@@ -202,7 +202,7 @@ function renameRegion(rIndex: number, action: string) {
     </div>
   </div>
 
-  <div class="position-absolute">
+  <div class="position-absolute px-2">
     <small v-if="store.dataTable.items.length > 0">
       Preview may be outdated after geometric changes (e.g., insets). Final output is unaffected.
     </small>

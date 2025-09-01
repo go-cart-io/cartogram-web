@@ -80,7 +80,7 @@ async function initContainer(canvasId: string) {
     csvUrl,
     jsonUrl,
     store.currentColorCol,
-    CARTOGRAM_CONFIG.cartoColorScheme,
+    CARTOGRAM_CONFIG.cartoColorScheme || 'pastel1',
     CARTOGRAM_CONFIG.choroSpec
   )
 

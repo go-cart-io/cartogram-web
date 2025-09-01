@@ -25,7 +25,11 @@
 {% endif %}
 
 <script>
-	var maps = JSON.parse('{{ maps | default({}) | tojson | safe }}');
+	window.CARTOGRAM_CONFIG = {
+		maps: JSON.parse('{{ maps | default({}) | tojson | safe }}'),
+		maxCartogram: 3
+	};
+
 	var mapName = "{{ map_name }}";
 	var mapTitle = "{{ map_title }}";
 	var geoUrl = "{{ geo_url }}";

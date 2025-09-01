@@ -1,15 +1,16 @@
 export {}
 
 interface CartogramConfig {
-  mode: any
-  maps: any
-  mapName: string
-  mapTitle: string
-  mapDBKey: string
-  cartoVersions: any
-  cartoColorScheme: string
-  choroVersions: any
-  choroSpec: any
+  mode?: string
+  maps: MapHandlers
+  mapName?: string
+  mapTitle?: string
+  mapDBKey?: string
+  cartoVersions?: any
+  cartoColorScheme?: string
+  choroVersions?: any
+  choroSpec?: any
+  maxCartogram?: number
 }
 
 declare global {

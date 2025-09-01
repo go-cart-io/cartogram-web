@@ -14,7 +14,7 @@ async function updateVis() {
   await visualization.initLegendWithURL(
     csvUrl,
     store.currentColorCol,
-    CARTOGRAM_CONFIG.cartoColorScheme,
+    CARTOGRAM_CONFIG.cartoColorScheme || 'pastel1',
     CARTOGRAM_CONFIG.choroSpec
   )
 }

@@ -4,11 +4,11 @@ import { ref, reactive, nextTick } from 'vue'
 
 import HTTP from '../lib/http'
 import * as datatable from '../lib/datatable'
-import type { MapHandlers } from '../../common/interface'
+
+const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
 
 const props = defineProps<{
   mapDBKey: string
-  maps: MapHandlers
   geoUrl?: string
 }>()
 
@@ -132,7 +132,11 @@ async function onRegionColChanged() {
 
       <select id="mapSelect" class="form-select" v-model="state.handler" v-on:change="loadGeoJson">
         <option></option>
-        <option v-for="(mapItem, mapKey) in props.maps" v-bind:value="mapKey" v-bind:key="mapKey">
+        <option
+          v-for="(mapItem, mapKey) in CARTOGRAM_CONFIG.maps"
+          v-bind:value="mapKey"
+          v-bind:key="mapKey"
+        >
           {{ mapItem.name }}
         </option>
       </select>

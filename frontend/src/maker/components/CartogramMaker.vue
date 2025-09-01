@@ -7,7 +7,6 @@ import * as config from '../../common/config'
 import * as datatable from '../lib/datatable'
 import * as util from '../lib/util'
 import HTTP from '../lib/http'
-import type { MapHandlers } from '../../common/interface'
 import { disableLeaveConfirmOnce, useLeaveConfirm } from '../composables/useLeaveConfirm'
 
 import CFormGeojson from './CFormGeojson.vue'
@@ -26,7 +25,6 @@ const csvFormEl = ref()
 const visEl = ref()
 
 const props = defineProps<{
-  maps: MapHandlers
   mapName?: string
   mapTitle?: string
   geoUrl?: string
@@ -206,7 +204,6 @@ async function getGeneratedCartogram() {
       <div id="step1" class="accordion-collapse collapse show p-2">
         <c-form-geojson
           v-bind:mapDBKey="mapDBKey"
-          v-bind:maps="props.maps"
           v-bind:geoUrl="props.geoUrl"
           v-on:changed="onGeoJsonChanged"
           v-on:reset="

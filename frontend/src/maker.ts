@@ -9,7 +9,6 @@ import CartogramMaker from './maker/components/CartogramMaker.vue'
 
 if (document.getElementById('cartogram-maker')) {
   const maker = createApp(CartogramMaker, {
-    maps,
     mapName,
     mapTitle,
     geoUrl,
