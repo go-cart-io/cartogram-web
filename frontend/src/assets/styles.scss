@@ -18,6 +18,9 @@ $font-family-base: Roboto, Arial, sans-serif;
 $form-range-track-bg: $secondary;
 $form-range-thumb-bg: #d76127;
 
+$navbar-nav-link-padding-x: 0.6rem;
+$navbar-dark-active-color: #d76127;
+
 // Required
 @import 'bootstrap/scss/maps';
 @import 'bootstrap/scss/mixins';
