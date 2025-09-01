@@ -10,9 +10,9 @@ const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
 
 const socialURL = computed(() => {
   if (CARTOGRAM_CONFIG.mapDBKey && CARTOGRAM_CONFIG.mapDBKey !== '')
-    return location.protocol + '//' + location.host + '/cartogram/key/' + CARTOGRAM_CONFIG.mapDBKey
+    return location.protocol + '//' + location.host + '/view/key/' + CARTOGRAM_CONFIG.mapDBKey
 
-  return location.protocol + '//' + location.host + '/cartogram/map/' + store.currentMapName
+  return location.protocol + '//' + location.host + '/view/map/' + store.currentMapName
 })
 
 const socialURLEncoded = computed(() => {

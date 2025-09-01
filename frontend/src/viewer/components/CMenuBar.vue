@@ -115,8 +115,8 @@ function switchMap() {
           title="Edit cartogram"
           v-bind:href="
             CARTOGRAM_CONFIG.mapDBKey
-              ? '/cartogram/edit/key/' + CARTOGRAM_CONFIG.mapDBKey
-              : '/cartogram/edit/map/' + store.currentMapName
+              ? '/edit/key/' + CARTOGRAM_CONFIG.mapDBKey
+              : '/edit/map/' + store.currentMapName
           "
         >
           <span class="d-none d-lg-block me-2">Edit</span>

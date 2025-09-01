@@ -170,7 +170,7 @@ async function getGeneratedCartogram() {
         window.clearInterval(progressUpdater)
         resolve(response)
         disableLeaveConfirmOnce()
-        window.location.href = '/cartogram/key/' + response.mapDBKey + '/preview'
+        window.location.href = '/view/key/' + response.mapDBKey + '/preview'
       },
       function (error: any) {
         state.progressPercentage = 100

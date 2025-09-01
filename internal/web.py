@@ -88,10 +88,15 @@ def create_app():
         "/api/v1/gencaptcha", methods=["GET"], view_func=custom_captcha.gencaptcha
     )
 
+    @app.route("/view", methods=["GET"])
+    # Old url
     @app.route("/cartogram", methods=["GET"])
     def get_cartogram():
         return get_cartogram_by_name(default_cartogram_handler, None)
 
+    @app.route("/view/map/<map_name>", methods=["GET"], defaults={"mode": None})
+    @app.route("/view/map/<map_name>/<mode>", methods=["GET"])
+    # Old urls
     @app.route("/cartogram/map/<map_name>", methods=["GET"], defaults={"mode": None})
     @app.route("/cartogram/map/<map_name>/<mode>", methods=["GET"])
     def get_cartogram_by_name(map_name, mode):
@@ -118,6 +123,9 @@ def create_app():
             tracking=tracking.determine_tracking_action(request),
         )
 
+    @app.route("/view/key/<string_key>", methods=["GET"], defaults={"mode": None})
+    @app.route("/view/key/<string_key>/<mode>", methods=["GET"])
+    # Old urls
     @app.route("/cartogram/key/<string_key>", methods=["GET"], defaults={"mode": None})
     @app.route("/cartogram/key/<string_key>/<mode>", methods=["GET"])
     def cartogram_by_key(string_key, mode):
@@ -186,7 +194,7 @@ def create_app():
     def cartogram_rate_limit():
         return settings.CARTOGRAM_RATE_LIMIT
 
-    @app.route("/cartogram/create", methods=["GET"])
+    @app.route("/create", methods=["GET"])
     def create_cartogram():
         return render_template(
             "maker.html",
@@ -196,7 +204,7 @@ def create_app():
             tracking=tracking.determine_tracking_action(request),
         )
 
-    @app.route("/cartogram/edit/<store_type>/<name_or_key>", methods=["GET"])
+    @app.route("/edit/<store_type>/<name_or_key>", methods=["GET"])
     def edit_cartogram(store_type, name_or_key):
         if store_type == "map":
             handler = name_or_key
@@ -507,9 +515,9 @@ def create_app():
             return Response("Not found", status=404)
 
         if mode == "embed":
-            return redirect(f"/cartogram/map/{map_name}/embed", code=301)
+            return redirect(f"/view/map/{map_name}/embed", code=301)
         else:
-            return redirect(f"/cartogram/map/{map_name}", code=301)
+            return redirect(f"/view/map/{map_name}", code=301)
 
     @app.route("/cart/<key>", methods=["GET"])
     @app.route("/embed/cart/<key>", methods=["GET"])

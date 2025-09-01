@@ -1,6 +1,6 @@
 describe('Make cartogram', () => {
   beforeEach(() => {
-    cy.visit('http://localhost:5000/cartogram/create')
+    cy.visit('http://localhost:5000/create')
     cy.get('.consent-buttons > .btn-primary').click()
   })
 
@@ -13,7 +13,7 @@ describe('Make cartogram', () => {
     cy.get('#dtable-vis-7', { timeout: 10000 }).select('Area: Cartogram')
 
     cy.get('#generateBtn').click()
-    cy.location('pathname', { timeout: 20000 }).should('match', /\/cartogram\/key\/[^/]+\/preview$/)
+    cy.location('pathname', { timeout: 20000 }).should('match', /\/view\/key\/[^/]+\/preview$/)
   })
 
   it('can create multiple cartograms from a geojson file', () => {

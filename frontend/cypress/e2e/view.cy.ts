@@ -1,6 +1,6 @@
 describe('View cartogram', () => {
   beforeEach(() => {
-    cy.visit('http://localhost:5000/cartogram')
+    cy.visit('http://localhost:5000/view')
     cy.get('.consent-buttons > .btn-primary').click()
   })
 
@@ -33,13 +33,13 @@ describe('View cartogram', () => {
     cy.get('#clipboard-link').click()
     cy.window().then((win) => {
       win.navigator.clipboard.readText().then((text) => {
-        expect(text).to.contain('http://localhost:5000/cartogram/map/usa')
+        expect(text).to.contain('http://localhost:5000/view/map/usa')
       })
     })
     cy.get('#clipboard-embed').click()
     cy.window().then((win) => {
       win.navigator.clipboard.readText().then((text) => {
-        expect(text).to.contain('http://localhost:5000/cartogram/map/usa/embed')
+        expect(text).to.contain('http://localhost:5000/view/map/usa/embed')
       })
     })
     cy.get('#shareModal > .modal-dialog > .modal-content > .modal-header > .btn-close').click()

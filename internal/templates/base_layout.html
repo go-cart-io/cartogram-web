@@ -49,15 +49,15 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav me-auto" style="margin-right: 50px">
-          <li class="nav-item {%if page_active=='maker'%}active{%endif%}">
-            <a class="nav-link" href="/cartogram/create">Make Cartogram</a>
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link {%if page_active=='maker'%}active{%endif%}" href="/create">Create Map Visualization</a>
           </li>
-          <li class="nav-item {%if page_active=='cartogram'%}active{%endif%}">
-            <a class="nav-link" href="/cartogram">View Cartogram</a>
+          <li class="nav-item">
+            <a class="nav-link {%if page_active=='cartogram'%}active{%endif%}" href="/view">View Examples</a>
           </li>
-          <li class="nav-item {%if page_active=='contact'%}active{%endif%}">
-            <a class="nav-link" href="/contact">Contact</a>
+          <li class="nav-item">
+            <a class="nav-link {%if page_active=='contact'%}active{%endif%}" href="/contact">Contact Us</a>
           </li>
         </ul>
         <ul class="navbar-nav">
