@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { DataTable } from '../lib/interface'
+import type { DataTable, VisualizationTypes } from '../lib/interface'
 
 export const useProjectStore = defineStore('project', () => {
   const title = ref('')
@@ -14,7 +14,7 @@ export const useProjectStore = defineStore('project', () => {
     step: 5,
     spec: ''
   })
-  const visTypes = ref({ cartogram: [], choropleth: [] } as { [key: string]: Array<string> })
+  const visTypes = ref({ cartogram: [], choropleth: [] } as VisualizationTypes)
   const dataTable = ref<DataTable>({ fields: [], items: [] })
   const regionWarnings = ref(new Set() as Set<number>)
   const regionData = ref([] as Array<{ [key: string]: any }>)

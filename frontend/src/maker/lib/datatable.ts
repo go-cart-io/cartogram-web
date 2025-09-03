@@ -2,7 +2,7 @@ import type { FeatureCollection } from 'geojson'
 import * as d3 from 'd3'
 import { toRaw } from 'vue'
 
-import type { KeyValueArray, DataTable } from './interface'
+import type { KeyValueArray, DataTable, VisualizationTypes } from './interface'
 import * as config from '../../common/config'
 import * as util from '../lib/util'
 import { useProjectStore } from '../stores/project'
@@ -85,10 +85,7 @@ export async function initDataTableWGeojson(
   }
 }
 
-function _getVisTypeForColumn(
-  visTypes: { [key: string]: Array<string> },
-  columnName: string
-): string {
+function _getVisTypeForColumn(visTypes: VisualizationTypes, columnName: string): string {
   for (const visType in visTypes) {
     if (Object.prototype.hasOwnProperty.call(visTypes, visType)) {
       const columns = visTypes[visType]
@@ -101,9 +98,9 @@ function _getVisTypeForColumn(
 }
 
 function _filterVisTypesByHeaders(
-  visTypes: { [key: string]: Array<string> },
+  visTypes: VisualizationTypes,
   datatable: DataTable
-): { [key: string]: Array<string> } {
+): VisualizationTypes {
   const headerLabels = new Set(datatable.fields.map((header) => header.label))
 
   return Object.fromEntries(

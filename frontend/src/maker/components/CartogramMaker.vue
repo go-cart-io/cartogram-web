@@ -18,6 +18,7 @@ import CVisualization from './CVisualization.vue'
 import CDataTable from './CDataTable.vue'
 
 import { useProjectStore } from '../stores/project'
+import type { VisualizationTypes } from '../lib/interface'
 const store = useProjectStore()
 
 const mapDBKey = util.generateShareKey(32)
@@ -29,7 +30,7 @@ const props = defineProps<{
   mapTitle?: string
   geoUrl?: string
   csvUrl?: string
-  mapTypes?: { [key: string]: Array<string> }
+  mapTypes?: VisualizationTypes
   cartoColorScheme?: string
   choroSettings?: any
 }>()
