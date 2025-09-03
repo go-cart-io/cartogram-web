@@ -63,8 +63,10 @@ export async function init(
   versionSpec.signals[3]['value'] =
     !cartoColorScheme || cartoColorScheme === 'custom' ? 'pastel1' : cartoColorScheme
 
-  if (choroSpec && choroSpec.scales)
-    versionSpec.scales = versionSpec.scales.concat(choroSpec.scales)
+  if (choroSpec && choroSpec.scales) {
+    const escapedScales = escapeScales(choroSpec.scales)
+    versionSpec.scales = versionSpec.scales.concat(escapedScales)
+  }
 
   versionSpec.signals[4].value =
     currentColorCol !== 'Region'
@@ -118,8 +120,10 @@ export async function initLegend(
   versionSpec.signals[2]['value'] =
     !cartoColorScheme || cartoColorScheme === 'custom' ? 'pastel1' : cartoColorScheme
 
-  if (choroSpec && choroSpec.scales)
-    versionSpec.scales = versionSpec.scales.concat(choroSpec.scales)
+  if (choroSpec && choroSpec.scales) {
+    const escapedScales = escapeScales(choroSpec.scales)
+    versionSpec.scales = versionSpec.scales.concat(escapedScales)
+  }
 
   versionSpec.signals[3].value =
     currentColorCol !== 'Region'
@@ -134,4 +138,18 @@ export async function initLegend(
     actions: false
   })
   return container
+}
+
+// As we allow dot in data name and unit, we need to escape the dot in the field name so vega can process it
+function escapeScales(scales: any) {
+  if (!scales) return []
+
+  let escapedScales = JSON.parse(JSON.stringify(scales))
+  escapedScales.forEach((scale: any) => {
+    if (scale.domain && scale.domain.field) {
+      scale.domain.field = scale.domain.field.replace(/\./g, '\\.')
+    }
+  })
+
+  return escapedScales
 }

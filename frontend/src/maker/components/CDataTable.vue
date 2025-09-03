@@ -111,14 +111,8 @@ function updateVisType(index: number, event: Event) {
   store.dataTable.fields[index].vis = newType
 }
 
-function updateLabel(index: number) {
-  const nameInput = document.getElementById('dtable-name-' + index) as HTMLInputElement
-  if (!nameInput) return
-  if (!nameInput.checkValidity()) {
-    nameInput.reportValidity()
-    return
-  }
-  nameInput.classList.remove('is-invalid')
+function updateLabel(index: number, event: Event) {
+  if (!validateInput(event)) return
 
   const oldLabel = store.dataTable.fields[index].label
   store.dataTable.fields[index].name = store.dataTable.fields[index].name.trim()
@@ -135,6 +129,9 @@ function updateLabel(index: number) {
   if (visTpe)
     store.visTypes[visTpe] = store.visTypes[visTpe].map((item) => item.replace(oldLabel, newLabel))
 
+  // Update color column
+  if (store.currentColorCol === oldLabel) store.currentColorCol = newLabel
+
   emit('labelChanged')
 }
 
@@ -148,7 +145,10 @@ function validateInput(event: Event) {
   const inputElement = event.target as HTMLInputElement
   if (!inputElement.checkValidity()) {
     inputElement.reportValidity()
+    return false
   }
+  inputElement.classList.remove('is-invalid')
+  return true
 }
 </script>
 
@@ -208,15 +208,16 @@ function validateInput(event: Event) {
                 required
                 v-model="store.dataTable.fields[index].name"
                 v-bind:id="'dtable-name-' + index"
-                v-on:change="updateLabel(index)"
+                v-on:change="updateLabel(index, $event)"
               />
               <input
                 class="form-control"
                 placeholder="Unit"
-                title="Data Unit"
+                title='Data Unit. Cannot contain \ / : * ? &#39; " &lt; &gt; |'
+                pattern='^[^\\\/:\*\?&#39;"&lt;&gt;\|]+$'
                 v-model="store.dataTable.fields[index].unit"
                 v-bind:id="'dtable-unit-' + index"
-                v-on:change="updateLabel(index)"
+                v-on:change="updateLabel(index, $event)"
               />
             </div>
           </th>
