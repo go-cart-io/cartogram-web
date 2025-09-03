@@ -13,8 +13,7 @@ let currentGeojsonData: FeatureCollection | null
 let currentGeojsonRegionCol: string
 
 const state = reactive({
-  isInit: false,
-  currentColorCol: 'Region'
+  isInit: false
 })
 
 defineExpose({
@@ -57,7 +56,7 @@ async function init(geojsonData: FeatureCollection, geojsonRegionCol: string) {
     store.dataTable.items,
     geojsonData,
     geojsonRegionCol,
-    state.currentColorCol,
+    store.currentColorCol,
     store.cartoColorScheme,
     customScaleSpec
   )
@@ -65,7 +64,7 @@ async function init(geojsonData: FeatureCollection, geojsonRegionCol: string) {
 
   await visualization.initLegendWithValues(
     store.dataTable.items,
-    state.currentColorCol,
+    store.currentColorCol,
     store.cartoColorScheme,
     customScaleSpec
   )
@@ -175,7 +174,7 @@ function renameRegion(rIndex: number, action: string) {
           id="color-options"
           class="form-select"
           title="Select map/cartogram color strategy"
-          v-model="state.currentColorCol"
+          v-model="store.currentColorCol"
           v-on:change="refresh"
         >
           <option value="Region">Region</option>

@@ -2,7 +2,7 @@ import type { FeatureCollection } from 'geojson'
 import * as d3 from 'd3'
 import { toRaw } from 'vue'
 
-import type { KeyValueArray } from './interface'
+import type { KeyValueArray, DataTable } from './interface'
 import * as config from '../../common/config'
 import * as util from '../lib/util'
 import { useProjectStore } from '../stores/project'
@@ -100,6 +100,20 @@ function _getVisTypeForColumn(
   return ''
 }
 
+function _filterVisTypesByHeaders(
+  visTypes: { [key: string]: Array<string> },
+  datatable: DataTable
+): { [key: string]: Array<string> } {
+  const headerLabels = new Set(datatable.fields.map((header) => header.label))
+
+  return Object.fromEntries(
+    Object.entries(visTypes).map(([visType, labels]) => [
+      visType,
+      labels.filter((label) => headerLabels.has(label))
+    ])
+  )
+}
+
 export function initDataTableWArray(data: KeyValueArray, isReplace = true) {
   const store = useProjectStore()
   data = util.filterKeyValueInArray(data, config.RESERVE_FIELDS)
@@ -168,6 +182,9 @@ export function updateDataTable(csvData: KeyValueArray) {
   store.dataTable.fields[config.COL_COLOR].show = csvData[0].hasOwnProperty('Color')
   store.dataTable.fields[config.COL_INSET].show = csvData[0].hasOwnProperty('Inset')
   initDataTableWArray(csvData, false)
+
+  // Remove obsolete column names in visTypes
+  store.visTypes = _filterVisTypesByHeaders(store.visTypes, store.dataTable)
 
   store.cartoColorScheme = store.dataTable.fields[config.COL_COLOR].show
     ? 'custom'
