@@ -160,11 +160,10 @@ def create_app():
             else {}
         )
         carto_versions, choro_versions = util.map_types_to_versions(map_types)
-        map_spec = (
-            json.loads(cartogram_entry.spec)
-            if type(cartogram_entry.spec) is str
-            else {}
-        )
+        map_spec = {}
+        if cartogram_entry.settings:
+            map_settings = json.loads(cartogram_entry.settings)
+            map_spec = map_settings["spec"]
 
         return render_template(
             template,
@@ -212,7 +211,13 @@ def create_app():
             title = name_or_key
             scheme = "pastel1"
             map_types = {"cartogram": ["Population (people)"]}
-            map_settings = util.spec_to_choro_settings(None)
+            map_settings = {
+                "isAdvanceMode": False,
+                "scheme": "blues",
+                "type": "quantile",
+                "step": 5,
+                "settings": {},
+            }
 
         elif store_type == "key":
             if not settings.USE_DATABASE:
@@ -237,7 +242,7 @@ def create_app():
                 if type(cartogram_entry.types) is str
                 else {}
             )
-            map_settings = util.spec_to_choro_settings(cartogram_entry.spec)
+            map_settings = json.loads(cartogram_entry.settings)
 
         else:
             return Response("Not found", status=404)
@@ -420,7 +425,7 @@ def create_app():
                     title=data.get("title"),
                     scheme=data.get("scheme"),
                     types=json.dumps(cleaned_vis_types),
-                    spec=data.get("spec"),
+                    settings=json.dumps(data.get("settings")),
                 )
                 db.session.add(new_cartogram_entry)
                 db.session.commit()

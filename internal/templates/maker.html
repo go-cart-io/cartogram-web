@@ -37,5 +37,6 @@
 	var mapTypes = JSON.parse('{{ map_types | default({}) | tojson | safe }}');
 	var cartoColorScheme = "{{ map_color_scheme }}";
 	var choroSettings = JSON.parse('{{ map_settings | default({}) | tojson | safe }}');
+	choroSettings.spec = JSON.stringify(choroSettings.spec, null, 2)
 </script>
 {% endblock javascript %}

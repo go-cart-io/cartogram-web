@@ -53,7 +53,7 @@ onMounted(() => {
   store.title = props.mapTitle ? props.mapTitle : ''
   store.visTypes = props.mapTypes ? props.mapTypes : { cartogram: [], choropleth: [] }
   store.cartoColorScheme = props.cartoColorScheme ? props.cartoColorScheme : 'pastel1'
-  if (props.choroSettings) store.choroSettings = props.choroSettings
+  if (props.choroSettings) store.choroSettings = { ...store.choroSettings, ...props.choroSettings }
 
   const projectedUrl = props.geoUrl.replace('/Input.json', '/Geographic Area.json')
   HTTP.get(projectedUrl).then(async function (response: any) {
@@ -125,7 +125,10 @@ async function getGeneratedCartogram() {
   store.dataTable.fields[config.COL_REGIONMAP].show = false
   store.dataTable.fields[config.COL_AREA].show = false
 
+  // Update and prepare vega settings
   store.updateChoroSpec()
+  let settings = JSON.parse(JSON.stringify(store.choroSettings))
+  settings.spec = JSON.parse(settings.spec)
 
   await new Promise<any>(function (resolve, reject) {
     const req_body = JSON.stringify({
@@ -135,7 +138,7 @@ async function getGeneratedCartogram() {
       csv: csvData,
       geojsonRegionCol: state.geojsonRegionCol,
       visTypes: JSON.stringify(store.visTypes),
-      spec: store.choroSettings.spec,
+      settings: settings,
       mapDBKey: mapDBKey,
       persist: true,
       editedFrom: props.geoUrl
@@ -287,6 +290,7 @@ async function getGeneratedCartogram() {
       </button>
       <div id="step3-2" class="accordion-collapse collapse show p-2">
         <c-form-choropleth
+          v-bind:spec="props.choroSettings.spec"
           v-bind:disabled="!state.isInitialized"
           v-on:specChanged="visEl.refresh()"
         />

@@ -16,7 +16,7 @@ class CartogramEntry(db.Model):
     title = db.Column(db.String(120))
     scheme = db.Column(db.String(15))
     types = db.Column(db.Text)
-    spec = db.Column(db.Text)
+    settings = db.Column(db.Text)
 
     def __init__(
         self,
@@ -27,7 +27,7 @@ class CartogramEntry(db.Model):
         title,
         scheme,
         types=None,
-        spec=None,
+        settings=None,
     ):
         self.string_key = string_key
         self.date_created = date_created
@@ -36,7 +36,7 @@ class CartogramEntry(db.Model):
         self.scheme = scheme
         self.handler = handler
         self.types = types
-        self.spec = spec
+        self.settings = settings
 
     def __repr__(self):
         return "<CartogramEntry {}>".format(self.string_key)

@@ -10,11 +10,12 @@ import { reactive } from 'vue'
 const store = useProjectStore()
 
 const props = defineProps<{
+  spec: string
   disabled: boolean
 }>()
 
 const state = reactive({
-  spec: '',
+  spec: props.spec,
   error: ''
 })
 
