@@ -8,11 +8,22 @@ const store = useCartogramStore()
 
 const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
 
-const socialURL = computed(() => {
+const queryString = computed(() => {
+  const params = new URLSearchParams()
+  if (store.currentColorCol !== 'Region') params.append('by', store.currentColorCol)
+  const queryString = params.toString()
+  return queryString ? `?${queryString}` : ''
+})
+
+const baseURL = computed(() => {
   if (CARTOGRAM_CONFIG.mapDBKey && CARTOGRAM_CONFIG.mapDBKey !== '')
     return location.protocol + '//' + location.host + '/view/key/' + CARTOGRAM_CONFIG.mapDBKey
 
   return location.protocol + '//' + location.host + '/view/map/' + store.currentMapName
+})
+
+const socialURL = computed(() => {
+  return baseURL.value + queryString.value
 })
 
 const socialURLEncoded = computed(() => {
@@ -20,7 +31,7 @@ const socialURLEncoded = computed(() => {
 })
 
 const embedHTML = computed(() => {
-  const embedURL = socialURL.value + '/embed'
+  const embedURL = baseURL.value + '/embed' + queryString.value
 
   return (
     '<iframe src="' +
@@ -31,7 +42,7 @@ const embedHTML = computed(() => {
 
 function access() {
   const http = new XMLHttpRequest()
-  http.open('GET', socialURL.value)
+  http.open('GET', baseURL.value)
 }
 </script>
 

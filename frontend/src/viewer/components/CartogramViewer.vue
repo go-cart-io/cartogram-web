@@ -20,6 +20,14 @@ const state = reactive({
 
 onBeforeMount(() => {
   store.currentMapName = CARTOGRAM_CONFIG.mapName ? CARTOGRAM_CONFIG.mapName : ''
+
+  // Get default color from query string
+  const urlParams = new URLSearchParams(window.location.search)
+  const defaultBy = urlParams.get('by')
+  const headers = Object.values(CARTOGRAM_CONFIG.choroVersions).map(
+    (version: any) => version.header
+  )
+  if (defaultBy && headers.includes(defaultBy)) store.currentColorCol = defaultBy
 })
 
 /**
