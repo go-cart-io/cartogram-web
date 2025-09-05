@@ -131,6 +131,13 @@ export async function initLegend(
       : cartoColorScheme === 'custom'
         ? 'Color'
         : 'ColorGroup'
+
+  versionSpec.legends[0].title =
+    currentColorCol === 'Region'
+      ? ''
+      : choroSpec['legend_titles'] && choroSpec['legend_titles'][currentColorCol]
+        ? choroSpec['legend_titles'][currentColorCol]
+        : currentColorCol
   versionSpec.legends[0].fill = currentColorCol === 'Region' ? 'color_group' : currentColorCol
 
   const container = await embed('#legend', <VisualizationSpec>versionSpec, {

@@ -42,12 +42,16 @@
   ],
   "legends": [
     {
+      "type": "symbol",
+      "symbolType": "square",
       "fill": "color_group",
       "direction": "horizontal",
       "orient": "bottom",
       "offset": 0,
       "padding": 0,
+      "titleLimit": { "signal": "width" },
       "gradientLength": { "signal": "width" },
+      "gradientThickness": 10,
       "symbolOpacity": {
         "signal": "color_field === 'ColorGroup' || color_field === 'Color' ? 0:1"
       },

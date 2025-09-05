@@ -57,17 +57,6 @@ function applySpec() {
       return false
     }
 
-    const keys = Object.keys(specJson)
-    if (keys.length !== 1) {
-      state.error = `Error: JSON root object must have exactly one key, but found ${keys.length}.`
-      return false
-    }
-
-    if (keys[0] !== 'scales') {
-      state.error = `Error: The only key in the JSON root object must be 'scales', but found '${keys[0]}'.`
-      return false
-    }
-
     // Validate vega specification
     const valid = vegaValidator(specJson)
     if (!valid) {
@@ -77,65 +66,7 @@ function applySpec() {
       return false
     }
 
-    const scalesArray = (specJson as { scales: unknown }).scales as Array<any>
-    const foundScaleNames = new Set<string>()
-    const choroplethNamesSet = new Set(store.visTypes['choropleth'])
-
-    // Iterate through each item in the 'scales' array and validate its structure
-    for (let i = 0; i < scalesArray.length; i++) {
-      const item = scalesArray[i]
-
-      // Validate name and domain.field match
-      if (
-        item.hasOwnProperty('name') &&
-        item.hasOwnProperty('domain') &&
-        item.domain.hasOwnProperty('field') &&
-        item.name !== item.domain.field
-      ) {
-        state.error = `Error: Item at scales[${i}]: 'name' ('${item.name}') must exactly match 'domain.field' ('${item.domain.field}').`
-        return false
-      }
-
-      // Validate domain.data is "source_csv"
-      if (
-        item.hasOwnProperty('domain') &&
-        item.domain.hasOwnProperty('data') &&
-        item.domain.data !== 'source_csv'
-      ) {
-        state.error = `Error: Item at scales[${i}]: 'domain.data' must be "source_csv", but found '${item.domain.data}'.`
-        return false
-      }
-
-      // Check if the 'name' is one of the valid names
-      if (!choroplethNamesSet.has(item.name)) {
-        state.error = `Error: Item at scales[${i}]: 'name' ('${item.name}') is not in the data columns.`
-        return false
-      }
-
-      // Check for duplicate 'name' entries within the 'scales' array
-      if (foundScaleNames.has(item.name)) {
-        state.error = `Error: Duplicate 'name' found in 'scales' array: '${item.name}'.`
-        return false
-      }
-
-      // Add the name to our set of found names
-      foundScaleNames.add(item.name)
-    }
-
-    // Ensure the set of found names exactly matches the set of choropleth columns (ignoring order).
-    // This means checking both size and if all expected names are present in the found names.
-    if (foundScaleNames.size !== choroplethNamesSet.size) {
-      state.error = `Error: Mismatch in the number of unique 'scales' names. Expected ${choroplethNamesSet.size}, but found ${foundScaleNames.size}.`
-      return false
-    }
-
-    // Check if every expected name is present in the found names
-    for (const expectedName of choroplethNamesSet) {
-      if (!foundScaleNames.has(expectedName)) {
-        state.error = `Error: Expected scale name '${expectedName}' is missing from the 'scales' array.`
-        return false
-      }
-    }
+    if (!validScales(specJson)) return false
   } catch (e) {
     state.error = 'Error: Specification must be valid json'
     return false
@@ -143,6 +74,75 @@ function applySpec() {
 
   store.choroSettings.spec = state.spec
   emit('specChanged')
+}
+
+function validScales(specJson: any) {
+  if (!specJson['scales']) {
+    state.error = `Error: The scales must be defined.`
+    return false
+  }
+
+  const scalesArray = (specJson as { scales: unknown }).scales as Array<any>
+  const foundScaleNames = new Set<string>()
+  const choroplethNamesSet = new Set(store.visTypes['choropleth'])
+
+  // Iterate through each item in the 'scales' array and validate its structure
+  for (let i = 0; i < scalesArray.length; i++) {
+    const item = scalesArray[i]
+
+    // Validate name and domain.field match
+    if (
+      item.hasOwnProperty('name') &&
+      item.hasOwnProperty('domain') &&
+      item.domain.hasOwnProperty('field') &&
+      item.name !== item.domain.field
+    ) {
+      state.error = `Error: Item at scales[${i}]: 'name' ('${item.name}') must exactly match 'domain.field' ('${item.domain.field}').`
+      return false
+    }
+
+    // Validate domain.data is "source_csv"
+    if (
+      item.hasOwnProperty('domain') &&
+      item.domain.hasOwnProperty('data') &&
+      item.domain.data !== 'source_csv'
+    ) {
+      state.error = `Error: Item at scales[${i}]: 'domain.data' must be "source_csv", but found '${item.domain.data}'.`
+      return false
+    }
+
+    // Check if the 'name' is one of the valid names
+    if (!choroplethNamesSet.has(item.name)) {
+      state.error = `Error: Item at scales[${i}]: 'name' ('${item.name}') is not in the data columns.`
+      return false
+    }
+
+    // Check for duplicate 'name' entries within the 'scales' array
+    if (foundScaleNames.has(item.name)) {
+      state.error = `Error: Duplicate 'name' found in 'scales' array: '${item.name}'.`
+      return false
+    }
+
+    // Add the name to our set of found names
+    foundScaleNames.add(item.name)
+  }
+
+  // Ensure the set of found names exactly matches the set of choropleth columns (ignoring order).
+  // This means checking both size and if all expected names are present in the found names.
+  if (foundScaleNames.size !== choroplethNamesSet.size) {
+    state.error = `Error: Mismatch in the number of unique 'scales' names. Expected ${choroplethNamesSet.size}, but found ${foundScaleNames.size}.`
+    return false
+  }
+
+  // Check if every expected name is present in the found names
+  for (const expectedName of choroplethNamesSet) {
+    if (!foundScaleNames.has(expectedName)) {
+      state.error = `Error: Expected scale name '${expectedName}' is missing from the 'scales' array.`
+      return false
+    }
+  }
+
+  return true
 }
 </script>
 
@@ -234,6 +234,7 @@ function applySpec() {
       <label for="choroTextarea" class="form-label">
         Define scale for each choropleth data column using
         <a href="https://vega.github.io/vega/docs/scales/" target="_blank">vega specification</a>.
+        Futhermore, you may modify the legend title of each data column.
       </label>
       <textarea
         id="choroTextarea"

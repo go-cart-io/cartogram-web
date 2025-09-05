@@ -193,6 +193,43 @@ export function getNameUnit(label: string): [string, string] {
   return [name, unit]
 }
 
+export function getNameUnitScale(label: string, type: string, step: number): string {
+  if (type !== 'quantile') return label
+
+  const [name, unit] = getNameUnit(label)
+  let scaleName = unit ? `${unit}, ` : ''
+  switch (step) {
+    case 2:
+      scaleName += 'below/above median'
+      break
+    case 3:
+      scaleName += 'tertiles'
+      break
+    case 4:
+      scaleName += 'quartiles'
+      break
+    case 5:
+      scaleName += 'quintiles'
+      break
+    case 6:
+      scaleName += 'sextiles'
+      break
+    case 7:
+      scaleName += 'septiles'
+      break
+    case 8:
+      scaleName += 'octiles'
+      break
+    case 10:
+      scaleName += 'deciles'
+      break
+    default:
+      scaleName += step + '-quantiles'
+  }
+
+  return `${name} (${scaleName})`
+}
+
 export function sanitizeFilename(filename: string): string {
   const invalidCharsRegex = /[\\/:*?'"<>|]/g
   const sanitizedFilename = filename.replace(invalidCharsRegex, '_')

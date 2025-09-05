@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { DataTable, VisualizationTypes } from '../lib/interface'
+import * as util from '../lib/util'
 
 export const useProjectStore = defineStore('project', () => {
   const title = ref('')
@@ -23,7 +24,7 @@ export const useProjectStore = defineStore('project', () => {
     // Do not override spec if the user is in advance mode
     if (choroSettings.value.isAdvanceMode) return
 
-    let jsonObj = { scales: [] as Array<any> }
+    let jsonObj = { scales: [] as Array<any>, legend_titles: {} as { [key: string]: string } }
     for (let i = 0; i < (visTypes.value['choropleth']?.length || 0); i++) {
       jsonObj.scales.push({
         name: visTypes.value['choropleth'][i],
@@ -31,6 +32,12 @@ export const useProjectStore = defineStore('project', () => {
         domain: { data: 'source_csv', field: visTypes.value['choropleth'][i] },
         range: { scheme: choroSettings.value.scheme, count: choroSettings.value.step }
       })
+
+      jsonObj.legend_titles[visTypes.value['choropleth'][i]] = util.getNameUnitScale(
+        visTypes.value['choropleth'][i],
+        choroSettings.value.type,
+        choroSettings.value.step
+      )
     }
     choroSettings.value.spec = JSON.stringify(jsonObj, null, 2)
   }
