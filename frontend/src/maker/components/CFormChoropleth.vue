@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
-import vegaSchema from 'vega/build/vega-schema.json'
+import vegaSchema from '../../../node_modules/vega/build/vega-schema.json' with { type: 'json' }
 
 import * as cvega from '../lib/vega'
 
