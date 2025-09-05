@@ -172,6 +172,7 @@ function validateInput(event: Event) {
               required
               v-bind:id="'dtable-vis-' + index"
               v-bind:value="store.dataTable.fields[index].vis"
+              v-bind:disabled="store.choroSettings.isAdvanceMode"
               v-on:blur="validateInput"
               v-on:change="updateVisType(index, $event)"
             >
@@ -195,7 +196,10 @@ function validateInput(event: Event) {
             <span v-if="!field.editableHead">{{ field.label }}</span>
             <div class="position-relative" v-else>
               <i
-                v-if="store.dataTable.fields[index].name !== 'Geographic Area'"
+                v-if="
+                  store.dataTable.fields[index].name !== 'Geographic Area' &&
+                  !store.choroSettings.isAdvanceMode
+                "
                 class="position-absolute top-0 end-0 btn-icon text-secondary fas fa-minus-circle"
                 v-bind:title="'Remove ' + store.dataTable.fields[index].name + ' column'"
                 v-on:click="removeColumn(index)"
@@ -208,6 +212,7 @@ function validateInput(event: Event) {
                 required
                 v-model="store.dataTable.fields[index].name"
                 v-bind:id="'dtable-name-' + index"
+                v-bind:disabled="store.choroSettings.isAdvanceMode"
                 v-on:change="updateLabel(index, $event)"
               />
               <input
@@ -217,6 +222,7 @@ function validateInput(event: Event) {
                 pattern='^[^\\\/:\*\?&#39;"&lt;&gt;\|]+$'
                 v-model="store.dataTable.fields[index].unit"
                 v-bind:id="'dtable-unit-' + index"
+                v-bind:disabled="store.choroSettings.isAdvanceMode"
                 v-on:change="updateLabel(index, $event)"
               />
             </div>

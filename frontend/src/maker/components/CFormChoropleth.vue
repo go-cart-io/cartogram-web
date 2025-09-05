@@ -28,23 +28,36 @@ const ajv = new Ajv({
 addFormats(ajv)
 const vegaValidator = ajv.compile(vegaSchema)
 
-function switchMode() {
-  if (store.choroSettings.isAdvanceMode) {
+function switchMode(event: Event) {
+  const checkbox = event.target as HTMLInputElement
+
+  if (!checkbox.checked) {
     // Switch from advance to simple
     if (
       window.confirm(
-        'Advance configuration will be lost. Are you sure you want to quit advance mode?'
+        'Advance configuration will be lost. Are you sure you want to quit Advance Mode?'
       )
     ) {
       store.choroSettings.isAdvanceMode = false
+      store.updateChoroSpec()
+      state.spec = store.choroSettings.spec
+      emit('specChanged')
     } else {
-      // Do nothing
+      checkbox.checked = true
     }
   } else {
     // Switch from simple to advance
-    store.updateChoroSpec()
-    store.choroSettings.isAdvanceMode = true
-    state.spec = store.choroSettings.spec
+    if (
+      window.confirm(
+        'Switching to Advanced Mode will lock editing of data names and types. Are you sure you want to proceed?'
+      )
+    ) {
+      store.updateChoroSpec()
+      store.choroSettings.isAdvanceMode = true
+      state.spec = store.choroSettings.spec
+    } else {
+      checkbox.checked = false
+    }
   }
 }
 
@@ -164,7 +177,7 @@ function validScales(specJson: any) {
         v-bind:checked="store.choroSettings.isAdvanceMode"
         v-on:change="switchMode"
       />
-      <label class="form-check-label" for="modeSwitch">Advance mode</label>
+      <label class="form-check-label" for="modeSwitch">Advance Mode</label>
     </div>
     <div v-if="!store.choroSettings.isAdvanceMode">
       <div class="mb-2">
