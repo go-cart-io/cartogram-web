@@ -4,6 +4,7 @@ import { nextTick, reactive, watch } from 'vue'
 import type { FeatureCollection } from 'geojson'
 import * as visualization from '../../common/visualization'
 import * as config from '../../common/config'
+import CLegend from '../../common/components/CColorLegend.vue'
 
 import { useProjectStore } from '../stores/project'
 const store = useProjectStore()
@@ -160,44 +161,24 @@ function renameRegion(rIndex: number, action: string) {
 
 <template>
   <div
-    class="row border p-2 m-2 bg-light"
+    class="d-flex flex-wrap flex-sm-nowrap justify-content-between w-100 bg-light border p-2 m-2 gap-2"
     v-bind:style="{ visibility: state.isInit ? 'visible' : 'hidden' }"
   >
-    <div class="col-2 d-flex align-items-center">
+    <div class="d-flex align-items-center" style="max-width: 50%">
       <strong class="text-truncate">{{ store.title }}</strong>
     </div>
 
-    <div class="col-5 col-lg-4">
-      <div class="input-group flex-nowrap">
-        <span class="input-group-text">By</span>
-        <select
-          id="color-options"
-          class="form-select"
-          title="Select map/cartogram color strategy"
-          v-model="store.currentColorCol"
-          v-on:change="refresh"
-        >
-          <option value="Region">Region</option>
-          <option disabled>Data:</option>
-          <option
-            disabled
-            v-if="!store.visTypes['choropleth'] || !store.visTypes['choropleth'].length"
-          >
-            &nbsp;&nbsp;No choropleth column
-          </option>
-          <option
-            v-for="label in store.visTypes['choropleth']"
-            v-bind:value="label"
-            v-bind:key="label"
-          >
-            &nbsp;&nbsp;{{ label }}
-          </option>
-        </select>
-      </div>
-    </div>
-
-    <div class="col-5 col-lg-6 p-0">
-      <div id="legend" class="d-block"></div>
+    <div class="flex-grow-1">
+      <c-legend
+        v-bind:colorFields="store.visTypes['choropleth']"
+        v-bind:active="store.currentColorCol"
+        v-on:change="
+          (col: string) => {
+            store.currentColorCol = col
+            refresh()
+          }
+        "
+      />
     </div>
   </div>
 

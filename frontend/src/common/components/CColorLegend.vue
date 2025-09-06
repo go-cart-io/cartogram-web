@@ -34,6 +34,9 @@ const emit = defineEmits(['change'])
           </button>
         </li>
         <li><button class="dropdown-item disabled">Data:</button></li>
+        <li v-if="!props.colorFields.length">
+          <button class="dropdown-item disabled">&nbsp;&nbsp;No color column</button>
+        </li>
         <li
           v-for="(versionItem, versionKey) in props.colorFields"
           v-bind:value="versionItem"

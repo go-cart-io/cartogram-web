@@ -3,7 +3,7 @@ import { onMounted, reactive } from 'vue'
 
 import * as visualization from '../../common/visualization'
 import * as util from '../lib/util'
-import CMenuColor from './CMenuColor.vue'
+import CColorLegend from '../../common/components/CColorLegend.vue'
 import CMenuBtnShare from './CMenuBtnShare.vue'
 
 import { useCartogramStore } from '../stores/cartogram'
@@ -47,7 +47,7 @@ async function updateVis(value: string) {
       <div
         v-if="!CARTOGRAM_CONFIG.mapDBKey || CARTOGRAM_CONFIG.mapTitle"
         class="order-1 d-flex align-items-center"
-        style="min-width: 100px; max-width: 50%"
+        style="max-width: 50%"
       >
         <select
           v-if="!CARTOGRAM_CONFIG.mapDBKey"
@@ -75,7 +75,7 @@ async function updateVis(value: string) {
         class="order-last order-sm-2 flex-grow-1"
         style="min-width: 250px"
       >
-        <c-menu-color
+        <c-color-legend
           v-bind:key="state.mapkey"
           v-bind:colorFields="CARTOGRAM_CONFIG.choroVersions || []"
           v-bind:active="store.currentColorCol"
