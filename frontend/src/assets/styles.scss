@@ -2,8 +2,9 @@
 @import 'bootstrap/scss/variables';
 @import 'bootstrap/scss/variables-dark';
 
+$primary: #d76127;
 $theme-colors: (
-  'primary': #d76127,
+  'primary': $primary,
   'secondary': $secondary,
   'success': $success,
   'info': $info,
@@ -16,10 +17,11 @@ $theme-colors: (
 $min-contrast-ratio: 3;
 $font-family-base: Roboto, Arial, sans-serif;
 $form-range-track-bg: $secondary;
-$form-range-thumb-bg: #d76127;
+$form-range-thumb-bg: $primary;
 
 $navbar-nav-link-padding-x: 0.6rem;
-$navbar-dark-active-color: #d76127;
+$navbar-dark-active-color: $primary;
+$dropdown-link-active-bg: $secondary;
 
 // Required
 @import 'bootstrap/scss/maps';

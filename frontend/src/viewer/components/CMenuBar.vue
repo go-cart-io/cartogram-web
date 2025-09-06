@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, reactive } from 'vue'
 
+import * as visualization from '../../common/visualization'
+import * as util from '../lib/util'
 import CMenuColor from './CMenuColor.vue'
 import CMenuBtnShare from './CMenuBtnShare.vue'
 
@@ -8,6 +10,7 @@ import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
 const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
+const choroLenght = Object.keys(CARTOGRAM_CONFIG.choroVersions || []).length
 
 const state = reactive({
   mapkey: -1
@@ -23,11 +26,23 @@ function switchMap() {
   state.mapkey = Date.now()
   emit('map_changed')
 }
+
+async function updateVis(value: string) {
+  store.currentColorCol = value
+
+  let csvUrl = util.getCsvURL(store.currentMapName, CARTOGRAM_CONFIG.mapDBKey)
+  await visualization.initLegendWithURL(
+    csvUrl,
+    store.currentColorCol,
+    CARTOGRAM_CONFIG.cartoColorScheme || 'pastel1',
+    CARTOGRAM_CONFIG.choroSpec
+  )
+}
 </script>
 
 <template>
   <nav class="navbar bg-light p-0">
-    <div class="d-flex flex-wrap flex-sm-nowrap w-100 p-2 gap-2">
+    <div class="d-flex flex-wrap flex-sm-nowrap justify-content-between w-100 p-2 gap-2">
       <!-- Title or Map selector -->
       <div
         v-if="!CARTOGRAM_CONFIG.mapDBKey || CARTOGRAM_CONFIG.mapTitle"
@@ -52,10 +67,21 @@ function switchMap() {
         </select>
         <strong v-else class="text-truncate">{{ CARTOGRAM_CONFIG.mapTitle }}</strong>
       </div>
-      <div v-else class="order-1 flex-grow-1"></div>
+      <div v-else class="order-1"></div>
 
       <!-- Color selector -->
-      <c-menu-color v-bind:key="state.mapkey" />
+      <div
+        v-if="choroLenght > 0"
+        class="order-last order-sm-2 flex-grow-1"
+        style="min-width: 250px"
+      >
+        <c-menu-color
+          v-bind:key="state.mapkey"
+          v-bind:colorFields="CARTOGRAM_CONFIG.choroVersions || []"
+          v-bind:active="store.currentColorCol"
+          v-on:change="updateVis"
+        />
+      </div>
 
       <!-- Menu -->
       <div class="order-3 d-flex flex-nowrap gap-2">

@@ -171,15 +171,6 @@ def map_types_to_versions(may_types):
                 "unit": info["unit"],
             }
 
-    choro_versions = {}
-    if "choropleth" in may_types:
-        for i, cartogram_label in enumerate(may_types["choropleth"]):
-            info = label_to_name_unit(cartogram_label)
-            choro_versions[str(i)] = {
-                "key": str(i),
-                "header": info["header"],
-                "name": info["name"],
-                "unit": info["unit"],
-            }
+    choro_versions = may_types.get("choropleth", [])
 
     return carto_versions, choro_versions

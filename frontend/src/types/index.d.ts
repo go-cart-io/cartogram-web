@@ -8,7 +8,7 @@ interface CartogramConfig {
   mapDBKey?: string
   cartoVersions?: any
   cartoColorScheme?: string
-  choroVersions?: any
+  choroVersions?: Array<string>
   choroSpec?: any
   maxCartogram?: number
 }
