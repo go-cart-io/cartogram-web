@@ -46,12 +46,6 @@ export default ({ mode }: UserConfig): UserConfigExport => {
         // vue: 'vue/dist/vue.esm-bundler.js'
       }
     },
-    test: {
-      globals: true,
-      environment: 'node',
-      isolate: false,
-      pool: 'threads'
-    },
     build: {
       manifest: true,
       outDir: '../internal/static/dist',

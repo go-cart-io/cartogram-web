@@ -1,9 +1,9 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
-  "include": ["env.d.ts", "src/**/*.ts", "src/**/*.vue", "cypress/**/*.ts", "test/**/*.ts"],
+  "include": ["env.d.ts", "src/**/*.ts", "src/**/*.vue", "cypress/**/*.ts", "tests/**/*.ts"],
   "compilerOptions": {
     "composite": true,
-    "baseUrl": "src/",
+    "baseUrl": "./",
     "paths": {
       "@/*": ["./src/*"]
     }
