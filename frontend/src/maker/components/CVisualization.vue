@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { nextTick, reactive, watch } from 'vue'
+import { nextTick, reactive, ref, watch } from 'vue'
 
 import type { FeatureCollection } from 'geojson'
 import * as visualization from '../../common/visualization'
 import * as config from '../../common/config'
-import CLegend from '../../common/components/CColorLegend.vue'
+import CColorLegend from '../../common/components/CColorLegend.vue'
 
 import { useProjectStore } from '../stores/project'
 const store = useProjectStore()
@@ -12,6 +12,7 @@ const store = useProjectStore()
 let visView: any
 let currentGeojsonData: FeatureCollection | null
 let currentGeojsonRegionCol: string
+const colorLegendEl = ref()
 
 const state = reactive({
   isInit: false
@@ -33,10 +34,16 @@ watch(
   }
 )
 
+watch(
+  () => store.title,
+  async () => {
+    await colorLegendEl.value.resize()
+  }
+)
+
 function reset() {
   state.isInit = false
   document.getElementById('map-vis')!.innerHTML = ''
-  document.getElementById('legend')!.innerHTML = ''
   currentGeojsonData = null
   currentGeojsonRegionCol = ''
 }
@@ -63,10 +70,9 @@ async function init(geojsonData: FeatureCollection, geojsonRegionCol: string) {
   )
   visView = container.view
 
-  await visualization.initLegendWithValues(
+  await colorLegendEl.value.initLegendWithValues(
     store.dataTable.items,
     store.currentColorCol,
-    store.cartoColorScheme,
     customScaleSpec
   )
   state.isInit = true
@@ -161,17 +167,18 @@ function renameRegion(rIndex: number, action: string) {
 
 <template>
   <div
-    class="d-flex flex-wrap flex-sm-nowrap justify-content-between w-100 bg-light border p-2 m-2 gap-2"
+    class="d-flex flex-wrap flex-sm-nowrap align-items-center w-100 bg-light border p-2 m-2 gap-2"
     v-bind:style="{ visibility: state.isInit ? 'visible' : 'hidden' }"
   >
-    <div class="d-flex align-items-center" style="max-width: 50%">
-      <strong class="text-truncate">{{ store.title }}</strong>
+    <div class="flex-shrink-0 text-truncate" style="min-width: 0; max-width: 50%">
+      <strong>{{ store.title }}</strong>
     </div>
 
     <div class="flex-grow-1">
-      <c-legend
+      <c-color-legend
+        ref="colorLegendEl"
         v-bind:colorFields="store.visTypes['choropleth']"
-        v-bind:active="store.currentColorCol"
+        v-bind:currentColorCol="store.currentColorCol"
         v-on:change="
           (col: string) => {
             store.currentColorCol = col
@@ -194,10 +201,5 @@ function renameRegion(rIndex: number, action: string) {
 .vis-area {
   width: 100%;
   height: 300px;
-}
-
-#legend,
-#legend svg {
-  height: 100%;
 }
 </style>

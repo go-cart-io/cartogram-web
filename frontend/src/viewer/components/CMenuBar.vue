@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { onMounted, reactive } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 
-import * as visualization from '../../common/visualization'
 import * as util from '../lib/util'
 import CColorLegend from '../../common/components/CColorLegend.vue'
 import CMenuBtnShare from './CMenuBtnShare.vue'
@@ -11,6 +10,7 @@ const store = useCartogramStore()
 
 const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
 const choroLenght = Object.keys(CARTOGRAM_CONFIG.choroVersions || []).length
+const colorLegendEl = ref()
 
 const state = reactive({
   mapkey: -1
@@ -24,6 +24,7 @@ onMounted(async () => {
 
 function switchMap() {
   state.mapkey = Date.now()
+  updateVis(store.currentColorCol)
   emit('map_changed')
 }
 
@@ -31,10 +32,9 @@ async function updateVis(value: string) {
   store.currentColorCol = value
 
   let csvUrl = util.getCsvURL(store.currentMapName, CARTOGRAM_CONFIG.mapDBKey)
-  await visualization.initLegendWithURL(
+  await colorLegendEl.value.initLegendWithURL(
     csvUrl,
     store.currentColorCol,
-    CARTOGRAM_CONFIG.cartoColorScheme || 'pastel1',
     CARTOGRAM_CONFIG.choroSpec
   )
 }
@@ -76,9 +76,10 @@ async function updateVis(value: string) {
         style="min-width: 250px"
       >
         <c-color-legend
+          ref="colorLegendEl"
           v-bind:key="state.mapkey"
           v-bind:colorFields="CARTOGRAM_CONFIG.choroVersions || []"
-          v-bind:active="store.currentColorCol"
+          v-bind:currentColorCol="store.currentColorCol"
           v-on:change="updateVis"
         />
       </div>

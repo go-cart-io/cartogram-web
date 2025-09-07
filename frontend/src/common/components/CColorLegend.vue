@@ -1,16 +1,41 @@
 <script setup lang="ts">
+import type { View } from 'vega'
+import * as visualization from '../visualization'
+
+let colorLegendView: View
+
 const props = defineProps<{
   colorFields: Array<string>
-  active?: string
+  currentColorCol: string
 }>()
 
 const emit = defineEmits(['change'])
+
+async function initLegendWithURL(...args: Parameters<typeof visualization.initLegendWithURL>) {
+  colorLegendView = await visualization.initLegendWithURL(...args)
+}
+
+async function initLegendWithValues(...args: Parameters<typeof visualization.initLegendWithURL>) {
+  colorLegendView = await visualization.initLegendWithValues(...args)
+}
+
+async function resize() {
+  if (!colorLegendView || !colorLegendView.container()) return
+  await colorLegendView.resize()
+  await colorLegendView.width(colorLegendView.container()!.offsetWidth).runAsync()
+}
+
+defineExpose({
+  initLegendWithURL,
+  initLegendWithValues,
+  resize
+})
 </script>
 
 <template>
-  <div class="d-flex">
+  <div class="d-flex w-100 h-100">
     <!-- Legend -->
-    <div id="legend" class="flex-grow-1"></div>
+    <div id="legend" class="flex-grow-1 overflow-hidden" style="min-width: 0"></div>
 
     <!-- Color column selector -->
     <div class="dropdown">
@@ -27,7 +52,7 @@ const emit = defineEmits(['change'])
         <li>
           <button
             class="dropdown-item"
-            v-bind:class="{ active: props.active === 'Region' }"
+            v-bind:class="{ active: props.currentColorCol === 'Region' }"
             v-on:click="emit('change', 'Region')"
           >
             Region
@@ -44,7 +69,7 @@ const emit = defineEmits(['change'])
         >
           <button
             class="dropdown-item"
-            v-bind:class="{ active: props.active === versionItem }"
+            v-bind:class="{ active: props.currentColorCol === versionItem }"
             v-on:click="emit('change', versionItem)"
           >
             &nbsp;&nbsp;{{ versionItem }}
@@ -54,3 +79,10 @@ const emit = defineEmits(['change'])
     </div>
   </div>
 </template>
+
+<style scoped>
+#legend :deep(svg) {
+  max-width: 100%;
+  height: auto;
+}
+</style>

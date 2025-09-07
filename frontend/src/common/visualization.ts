@@ -4,6 +4,7 @@ import embed from 'vega-embed'
 import spec from '../assets/template.vg.json' with { type: 'json' }
 import specLegend from '../assets/template_legend.vg.json' with { type: 'json' }
 import * as config from './config'
+import type { View } from 'vega'
 
 function reset(canvasId: string) {
   document.getElementById(canvasId)!.innerHTML = ''
@@ -60,20 +61,13 @@ export async function init(
   // }
 
   // For color
-  versionSpec.signals[3]['value'] =
-    !cartoColorScheme || cartoColorScheme === 'custom' ? 'pastel1' : cartoColorScheme
+  versionSpec.signals[3]['value'] = cartoColorScheme === 'custom' ? 'pastel1' : cartoColorScheme
+  versionSpec.signals[4].value = _getColorFieldSingal(currentColorCol, cartoColorScheme)
 
   if (choroSpec && choroSpec.scales) {
-    const escapedScales = escapeScales(choroSpec.scales)
+    const escapedScales = _escapeScales(choroSpec.scales)
     versionSpec.scales = versionSpec.scales.concat(escapedScales)
   }
-
-  versionSpec.signals[4].value =
-    currentColorCol !== 'Region'
-      ? currentColorCol
-      : cartoColorScheme === 'custom'
-        ? 'Color'
-        : 'ColorGroup'
 
   const container = await embed('#' + canvasId, <VisualizationSpec>versionSpec, {
     renderer: 'svg',
@@ -86,51 +80,41 @@ export async function init(
 export async function initLegendWithURL(
   csvUrl: string,
   currentColorCol: string,
-  cartoColorScheme: string,
   choroSpec: any
-) {
+): Promise<View> {
   const versionSpec = JSON.parse(JSON.stringify(specLegend)) // copy the template
   versionSpec.data[0].url = csvUrl
 
-  return await initLegend(versionSpec, currentColorCol, cartoColorScheme, choroSpec)
+  return await initLegend(versionSpec, currentColorCol, choroSpec)
 }
 
 export async function initLegendWithValues(
   csvValues: any,
   currentColorCol: string,
-  cartoColorScheme: string,
   choroSpec: any
-) {
+): Promise<View> {
   const versionSpec = JSON.parse(JSON.stringify(specLegend)) // copy the template
   versionSpec.data[0].values = csvValues
   versionSpec.data[0].format = 'json'
 
-  return await initLegend(versionSpec, currentColorCol, cartoColorScheme, choroSpec)
+  return await initLegend(versionSpec, currentColorCol, choroSpec)
 }
 
 export async function initLegend(
   versionSpec: any,
   currentColorCol: string,
-  cartoColorScheme: string,
   choroSpec: any
-) {
+): Promise<View> {
   reset('legend')
 
-  // For color
-  versionSpec.signals[2]['value'] =
-    !cartoColorScheme || cartoColorScheme === 'custom' ? 'pastel1' : cartoColorScheme
+  // Color legend don't use color scheme - just fill in the default value to avoid error
+  versionSpec.signals[2]['value'] = 'pastel1'
+  versionSpec.signals[3].value = _getColorFieldSingal(currentColorCol, 'pastel1')
 
   if (choroSpec && choroSpec.scales) {
-    const escapedScales = escapeScales(choroSpec.scales)
+    const escapedScales = _escapeScales(choroSpec.scales)
     versionSpec.scales = versionSpec.scales.concat(escapedScales)
   }
-
-  versionSpec.signals[3].value =
-    currentColorCol !== 'Region'
-      ? currentColorCol
-      : cartoColorScheme === 'custom'
-        ? 'Color'
-        : 'ColorGroup'
 
   versionSpec.legends[0].title =
     currentColorCol === 'Region'
@@ -144,11 +128,11 @@ export async function initLegend(
     renderer: 'svg',
     actions: false
   })
-  return container
+  return container.view
 }
 
 // As we allow dot in data name and unit, we need to escape the dot in the field name so vega can process it
-function escapeScales(scales: any) {
+function _escapeScales(scales: any) {
   if (!scales) return []
 
   let escapedScales = JSON.parse(JSON.stringify(scales))
@@ -159,4 +143,12 @@ function escapeScales(scales: any) {
   })
 
   return escapedScales
+}
+
+export function _getColorFieldSingal(currentColorCol: string, cartoColorScheme: string): string {
+  return currentColorCol !== 'Region'
+    ? currentColorCol
+    : cartoColorScheme === 'custom'
+      ? 'Color'
+      : 'ColorGroup'
 }
