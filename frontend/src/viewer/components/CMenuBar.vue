@@ -30,6 +30,7 @@ function switchMap() {
 
 async function updateVis(value: string) {
   store.currentColorCol = value
+  if (!colorLegendEl.value) return
 
   let csvUrl = util.getCsvURL(store.currentMapName, CARTOGRAM_CONFIG.mapDBKey)
   await colorLegendEl.value.initLegendWithURL(
@@ -50,7 +51,7 @@ async function updateVis(value: string) {
         style="max-width: 50%"
       >
         <select
-          v-if="!CARTOGRAM_CONFIG.mapDBKey"
+          v-if="!CARTOGRAM_CONFIG.mapDBKey && !CARTOGRAM_CONFIG.mapTitle"
           id="mapSelect"
           class="form-select"
           v-model="store.currentMapName"
