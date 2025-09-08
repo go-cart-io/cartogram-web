@@ -108,17 +108,27 @@ def create_app():
         if not cartogram_handler.has_handler(map_name):
             return Response("Not found", status=404)
 
+        handler_meta = cartogram_handler.get_handler(map_name)
         carto_versions, choro_versions = util.map_types_to_versions(
-            {"cartogram": ["Population (people)"]}
+            handler_meta.get("types", {"cartogram": ["Population (people)"]})
         )
+
+        title = (
+            ""
+            if not handler_meta.get("hidden", False)
+            else handler_meta.get("name", "")
+        )
+
         return render_template(
             template,
             page_active="cartogram",
             maps=cartogram_handler.get_sorted_handler_names(),
             map_name=map_name,
-            map_color_scheme="pastel1",
+            map_title=title,
+            map_color_scheme=handler_meta.get("scheme", "pastel1"),
             carto_versions=carto_versions,
             choro_versions=choro_versions,
+            map_spec=handler_meta.get("settings", {}).get("spec", {}),
             mode=mode,
             tracking=tracking.determine_tracking_action(request),
         )
@@ -207,17 +217,27 @@ def create_app():
     def edit_cartogram(store_type, name_or_key):
         if store_type == "map":
             handler = name_or_key
+            handler_meta = cartogram_handler.get_handler(handler)
             csv_url = f"/static/cartdata/{handler}/data.csv"
-            title = name_or_key
-            scheme = "pastel1"
-            map_types = {"cartogram": ["Population (people)"]}
-            map_settings = {
-                "isAdvanceMode": False,
-                "scheme": "blues",
-                "type": "quantile",
-                "step": 5,
-                "settings": {},
-            }
+            title = (
+                name_or_key
+                if not handler_meta.get("hidden", False)
+                else handler_meta.get("name", "")
+            )
+            scheme = handler_meta.get("scheme", "pastel1")
+            map_types = handler_meta.get(
+                "types", {"cartogram": ["Population (people)"]}
+            )
+            map_settings = handler_meta.get(
+                "settings",
+                {
+                    "isAdvanceMode": False,
+                    "scheme": "blues",
+                    "type": "quantile",
+                    "step": 5,
+                    "settings": {},
+                },
+            )
 
         elif store_type == "key":
             if not settings.USE_DATABASE:

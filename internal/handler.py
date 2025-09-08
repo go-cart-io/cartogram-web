@@ -8,14 +8,19 @@ class CartogramHandler:
     def get_sorted_handler_names(self):
         sub_cartogram_handlers = {}
         for key, value in cartogram_handlers.items():
+            if "hidden" in value:
+                continue
+
             sub_cartogram_handlers[key] = {
                 "name": value["name"],
-                "regions": value["regions"],
             }
 
         return dict(
             sorted(sub_cartogram_handlers.items(), key=lambda item: item[1]["name"])
         )
+
+    def get_handler(self, handler):
+        return cartogram_handlers[handler]
 
     def get_name(self, handler):
         return cartogram_handlers[handler]["name"]
