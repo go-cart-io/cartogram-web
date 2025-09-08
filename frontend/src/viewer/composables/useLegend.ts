@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 
-import * as config from '../../common/config'
-import * as util from '../lib/util'
+import * as config from '@/common/config'
+import * as numberUtil from '@/common/lib/numberUtil'
 import type { GridData } from '../lib/viewInterface'
 
 export const useLegend = () => {
@@ -90,15 +90,15 @@ export const useLegend = () => {
       baseWidth = Math.sqrt(valuePerSquare / valuePerPixel)
     }
 
-    const [scaleNiceNumber0, scalePowerOf10] = util.findNearestNiceNumber(valuePerSquare)
-    const niceIndex = util.NICE_NUMBERS.indexOf(scaleNiceNumber0)
+    const [scaleNiceNumber0, scalePowerOf10] = numberUtil.findNearestNiceNumber(valuePerSquare)
+    const niceIndex = numberUtil.NICE_NUMBERS.indexOf(scaleNiceNumber0)
     let beginIndex = niceIndex === 0 ? niceIndex : niceIndex - 1
     let endIndex = beginIndex + config.NUM_GRID_OPTIONS + 1
-    while (endIndex >= util.NICE_NUMBERS.length && beginIndex > 0) {
+    while (endIndex >= numberUtil.NICE_NUMBERS.length && beginIndex > 0) {
       endIndex--
       beginIndex--
     }
-    const scaleNiceNumber = util.NICE_NUMBERS.slice(beginIndex, endIndex)
+    const scaleNiceNumber = numberUtil.NICE_NUMBERS.slice(beginIndex, endIndex)
 
     // Store legend Information
     for (let i = 0; i <= config.NUM_GRID_OPTIONS; i++) {

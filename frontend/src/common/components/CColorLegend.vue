@@ -2,42 +2,61 @@
 import type { View } from 'vega'
 import * as visualization from '../visualization'
 
-let colorLegendView: View
+let colorLegendView = null as View | null
 
+// Props: colorFields (available color columns), currentColorCol (selected column)
 const props = defineProps<{
   colorFields: Array<string>
   currentColorCol: string
 }>()
 
+// Emits: 'change' event when color column changes
 const emit = defineEmits(['change'])
 
+// Expose methods for parent components
+defineExpose({
+  reset,
+  initLegendWithURL,
+  initLegendWithValues,
+  resize
+})
+
+function reset(): void {
+  visualization.reset('legend')
+}
+
+/**
+ * Initialize legend using a URL (delegates to visualization helper)
+ */
 async function initLegendWithURL(...args: Parameters<typeof visualization.initLegendWithURL>) {
   colorLegendView = await visualization.initLegendWithURL(...args)
 }
 
-async function initLegendWithValues(...args: Parameters<typeof visualization.initLegendWithURL>) {
+/**
+ * Initialize legend using explicit values (delegates to visualization helper)
+ */
+async function initLegendWithValues(
+  ...args: Parameters<typeof visualization.initLegendWithValues>
+) {
   colorLegendView = await visualization.initLegendWithValues(...args)
 }
 
+/**
+ * Resize the legend to fit its container
+ */
 async function resize() {
   if (!colorLegendView || !colorLegendView.container()) return
   await colorLegendView.resize()
   await colorLegendView.width(colorLegendView.container()!.offsetWidth).runAsync()
 }
-
-defineExpose({
-  initLegendWithURL,
-  initLegendWithValues,
-  resize
-})
 </script>
 
 <template>
   <div class="d-flex w-100 h-100">
-    <!-- Legend -->
-    <div id="legend" class="flex-grow-1 overflow-hidden" style="min-width: 0"></div>
+    <!-- Legend SVG will be rendered here by Vega -->
+    <div id="legend" class="flex-grow-1 overflow-hidden vis-container"></div>
 
-    <!-- Color column selector -->
+    <!-- Color column selector dropdown -->
     <div class="dropdown">
       <button
         class="btn btn-primary dropdown-toggle"
@@ -49,6 +68,7 @@ defineExpose({
         <i class="fas fa-palette"></i>
       </button>
       <ul class="dropdown-menu dropdown-menu-end">
+        <!-- Region option -->
         <li>
           <button
             class="dropdown-item"
@@ -58,21 +78,20 @@ defineExpose({
             Region
           </button>
         </li>
+        <!-- Data label -->
         <li><button class="dropdown-item disabled">Data:</button></li>
+        <!-- No color column available -->
         <li v-if="!props.colorFields.length">
           <button class="dropdown-item disabled">&nbsp;&nbsp;No color column</button>
         </li>
-        <li
-          v-for="(versionItem, versionKey) in props.colorFields"
-          v-bind:value="versionItem"
-          v-bind:key="versionKey"
-        >
+        <!-- List color fields -->
+        <li v-for="(colorField, idx) in props.colorFields" :value="colorField" :key="colorField">
           <button
             class="dropdown-item"
-            v-bind:class="{ active: props.currentColorCol === versionItem }"
-            v-on:click="emit('change', versionItem)"
+            v-bind:class="{ active: props.currentColorCol === colorField }"
+            v-on:click="emit('change', colorField)"
           >
-            &nbsp;&nbsp;{{ versionItem }}
+            &nbsp;&nbsp;{{ colorField }}
           </button>
         </li>
       </ul>
@@ -81,7 +100,8 @@ defineExpose({
 </template>
 
 <style scoped>
-#legend :deep(svg) {
+/* Ensure legend SVG fits container */
+.vis-container :deep(svg) {
   max-width: 100%;
   height: auto;
 }

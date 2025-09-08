@@ -2,17 +2,17 @@
 import { nextTick, reactive, ref, watch } from 'vue'
 
 import type { FeatureCollection } from 'geojson'
-import * as visualization from '../../common/visualization'
-import * as config from '../../common/config'
-import CColorLegend from '../../common/components/CColorLegend.vue'
+import * as config from '@/common/config'
+import CColorLegend from '@/common/components/CColorLegend.vue'
+import CVisualizationArea from '@/common/components/CVisualizationArea.vue'
 
 import { useProjectStore } from '../stores/project'
 const store = useProjectStore()
 
-let visView: any
 let currentGeojsonData: FeatureCollection | null
 let currentGeojsonRegionCol: string
 const colorLegendEl = ref()
+const visAreaEl = ref()
 
 const state = reactive({
   isInit: false
@@ -43,9 +43,10 @@ watch(
 
 function reset() {
   state.isInit = false
-  document.getElementById('map-vis')!.innerHTML = ''
   currentGeojsonData = null
   currentGeojsonRegionCol = ''
+  visAreaEl.value.reset()
+  colorLegendEl.value.reset()
 }
 
 function refresh() {
@@ -59,8 +60,8 @@ async function init(geojsonData: FeatureCollection, geojsonRegionCol: string) {
   currentGeojsonRegionCol = geojsonRegionCol
 
   const customScaleSpec = JSON.parse(store.choroSettings.spec)
-  const container = await visualization.initWithValues(
-    'map-vis',
+  await visAreaEl.value.initWithValues(
+    'preview-vis',
     store.dataTable.items,
     geojsonData,
     geojsonRegionCol,
@@ -68,7 +69,6 @@ async function init(geojsonData: FeatureCollection, geojsonRegionCol: string) {
     store.cartoColorScheme,
     customScaleSpec
   )
-  visView = container.view
 
   await colorLegendEl.value.initLegendWithValues(
     store.dataTable.items,
@@ -84,16 +84,20 @@ async function updateData() {
 }
 
 function setDataItem(row: string, col: string, value: string) {
-  const changeset = visView.changeset().modify((item: any) => item.Region === row, col, value)
-  visView.change('source_csv', changeset).run()
+  if (!visAreaEl.value.view()) return
+  const changeset = visAreaEl.value
+    .view()
+    .changeset()
+    .modify((item: any) => item.Region === row, col, value)
+  visAreaEl.value.view().change('source_csv', changeset).run()
 }
 
 function updateColorAndDataTable(scheme: string, oldScheme: string) {
-  if (scheme === oldScheme || !visView || !store.dataTable.fields) return
+  if (scheme === oldScheme || !visAreaEl.value.view() || !store.dataTable.fields) return
   if (scheme === 'custom') {
     // Copy colors from Vega to the data table **only if no color is already assigned**
     // The condition is crucial because csv uploading populates the color column before applies the custom scheme
-    const colorScale = visView.scale('color_group')
+    const colorScale = visAreaEl.value.view().scale('color_group')
     for (let i = 0; i < store.dataTable.items.length; i++) {
       if (!store.dataTable.items[i]['Color'])
         store.dataTable.items[i]['Color'] = colorScale(store.dataTable.items[i]['ColorGroup'])
@@ -106,7 +110,7 @@ function updateColorAndDataTable(scheme: string, oldScheme: string) {
     }
 
     store.dataTable.fields[config.COL_COLOR].show = false
-    visView.signal('color_scheme', scheme).runAsync()
+    visAreaEl.value.view().signal('color_scheme', scheme).runAsync()
   }
 }
 
@@ -140,7 +144,7 @@ async function resolveRegionIssues() {
 
 function deleteRegion(rIndex: number) {
   const region = store.dataTable.items[rIndex].Region
-  store.dataTable.items[rIndex].Region = null
+  store.dataTable.items[rIndex].Region = undefined
 
   if (!currentGeojsonData) return
   const filteredFeatures = currentGeojsonData.features.filter((feature) => {
@@ -194,12 +198,8 @@ function renameRegion(rIndex: number, action: string) {
       Preview may be outdated after geometric changes (e.g., insets). Final output is unaffected.
     </small>
   </div>
-  <div id="map-vis" class="vis-area p-2"></div>
-</template>
 
-<style scoped>
-.vis-area {
-  width: 100%;
-  height: 300px;
-}
-</style>
+  <div class="position-relative w-100" style="height: 300px">
+    <c-visualization-area ref="visAreaEl" panelID="preview"></c-visualization-area>
+  </div>
+</template>

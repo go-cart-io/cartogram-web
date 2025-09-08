@@ -1,3 +1,5 @@
+import type { StringObject } from '@/common/interface'
+
 export type VisualizationTypes = { [key: string]: Array<string> }
 
 export type KeyValueArray = Array<{ [key: string]: any }>
@@ -14,5 +16,5 @@ export type DataTable = {
     editable: boolean
     editableHead?: boolean
   }>
-  items: Array<{ [key: string]: any }>
+  items: StringObject[]
 }

@@ -2,7 +2,7 @@ export {}
 
 interface CartogramConfig {
   mode?: string
-  maps: MapHandlers
+  maps: CMapHandlers
   mapName?: string
   mapTitle?: string
   mapDBKey?: string

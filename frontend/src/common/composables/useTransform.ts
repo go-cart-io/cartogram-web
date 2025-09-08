@@ -1,8 +1,9 @@
-import { ref, type Ref } from 'vue'
+import { ref } from 'vue'
 import * as d3 from 'd3'
 
 import TouchInfo from '../lib/touchInfo'
-import * as util from '../lib/util'
+import * as numberUtil from '../lib/numberUtil'
+import * as matrixUtil from '../lib/matrixUtil'
 
 export const useTransform = (panelID: string) => {
   const DELAY_THRESHOLD = 300
@@ -16,7 +17,7 @@ export const useTransform = (panelID: string) => {
     pointerposition: number[] | null, // (B)
     pointerdistance: number | boolean // (C)
   let lastTouch = 0
-  let affineMatrix = util.getOriginalMatrix()
+  let affineMatrix = matrixUtil.getOriginalMatrix()
   let gridScaleNiceNumber = 1
 
   // https://observablehq.com/@d3/multitouch
@@ -69,7 +70,7 @@ export const useTransform = (panelID: string) => {
     document.getElementById(panelID)!.setPointerCapture(event.pointerId)
 
     const t = touchInfo.getMergedPoints()
-    let matrix = util.getOriginalMatrix()
+    let matrix = matrixUtil.getOriginalMatrix()
     let angle = 0
     const position = [0, 0]
     const scale = [1, 1]
@@ -83,7 +84,7 @@ export const useTransform = (panelID: string) => {
       if (pointerangle && typeof pointerangle === 'number') angle = pointerangle2 - pointerangle
       else angle = 0
       pointerangle = pointerangle2
-      matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
+      matrix = matrixUtil.multiplyMatrix(matrix, matrixUtil.getRotateMatrix(angle))
 
       // stretch
       const pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
@@ -93,9 +94,9 @@ export const useTransform = (panelID: string) => {
       stateAffineScale.value[0] *= scale[0]
       pointerdistance = pointerdistance2
       if (scale[0] !== 0) {
-        matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(pointerangle))
-        matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], 1))
-        matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(-pointerangle))
+        matrix = matrixUtil.multiplyMatrix(matrix, matrixUtil.getRotateMatrix(pointerangle))
+        matrix = matrixUtil.multiplyMatrix(matrix, matrixUtil.getScaleMatrix(scale[0], 1))
+        matrix = matrixUtil.multiplyMatrix(matrix, matrixUtil.getRotateMatrix(-pointerangle))
       }
     } else if (t.length > 1) {
       // (B) rotate
@@ -103,7 +104,7 @@ export const useTransform = (panelID: string) => {
         const pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
         angle = pointerangle2 - pointerangle
         pointerangle = pointerangle2
-        matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
+        matrix = matrixUtil.multiplyMatrix(matrix, matrixUtil.getRotateMatrix(angle))
       }
       // (C) scale
       if (pointerdistance && typeof pointerdistance === 'number') {
@@ -114,7 +115,7 @@ export const useTransform = (panelID: string) => {
         stateAffineScale.value[1] *= scale[1]
         pointerdistance = pointerdistance2
         if (scale[0] !== 0 && scale[1] !== 0)
-          matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], scale[1]))
+          matrix = matrixUtil.multiplyMatrix(matrix, matrixUtil.getScaleMatrix(scale[0], scale[1]))
       }
     }
 
@@ -125,7 +126,10 @@ export const useTransform = (panelID: string) => {
       position[0] = pointerposition2[0] - pointerposition[0]
       position[1] = pointerposition2[1] - pointerposition[1]
       pointerposition = pointerposition2
-      matrix = util.multiplyMatrix(matrix, util.getTranslateMatrix(position[0], position[1]))
+      matrix = matrixUtil.multiplyMatrix(
+        matrix,
+        matrixUtil.getTranslateMatrix(position[0], position[1])
+      )
     }
 
     _apply(matrix, affineMatrix)
@@ -136,7 +140,7 @@ export const useTransform = (panelID: string) => {
   function onWheel(event: any, isLockRatio: boolean, stretchDirection: string) {
     let matrix: Array<Array<number>> = []
     if (event.shiftKey) {
-      matrix = util.getRotateMatrix(event.wheelDelta / 1000)
+      matrix = matrixUtil.getRotateMatrix(event.wheelDelta / 1000)
     } else {
       const scale = 1 + event.wheelDelta / 1000
       let scales
@@ -151,17 +155,17 @@ export const useTransform = (panelID: string) => {
 
       stateAffineScale.value[0] *= scales[0]
       stateAffineScale.value[1] *= scales[1]
-      matrix = util.getScaleMatrix(scales[0], scales[1])
+      matrix = matrixUtil.getScaleMatrix(scales[0], scales[1])
     }
     _apply(matrix, affineMatrix)
   }
 
   function applyCurrent() {
-    _apply(affineMatrix, util.getOriginalMatrix())
+    _apply(affineMatrix, matrixUtil.getOriginalMatrix())
   }
 
   function _apply(matrix1: Array<Array<number>>, matrix2: Array<Array<number>>) {
-    affineMatrix = util.multiplyMatrix(matrix1, matrix2)
+    affineMatrix = matrixUtil.multiplyMatrix(matrix1, matrix2)
 
     d3.selectAll('#' + panelID + ' g.root').attr(
       'transform',
@@ -182,7 +186,7 @@ export const useTransform = (panelID: string) => {
   }
 
   function reset() {
-    affineMatrix = util.getOriginalMatrix()
+    affineMatrix = matrixUtil.getOriginalMatrix()
     stateAffineScale.value = [1, 1]
     _apply(affineMatrix, affineMatrix)
   }
@@ -195,13 +199,13 @@ export const useTransform = (panelID: string) => {
     const value = gridScaleNiceNumber / (stateAffineScale.value[0] * stateAffineScale.value[1])
     if (value === 0) return
 
-    const [scaleNiceNumber, scalePowerOf10] = util.findNearestNiceNumber(value)
+    const [scaleNiceNumber, scalePowerOf10] = numberUtil.findNearestNiceNumber(value)
     const targetValue = scaleNiceNumber * Math.pow(10, scalePowerOf10)
     const adjustedScale = Math.sqrt(value / targetValue)
 
     stateAffineScale.value[0] *= adjustedScale
     stateAffineScale.value[1] *= adjustedScale
-    const matrix = util.getScaleMatrix(adjustedScale, adjustedScale)
+    const matrix = matrixUtil.getScaleMatrix(adjustedScale, adjustedScale)
     _apply(matrix, affineMatrix)
   }
 

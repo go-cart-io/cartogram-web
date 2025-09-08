@@ -1,154 +1,187 @@
+import type { FeatureCollection } from 'geojson'
 import type { VisualizationSpec } from 'vega-embed'
+import type { Spec, InitSignal, Text as VegaText, View, Scale } from 'vega'
 import embed from 'vega-embed'
 
+// Import Vega specs for main visualization and legend
 import spec from '../assets/template.vg.json' with { type: 'json' }
 import specLegend from '../assets/template_legend.vg.json' with { type: 'json' }
-import * as config from './config'
-import type { View } from 'vega'
 
-function reset(canvasId: string) {
-  document.getElementById(canvasId)!.innerHTML = ''
+import type { CSettingSpec, StringObject } from './interface'
+import * as config from './config'
+
+/**
+ * Reset the inner HTML of the given canvas element.
+ * @param canvasId - The DOM id of the canvas to reset.
+ */
+export function reset(canvasId: string): void {
+  const el = document.getElementById(canvasId)
+  if (el) el.innerHTML = ''
 }
 
+/**
+ * Initialize visualization from CSV and GeoJSON URLs.
+ */
 export async function initWithURL(
   canvasId: string,
   csvUrl: string,
   jsonUrl: string,
   currentColorCol: string,
   cartoColorScheme: string,
-  choroSpec: any
-) {
+  choroSpec: CSettingSpec
+): Promise<View> {
   const versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
   versionSpec.data[0].url = csvUrl
   versionSpec.data[1].url = jsonUrl
-
   return await init(canvasId, versionSpec, currentColorCol, cartoColorScheme, choroSpec)
 }
 
+/**
+ * Initialize visualization from CSV and GeoJSON values.
+ */
 export async function initWithValues(
   canvasId: string,
-  csvValues: any,
-  jsonValue: any,
+  csvValues: StringObject[],
+  jsonValue: FeatureCollection,
   geojsonRegionCol: string,
   currentColorCol: string,
   cartoColorScheme: string,
-  choroSpec: any
-) {
+  choroSpec: CSettingSpec
+): Promise<View> {
   const versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
   versionSpec.data[1].values = jsonValue
   versionSpec.data[2].transform[2].fields = ['properties.' + geojsonRegionCol]
   versionSpec.data[0].values = csvValues
   versionSpec.data[0].format = 'json'
-
   return await init(canvasId, versionSpec, currentColorCol, cartoColorScheme, choroSpec)
 }
 
+/**
+ * Core initialization for visualization embedding.
+ */
 export async function init(
   canvasId: string,
-  versionSpec: any,
+  versionSpec: Spec,
   currentColorCol: string,
   cartoColorScheme: string,
-  choroSpec: any
-) {
+  choroSpec: CSettingSpec
+): Promise<View> {
   reset(canvasId)
-
-  // if (store.currentMapName === "world" && state.version.name === 'Geographic Area') {
-  //   // Gall–Peters projection
-  //   vega.projection('cylindricalEqualArea', geoCylindricalEqualArea)
-  //   versionSpec.projections[0].type = "cylindricalEqualArea"
-  //   versionSpec.projections[0].reflectY = false
-  //   versionSpec.projections[0].parallel = 45
-  // }
-
-  // For color
-  versionSpec.signals[3]['value'] = cartoColorScheme === 'custom' ? 'pastel1' : cartoColorScheme
-  versionSpec.signals[4].value = _getColorFieldSingal(currentColorCol, cartoColorScheme)
-
-  if (choroSpec && choroSpec.scales) {
+  versionSpec = _setColorSingals(versionSpec, currentColorCol, cartoColorScheme)
+  if (choroSpec?.scales && versionSpec.scales) {
     const escapedScales = _escapeScales(choroSpec.scales)
     versionSpec.scales = versionSpec.scales.concat(escapedScales)
   }
-
-  const container = await embed('#' + canvasId, <VisualizationSpec>versionSpec, {
+  const container = await embed(`#${canvasId}`, versionSpec as VisualizationSpec, {
     renderer: 'svg',
     actions: false,
     tooltip: config.tooltipOptions
   })
-  return container
+  return container.view
 }
 
+/**
+ * Initialize legend from CSV URL.
+ */
 export async function initLegendWithURL(
   csvUrl: string,
   currentColorCol: string,
-  choroSpec: any
+  choroSpec: CSettingSpec
 ): Promise<View> {
   const versionSpec = JSON.parse(JSON.stringify(specLegend)) // copy the template
   versionSpec.data[0].url = csvUrl
-
   return await initLegend(versionSpec, currentColorCol, choroSpec)
 }
 
+/**
+ * Initialize legend from CSV values.
+ */
 export async function initLegendWithValues(
-  csvValues: any,
+  csvValues: StringObject[],
   currentColorCol: string,
-  choroSpec: any
+  choroSpec: CSettingSpec
 ): Promise<View> {
-  const versionSpec = JSON.parse(JSON.stringify(specLegend)) // copy the template
+  const versionSpec = JSON.parse(JSON.stringify(specLegend))
   versionSpec.data[0].values = csvValues
   versionSpec.data[0].format = 'json'
-
   return await initLegend(versionSpec, currentColorCol, choroSpec)
 }
 
+/**
+ * Core initialization for legend embedding.
+ */
 export async function initLegend(
-  versionSpec: any,
+  versionSpec: Spec,
   currentColorCol: string,
-  choroSpec: any
+  choroSpec: CSettingSpec
 ): Promise<View> {
   reset('legend')
+  // Color legend doesn't use color scheme - fill default to avoid error
+  versionSpec = _setColorSingals(versionSpec, currentColorCol, 'pastel1')
 
-  // Color legend don't use color scheme - just fill in the default value to avoid error
-  versionSpec.signals[2]['value'] = 'pastel1'
-  versionSpec.signals[3].value = _getColorFieldSingal(currentColorCol, 'pastel1')
-
-  if (choroSpec && choroSpec.scales) {
+  if (choroSpec?.scales && versionSpec.scales) {
     const escapedScales = _escapeScales(choroSpec.scales)
     versionSpec.scales = versionSpec.scales.concat(escapedScales)
   }
 
-  versionSpec.legends[0].title =
-    currentColorCol === 'Region'
-      ? ''
-      : choroSpec['legend_titles'] && choroSpec['legend_titles'][currentColorCol]
-        ? choroSpec['legend_titles'][currentColorCol]
-        : currentColorCol
-  versionSpec.legends[0].fill = currentColorCol === 'Region' ? 'color_group' : currentColorCol
+  if (versionSpec.legends) {
+    const title =
+      currentColorCol === 'Region'
+        ? ''
+        : (choroSpec['legend_titles']?.[currentColorCol] ?? currentColorCol)
+    versionSpec.legends[0].title = title as VegaText
+    versionSpec.legends[0].fill = currentColorCol === 'Region' ? 'color_group' : currentColorCol
+  }
 
-  const container = await embed('#legend', <VisualizationSpec>versionSpec, {
+  const container = await embed('#legend', versionSpec as VisualizationSpec, {
     renderer: 'svg',
     actions: false
   })
   return container.view
 }
 
-// As we allow dot in data name and unit, we need to escape the dot in the field name so vega can process it
-function _escapeScales(scales: any) {
+/**
+ * Escape dots in scale domain field names for Vega compatibility.
+ */
+function _escapeScales(scales: Scale[]): Scale[] {
   if (!scales) return []
-
-  let escapedScales = JSON.parse(JSON.stringify(scales))
-  escapedScales.forEach((scale: any) => {
-    if (scale.domain && scale.domain.field) {
+  const escapedScales: Scale[] = structuredClone(scales)
+  escapedScales.forEach((scale) => {
+    if (
+      scale.domain &&
+      typeof scale.domain === 'object' &&
+      'field' in scale.domain &&
+      typeof scale.domain.field === 'string'
+    ) {
       scale.domain.field = scale.domain.field.replace(/\./g, '\\.')
     }
   })
-
   return escapedScales
 }
 
-export function _getColorFieldSingal(currentColorCol: string, cartoColorScheme: string): string {
-  return currentColorCol !== 'Region'
-    ? currentColorCol
-    : cartoColorScheme === 'custom'
-      ? 'Color'
-      : 'ColorGroup'
+/**
+ * Set color signals in Vega spec for color scheme and column.
+ */
+export function _setColorSingals(
+  versionSpec: Spec,
+  currentColorCol: string,
+  cartoColorScheme: string
+): Spec {
+  if (!versionSpec.signals) return versionSpec
+  // Set color_scheme signal
+  if (versionSpec.signals[3]) {
+    ;(versionSpec.signals[3] as InitSignal).value =
+      cartoColorScheme === 'custom' ? 'pastel1' : cartoColorScheme
+  }
+  // Set color_field signal
+  if (versionSpec.signals[4]) {
+    ;(versionSpec.signals[4] as InitSignal).value =
+      currentColorCol !== 'Region'
+        ? currentColorCol
+        : cartoColorScheme === 'custom'
+          ? 'Color'
+          : 'ColorGroup'
+  }
+
+  return versionSpec
 }

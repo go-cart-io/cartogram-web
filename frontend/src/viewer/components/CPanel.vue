@@ -4,17 +4,15 @@
  */
 import { onMounted, nextTick, reactive, watch, ref } from 'vue'
 
+import CVisualizationArea from '@/common/components/CVisualizationArea.vue'
+
+import * as animate from '../lib/animate'
+import * as util from '../lib/util'
+import { useLegend } from '../composables/useLegend'
+
 import CPanelLegend from './CPanelLegend.vue'
 import CPanelSelectVersion from './CPanelSelectVersion.vue'
 import CPanelBtnDownload from './CPanelBtnDownload.vue'
-import CTouchVis from './CTouchVis.vue'
-import * as visualization from '../../common/visualization'
-import * as animate from '../lib/animate'
-import * as util from '../lib/util'
-import { useTransform } from '../composables/useTransform'
-import { useLegend } from '../composables/useLegend'
-
-const SUPPORT_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
@@ -22,36 +20,31 @@ const store = useCartogramStore()
 const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
 
 const legendLineEl = ref()
-let visView: any
+const visAreaEl = ref()
 
 const props = defineProps<{
   panelID: string
   defaultVersionKey: string
 }>()
 
-const transform = useTransform(props.panelID)
 const legend = useLegend()
 
 const state = reactive({
   versionKey: props.defaultVersionKey,
-  currentGridIndex: 1,
-  cursor: 'grab',
-  isLockRatio: true,
-  stretchDirection: 'x'
+  currentGridIndex: 1
 })
 
 watch(
   () => store.highlightedRegionID,
   (id) => {
-    visView?.signal('active', id).runAsync()
+    visAreaEl.value.view()?.signal('active', id).runAsync()
   }
 )
 
 watch(
   () => store.options.numberOfPanels,
   async () => {
-    await visView.resize()
-    await visView.width(visView.container().offsetWidth).runAsync()
+    visAreaEl.value.resize()
     switchGrid(state.currentGridIndex)
   }
 )
@@ -75,7 +68,7 @@ async function initContainer(canvasId: string) {
     CARTOGRAM_CONFIG.mapDBKey,
     CARTOGRAM_CONFIG.cartoVersions[state.versionKey].name + '.json'
   )
-  const container = await visualization.initWithURL(
+  await visAreaEl.value.initWithURL(
     canvasId,
     csvUrl,
     jsonUrl,
@@ -86,16 +79,14 @@ async function initContainer(canvasId: string) {
 
   legend.init(
     CARTOGRAM_CONFIG.cartoVersions[state.versionKey].header,
-    container.view.data('geo_1'),
-    container.view.data('source_csv')
+    visAreaEl.value.view().data('geo_1'),
+    visAreaEl.value.view().data('source_csv')
   )
-
-  return container
 }
 
 async function init() {
-  const container = await initContainer(props.panelID + '-vis')
-  visView = container.view
+  await initContainer(props.panelID + '-vis')
+  let visView = visAreaEl.value.view()
 
   visView.addResizeListener(function () {
     legend.updateTotalArea(visView.data('geo_1'))
@@ -114,13 +105,13 @@ async function init() {
 
 async function switchVersion(versionKey: string) {
   state.versionKey = versionKey
-  const container = await initContainer(props.panelID + '-offscreen')
+  await initContainer(props.panelID + '-offscreen')
   switchGrid(state.currentGridIndex)
 
   function finalize() {
-    container.view.runAfter(() => transform.applyCurrent())
-    container.view.initialize('#' + props.panelID + '-vis').runAsync()
-    visView = container.view
+    let visView = visAreaEl.value.view()
+    visView.runAfter(() => visAreaEl.value.transform.applyCurrent())
+    visView.initialize('#' + props.panelID + '-vis').runAsync()
   }
 
   animate.geoTransition(props.panelID, finalize)
@@ -130,25 +121,12 @@ async function switchGrid(key: number) {
   state.currentGridIndex = key
   legend.updateGridData()
   await nextTick()
-  transform.setGridScaleNiceNumber(
+  visAreaEl.value.transform.setGridScaleNiceNumber(
     legend.stateGridData.value[state.currentGridIndex]?.scaleNiceNumber
   )
-  legend.updateLegendValue(state.currentGridIndex, transform.stateAffineScale.value)
+  legend.updateLegendValue(state.currentGridIndex, visAreaEl.value.transform.stateAffineScale.value)
   legendLineEl.value.setHandlePosition(legend.stateGridData.value[key]?.width)
   animate.gridTransition(props.panelID + '-grid', legend.stateGridData.value[key]?.width)
-}
-
-function switchMode() {
-  if (SUPPORT_TOUCH) {
-    state.isLockRatio = !state.isLockRatio
-  } else if (state.isLockRatio) {
-    state.stretchDirection = 'x'
-    state.isLockRatio = false
-  } else if (state.stretchDirection === 'x') {
-    state.stretchDirection = 'y'
-  } else {
-    state.isLockRatio = true
-  }
 }
 </script>
 
@@ -171,51 +149,14 @@ function switchMode() {
           </div>
         </div>
 
-        <div
-          class="d-flex flex-fill position-relative"
-          style="touch-action: none"
-          v-bind:id="props.panelID"
-          v-bind:style="{ cursor: state.cursor }"
-          v-on:pointerdown.stop.prevent="
-            ($event) => {
-              transform.onPointerdown($event)
+        <c-visualization-area
+          ref="visAreaEl"
+          v-bind:panelID="props.panelID"
+          v-on:transformChanged="
+            (transform) =>
               legend.updateLegendValue(state.currentGridIndex, transform.stateAffineScale.value)
-            }
-          "
-          v-on:pointermove.stop.prevent="
-            ($event) => {
-              transform.onPointermove($event, state.isLockRatio)
-              legend.updateLegendValue(state.currentGridIndex, transform.stateAffineScale.value)
-            }
-          "
-          v-on:pointerup.stop.prevent="
-            ($event) => {
-              transform.onPointerup($event)
-              legend.updateLegendValue(state.currentGridIndex, transform.stateAffineScale.value)
-            }
-          "
-          v-on:pointercancel.stop.prevent="
-            ($event) => {
-              transform.onPointerup($event)
-              legend.updateLegendValue(state.currentGridIndex, transform.stateAffineScale.value)
-            }
-          "
-          v-on:wheel.stop.prevent="
-            ($event) => {
-              transform.onWheel($event, state.isLockRatio, state.stretchDirection)
-              legend.updateLegendValue(state.currentGridIndex, transform.stateAffineScale.value)
-            }
           "
         >
-          <div style="mix-blend-mode: multiply">
-            <div v-bind:id="props.panelID + '-offscreen'" class="vis-area offscreen"></div>
-            <div v-bind:id="props.panelID + '-vis'" class="vis-area"></div>
-            <img
-              class="position-absolute bottom-0 end-0 z-3"
-              src="/static/img/by.svg"
-              alt="cc-by"
-            />
-          </div>
           <svg width="100%" height="100%" v-bind:id="props.panelID + '-grid-area'">
             <defs>
               <pattern v-bind:id="props.panelID + '-grid'" patternUnits="userSpaceOnUse">
@@ -233,23 +174,7 @@ function switchMode() {
               v-bind:fill="'url(#' + props.panelID + '-grid)'"
             ></rect>
           </svg>
-        </div>
-      </div>
-      <div class="position-absolute end-0" style="width: 2.5rem">
-        <button
-          class="btn btn-secondary w-100 my-1"
-          v-on:click="switchMode()"
-          v-bind:title="state.isLockRatio ? 'Switch to free transform' : 'Switch to lock ratio'"
-        >
-          <i v-if="transform.stateTouchLenght.value === 3" class="fas fa-unlock"></i>
-          <i v-else-if="state.isLockRatio" class="fas fa-lock"></i>
-          <i v-else-if="SUPPORT_TOUCH" class="fas fa-unlock"></i>
-          <i v-else-if="state.stretchDirection === 'x'" class="fas fa-arrows-alt-h"></i>
-          <i v-else class="fas fa-arrows-alt-v"></i>
-        </button>
-        <button class="btn btn-secondary w-100 my-1" v-on:click="transform.reset()" title="Reset">
-          <i class="fas fa-crosshairs"></i>
-        </button>
+        </c-visualization-area>
       </div>
     </div>
 
@@ -262,26 +187,7 @@ function switchMode() {
       <c-panel-btn-download v-bind:versionKey="state.versionKey" v-bind:panelID="props.panelID" />
     </div>
   </div>
-
-  <c-touch-vis
-    v-bind:key="transform.stateLastMove.value"
-    v-bind:touchInfo="transform.touchInfo"
-    v-bind:touchLenght="transform.stateTouchLenght.value"
-  />
 </template>
-
-<style scoped>
-.vis-area {
-  position: absolute !important;
-  width: 100%;
-  height: 100%;
-  min-height: 100px;
-}
-
-.vis-area.offscreen {
-  opacity: 0;
-}
-</style>
 
 <style>
 path {
@@ -289,8 +195,5 @@ path {
 }
 path[aria-label='dividers'] {
   mix-blend-mode: normal;
-}
-g.root {
-  transform-origin: center;
 }
 </style>

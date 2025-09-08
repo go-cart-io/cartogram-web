@@ -17,6 +17,10 @@
       "on": [{ "events": "window:resize", "update": "containerSize()[1]" }]
     },
     {
+      "name": "active",
+      "value": null
+    },
+    {
       "name": "color_scheme",
       "value": "pastel1"
     },
