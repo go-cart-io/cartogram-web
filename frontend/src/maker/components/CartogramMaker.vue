@@ -3,7 +3,7 @@ import type { FeatureCollection } from 'geojson'
 import { Toast, Modal } from 'bootstrap'
 import { reactive, ref, onMounted } from 'vue'
 
-import * as config from '../../common/config'
+import * as config from '@/common/lib/config'
 import * as datatable from '../lib/datatable'
 import * as util from '../lib/util'
 import HTTP from '../lib/http'
@@ -14,7 +14,7 @@ import CFormCsv from './CFormCsv.vue'
 import CFormSettings from './CFormSettings.vue'
 import CFormCartogram from './CFormCartogram.vue'
 import CFormChoropleth from './CFormChoropleth.vue'
-import CVisualization from './CVisualization.vue'
+import CPreview from './CPreview.vue'
 import CDataTable from './CDataTable.vue'
 
 import { useProjectStore } from '../stores/project'
@@ -23,7 +23,7 @@ const store = useProjectStore()
 
 const mapDBKey = util.generateShareKey(32)
 const csvFormEl = ref()
-const visEl = ref()
+const previewEl = ref()
 
 const props = defineProps<{
   mapName?: string
@@ -71,7 +71,7 @@ async function onGeoJsonChanged(
   state.handler = handler
   state.geojsonRegionCol = regionCol
   state.isInitialized = isInitialized
-  await visEl.value.init(geojsonData, regionCol)
+  await previewEl.value.init(geojsonData, regionCol)
 
   if (isInitialized) collapseStep('1')
 }
@@ -215,7 +215,7 @@ async function getGeneratedCartogram() {
               state.isInitialized = false
               datatable.reset()
               csvFormEl.reset()
-              visEl.reset()
+              previewEl.reset()
             }
           "
         />
@@ -237,13 +237,13 @@ async function getGeneratedCartogram() {
           v-bind:disabled="!state.isInitialized"
           v-on:changed="
             () => {
-              visEl.updateData()
+              previewEl.updateData()
               if (store.regionWarnings.size <= 0) collapseStep('2')
             }
           "
           v-on:regionResolve="
             () => {
-              visEl.resolveRegionIssues()
+              previewEl.resolveRegionIssues()
               if (store.regionWarnings.size <= 0) collapseStep('2')
             }
           "
@@ -292,7 +292,7 @@ async function getGeneratedCartogram() {
         <c-form-choropleth
           v-bind:spec="props.choroSettings.spec"
           v-bind:disabled="!state.isInitialized"
-          v-on:specChanged="visEl.refresh()"
+          v-on:specChanged="previewEl.refresh()"
         />
       </div>
 
@@ -344,12 +344,12 @@ async function getGeneratedCartogram() {
         </p>
       </div>
 
-      <c-visualization ref="visEl" />
+      <c-preview ref="previewEl" />
 
       <c-data-table
         v-if="state.isInitialized && store.dataTable.items.length > 0"
-        v-on:labelChanged="visEl.updateData()"
-        v-on:valueChanged="(row, col, value) => visEl.setDataItem(row, col, value)"
+        v-on:labelChanged="previewEl.updateData()"
+        v-on:valueChanged="(row, col, value) => previewEl.setDataItem(row, col, value)"
       />
     </div>
   </div>

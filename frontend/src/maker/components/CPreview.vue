@@ -2,7 +2,7 @@
 import { nextTick, reactive, ref, watch } from 'vue'
 
 import type { FeatureCollection } from 'geojson'
-import * as config from '@/common/config'
+import * as config from '@/common/lib/config'
 import CColorLegend from '@/common/components/CColorLegend.vue'
 import CVisualizationArea from '@/common/components/CVisualizationArea.vue'
 

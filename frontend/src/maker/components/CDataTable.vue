@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, toRaw } from 'vue'
 
-import * as config from '../../common/config'
+import * as config from '@/common/lib/config'
 import * as util from '../lib/util'
 
 import { useProjectStore } from '../stores/project'

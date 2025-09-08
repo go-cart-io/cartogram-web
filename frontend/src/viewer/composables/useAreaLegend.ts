@@ -1,10 +1,10 @@
 import { ref } from 'vue'
 
-import * as config from '@/common/config'
+import * as config from '@/common/lib/config'
 import * as numberUtil from '@/common/lib/numberUtil'
 import type { GridData } from '../lib/viewInterface'
 
-export const useLegend = () => {
+export const useAreaLegend = () => {
   const stateValue = ref('')
   const stateTotalValue = ref('')
   const stateGridData = ref<GridData>({})

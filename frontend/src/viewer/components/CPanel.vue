@@ -8,7 +8,7 @@ import CVisualizationArea from '@/common/components/CVisualizationArea.vue'
 
 import * as animate from '../lib/animate'
 import * as util from '../lib/util'
-import { useLegend } from '../composables/useLegend'
+import { useAreaLegend } from '../composables/useAreaLegend'
 
 import CPanelLegend from './CPanelLegend.vue'
 import CPanelSelectVersion from './CPanelSelectVersion.vue'
@@ -27,7 +27,7 @@ const props = defineProps<{
   defaultVersionKey: string
 }>()
 
-const legend = useLegend()
+const legend = useAreaLegend()
 
 const state = reactive({
   versionKey: props.defaultVersionKey,

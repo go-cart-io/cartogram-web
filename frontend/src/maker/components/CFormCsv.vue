@@ -7,7 +7,7 @@ import * as datatable from '../lib/datatable'
 import * as util from '../lib/util'
 
 import { useProjectStore } from '../stores/project'
-import type { KeyValueArray } from 'maker/lib/interface'
+import type { KeyValueArray } from '../lib/interface'
 const store = useProjectStore()
 
 const props = withDefaults(

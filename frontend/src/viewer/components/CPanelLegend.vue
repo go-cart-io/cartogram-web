@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from 'vue'
+import { reactive, ref } from 'vue'
 
 import type { GridData } from '../lib/viewInterface'
-import * as config from '../../common/config'
+import * as config from '@/common/lib/config'
 
 const legendSvgEl = ref()
 let handlePointerId = -1

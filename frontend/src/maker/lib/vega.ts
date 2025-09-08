@@ -1,6 +1,3 @@
-import * as config from '../../common/config'
-import type { DataTable } from './interface'
-
 export const scaleTypeDiscretizing = ['quantile', 'quantize']
 
 export const sequentialSingleHueSchemes = [

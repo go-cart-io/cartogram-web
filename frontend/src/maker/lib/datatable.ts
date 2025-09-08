@@ -2,10 +2,11 @@ import type { FeatureCollection } from 'geojson'
 import * as d3 from 'd3'
 import { toRaw } from 'vue'
 
-import type { KeyValueArray, DataTable, VisualizationTypes } from './interface'
-import * as config from '../../common/config'
+import * as config from '@/common/lib/config'
 import * as util from '../lib/util'
+
 import { useProjectStore } from '../stores/project'
+import type { KeyValueArray, DataTable, VisualizationTypes } from './interface'
 
 export function reset() {
   const store = useProjectStore()

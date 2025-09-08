@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 
+import CColorLegend from '@/common/components/CColorLegend.vue'
+
 import * as util from '../lib/util'
-import CColorLegend from '../../common/components/CColorLegend.vue'
 import CMenuBtnShare from './CMenuBtnShare.vue'
 
 import { useCartogramStore } from '../stores/cartogram'

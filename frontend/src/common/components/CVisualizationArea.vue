@@ -2,7 +2,7 @@
 import type { View } from 'vega'
 import { onMounted, reactive } from 'vue'
 
-import * as visualization from '../visualization'
+import * as visualization from '../lib/visualization'
 import { useTransform } from '../composables/useTransform'
 import CTouchVis from './CTouchVis.vue'
 

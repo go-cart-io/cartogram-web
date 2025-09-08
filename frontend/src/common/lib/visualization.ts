@@ -4,11 +4,11 @@ import type { Spec, InitSignal, Text as VegaText, View, Scale } from 'vega'
 import embed from 'vega-embed'
 
 // Import Vega specs for main visualization and legend
-import spec from '../assets/template.vg.json' with { type: 'json' }
-import specLegend from '../assets/template_legend.vg.json' with { type: 'json' }
+import spec from '@/assets/template.vg.json' with { type: 'json' }
+import specLegend from '@/assets/template_legend.vg.json' with { type: 'json' }
 
 import type { CSettingSpec, StringObject } from './interface'
-import * as config from './config'
+import { tooltipOptions } from './tooltipOptions'
 
 /**
  * Reset the inner HTML of the given canvas element.
@@ -75,7 +75,7 @@ export async function init(
   const container = await embed(`#${canvasId}`, versionSpec as VisualizationSpec, {
     renderer: 'svg',
     actions: false,
-    tooltip: config.tooltipOptions
+    tooltip: tooltipOptions
   })
   return container.view
 }

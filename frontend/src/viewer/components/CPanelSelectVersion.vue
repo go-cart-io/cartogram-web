@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { nextTick, reactive } from 'vue'
 
-import { useCartogramStore } from '../stores/cartogram'
-const store = useCartogramStore()
-
 const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
 
 const props = defineProps<{

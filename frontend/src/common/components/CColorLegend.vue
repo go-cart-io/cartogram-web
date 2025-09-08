@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { View } from 'vega'
-import * as visualization from '../visualization'
+import * as visualization from '../lib/visualization'
 
 let colorLegendView = null as View | null
 

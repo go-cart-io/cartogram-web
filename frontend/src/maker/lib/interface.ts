@@ -1,4 +1,4 @@
-import type { StringObject } from '@/common/interface'
+import type { StringObject } from '@/common/lib/interface'
 
 export type VisualizationTypes = { [key: string]: Array<string> }
 
