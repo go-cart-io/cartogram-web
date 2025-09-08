@@ -58,6 +58,18 @@ export default ({ mode }: UserConfig): UserConfigExport => {
           maker: './src/maker.ts',
           styles: './src/styles.ts' // Ensure that all styles are build to style.css. The styles.js should be empty.
         },
+        output: {
+          // Clean up chunk filenames
+          chunkFileNames: (chunkInfo) => {
+            // Handle component chunks
+            if (chunkInfo.name && chunkInfo.name.includes('.vue')) {
+              // const componentName = chunkInfo.name.split('.vue')[0]
+              return `assets/common-[hash].js`
+            }
+            // Default chunk naming
+            return 'assets/[name]-[hash].js'
+          }
+        },
         // Tree shaking optimization
         treeshake: {
           moduleSideEffects: false
