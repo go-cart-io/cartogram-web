@@ -226,7 +226,7 @@ def create_app():
             )
             scheme = handler_meta.get("scheme", "pastel1")
             map_types = handler_meta.get(
-                "types", {"cartogram": ["Population (people)"]}
+                "types", {"cartogram": ["Population (people)"], "choropleth": []}
             )
             map_settings = handler_meta.get(
                 "settings",
@@ -235,7 +235,7 @@ def create_app():
                     "scheme": "blues",
                     "type": "quantile",
                     "step": 5,
-                    "settings": {},
+                    "spec": {},
                 },
             )
 
