@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import * as util from '../../../src/maker/lib/util'
+import * as util from '@/maker/lib/util'
+import type { KeyValueArray } from '@/maker/lib/interface'
 
 describe('maker.lib.util', () => {
   describe('renameKeyInArray', () => {
@@ -16,7 +17,7 @@ describe('maker.lib.util', () => {
     })
 
     it('should return an empty array when input is an empty array', () => {
-      const data = []
+      const data: KeyValueArray = []
       const result = util.renameKeyInArray(data, 'oldKey', 'newKey')
       expect(result).toEqual([])
     })
@@ -135,7 +136,7 @@ describe('maker.lib.util', () => {
     })
 
     it('should return data unchanged when templateKeys is empty', () => {
-      const templateKeys = []
+      const templateKeys: string[] = []
       const data = [
         { age: 30, name: 'Alice', location: 'Wonderland' },
         { name: 'Bob', age: 25, location: 'Builderland' }
