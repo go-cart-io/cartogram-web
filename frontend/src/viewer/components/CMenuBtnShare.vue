@@ -27,7 +27,7 @@ const socialURL = computed(() => {
 })
 
 const socialURLEncoded = computed(() => {
-  return window.encodeURIComponent(socialURL.value)
+  return window.encodeURIComponent(baseURL.value)
 })
 
 const embedHTML = computed(() => {
