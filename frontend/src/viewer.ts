@@ -5,11 +5,11 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
 import './styles'
-import App from './viewer/components/CartogramViewer.vue'
+import CartogramViewer from './viewer/components/CartogramViewer.vue'
 
 const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
-if (document.getElementById('cartogram-app')) {
-  const app = createApp(App)
-  app.use(createPinia())
-  app.mount('#cartogram-app')
+if (document.getElementById('cartogram-viewer')) {
+  const viewer = createApp(CartogramViewer)
+  viewer.use(createPinia())
+  viewer.mount('#cartogram-viewer')
 }

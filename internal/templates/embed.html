@@ -2,86 +2,16 @@
 <html lang="en" class="h-100">
 
 <head>
-  <script src="{{ url_for('static', filename='tracking.js') }}"></script>
-  <meta charset="utf-8" />
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no" />
-  <meta name="description"
-    content="Free Cartogram Generator - Make cartograms for different countries using your own data!" />
-  <meta name="author" content="Michael T. Gastner" />
-  <meta property="og:title" content="Creating Cartograms Online" />
-  <meta property="og:description"
-    content="Free Cartogram Generator - Make cartograms for different countries using your own data!" />
-  <meta property="og:site_name" content="go-cart.io" />
-  <meta name="twitter:title" content="Creating Cartograms Online" />
-  <meta name="twitter:description"
-    content="Free Cartogram Generator - Make cartograms for different countries using your own data!" />
-  <meta name="twitter:image" content="{{ url_for('static', filename='img/favicon.png') }}" />
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}" />
-
-  <title>Creating Cartograms Online</title>
-
-  <!-- Custom styles for this template -->
-  <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-
-  {% if config['ENV'] == "production" %}
-  <link rel="stylesheet" href="/static/dist/{{ asset.url_for('style.css').file }}" />
-  {% else %}
-  <script type="module" src="{{ asset.webpack_url_for(request.host_url, '@vite/client') }}"></script>
-  <script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/styles.ts') }}"></script>
-  {% endif %}
-
+  {% include 'header.html' %}
   <base target="_parent" />
 </head>
 
 <body class="d-flex flex-column h-100">
-  <div id="cartogram-app" class="d-flex flex-column flex-fill">
+  <div id="cartogram-viewer" class="d-flex flex-column flex-fill">
   </div>
 
-  <div class="container-fluid">
-    <footer class="text-secondary">
-      &copy;
-      <script>document.write(new Date().getFullYear())</script> go-cart.io |
-      Algorithm: <a href="https://www.pnas.org/content/115/10/E2156">Gastner et al. (2018)</a> |
-      Code{{version}}: <a href="https://www.gnu.org/licenses/agpl-3.0">AGPL v3</a> |
-      Generated visualization: <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a>
-    </footer>
-  </div>
-  <!-- /container -->
-
-  {% if config['ENV'] == "production" %}
-
-  {% for url in asset.all_cdn_scripts('common') %}
-  <script src="{{ url }}"></script>
-  {% endfor %}
-  {% for url in asset.all_cdn_scripts('app') %}
-  <script src="{{ url }}"></script>
-  {% endfor %}
-
-  {% set assets = asset.all_vite_assets('src/viewer.ts') %}
-  {% for js in assets.js %}
-  <script type="module" src="{{ url_for('static', filename=js) }}"></script>
-  {% endfor %}
-
-  {% else %}
-  <script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/viewer.ts') }}"></script>
-  {% endif %}
-
-  <script>
-    window.CARTOGRAM_CONFIG = {
-      mode: "embed",
-      maps: JSON.parse('{{ maps | default({}) | tojson | safe }}'),
-      mapName: "{{ map_name }}",
-      mapTitle: "{{ map_title }}",
-      mapDBKey: "{{ map_data_key }}",
-      cartoVersions: JSON.parse('{{ carto_versions | default({}) | tojson | safe }}'),
-      cartoColorScheme: "{{ map_color_scheme }}",
-      choroVersions: JSON.parse('{{ choro_versions | default({}) | tojson | safe }}'),
-      choroSpec: JSON.parse('{{ map_spec | default({}) | tojson | safe }}')
-    };
-  </script>
+  {% include 'footer.html' %}
+  {% include 'footer_viewer.html' %}
 </body>
 
 </html>

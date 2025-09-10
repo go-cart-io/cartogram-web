@@ -122,6 +122,7 @@ def create_app():
         return render_template(
             template,
             page_active="cartogram",
+            page_title=title or "Free Interactive Map Generator",
             maps=cartogram_handler.get_sorted_handler_names(),
             map_name=map_name,
             map_title=title,
@@ -178,6 +179,7 @@ def create_app():
         return render_template(
             template,
             page_active="cartogram",
+            page_title=cartogram_entry.title or "Free Interactive Map Generator",
             maps=cartogram_handler.get_sorted_handler_names(),
             map_name=cartogram_entry.handler,
             map_data_key=string_key,

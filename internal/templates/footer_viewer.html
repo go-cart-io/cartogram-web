@@ -1,0 +1,28 @@
+{% if config['ENV'] == "production" %}
+
+{% for url in asset.all_cdn_scripts('app') %}
+<script src="{{ url }}"></script>
+{% endfor %}
+
+{% set assets = asset.all_vite_assets('src/viewer.ts') %}
+{% for js in assets.js %}
+<script type="module" src="{{ url_for('static', filename=js) }}"></script>
+{% endfor %}
+
+{% else %}
+<script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/viewer.ts') }}"></script>
+{% endif %}
+
+<script>
+    window.CARTOGRAM_CONFIG = {
+        mode: "{{ mode }}",
+        maps: JSON.parse('{{ maps | default({}) | tojson | safe }}'),
+        mapName: "{{ map_name }}",
+        mapTitle: "{{ map_title }}",
+        mapDBKey: "{{ map_data_key }}",
+        cartoVersions: JSON.parse('{{ carto_versions | default({}) | tojson | safe }}'),
+        cartoColorScheme: "{{ map_color_scheme }}",
+        choroVersions: JSON.parse('{{ choro_versions | default({}) | tojson | safe }}'),
+        choroSpec: JSON.parse('{{ map_spec | default({}) | tojson | safe }}')
+    };
+</script>
