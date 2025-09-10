@@ -142,10 +142,14 @@ async function switchGrid(key: number) {
             v-bind:gridData="legend.stateGridData.value"
             v-on:change="switchGrid"
           />
-          <div v-bind:id="props.panelID + '-legend-num'" class="flex-fill p-1">
-            <span v-html="legend.stateValue.value"></span>
-            {{ CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.unit }}
-            <div>Total: <span v-html="legend.stateTotalValue.value"></span></div>
+          <div v-bind:id="props.panelID + '-legend-text'" class="flex-fill p-1">
+            <div v-bind:id="props.panelID + '-legend-num'">
+              <span v-html="legend.stateValue.value"></span>
+              {{ CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.unit }}
+            </div>
+            <div v-bind:id="props.panelID + '-legend-total'">
+              Total: <span v-html="legend.stateTotalValue.value"></span>
+            </div>
           </div>
         </div>
 

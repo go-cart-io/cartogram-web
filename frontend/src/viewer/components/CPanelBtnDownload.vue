@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import * as util from '../lib/util'
+import * as svgUtil from '../lib/svgUtil'
 import CTextCitation from './CTextCitation.vue'
 
 import { useCartogramStore } from '../stores/cartogram'
@@ -39,30 +40,12 @@ const csvlink = computed(() => {
  */
 function downloadSVG() {
   const svg_header = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'
-
-  const mapAreaSVG = document
-    .getElementById(props.panelID + '-vis')!
-    .querySelector('svg')!
-    .cloneNode(true) as SVGSVGElement
-
-  // Add SVG xml namespace to SVG element, so that the file can be opened with any web browser.
-  mapAreaSVG.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
-
-  const legendSVG = document
-    .getElementById(props.panelID + '-legend')!
-    .cloneNode(true) as HTMLElement
-  mapAreaSVG.appendChild(legendSVG)
-
-  const legendNumber = document.getElementById(props.panelID + '-legend-num')!.textContent || ''
-  const legendNumberSVG = document.createElement('text')
-  const legendNumberX = 2 + parseFloat(legendSVG.getAttribute('width')!)
-  legendNumberSVG.textContent = legendNumber.replace('Total:', ' / Total:')
-  legendNumberSVG.setAttribute('font-family', 'sans-serif')
-  legendNumberSVG.setAttribute('font-size', '12px')
-  legendNumberSVG.setAttribute('x', legendNumberX.toString())
-  legendNumberSVG.setAttribute('y', '20')
-  mapAreaSVG.appendChild(legendNumberSVG)
-  mapAreaSVG.appendChild(document.getElementById(props.panelID + '-grid-area')!.cloneNode(true))
+  const mapAreaSVG = svgUtil.createSVGElement(
+    props.panelID,
+    CARTOGRAM_CONFIG.cartoVersions[props.versionKey].name,
+    CARTOGRAM_CONFIG.cartoVersions[props.versionKey].unit,
+    store.currentColorCol
+  )
 
   // https://stackoverflow.com/questions/68122097/how-can-i-ensure-text-is-valid-for-an-svg
   const dummy = document.createElement('div')
@@ -71,6 +54,7 @@ function downloadSVG() {
     return dummy.textContent || ''
   })
 
+  // Trigger download
   const a = document.createElement('a')
   const svgBlob = new Blob([svg_header + svgData.replace(/×/g, '&#xD7;')], {
     type: 'image/svg+xml;charset=utf-8'
@@ -78,7 +62,11 @@ function downloadSVG() {
   const url = URL.createObjectURL(svgBlob)
   a.href = url
 
-  a.download = CARTOGRAM_CONFIG.cartoVersions[props.versionKey].name + '.svg'
+  let filename = CARTOGRAM_CONFIG.cartoVersions[props.versionKey].name
+  filename += store.currentColorCol !== 'Region' ? `_${store.currentColorCol}` : ''
+  filename += '.svg'
+
+  a.download = filename
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
