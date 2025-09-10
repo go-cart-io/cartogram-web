@@ -83,20 +83,20 @@ export async function init(
 /**
  * Initialize legend from CSV URL.
  */
-export async function initLegendWithURL(
+export async function initColorLegendWithURL(
   csvUrl: string,
   currentColorCol: string,
   choroSpec: CSettingSpec
 ): Promise<View> {
   const versionSpec = JSON.parse(JSON.stringify(specLegend)) // copy the template
   versionSpec.data[0].url = csvUrl
-  return await initLegend(versionSpec, currentColorCol, choroSpec)
+  return await initColorLegend(versionSpec, currentColorCol, choroSpec)
 }
 
 /**
  * Initialize legend from CSV values.
  */
-export async function initLegendWithValues(
+export async function initColorLegendWithValues(
   csvValues: StringObject[],
   currentColorCol: string,
   choroSpec: CSettingSpec
@@ -104,13 +104,13 @@ export async function initLegendWithValues(
   const versionSpec = JSON.parse(JSON.stringify(specLegend))
   versionSpec.data[0].values = csvValues
   versionSpec.data[0].format = 'json'
-  return await initLegend(versionSpec, currentColorCol, choroSpec)
+  return await initColorLegend(versionSpec, currentColorCol, choroSpec)
 }
 
 /**
  * Core initialization for legend embedding.
  */
-export async function initLegend(
+export async function initColorLegend(
   versionSpec: Spec,
   currentColorCol: string,
   choroSpec: CSettingSpec
@@ -133,7 +133,7 @@ export async function initLegend(
     versionSpec.legends[0].fill = currentColorCol === 'Region' ? 'color_group' : currentColorCol
   }
 
-  const container = await embed('#legend', versionSpec as VisualizationSpec, {
+  const container = await embed('#color-legend', versionSpec as VisualizationSpec, {
     renderer: 'svg',
     actions: false
   })

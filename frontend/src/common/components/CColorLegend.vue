@@ -16,29 +16,31 @@ const emit = defineEmits(['change'])
 // Expose methods for parent components
 defineExpose({
   reset,
-  initLegendWithURL,
-  initLegendWithValues,
+  initColorLegendWithURL,
+  initColorLegendWithValues,
   resize
 })
 
 function reset(): void {
-  visualization.reset('legend')
+  visualization.reset('color-legend')
 }
 
 /**
  * Initialize legend using a URL (delegates to visualization helper)
  */
-async function initLegendWithURL(...args: Parameters<typeof visualization.initLegendWithURL>) {
-  colorLegendView = await visualization.initLegendWithURL(...args)
+async function initColorLegendWithURL(
+  ...args: Parameters<typeof visualization.initColorLegendWithURL>
+) {
+  colorLegendView = await visualization.initColorLegendWithURL(...args)
 }
 
 /**
  * Initialize legend using explicit values (delegates to visualization helper)
  */
-async function initLegendWithValues(
-  ...args: Parameters<typeof visualization.initLegendWithValues>
+async function initColorLegendWithValues(
+  ...args: Parameters<typeof visualization.initColorLegendWithValues>
 ) {
-  colorLegendView = await visualization.initLegendWithValues(...args)
+  colorLegendView = await visualization.initColorLegendWithValues(...args)
 }
 
 /**
@@ -54,7 +56,7 @@ async function resize() {
 <template>
   <div class="d-flex w-100 h-100">
     <!-- Legend SVG will be rendered here by Vega -->
-    <div id="legend" class="flex-grow-1 overflow-hidden vis-container"></div>
+    <div id="color-legend" class="flex-grow-1 overflow-hidden vis-container"></div>
 
     <!-- Color column selector dropdown -->
     <div class="dropdown">

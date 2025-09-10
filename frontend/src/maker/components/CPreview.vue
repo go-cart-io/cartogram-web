@@ -70,7 +70,7 @@ async function init(geojsonData: FeatureCollection, geojsonRegionCol: string) {
     customScaleSpec
   )
 
-  await colorLegendEl.value.initLegendWithValues(
+  await colorLegendEl.value.initColorLegendWithValues(
     store.dataTable.items,
     store.currentColorCol,
     customScaleSpec

@@ -34,7 +34,7 @@ async function updateVis(value: string) {
   if (!colorLegendEl.value) return
 
   let csvUrl = util.getCsvURL(store.currentMapName, CARTOGRAM_CONFIG.mapDBKey)
-  await colorLegendEl.value.initLegendWithURL(
+  await colorLegendEl.value.initColorLegendWithURL(
     csvUrl,
     store.currentColorCol,
     CARTOGRAM_CONFIG.choroSpec
