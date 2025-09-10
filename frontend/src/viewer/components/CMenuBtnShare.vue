@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import * as util from '../lib/util'
-import CTextCitation from './CTextCitation.vue'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
@@ -184,8 +183,6 @@ function access() {
               </button>
             </div>
           </div>
-
-          <c-text-citation />
         </div>
       </div>
     </div>

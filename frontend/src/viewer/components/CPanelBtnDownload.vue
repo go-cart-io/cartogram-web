@@ -142,6 +142,10 @@ function downloadJson() {
             >
             <a v-bind:href="csvlink" download class="btn btn-lg btn-primary mx-3">CSV</a>
           </p>
+          <p class="lead text-center">License</p>
+          <p class="text-center">
+            <img src="/static/img/by.png" alt="cc-by" width="100" />
+          </p>
           <c-text-citation />
         </div>
       </div>
