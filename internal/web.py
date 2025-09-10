@@ -103,7 +103,7 @@ def create_app():
         if mode == "embed":
             template = "embed.html"
         else:
-            template = "cartogram.html"
+            template = "viewer.html"
 
         if not cartogram_handler.has_handler(map_name):
             return Response("Not found", status=404)
@@ -142,7 +142,7 @@ def create_app():
         if mode == "embed":
             template = "embed.html"
         else:
-            template = "cartogram.html"
+            template = "viewer.html"
 
         if not settings.USE_DATABASE:
             return Response("Not found", status=404)
