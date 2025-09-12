@@ -29,6 +29,26 @@ limiter = Limiter(
     ),
 )
 
+
+# Handle CustomError specifically
+@api_bp.errorhandler(CartoError)
+def handle_carto_error(error):
+    return error.response(logger=current_app.logger)
+
+
+# Handle other exceptions
+@api_bp.errorhandler(Exception)
+def handle_general_error(error):
+    current_app.logger.error(
+        f"Error: {str(error)}\nTraceback:\n{traceback.format_exc()}"
+    )
+    return Response(
+        json.dumps({"error": "Unknown error."}),
+        status=400,
+        content_type="application/json",
+    )
+
+
 api_bp.add_url_rule("/api/v1/consent", methods=["POST"], view_func=tracking.consent)
 api_bp.add_url_rule(
     "/api/v1/gencaptcha", methods=["GET"], view_func=custom_captcha.gencaptcha
@@ -49,40 +69,19 @@ def getprogress():
 @api_bp.route("/api/v1/cartogram/preprocess/<mapDBKey>", methods=["POST"])
 def cartogram_preprocess(mapDBKey):
     if mapDBKey is None or mapDBKey == "":
-        return Response(
-            '{"error":"Missing sharing key."}',
-            status=400,
-            content_type="application/json",
-        )
+        raise CartoError("Missing sharing key.", log=False)
 
     if "file" not in request.files or request.files["file"].filename == "":
-        return Response(
-            '{"error": "No selected file."}',
-            status=400,
-            content_type="application/json",
-        )
+        raise CartoError("No selected file.", log=False)
 
-    try:
-        current_app.logger.info(f"Preprocessing map for {mapDBKey}")
-        processed_geojson = boundary.preprocess(request.files["file"], mapDBKey)
-        current_app.logger.info(f"Finish preprocessing map for {mapDBKey}")
-        return Response(
-            json.dumps(processed_geojson),
-            status=200,
-            content_type="application/json",
-        )
-
-    except CartoError as e:
-        return e.response(logger=current_app.logger)
-    except Exception as e:
-        current_app.logger.error(
-            f"Error: {str(e)}\nTraceback:\n{traceback.format_exc()}"
-        )
-        return Response(
-            json.dumps({"error": "Unknown error."}),
-            status=400,
-            content_type="application/json",
-        )
+    current_app.logger.info(f"Preprocessing map for {mapDBKey}")
+    processed_geojson = boundary.preprocess(request.files["file"], mapDBKey)
+    current_app.logger.info(f"Finish preprocessing map for {mapDBKey}")
+    return Response(
+        json.dumps(processed_geojson),
+        status=200,
+        content_type="application/json",
+    )
 
 
 def cartogram_rate_limit():
@@ -96,29 +95,19 @@ def cartogram_gen():
     handler_name = data.get("handler")
 
     if not handlers.has_handler(handler_name) and handler_name != "custom":
-        return Response(
-            '{"error":"Invalid map."}', status=400, content_type="application/json"
-        )
+        raise CartoError("Invalid map.", log=False)
 
     if "mapDBKey" not in data:
-        return Response(
-            '{"error":"Missing sharing key."}',
-            status=400,
-            content_type="application/json",
-        )
-
-    if "visTypes" not in data:
-        return Response(
-            '{"error":"Visualization specification not found."}',
-            status=400,
-            content_type="application/json",
-        )
+        raise CartoError("Missing sharing key.", log=False)
 
     try:
-        vis_types = json.loads(data["visTypes"])
-        for key in vis_types:
-            for header in vis_types[key]:
-                file_utils.validate_filename(header)
+        vis_types = json.loads(data.get("visTypes"))
+    except Exception:
+        raise CartoError("Invalid visualization specification.")
+
+    for key in vis_types:
+        for header in vis_types[key]:
+            file_utils.validate_filename(header)
 
         if (
             "cartogram" in vis_types
@@ -128,14 +117,6 @@ def cartogram_gen():
             raise CartoError(
                 f"Limit of {settings.CARTOGRAM_COUNT_LIMIT} cartograms per data set."
             )
-    except CartoError as e:
-        return e.response()
-    except Exception:
-        return Response(
-            '{"error":"Invalid visualization specification."}',
-            status=400,
-            content_type="application/json",
-        )
 
     datacsv = data["csv"] if "csv" in data else format_utils.get_csv(data)
     string_key = file_utils.sanitize_filename(data["mapDBKey"])
