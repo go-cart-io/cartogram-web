@@ -1,9 +1,9 @@
-import cartogram
+from carto import boundary, project
 
 
 def test_preprocess(test_data_dir):
     geojson_file = test_data_dir / "geojson_test.geojson"
-    result = cartogram.preprocess(str(geojson_file))
+    result = boundary.preprocess(str(geojson_file))
     assert "geojson" in result
 
     # Should only allow Polygon and MultiPolygon
@@ -20,7 +20,7 @@ def test_process_data_with_no_inset(mocker):
     csv_string = "Region,RegionLabel,Color,Geographic Area (sq. km)\nRegion1,R1,,1000\nRegion2,R2,,2000"
     expected_csv_string = "Region,RegionLabel,ColorGroup,Geographic Area (sq. km)\nRegion1,R1,,1000\nRegion2,R2,,2000\n"
 
-    formatted_csv, data_cols, prefered_names_dict = cartogram.process_data(
+    formatted_csv, data_cols, prefered_names_dict = project.process_data(
         csv_string, vis_types
     )
     assert formatted_csv == expected_csv_string
@@ -31,7 +31,7 @@ def test_process_data_with_color_inset(mocker):
     vis_types = {"cartogram": ["Population (people)"]}
     csv_string = "Region,RegionLabel,Color,Inset,Population (people)\nRegion1,R1,#fff,C,1000\nRegion2,R2,,C,2000"
     expected_csv_string = "Region,RegionLabel,Color,ColorGroup,Inset,Population (people)\nRegion1,R1,#fff,,C,1000\nRegion2,R2,,,C,2000\n"
-    formatted_csv, data_cols, prefered_names_dict = cartogram.process_data(
+    formatted_csv, data_cols, prefered_names_dict = project.process_data(
         csv_string, vis_types
     )
 

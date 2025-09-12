@@ -2,8 +2,8 @@ import json
 from typing import Any
 
 import geopandas as gpd
-import util
-from errors import CartogramError
+from errors import CartoError
+from utils import file_utils
 
 
 class CartoDataFrame(gpd.GeoDataFrame):
@@ -56,7 +56,7 @@ class CartoDataFrame(gpd.GeoDataFrame):
 
     @classmethod
     def read_file(cls, filepath):
-        filepath = util.get_safepath(filepath)
+        filepath = file_utils.get_safepath(filepath)
         extra_attributes = {}
 
         # Reads a GeoJSON file and preserves extra attributes.
@@ -83,11 +83,11 @@ class CartoDataFrame(gpd.GeoDataFrame):
             gdf.set_crs("EPSG:4326", inplace=True)
         if not gdf.is_simple.all():
             if extra_attributes.get("type", "") == "Topology":
-                raise CartogramError(
+                raise CartoError(
                     "TopoJSON is not fully supported. Please convert your file to GeoJSON and try again."
                 )
             else:
-                raise CartogramError(
+                raise CartoError(
                     "Geometries are not simple. Fix the boundary file and try again."
                 )
 
@@ -119,7 +119,7 @@ class CartoDataFrame(gpd.GeoDataFrame):
 
     def to_carto_file(self, filepath):
         output_data = self.to_json_obj()
-        with open(util.get_safepath(filepath), "w") as f:
+        with open(file_utils.get_safepath(filepath), "w") as f:
             json.dump(output_data, f)
         return output_data
 

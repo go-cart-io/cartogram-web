@@ -5,7 +5,7 @@ import settings
 from flask import Response
 
 
-class CartogramError(Exception):
+class CartoError(Exception):
     """Custom exception for user-facing errors with automated logging. DO NOT include sensitive data."""
 
     SUGGEST_REFRESH_TXT = " Try refresh this page, then re-upload your map and data. If the issue persists, please contact us."

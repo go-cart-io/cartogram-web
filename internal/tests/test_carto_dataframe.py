@@ -1,6 +1,6 @@
 import json
 
-from carto_dataframe import CartoDataFrame
+from carto.dataframe import CartoDataFrame
 
 
 # Successfully reads valid GeoJSON file and creates CartoDataFrame instance

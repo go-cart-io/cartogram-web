@@ -6,7 +6,7 @@ import string
 
 import settings
 import validate_email
-from flask import flash, redirect, render_template, request, session, url_for
+from flask import flash, redirect, render_template, request, session
 from views import custom_captcha, tracking
 
 
@@ -212,4 +212,4 @@ Message:
 
         session["captcha_hashed"] = ""
         flash("Your message was successfully sent.", "success")
-        return redirect(url_for("contact"))
+        return redirect("/contact")

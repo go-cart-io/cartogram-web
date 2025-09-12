@@ -1,7 +1,7 @@
 import json
 import time
 
-import util
+from utils import file_utils
 
 
 def test_cartogram_post(client):
@@ -40,7 +40,7 @@ def test_cartogram_post(client):
 
 
 def test_cartogram_post_world(client):
-    with open(util.get_safepath("static/cartdata/world/data.csv"), "r") as file:
+    with open(file_utils.get_safepath("static/cartdata/world/data.csv"), "r") as file:
         csv_string = file.read()
 
     testdata = {
