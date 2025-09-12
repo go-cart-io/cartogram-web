@@ -5,6 +5,7 @@ import shutil
 import traceback
 from io import StringIO
 
+import handlers
 import pandas as pd
 import settings
 from carto import boundary, progress, project
@@ -12,7 +13,6 @@ from errors import CartoError
 from flask import Blueprint, Response, current_app, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from handler import CartogramHandler
 from models import CartogramEntry
 from utils import file_utils, format_utils
 from views import custom_captcha, tracking
@@ -92,13 +92,10 @@ def cartogram_rate_limit():
 @api_bp.route("/api/v1/cartogram", methods=["POST"])
 @limiter.limit(cartogram_rate_limit)
 def cartogram_gen():
-    cartogram_handler = CartogramHandler()
     data = request.get_json()
-    handler = data["handler"]
+    handler_name = data.get("handler")
 
-    if "handler" not in data or (
-        not cartogram_handler.has_handler(handler) and handler != "custom"
-    ):
+    if not handlers.has_handler(handler_name) and handler_name != "custom":
         return Response(
             '{"error":"Invalid map."}', status=400, content_type="application/json"
         )
@@ -169,14 +166,14 @@ def cartogram_gen():
             outfile.write(datacsv)
 
         gen_file = file_utils.get_safepath(
-            cartogram_handler.get_gen_file(handler, string_key)
+            handlers.get_gen_file(handler_name, string_key)
         )
 
         df = pd.read_csv(StringIO(datacsv))
         cleaned_vis_types = format_utils.clean_map_types(vis_types, df.columns)
 
         # Manage input file
-        if handler == "custom":
+        if handler_name == "custom":
             editedFrom = data.get("editedFrom", "")
             if editedFrom and editedFrom != "" and editedFrom != gen_file:
                 edited_path = file_utils.get_safepath(editedFrom.lstrip("/"))
@@ -189,9 +186,9 @@ def cartogram_gen():
                 clean_by = data.get("geojsonRegionCol", "Region")
         elif "RegionMap" in df.columns and not df["RegionMap"].equals(df["Region"]):
             # If regions are edited, handler should be custom
-            handler = "custom"
+            handler_name = "custom"
             new_gen_file = file_utils.get_safepath(
-                cartogram_handler.get_gen_file(handler, string_key)
+                handlers.get_gen_file(handler_name, string_key)
             )
             shutil.copyfile(gen_file, new_gen_file)
             gen_file = new_gen_file
@@ -211,7 +208,7 @@ def cartogram_gen():
                 date_created=datetime.datetime.today(),
                 date_accessed=datetime.datetime.now(datetime.UTC)
                 - datetime.timedelta(days=365),
-                handler=handler,
+                handler=handler_name,
                 title=data.get("title"),
                 scheme=data.get("scheme"),
                 types=json.dumps(cleaned_vis_types),

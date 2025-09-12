@@ -2,10 +2,10 @@ import datetime
 import os
 import shutil
 
+import handlers
 import settings
 from database import db
 from flask import Blueprint, Response, redirect, render_template
-from handler import CartogramHandler
 from utils import file_utils
 
 maintenance_bp = Blueprint("maintenance", __name__)
@@ -60,8 +60,7 @@ def cleanup():
 )
 @maintenance_bp.route("/cartogram/<map_name>", methods=["GET"], defaults={"mode": None})
 def map_old(map_name, mode):
-    cartogram_handler = CartogramHandler()
-    if not cartogram_handler.has_handler(map_name):
+    if not handlers.has_handler(map_name):
         return Response("Not found", status=404)
 
     if mode == "embed":
