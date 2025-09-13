@@ -1,3 +1,4 @@
+import csv
 import math
 import re
 from io import StringIO
@@ -10,7 +11,7 @@ from utils import file_utils, geojson_utils
 
 
 def process_data(csv_string, vis_types):
-    df = pd.read_csv(StringIO(csv_string), keep_default_na=False, na_values=[""])
+    df = read_data(csv_string)
     for col in df.columns:
         file_utils.validate_filename(col)
 
@@ -87,6 +88,16 @@ def process_data(csv_string, vis_types):
         df.drop(columns="Inset", inplace=True)
 
     return df.to_csv(index=False), data_cols, map_names_dict
+
+
+def read_data(csv_string):
+    # Read with Python's csv module to preserve empty strings
+    rows = []
+    csv_reader = csv.DictReader(StringIO(csv_string))
+    for row in csv_reader:
+        rows.append(row)
+
+    return pd.DataFrame(rows)
 
 
 def postprocess_geojson(json_data, target_area=None, target_centroid=None):

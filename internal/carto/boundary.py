@@ -1,50 +1,15 @@
-import warnings
+import os
 
 import mapclassify
-from utils import file_utils, format_utils
+from utils import format_utils
 
 from .cpp_wrapper import call_binary
 from .dataframe import CartoDataFrame
 from .formatter import postprocess_geojson
+from .storage import CartoStorage
 
 
-def preprocess(input, mapDBKey="temp_filename", based_path="tmp"):
-    """
-    Main preprocessing function that handles warning capture and calls the boundary preprocessing.
-
-    Args:
-        input: Input data (file path or file object) for the map boundary
-        mapDBKey: Unique identifier for the map data (default: "temp_filename")
-        based_path: Base directory path for temporary files (default: "tmp")
-
-    Returns:
-        dict: Result dictionary containing geojson data, unique columns, and warnings
-    """
-
-    # Capture warnings during preprocessing to provide user-friendly messages
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter("always")
-        result = preprocess_boundary(input, mapDBKey, based_path)
-
-        result["warnings"] = []
-        for warning_message in w:
-            if (
-                "Geometry is in a geographic CRS. Results from 'area' are likely incorrect."
-                in str(warning_message.message)
-            ):
-                result["warnings"].append(
-                    "Geometry is in a geographic CRS. The geographic area calculation (in sq. km) is likely incorrect, but your cartogram will still render accurately."
-                )
-
-            elif "More than one layer found" in str(warning_message.message):
-                result["warnings"].append(
-                    "Multiple map layers found. If the preview isn't what you expected, please remove unwanted map layers and re-upload your boundary file."
-                )
-
-    return result
-
-
-def preprocess_boundary(input, mapDBKey="temp_filename", based_path="tmp"):
+def preprocess(input, mapDBKey="temp_filename"):
     """
     Core preprocessing function for boundary data that handles file loading,
     geometry validation, and data preparation for cartogram generation.
@@ -52,24 +17,30 @@ def preprocess_boundary(input, mapDBKey="temp_filename", based_path="tmp"):
     Args:
         input: Input data (file path string or file object) containing boundary geometries
         mapDBKey: Unique identifier for the map data
-        based_path: Base directory path for temporary files
 
     Returns:
         dict: Dictionary containing processed geojson data and list of unique columns
     """
 
+    storage = CartoStorage(mapDBKey)
+
     # Input can be anything that is supported by geopandas.read_file
     # Standardize input to geojson file path for consistent processing
-    file_path = file_utils.get_safepath(based_path, f"{mapDBKey}.json")
+    file_path = storage.get_tmp_file_path("Input.json")
+    storage.create_tmp()
     if isinstance(input, str):  # input is path
         input_path = input
     else:  # input is file object
-        input_path = file_utils.get_safepath("tmp", input.filename)
+        input_path = storage.get_tmp_file_path(input.filename)
         input.save(input_path)
 
     # Load the geographic data into a CartoDataFrame and save as cartogram file
     cdf = CartoDataFrame.read_file(input_path)
     cdf.to_carto_file(file_path)
+
+    # Remove the original file if input is file object
+    if not isinstance(input, str):
+        os.remove(input_path)
 
     # Remove invalid geometries
     cdf = cdf[cdf.geometry.notnull()]

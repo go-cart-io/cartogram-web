@@ -1,20 +1,16 @@
 import datetime
 import json
-import os
-import shutil
 import traceback
-from io import StringIO
+import warnings
 
-import handlers
-import pandas as pd
 import settings
-from carto import boundary, progress, project
+from carto import boundary, parser, progress, project
+from carto.storage import CartoStorage
 from errors import CartoError
 from flask import Blueprint, Response, current_app, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from models import CartogramEntry
-from utils import file_utils, format_utils
 from views import custom_captcha, tracking
 
 api_bp = Blueprint("api", __name__)
@@ -68,14 +64,32 @@ def getprogress():
 
 @api_bp.route("/api/v1/cartogram/preprocess/<mapDBKey>", methods=["POST"])
 def cartogram_preprocess(mapDBKey):
-    if mapDBKey is None or mapDBKey == "":
-        raise CartoError("Missing sharing key.", log=False)
-
     if "file" not in request.files or request.files["file"].filename == "":
         raise CartoError("No selected file.", log=False)
 
+    mapDBKey = parser.parse_key({"mapDBKey": mapDBKey})
     current_app.logger.info(f"Preprocessing map for {mapDBKey}")
-    processed_geojson = boundary.preprocess(request.files["file"], mapDBKey)
+
+    # Capture warnings during preprocessing to provide user-friendly messages
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        processed_geojson = boundary.preprocess(request.files["file"], mapDBKey)
+
+        processed_geojson["warnings"] = []
+        for warning_message in w:
+            if (
+                "Geometry is in a geographic CRS. Results from 'area' are likely incorrect."
+                in str(warning_message.message)
+            ):
+                processed_geojson["warnings"].append(
+                    "Geometry is in a geographic CRS. The geographic area calculation (in sq. km) is likely incorrect, but your cartogram will still render accurately."
+                )
+
+            elif "More than one layer found" in str(warning_message.message):
+                processed_geojson["warnings"].append(
+                    "Multiple map layers found. If the preview isn't what you expected, please remove unwanted map layers and re-upload your boundary file."
+                )
+
     current_app.logger.info(f"Finish preprocessing map for {mapDBKey}")
     return Response(
         json.dumps(processed_geojson),
@@ -92,150 +106,54 @@ def cartogram_rate_limit():
 @limiter.limit(cartogram_rate_limit)
 def cartogram_gen():
     data = request.get_json()
-    handler_name = data.get("handler")
+    handler_name, string_key, vis_types, datacsv, edit_from = parser.parse_project(data)
+    clean_by = data.get("geojsonRegionCol", "Region")
 
-    if not handlers.has_handler(handler_name) and handler_name != "custom":
-        raise CartoError("Invalid map.", log=False)
-
-    if "mapDBKey" not in data:
-        raise CartoError("Missing sharing key.", log=False)
-
-    try:
-        vis_types = json.loads(data.get("visTypes"))
-    except Exception:
-        raise CartoError("Invalid visualization specification.")
-
-    for key in vis_types:
-        for header in vis_types[key]:
-            file_utils.validate_filename(header)
-
-        if (
-            "cartogram" in vis_types
-            and settings.CARTOGRAM_COUNT_LIMIT
-            and len(vis_types["cartogram"]) >= settings.CARTOGRAM_COUNT_LIMIT
-        ):
-            raise CartoError(
-                f"Limit of {settings.CARTOGRAM_COUNT_LIMIT} cartograms per data set."
-            )
-
-    datacsv = data["csv"] if "csv" in data else format_utils.get_csv(data)
-    string_key = file_utils.sanitize_filename(data["mapDBKey"])
-    userdata_path = None
-    clean_by = None
     current_app.logger.info(f"Generating cartogram for {string_key}")
 
     # Prepare data.csv and Input.json in userdata
-    # TODO check whether the code works properly if persist is false
+    storage = CartoStorage(string_key)
+    storage.save_tmp("data.csv", datacsv)
+    gen_file = storage.standardize_tmp_input(handler_name, edit_from)
+
+    project.generate_cartogram(
+        datacsv,
+        vis_types,
+        gen_file,
+        string_key,
+        storage.tmp_path,
+        clean_by=clean_by,
+    )
+
+    current_app.logger.info(f"Finish cartogram generation for {string_key}")
+
     try:
-        if settings.USE_DATABASE:
-            cartogram_entry = CartogramEntry.query.filter_by(
-                string_key=string_key
-            ).first()
-
-            if cartogram_entry is not None:
-                raise CartoError("Duplicated database key.", True)
-
         if "persist" in data:
-            userdata_path = file_utils.get_safepath("static/userdata", string_key)
-        else:
-            userdata_path = file_utils.get_safepath("tmp", string_key)
+            storage.persist(handler_name)
 
-        if not os.path.exists(userdata_path):
-            os.mkdir(userdata_path)
-
-        with open(file_utils.get_safepath(userdata_path, "data.csv"), "w") as outfile:
-            outfile.write(datacsv)
-
-        gen_file = file_utils.get_safepath(
-            handlers.get_gen_file(handler_name, string_key)
-        )
-
-        df = pd.read_csv(StringIO(datacsv))
-        cleaned_vis_types = format_utils.clean_map_types(vis_types, df.columns)
-
-        # Manage input file
-        if handler_name == "custom":
-            editedFrom = data.get("editedFrom", "")
-            if editedFrom and editedFrom != "" and editedFrom != gen_file:
-                edited_path = file_utils.get_safepath(editedFrom.lstrip("/"))
-                shutil.copyfile(edited_path, gen_file)
-
-            else:
-                shutil.copyfile(
-                    file_utils.get_safepath("tmp", f"{string_key}.json"), gen_file
+            if settings.USE_DATABASE:
+                new_cartogram_entry = CartogramEntry(
+                    string_key=string_key,
+                    date_created=datetime.datetime.today(),
+                    date_accessed=datetime.datetime.now(datetime.UTC)
+                    - datetime.timedelta(days=365),
+                    handler=handler_name,
+                    title=data.get("title"),
+                    scheme=data.get("scheme"),
+                    types=json.dumps(vis_types),
+                    settings=json.dumps(data.get("settings")),
                 )
-                clean_by = data.get("geojsonRegionCol", "Region")
-        elif "RegionMap" in df.columns and not df["RegionMap"].equals(df["Region"]):
-            # If regions are edited, handler should be custom
-            handler_name = "custom"
-            new_gen_file = file_utils.get_safepath(
-                handlers.get_gen_file(handler_name, string_key)
-            )
-            shutil.copyfile(gen_file, new_gen_file)
-            gen_file = new_gen_file
-
-        project.generate_cartogram(
-            datacsv,
-            cleaned_vis_types,
-            gen_file,
-            string_key,
-            userdata_path,
-            clean_by=clean_by,
-        )
-
-        if "persist" in data and settings.USE_DATABASE:
-            new_cartogram_entry = CartogramEntry(
-                string_key=string_key,
-                date_created=datetime.datetime.today(),
-                date_accessed=datetime.datetime.now(datetime.UTC)
-                - datetime.timedelta(days=365),
-                handler=handler_name,
-                title=data.get("title"),
-                scheme=data.get("scheme"),
-                types=json.dumps(cleaned_vis_types),
-                settings=json.dumps(data.get("settings")),
-            )
-            db.session.add(new_cartogram_entry)
-            db.session.commit()
+                db.session.add(new_cartogram_entry)
+                db.session.commit()
         else:
             string_key = None
 
-        current_app.logger.info(f"Finish cartogram generation for {string_key}")
-        return Response(
-            json.dumps({"mapDBKey": string_key}),
-            status=200,
-            content_type="application/json",
-        )
-
-    except FileNotFoundError as e:
+    except Exception:
         db.session.rollback()
-        current_app.logger.warning(f"Error: {str(e)}")
-        return Response(
-            json.dumps(
-                {
-                    "error": "Files for cartogram generation not found."
-                    + CartoError.SUGGEST_REFRESH_TXT
-                }
-            ),
-            status=400,
-            content_type="application/json",
-        )
-    except CartoError as e:
-        db.session.rollback()
-        if userdata_path and os.path.exists(userdata_path):
-            shutil.rmtree(userdata_path)
+        raise
 
-        return e.response(current_app.logger)
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(
-            f"Error: {str(e)}\nTraceback:\n{traceback.format_exc()}"
-        )
-        if userdata_path and os.path.exists(userdata_path):
-            shutil.rmtree(userdata_path)
-
-        return Response(
-            json.dumps({"error": "Unknown error." + CartoError.SUGGEST_REFRESH_TXT}),
-            status=400,
-            content_type="application/json",
-        )
+    return Response(
+        json.dumps({"mapDBKey": string_key}),
+        status=200,
+        content_type="application/json",
+    )
