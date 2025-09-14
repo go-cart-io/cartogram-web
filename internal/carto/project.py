@@ -1,7 +1,7 @@
 import json
 
 import shapely
-from carto import boundary, formatter
+from carto import boundary, datacsv
 from carto.dataframe import CartoDataFrame
 from carto.generators import generator_contiguous
 from carto.progress import CartoProgress
@@ -9,7 +9,7 @@ from utils import file_utils, geojson_utils
 
 
 def generate(
-    datacsv,
+    csv_string,
     vis_types,
     input_file,
     cartogram_key,
@@ -18,8 +18,8 @@ def generate(
     flags=[],
 ):
     area_data_path = file_utils.get_safepath(project_path, "data.csv")
-    map_regions_dict, data_names = formatter.process_data(
-        datacsv, vis_types, area_data_path
+    map_regions_dict, data_names = datacsv.process_data(
+        csv_string, vis_types, area_data_path
     )
 
     # Process the boundary file

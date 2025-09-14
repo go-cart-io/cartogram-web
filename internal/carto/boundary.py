@@ -3,7 +3,7 @@ import os
 
 import mapclassify
 from carto.dataframe import CartoDataFrame
-from carto.formatter import postprocess_geojson
+from carto.datajson import postprocess_geojson
 from carto.generators.cpp_wrapper import run_binary
 from carto.storage import CartoStorage
 from utils import format_utils, geojson_utils

@@ -1,6 +1,6 @@
 import json
 
-from carto.formatter import postprocess_geojson
+from carto.datajson import postprocess_geojson
 from carto.generators.cpp_wrapper import run_binary
 from carto.progress import CartoProgress
 from errors import CartoError

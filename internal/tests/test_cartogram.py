@@ -1,6 +1,6 @@
 from unittest.mock import mock_open, patch
 
-from carto import boundary, formatter
+from carto import boundary, datacsv
 
 
 def test_preprocess(test_data_dir):
@@ -24,7 +24,7 @@ def test_process_data_with_no_inset(mocker):
 
     mocked_open = mock_open()
     with patch("builtins.open", mocked_open):
-        map_regions_dict, data_names = formatter.process_data(
+        map_regions_dict, data_names = datacsv.process_data(
             csv_string, vis_types, "tmp/test.txt"
         )
 
@@ -42,7 +42,7 @@ def test_process_data_with_color_inset(mocker):
 
     mocked_open = mock_open()
     with patch("builtins.open", mocked_open):
-        map_regions_dict, data_names = formatter.process_data(
+        map_regions_dict, data_names = datacsv.process_data(
             csv_string, vis_types, "tmp/test.txt"
         )
 
