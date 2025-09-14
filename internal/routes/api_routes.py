@@ -4,7 +4,8 @@ import traceback
 import warnings
 
 import settings
-from carto import boundary, parser, progress, project
+from carto import boundary, parser, project
+from carto.progress import CartoProgress
 from carto.storage import CartoStorage
 from errors import CartoError
 from flask import Blueprint, Response, current_app, request
@@ -54,7 +55,8 @@ api_bp.add_url_rule(
 @api_bp.route("/api/v1/getprogress", methods=["GET"])
 @limiter.exempt
 def getprogress():
-    current_progress_output = progress.getprogress(request.args["key"])
+    progress = CartoProgress(request.args["key"])
+    current_progress_output = progress.get()
     return Response(
         json.dumps(current_progress_output),
         status=200,
@@ -116,7 +118,7 @@ def cartogram_gen():
     storage.save_tmp("data.csv", datacsv)
     gen_file = storage.standardize_tmp_input(handler_name, edit_from)
 
-    project.generate_cartogram(
+    project.generate(
         datacsv,
         vis_types,
         gen_file,

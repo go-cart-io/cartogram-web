@@ -1,25 +1,25 @@
+import json
 import os
 
 import mapclassify
-from utils import format_utils
+from carto.dataframe import CartoDataFrame
+from carto.formatter import postprocess_geojson
+from carto.generators.cpp_wrapper import run_binary
+from carto.storage import CartoStorage
+from utils import format_utils, geojson_utils
 
-from .cpp_wrapper import call_binary
-from .dataframe import CartoDataFrame
-from .formatter import postprocess_geojson
-from .storage import CartoStorage
 
-
-def preprocess(input, mapDBKey="temp_filename"):
+def preprocess(input, mapDBKey: str = "temp_filename"):
     """
     Core preprocessing function for boundary data that handles file loading,
-    geometry validation, and data preparation for cartogram generation.
+    geometry validation, and data preparation for creating equal area map.
 
     Args:
         input: Input data (file path string or file object) containing boundary geometries
         mapDBKey: Unique identifier for the map data
 
     Returns:
-        dict: Dictionary containing processed geojson data and list of unique columns
+        dict: Dictionary containing processed geojson data (equal area) and list of unique columns
     """
 
     storage = CartoStorage(mapDBKey)
@@ -67,6 +67,7 @@ def preprocess(input, mapDBKey="temp_filename"):
 
     tmp_cdf = cdf
 
+    # Fill in attributes
     if not any(cdf.columns.str.startswith("Geographic Area")):
         cdf["Geographic Area (sq. km)"] = round(tmp_cdf.area / 10**6)
         cdf["Geographic Area (sq. km)"] = cdf["Geographic Area (sq. km)"].astype(int)
@@ -80,20 +81,91 @@ def preprocess(input, mapDBKey="temp_filename"):
     if "cartogram_id" not in cdf.columns:
         cdf["cartogram_id"] = range(1, len(cdf) + 1)
 
+    # Convert to WGS84 (EPSG:4326) before input to cpp
     if not cdf.is_projected:
-        # Always convert to WGS84 (EPSG:4326) before input to cpp
         cdf.to_crs("EPSG:4326", inplace=True)
-        geojson = cdf.to_carto_file(file_path)
-        flags = ["--output_equal_area_map"]
-        if cdf.is_world:
-            flags += ["--world"]
-        equal_area_json = call_binary(mapDBKey, file_path, None, flags)
-        if equal_area_json is None:
-            equal_area_json = geojson
-        else:
-            equal_area_json = postprocess_geojson(equal_area_json)
-    else:
-        geojson = cdf.to_carto_file(file_path)
-        equal_area_json = postprocess_geojson(geojson)
+
+    equal_area_json = generate_equal_area(cdf, file_path, None, None)
 
     return {"geojson": equal_area_json, "unique": unique_columns}
+
+
+def generate_equal_area(
+    cdf: CartoDataFrame,
+    input_path: str,
+    data_path: str | None = None,
+    equal_area_path: str | None = None,
+    flags: list[str] = [],
+):
+    """
+    Generate an equal area projection of geographic data for cartogram creation.
+
+    This function takes geographic data and converts it to an equal area projection,
+    which is essential for creating accurate cartograms where area distortions need
+    to be minimized. The function handles different scenarios based on whether the
+    data is already projected and whether additional data is provided.
+
+    Args:
+        cdf: CartogramDataFrame containing the geographic data and metadata
+        input_path: Path to the input geographic data file
+        data_path: Optional path to additional data file for inset calculations
+        equal_area_path: Optional output path to save the equal area projection
+        flags: List of command-line flags to pass to the binary
+
+    Returns:
+        dict: GeoJSON dictionary containing the equal area projected geographic data
+    """
+
+    # Save the cartogram data frame to a GeoJSON file
+    geojson = cdf.to_carto_file(input_path)
+    is_projected = cdf.is_projected
+
+    if cdf.is_world:
+        flags = flags + ["--world"]
+
+    # Determine appropriate flags based on projection status and data availability
+    # Case 0: No additional data and already projected - simply use the input
+    # Case 1: No additional data and not already projected - generate equal area map
+    if not data_path and not is_projected:
+        flags = flags + ["--output_equal_area_map"]
+
+    # Case 2: Has data and already projected - output shifted insets, skip projection
+    if data_path and is_projected:
+        flags = flags + [
+            "--output_shifted_insets",
+            "--skip_projection",
+            "--area",
+            "Geographic Area (sq. km)",
+        ]
+    # Case 3: Has data but not projected - generate equal area map with insets
+    elif data_path:
+        flags = flags + [
+            "--output_equal_area_map",
+            "--area",
+            "Geographic Area (sq. km)",
+        ]
+
+    # Run the projection binary if data needs processing (case 1-3)
+    equal_area_json = None
+    if not cdf.is_projected or data_path:
+        equal_area_json = run_binary(input_path, data_path, "Geographic Area", flags)
+
+    # Handle projection failure by falling back to original data
+    if equal_area_json is None:
+        equal_area_json = geojson
+        # TODO: warn the user about projection failure
+    else:
+        # Mark the successfully projected data with projection attribute
+        equal_area_json = geojson_utils.add_attributes(
+            equal_area_json, is_projected=True
+        )
+
+    # Apply post-processing
+    equal_area_json = postprocess_geojson(equal_area_json)
+
+    # Save the equal area projection to file if output path is specified
+    if equal_area_path:
+        with open(equal_area_path, "w") as outfile:
+            outfile.write(json.dumps(equal_area_json))
+
+    return equal_area_json
