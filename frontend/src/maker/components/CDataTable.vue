@@ -177,6 +177,7 @@ function validateInput(event: Event) {
               v-on:change="updateVisType(index, $event)"
             >
               <option value="" selected disabled>Select visualization</option>
+              <option value="None">None</option>
               <option
                 v-for="(option, value) in { Area: 'Cartogram', Color: 'Choropleth' }"
                 v-bind:value="option.toLowerCase()"
