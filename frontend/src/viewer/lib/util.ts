@@ -14,12 +14,7 @@ export function getGeojsonURL(
   versionKey: string
 ) {
   // Figure out whether data is in userdata or cartdata
-  const baseURL =
-    mapDBKey &&
-    mapDBKey !== '' &&
-    (currentMapName === 'custom' || versionKey !== 'Geographic Area.json')
-      ? '/userdata/' + mapDBKey + '/'
-      : '/cartdata/' + currentMapName + '/'
+  const baseURL = mapDBKey ? '/userdata/' + mapDBKey + '/' : '/cartdata/' + currentMapName + '/'
 
   return '/static' + baseURL + versionKey
 }
