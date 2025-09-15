@@ -1,12 +1,11 @@
-import json
 import os
 
 import mapclassify
 from carto.dataframe import CartoDataFrame
-from carto.datajson import postprocess_geojson
+from carto.datajson import CartoJson
 from carto.generators.cpp_wrapper import run_binary
 from carto.storage import CartoStorage
-from utils import format_utils, geojson_utils
+from utils import format_utils
 
 
 def preprocess(input, mapDBKey: str = "temp_filename"):
@@ -85,18 +84,17 @@ def preprocess(input, mapDBKey: str = "temp_filename"):
     if not cdf.is_projected:
         cdf.to_crs("EPSG:4326", inplace=True)
 
-    equal_area_json = generate_equal_area(cdf, file_path, None, None)
+    equal_area_json = generate_equal_area(cdf, file_path, None)
 
-    return {"geojson": equal_area_json, "unique": unique_columns}
+    return {"geojson": equal_area_json.json_data, "unique": unique_columns}
 
 
 def generate_equal_area(
     cdf: CartoDataFrame,
     input_path: str,
     data_path: str | None = None,
-    equal_area_path: str | None = None,
     flags: list[str] = [],
-):
+) -> CartoJson:
     """
     Generate an equal area projection of geographic data for cartogram creation.
 
@@ -113,7 +111,7 @@ def generate_equal_area(
         flags: List of command-line flags to pass to the binary
 
     Returns:
-        dict: GeoJSON dictionary containing the equal area projected geographic data
+        CartoJson: Object containing the equal area projected geographic data
     """
 
     # Save the cartogram data frame to a GeoJSON file
@@ -154,18 +152,9 @@ def generate_equal_area(
     if equal_area_json is None:
         equal_area_json = geojson
         # TODO: warn the user about projection failure
-    else:
-        # Mark the successfully projected data with projection attribute
-        equal_area_json = geojson_utils.add_attributes(
-            equal_area_json, is_projected=True
-        )
 
     # Apply post-processing
-    equal_area_json = postprocess_geojson(equal_area_json)
-
-    # Save the equal area projection to file if output path is specified
-    if equal_area_path:
-        with open(equal_area_path, "w") as outfile:
-            outfile.write(json.dumps(equal_area_json))
+    equal_area_json = CartoJson(equal_area_json)
+    equal_area_json.postprocess()
 
     return equal_area_json

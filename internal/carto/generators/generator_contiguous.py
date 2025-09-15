@@ -1,10 +1,8 @@
-import json
-
-from carto.datajson import postprocess_geojson
+from carto.datajson import CartoJson
 from carto.generators.cpp_wrapper import run_binary
 from carto.progress import CartoProgress
 from errors import CartoError
-from utils import file_utils, geojson_utils
+from utils import geojson_utils
 
 
 def generate_all(
@@ -71,35 +69,25 @@ def generate_all(
         if cartogram_gen_output_json is None:
             raise CartoError(f"Cannot generate cartogram for {data_col}.")
 
-        # Extract and post-process the original cartogram data
-        cartogram_json = cartogram_gen_output_json["Original"]
-        cartogram_json = postprocess_geojson(
-            cartogram_json, equal_area_area, equal_area_centroid
+        # Extract and post-process the original cartogram data, save it to a file
+        cartogram_json = CartoJson(cartogram_gen_output_json["Original"])
+        cartogram_json.postprocess(equal_area_area, equal_area_centroid)
+        cartogram_json.save(
+            project_path, f"{data_names[data_col]}.json", is_projected=True
         )
 
         # Update the final bounding box to include this cartogram's extent
         final_bbox = geojson_utils.union_bounding_boxes(
-            final_bbox, cartogram_json["bbox"]
+            final_bbox, cartogram_json.json_data["bbox"]
         )
-
-        # Save the original cartogram to a JSON file
-        out_path = file_utils.get_safepath(project_path, f"{data_names[data_col]}.json")
-        with open(out_path, "w") as outfile:
-            cartogram_json = geojson_utils.add_attributes(
-                cartogram_json, is_projected=True
-            )
-            outfile.write(json.dumps(cartogram_json))
 
         # Save the simplified version of the cartogram to a separate JSON file
-        out_path = file_utils.get_safepath(
-            project_path, f"{data_names[data_col]}_simplified.json"
+        cartogram_json_simplified = CartoJson(cartogram_gen_output_json["Simplified"])
+        cartogram_json_simplified.save(
+            project_path,
+            f"{data_names[data_col]}_simplified.json.json",
+            is_projected=True,
         )
-        with open(out_path, "w") as outfile:
-            cartogram_json_simplified = cartogram_gen_output_json["Simplified"]
-            cartogram_json_simplified = geojson_utils.add_attributes(
-                cartogram_json_simplified, is_projected=True
-            )
-            outfile.write(json.dumps(cartogram_json_simplified))
 
     # Return the updated bounding box that encompasses all generated cartograms
     return final_bbox
