@@ -23,7 +23,7 @@ class CartoDataFrame(gpd.GeoDataFrame):
 
         # Maintain only reserved attributes, discard others
         # This is to prevent conflicts with topojson
-        reserved_keys = ["crs", "extent", "properties"]
+        reserved_keys = ["crs", "extent", "properties", "dividers", "bbox"]
         filtered_extra_attributes = {
             key: extra_attributes[key]
             for key in reserved_keys
@@ -53,6 +53,30 @@ class CartoDataFrame(gpd.GeoDataFrame):
         if isinstance(result, gpd.GeoDataFrame):
             return CartoDataFrame(result, extra_attributes=self.extra_attributes)
         return result
+
+    def reset_index(self, *args, **kwargs) -> Any:
+        """Ensure reset_index returns a CartoDataFrame."""
+        result = super().reset_index(*args, **kwargs)
+        if result is None:
+            return None
+
+        return CartoDataFrame(result, extra_attributes=self.extra_attributes)
+
+    def merge(self, *args, **kwargs) -> Any:
+        """Ensure merge returns a CartoDataFrame."""
+        result = super().merge(*args, **kwargs)
+        if result is None:
+            return None
+
+        return CartoDataFrame(result, extra_attributes=self.extra_attributes)
+
+    def copy(self, *args, **kwargs) -> Any:
+        """Ensure merge returns a CartoDataFrame."""
+        result = super().copy(*args, **kwargs)
+        if result is None:
+            return None
+
+        return CartoDataFrame(result, extra_attributes=self.extra_attributes)
 
     @classmethod
     def read_file(cls, filepath):
@@ -123,14 +147,6 @@ class CartoDataFrame(gpd.GeoDataFrame):
             json.dump(output_data, f)
         return output_data
 
-    def reset_index(self, *args, **kwargs) -> Any:
-        """Ensure reset_index returns a CartoDataFrame."""
-        result = super().reset_index(*args, **kwargs)
-        if result is None:
-            return None
-
-        return CartoDataFrame(result, extra_attributes=self.extra_attributes)
-
     def clean_properties(
         self,
         region_col,
@@ -144,7 +160,7 @@ class CartoDataFrame(gpd.GeoDataFrame):
         - Keeping only relevant columns
         """
         # Rename or replace 'Region' column
-        if region_col != "Region":
+        if region_col and region_col != "Region" and region_col in self.columns:
             if "Region" in self.columns:
                 self.drop(columns=["Region"], inplace=True)
             self.rename(columns={region_col: "Region"}, inplace=True)

@@ -21,8 +21,9 @@
         mapTitle: "{{ map_title }}",
         mapDBKey: "{{ map_data_key }}",
         cartoVersions: JSON.parse('{{ carto_versions | default({}) | tojson | safe }}'),
+        cartoEqualAreaBg: "{{ carto_equal_area_bg }}" == "True",
         cartoColorScheme: "{{ map_color_scheme }}",
         choroVersions: JSON.parse('{{ choro_versions | default({}) | tojson | safe }}'),
         choroSpec: JSON.parse('{{ map_spec | default({}) | tojson | safe }}')
-    };    
+    };
 </script>

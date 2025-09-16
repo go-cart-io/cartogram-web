@@ -46,6 +46,7 @@ def generate_all(
 
     # Process each data column to generate its corresponding cartogram
     for data_col in data_cols:
+        progress.start(data_col)
         cartogram_gen_output_json = None
 
         try:
@@ -58,7 +59,6 @@ def generate_all(
                 flags + ["--skip_projection", "--area", data_col],
                 progress,
             )
-            progress.done()
 
         except CartoError as e:
             raise CartoError(f"Cannot generate cartogram for {data_col}. {e.message}")

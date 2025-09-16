@@ -178,13 +178,12 @@ function validateInput(event: Event) {
             >
               <option value="" selected disabled>Select visualization</option>
               <option value="None">None</option>
-              <option
-                v-for="(option, value) in { Area: 'Cartogram', Color: 'Choropleth' }"
-                v-bind:value="option.toLowerCase()"
-                v-bind:key="option"
-              >
-                {{ value }}: {{ option }}
-              </option>
+              <option disabled>----------------</option>
+              <option disabled>Area: Cartogram</option>
+              <option value="cartogram">&nbsp;&nbsp;Contiguous</option>
+              <option value="noncontiguous">&nbsp;&nbsp;Non-Contiguous</option>
+              <option disabled>----------------</option>
+              <option value="choropleth">Color: Choropleth</option>
             </select>
           </th>
         </tr>

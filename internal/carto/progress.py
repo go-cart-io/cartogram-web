@@ -15,45 +15,41 @@ class CartoProgress:
     def setData(self, data_cols: list[str]) -> None:
         self.data_cols = data_cols
         self.data_len = len(data_cols)
-        self.num_done = 0
+        self.data_number = 0
 
-    def done(self):
-        self.num_done = self.num_done + 1
+    def start(self, name: str = ""):
+        self.data_number = self.data_number + 1
+        self.set(0, "", name, progress=0)
 
     def set(self, order: int, stderr: str, name: str, progress: float) -> None:
         # Calculate overall progress across multiple datasets
-        if progress == 1 and self.num_done == self.data_len:
+        if progress == 1 and self.data_number >= self.data_len:
             # Handle edge case: ensure final progress reaches exactly 1.0
             overall_progress = 1
         else:
-            # Formula: (individual_progress / total_datasets) + (completed_datasets / total_datasets)
-            overall_progress = (progress / self.data_len) + (
-                self.num_done / self.data_len
-            )
+            overall_progress = (progress - 1 + self.data_number) / float(self.data_len)
 
-        current_progress = self.redis_conn.get("cartprogress-{}".format(self.key))
+        progress_db = self.redis_conn.get("cartprogress-{}".format(self.key))
 
-        if current_progress is None:
-            current_progress = {
+        if progress_db is None:
+            progress_db = {
                 "order": order,
                 "stderr": stderr,
                 "name": name,
                 "progress": overall_progress,
             }
         else:
-            current_progress = json.loads(current_progress.decode())
+            progress_db = json.loads(progress_db.decode())
 
-            if current_progress["order"] < order:
-                current_progress = {
+            if progress_db["order"] < order:
+                progress_db = {
                     "order": order,
                     "stderr": stderr,
                     "name": name,
                     "progress": overall_progress,
                 }
 
-        self.redis_conn.set(
-            "cartprogress-{}".format(self.key), json.dumps(current_progress)
-        )
+        self.redis_conn.set("cartprogress-{}".format(self.key), json.dumps(progress_db))
         self.redis_conn.expire("cartprogress-{}".format(self.key), 300)
 
     def get(self) -> dict:

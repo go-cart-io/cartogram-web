@@ -2,7 +2,8 @@ export function createSVGElement(
   panelID: string,
   areaLegendStr: string,
   areaUnitLegendStr: string,
-  colorLegendStr: string
+  colorLegendStr: string,
+  hideAreaLegend: boolean
 ) {
   const mapAreaSVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg') as SVGSVGElement
   const MAP_SPACE = 15 // Space between color legend and map
@@ -49,30 +50,7 @@ export function createSVGElement(
   mainGroup.setAttribute('transform', `translate(0, ${extraElementHeight})`)
 
   // Area legend
-  const legendSVG = document.getElementById(panelID + '-legend')
-  if (legendSVG) {
-    // Square
-    const areaLegendGroup = document.createElementNS(
-      'http://www.w3.org/2000/svg',
-      'g'
-    ) as SVGGElement
-    areaLegendGroup.appendChild(legendSVG.querySelector('g')!.cloneNode(true) as HTMLElement)
-    areaLegendGroup.setAttribute('width', legendSVG.getAttribute('width') || '0')
-    areaLegendGroup.setAttribute('height', legendSVG.getAttribute('height') || '0')
-    mainGroup.appendChild(areaLegendGroup)
-
-    const areaLegendText = document.createElement('text')
-    const legendTextX = 6 + parseFloat(legendSVG.getAttribute('width')!)
-    const legendTextY = parseFloat(legendSVG.getAttribute('height') || '0') / 2
-    areaLegendText.textContent = document.getElementById(panelID + '-legend-num')!.textContent || ''
-    areaLegendText.setAttribute('font-family', 'sans-serif')
-    areaLegendText.setAttribute('font-size', '11px')
-    areaLegendText.setAttribute('x', legendTextX.toString())
-    areaLegendText.setAttribute('y', legendTextY.toString())
-    areaLegendText.setAttribute('fill', '#000000')
-    areaLegendText.setAttribute('dominant-baseline', 'middle')
-    mainGroup.appendChild(areaLegendText)
-  }
+  if (!hideAreaLegend) addAreaLegend(panelID, mainGroup)
 
   // Map/Cartogram
   const visAreaSVG = document
@@ -104,4 +82,33 @@ export function createSVGElement(
   mapAreaSVG.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
 
   return mapAreaSVG
+}
+
+function addAreaLegend(panelID: string, mainGroup: SVGGElement) {
+  const legendSVG = document.getElementById(panelID + '-legend')
+  if (legendSVG) {
+    // Square
+    const areaLegendGroup = document.createElementNS(
+      'http://www.w3.org/2000/svg',
+      'g'
+    ) as SVGGElement
+    areaLegendGroup.appendChild(legendSVG.querySelector('g')!.cloneNode(true) as HTMLElement)
+    areaLegendGroup.setAttribute('width', legendSVG.getAttribute('width') || '0')
+    areaLegendGroup.setAttribute('height', legendSVG.getAttribute('height') || '0')
+    mainGroup.appendChild(areaLegendGroup)
+
+    const areaLegendText = document.createElement('text')
+    const legendTextX = 6 + parseFloat(legendSVG.getAttribute('width')!)
+    const legendTextY = parseFloat(legendSVG.getAttribute('height') || '0') / 2
+    areaLegendText.textContent = document.getElementById(panelID + '-legend-num')!.textContent || ''
+    areaLegendText.setAttribute('font-family', 'sans-serif')
+    areaLegendText.setAttribute('font-size', '11px')
+    areaLegendText.setAttribute('x', legendTextX.toString())
+    areaLegendText.setAttribute('y', legendTextY.toString())
+    areaLegendText.setAttribute('fill', '#000000')
+    areaLegendText.setAttribute('dominant-baseline', 'middle')
+    mainGroup.appendChild(areaLegendText)
+
+    return mainGroup
+  }
 }

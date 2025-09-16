@@ -60,7 +60,7 @@ def clean_map_types(vis_types, csv_cols):
     return cleaned_vis_types
 
 
-def map_types_to_versions(may_types):
+def map_types_to_versions(map_types):
     carto_versions = {}
     carto_versions["0"] = {
         "key": "0",
@@ -68,16 +68,31 @@ def map_types_to_versions(may_types):
         "name": "Geographic Area",
         "unit": "sq. km",
     }
-    if "cartogram" in may_types:
-        for i, cartogram_label in enumerate(may_types["cartogram"]):
+
+    offset = 1
+    if "cartogram" in map_types:
+        for i, cartogram_label in enumerate(map_types.get("cartogram", [])):
             info = label_to_name_unit(cartogram_label)
-            carto_versions[str(i + 1)] = {
-                "key": str(i + 1),
+            carto_versions[str(i + offset)] = {
+                "key": str(i + offset),
                 "header": info["header"],
                 "name": info["name"],
                 "unit": info["unit"],
+                "type": "contiguous",
             }
 
-    choro_versions = may_types.get("choropleth", [])
+    offset = len(map_types["cartogram"]) + 1
+    if "noncontiguous" in map_types:
+        for i, cartogram_label in enumerate(map_types.get("noncontiguous", [])):
+            info = label_to_name_unit(cartogram_label)
+            carto_versions[str(i + offset)] = {
+                "key": str(i + offset),
+                "header": info["header"],
+                "name": info["name"],
+                "unit": info["unit"],
+                "type": "noncontiguous",
+            }
+
+    choro_versions = map_types.get("choropleth", [])
 
     return carto_versions, choro_versions

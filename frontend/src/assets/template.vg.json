@@ -115,6 +115,27 @@
           "expr": "[{type: 'Feature', geometry: {type: 'Polygon', coordinates: [[[datum.bbox[0], datum.bbox[1]], [datum.bbox[2], datum.bbox[1]], [datum.bbox[2], datum.bbox[3]], [datum.bbox[0], datum.bbox[3]], [datum.bbox[0], datum.bbox[1]]]]}}]"
         }
       ]
+    },
+    {
+      "name": "equal_area_geojson",
+      "url": "",
+      "format": { "type": "json", "parse": {} },
+      "transform": [
+        {
+          "type": "flatten",
+          "fields": ["features"]
+        },
+        {
+          "type": "project",
+          "fields": ["features.type", "features.properties", "features.geometry"],
+          "as": ["type", "properties", "geometry"]
+        },
+        {
+          "type": "formula",
+          "expr": "geoArea('source_projection', datum.geometry)",
+          "as": "Area"
+        }
+      ]
     }
   ],
   "projections": [
@@ -144,6 +165,24 @@
   ],
   "marks": [
     {
+      "name": "bg_polygon_marks",
+      "type": "shape",
+      "style": ["geoshape"],
+      "from": { "data": "equal_area_geojson" },
+      "encode": {
+        "update": {
+          "description": {
+            "signal": "\"geobg_\" + datum[\"properties\"][\"cartogram_id\"]"
+          },
+          "stroke": { "value": "black" },
+          "strokeWidth": { "value": 0.1 },
+          "fill": { "value": "#f8f9fa" },
+          "ariaRoleDescription": { "value": "geobg" }
+        }
+      },
+      "transform": [{ "type": "geoshape", "projection": "source_projection" }]
+    },
+    {
       "name": "polygon_marks",
       "type": "shape",
       "style": ["geoshape"],
@@ -167,25 +206,25 @@
       "transform": [{ "type": "geoshape", "projection": "source_projection" }]
     },
     {
-      "name": "divider_marks",
+      "name": "divider_mark_borders",
       "type": "shape",
       "style": ["geoshape"],
       "from": { "data": "geo_1_dividers" },
       "encode": {
         "update": {
           "description": {
-            "value": "dividers"
+            "value": "divider_borders"
           },
           "stroke": { "value": "white" },
           "strokeWidth": { "value": 8 },
           "strokeCap": { "value": "round" },
-          "ariaRoleDescription": { "value": "geoshape" }
+          "ariaRoleDescription": { "value": "geodivider" }
         }
       },
       "transform": [{ "type": "geoshape", "projection": "source_projection" }]
     },
     {
-      "name": "divider_marks_border",
+      "name": "divider_marks",
       "type": "shape",
       "style": ["geoshape"],
       "from": { "data": "geo_1_dividers" },
@@ -196,7 +235,7 @@
           },
           "stroke": { "value": "black" },
           "strokeWidth": { "value": 1 },
-          "ariaRoleDescription": { "value": "geoshape" }
+          "ariaRoleDescription": { "value": "geodivider" }
         }
       },
       "transform": [{ "type": "geoshape", "projection": "source_projection" }]

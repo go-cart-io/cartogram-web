@@ -27,7 +27,7 @@ const props = defineProps<{
   defaultVersionKey: string
 }>()
 
-const legend = useAreaLegend()
+const areaLegend = useAreaLegend()
 
 const state = reactive({
   versionKey: props.defaultVersionKey,
@@ -68,20 +68,40 @@ async function initContainer(canvasId: string) {
     CARTOGRAM_CONFIG.mapDBKey,
     CARTOGRAM_CONFIG.cartoVersions[state.versionKey].name + '.json'
   )
+
+  let underlyingJsonUrl = null
+  const isContiguous = CARTOGRAM_CONFIG.cartoVersions[state.versionKey].type === 'contiguous'
+  if (window.CARTOGRAM_CONFIG.cartoEqualAreaBg)
+    underlyingJsonUrl = util.getGeojsonURL(
+      store.currentMapName,
+      CARTOGRAM_CONFIG.mapDBKey,
+      isContiguous
+        ? CARTOGRAM_CONFIG.cartoVersions[state.versionKey].name + '.json'
+        : 'Geographic Area.json'
+    )
+
   await visAreaEl.value.initWithURL(
     canvasId,
     csvUrl,
     jsonUrl,
+    underlyingJsonUrl,
     store.currentColorCol,
     CARTOGRAM_CONFIG.cartoColorScheme || 'pastel1',
     CARTOGRAM_CONFIG.choroSpec
   )
 
-  legend.init(
-    CARTOGRAM_CONFIG.cartoVersions[state.versionKey].header,
-    visAreaEl.value.view().data('geo_1'),
-    visAreaEl.value.view().data('source_csv')
-  )
+  if (isContiguous)
+    areaLegend.init(
+      CARTOGRAM_CONFIG.cartoVersions[state.versionKey].header,
+      visAreaEl.value.view().data('geo_1'),
+      visAreaEl.value.view().data('source_csv')
+    )
+  else
+    areaLegend.init(
+      CARTOGRAM_CONFIG.cartoVersions['0'].header,
+      visAreaEl.value.view().data('equal_area_geojson'),
+      visAreaEl.value.view().data('source_csv')
+    )
 }
 
 async function init() {
@@ -89,7 +109,7 @@ async function init() {
   let visView = visAreaEl.value.view()
 
   visView.addResizeListener(function () {
-    legend.updateTotalArea(visView.data('geo_1'))
+    areaLegend.updateTotalArea(visView.data('geo_1'))
     switchGrid(state.currentGridIndex)
   })
 
@@ -119,14 +139,17 @@ async function switchVersion(versionKey: string) {
 
 async function switchGrid(key: number) {
   state.currentGridIndex = key
-  legend.updateGridData()
+  areaLegend.updateGridData()
   await nextTick()
   visAreaEl.value.transform.setGridScaleNiceNumber(
-    legend.stateGridData.value[state.currentGridIndex]?.scaleNiceNumber
+    areaLegend.stateGridData.value[state.currentGridIndex]?.scaleNiceNumber
   )
-  legend.updateLegendValue(state.currentGridIndex, visAreaEl.value.transform.stateAffineScale.value)
-  legendLineEl.value.setHandlePosition(legend.stateGridData.value[key]?.width)
-  animate.gridTransition(props.panelID + '-grid', legend.stateGridData.value[key]?.width)
+  areaLegend.updateLegendValue(
+    state.currentGridIndex,
+    visAreaEl.value.transform.stateAffineScale.value
+  )
+  legendLineEl.value.setHandlePosition(areaLegend.stateGridData.value[key]?.width)
+  animate.gridTransition(props.panelID + '-grid', areaLegend.stateGridData.value[key]?.width)
 }
 </script>
 
@@ -134,21 +157,27 @@ async function switchGrid(key: number) {
   <div class="card w-100">
     <div class="d-flex flex-column card-body">
       <div class="d-flex flex-column card-body p-0">
-        <div class="d-flex position-absolute z-1">
+        <div
+          class="position-absolute z-1"
+          v-bind:class="{
+            'd-flex': CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.type !== 'noncontiguous',
+            'd-none': CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.type === 'noncontiguous'
+          }"
+        >
           <c-panel-legend
             ref="legendLineEl"
             v-bind:panelID="props.panelID"
             v-bind:gridIndex="state.currentGridIndex"
-            v-bind:gridData="legend.stateGridData.value"
+            v-bind:gridData="areaLegend.stateGridData.value"
             v-on:change="switchGrid"
           />
           <div v-bind:id="props.panelID + '-legend-text'" class="flex-fill p-1">
             <div v-bind:id="props.panelID + '-legend-num'">
-              <span v-html="legend.stateValue.value"></span>
+              <span v-html="areaLegend.stateValue.value"></span>
               {{ CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.unit }}
             </div>
             <div v-bind:id="props.panelID + '-legend-total'">
-              Total: <span v-html="legend.stateTotalValue.value"></span>
+              Total: <span v-html="areaLegend.stateTotalValue.value"></span>
             </div>
           </div>
         </div>
@@ -158,7 +187,7 @@ async function switchGrid(key: number) {
           v-bind:panelID="props.panelID"
           v-on:transformChanged="
             (transform) =>
-              legend.updateLegendValue(state.currentGridIndex, transform.stateAffineScale.value)
+              areaLegend.updateLegendValue(state.currentGridIndex, transform.stateAffineScale.value)
           "
         >
           <svg width="100%" height="100%" v-bind:id="props.panelID + '-grid-area'">
@@ -182,7 +211,7 @@ async function switchGrid(key: number) {
       </div>
     </div>
 
-    <div class="card-footer d-flex justify-content-between">
+    <div class="card-footer d-flex justify-content-between gap-2">
       <c-panel-select-version
         v-bind:panelID="props.panelID"
         v-bind:currentVersionName="state.versionKey"

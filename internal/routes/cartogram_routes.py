@@ -98,10 +98,11 @@ def cartogram_by_key(string_key, mode):
         json.loads(cartogram_entry.types) if type(cartogram_entry.types) is str else {}
     )
     carto_versions, choro_versions = format_utils.map_types_to_versions(map_types)
+    carto_equal_area_bg = len(map_types.get("noncontiguous", [])) > 0
     map_spec = {}
     if cartogram_entry.settings:
         map_settings = json.loads(cartogram_entry.settings)
-        map_spec = map_settings["spec"]
+        map_spec = map_settings.get("spec", "")
 
     return render_template(
         template,
@@ -113,6 +114,7 @@ def cartogram_by_key(string_key, mode):
         map_title=cartogram_entry.title,
         map_color_scheme=cartogram_entry.scheme,
         carto_versions=carto_versions,
+        carto_equal_area_bg=carto_equal_area_bg,
         choro_versions=choro_versions,
         map_spec=map_spec,
         mode=mode,

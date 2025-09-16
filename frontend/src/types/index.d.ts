@@ -7,6 +7,7 @@ interface CartogramConfig {
   mapTitle?: string
   mapDBKey?: string
   cartoVersions?: any
+  cartoEqualAreaBg?: boolean
   cartoColorScheme?: string
   choroVersions?: Array<string>
   choroSpec?: any

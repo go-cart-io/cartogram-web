@@ -26,6 +26,7 @@ export async function initWithURL(
   canvasId: string,
   csvUrl: string,
   jsonUrl: string,
+  underlyingJsonUrl: string | null,
   currentColorCol: string,
   cartoColorScheme: string,
   choroSpec: CSettingSpec
@@ -33,6 +34,9 @@ export async function initWithURL(
   const versionSpec = JSON.parse(JSON.stringify(spec)) // copy the template
   versionSpec.data[0].url = csvUrl
   versionSpec.data[1].url = jsonUrl
+
+  if (underlyingJsonUrl) versionSpec.data[5].url = underlyingJsonUrl
+
   return await init(canvasId, versionSpec, currentColorCol, cartoColorScheme, choroSpec)
 }
 

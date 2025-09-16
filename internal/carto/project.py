@@ -3,7 +3,7 @@ import json
 from carto import boundary
 from carto.datacsv import CartoCsv
 from carto.dataframe import CartoDataFrame
-from carto.generators import generator_contiguous
+from carto.generators import generator_contiguous, generator_noncontiguous
 from carto.progress import CartoProgress
 from utils import file_utils
 
@@ -36,9 +36,12 @@ def generate(
 
     # Set up progress reporter
     progress = CartoProgress(cartogram_key)
-    progress.setData(vis_types.get("cartogram", []))
+    progress.setData(
+        vis_types.get("cartogram", []) + vis_types.get("noncontiguous", [])
+    )
 
-    # Generate cartograms
+    # Generate contiguous cartograms
+    # Must do before non-contiguous one since we need final_bbox
     generator_contiguous.generate_all(
         project_path,
         equal_area_file,
@@ -49,6 +52,17 @@ def generate(
         datacsv.data_names,
         final_bbox,
         flags,
+        progress,
+    )
+
+    # Generate non-contiguous cartograms
+    generator_noncontiguous.generate_all(
+        project_path,
+        equal_area_file,
+        datacsv.df,
+        vis_types.get("noncontiguous", []),
+        datacsv.data_names,
+        final_bbox,
         progress,
     )
 

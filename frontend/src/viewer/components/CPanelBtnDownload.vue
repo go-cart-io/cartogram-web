@@ -20,7 +20,8 @@ const version = computed(() => {
 
 const geolink = computed(() => {
   const ext =
-    CARTOGRAM_CONFIG.cartoVersions[props.versionKey].name === 'Geographic Area'
+    CARTOGRAM_CONFIG.cartoVersions[props.versionKey].name === 'Geographic Area' ||
+    CARTOGRAM_CONFIG.cartoVersions[props.versionKey].type === 'noncontiguous'
       ? '.json'
       : '_simplified.json'
   return util.getGeojsonURL(
@@ -44,7 +45,8 @@ function downloadSVG() {
     props.panelID,
     CARTOGRAM_CONFIG.cartoVersions[props.versionKey].name,
     CARTOGRAM_CONFIG.cartoVersions[props.versionKey].unit,
-    store.currentColorCol
+    store.currentColorCol,
+    CARTOGRAM_CONFIG.cartoVersions[props.versionKey].type === 'noncontiguous'
   )
 
   // https://stackoverflow.com/questions/68122097/how-can-i-ensure-text-is-valid-for-an-svg
