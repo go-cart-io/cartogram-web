@@ -3,9 +3,9 @@ import json
 
 import handlers
 import settings
+from carto import parser
 from flask import Blueprint, Response, current_app, render_template, request
 from models import CartogramEntry
-from utils import format_utils
 from views import tracking
 
 cartogram_bp = Blueprint("cartogram", __name__)
@@ -37,8 +37,10 @@ def get_cartogram_by_name(map_name, mode):
         return Response("Not found", status=404)
 
     handler_meta = handlers.get_handler(map_name)
-    carto_versions, choro_versions = format_utils.map_types_to_versions(
-        handler_meta.get("types", {"cartogram": ["Population (people)"]})
+    data_path = f"static/cartdata/{map_name}/data.csv"
+    carto_versions, choro_versions, carto_equal_area_bg = parser.parse_storage(
+        data_path,
+        json.dumps(handler_meta.get("types", {"Population (people)": "contiguous"})),
     )
 
     title = (
@@ -54,6 +56,7 @@ def get_cartogram_by_name(map_name, mode):
         map_title=title,
         map_color_scheme=handler_meta.get("scheme", "pastel1"),
         carto_versions=carto_versions,
+        carto_equal_area_bg=carto_equal_area_bg,
         choro_versions=choro_versions,
         map_spec=handler_meta.get("settings", {}).get("spec", {}),
         mode=mode,
@@ -94,15 +97,15 @@ def cartogram_by_key(string_key, mode):
         except Exception:
             db.session.rollback()
 
-    map_types = (
-        json.loads(cartogram_entry.types) if type(cartogram_entry.types) is str else {}
-    )
-    carto_versions, choro_versions = format_utils.map_types_to_versions(map_types)
-    carto_equal_area_bg = len(map_types.get("noncontiguous", [])) > 0
     map_spec = {}
     if cartogram_entry.settings:
         map_settings = json.loads(cartogram_entry.settings)
-        map_spec = map_settings.get("spec", "")
+        map_spec = map_settings.get("spec", "{}")
+
+    data_path = f"static/userdata/{string_key}/data.csv"
+    carto_versions, choro_versions, carto_equal_area_bg = parser.parse_storage(
+        data_path, cartogram_entry.types
+    )
 
     return render_template(
         template,

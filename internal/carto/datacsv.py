@@ -215,7 +215,7 @@ class CartoCsv:
             )
 
         # Special validation for cartogram visualizations: sum cannot be zero
-        if column in self.vis_types["cartogram"]:
+        if self.vis_types.get(column) == "cartogram":
             column_sum = self.df[column].sum()
             if column_sum == 0:
                 raise CartoError(

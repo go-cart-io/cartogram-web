@@ -1,12 +1,13 @@
 <script setup lang="ts">
+import { reactive } from 'vue'
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
 import vegaSchema from '@/../node_modules/vega/build/vega-schema.json' with { type: 'json' }
 
 import * as cvega from '../lib/vega'
+import * as datatable from '../lib/datatable'
 
 import { useProjectStore } from '../stores/project'
-import { reactive } from 'vue'
 const store = useProjectStore()
 
 const props = defineProps<{
@@ -39,7 +40,7 @@ function switchMode(event: Event) {
       )
     ) {
       store.choroSettings.isAdvanceMode = false
-      store.updateChoroSpec()
+      datatable.updateChoroSpec()
       state.spec = store.choroSettings.spec
       emit('specChanged')
     } else {
@@ -52,7 +53,7 @@ function switchMode(event: Event) {
         'Switching to Advanced Mode will lock editing of data names and types. Are you sure you want to proceed?'
       )
     ) {
-      store.updateChoroSpec()
+      datatable.updateChoroSpec()
       store.choroSettings.isAdvanceMode = true
       state.spec = store.choroSettings.spec
     } else {
@@ -97,7 +98,7 @@ function validScales(specJson: any) {
 
   const scalesArray = (specJson as { scales: unknown }).scales as Array<any>
   const foundScaleNames = new Set<string>()
-  const choroplethNamesSet = new Set(store.visTypes['choropleth'])
+  const choroplethNamesSet = new Set(datatable.getColsByVisType(store.dataTable, 'choropleth'))
 
   // Iterate through each item in the 'scales' array and validate its structure
   for (let i = 0; i < scalesArray.length; i++) {
@@ -157,107 +158,103 @@ function validScales(specJson: any) {
 
   return true
 }
+
+function onChange() {
+  datatable.updateChoroSpec()
+  emit('specChanged')
+}
 </script>
 
 <template>
-  <div
-    v-if="!store.visTypes['choropleth'] || store.visTypes['choropleth'].length <= 0"
-    class="mb-2"
-  >
-    To enable visualization options, select visualization as "Choropleth" for at least one data
-    column.
+  <div class="mb-2 form-check form-switch">
+    <input
+      id="modeSwitch"
+      class="form-check-input"
+      type="checkbox"
+      role="switch"
+      v-bind:checked="store.choroSettings.isAdvanceMode"
+      v-on:change="switchMode"
+    />
+    <label class="form-check-label" for="modeSwitch">Advance Mode</label>
   </div>
-  <div v-else>
-    <div class="mb-2 form-check form-switch">
-      <input
-        id="modeSwitch"
-        class="form-check-input"
-        type="checkbox"
-        role="switch"
-        v-bind:checked="store.choroSettings.isAdvanceMode"
-        v-on:change="switchMode"
-      />
-      <label class="form-check-label" for="modeSwitch">Advance Mode</label>
-    </div>
-    <div v-if="!store.choroSettings.isAdvanceMode">
-      <div class="mb-2">
-        <label for="choroColorSelect">
-          Scale Colors
-          <small>
-            (<a href="//vega.github.io/vega/docs/schemes/" target="_blank">examples</a>)
-          </small>
-        </label>
-        <select
-          id="choroColorSelect"
-          class="form-select"
-          v-model="store.choroSettings.scheme"
-          v-bind:disabled="props.disabled"
-          v-on:change="emit('specChanged')"
-        >
-          <option disabled>Sequential Single-Hue</option>
-          <option v-for="scheme in cvega.sequentialSingleHueSchemes" v-bind:value="scheme">
-            {{ scheme }}
-          </option>
-          <option disabled>----------------</option>
-          <option disabled>Sequential Multi-Hue</option>
-          <option v-for="scheme in cvega.sequentialMultiHueSchemes" v-bind:value="scheme">
-            {{ scheme }}
-          </option>
-          <option disabled>----------------</option>
-          <option disabled>Diverging</option>
-          <option v-for="scheme in cvega.divergingSchemes" v-bind:value="scheme">
-            {{ scheme }}
-          </option>
-        </select>
-      </div>
-      <div class="mb-2">
-        <label for="choroTypeSelect">Scale Type</label>
-        <select
-          id="choroTypeSelect"
-          class="form-select"
-          v-model="store.choroSettings.type"
-          v-bind:disabled="props.disabled"
-          v-on:change="emit('specChanged')"
-        >
-          <option v-for="type in cvega.scaleTypeDiscretizing" v-bind:value="type">
-            {{ type }}
-          </option>
-        </select>
-      </div>
-      <div class="mb-2" v-if="cvega.scaleTypeDiscretizing.includes(store.choroSettings.type)">
-        <label for="choroStepInput">Steps</label>
-        <input
-          id="choroStepInput"
-          class="form-control"
-          type="number"
-          min="1"
-          step="1"
-          v-model="store.choroSettings.step"
-          v-bind:disabled="props.disabled"
-          v-on:change="
-            () => {
-              store.choroSettings.step = Math.abs(Math.round(store.choroSettings.step))
-              emit('specChanged')
-            }
-          "
-        />
-      </div>
-    </div>
-    <div v-else class="mb-2">
-      <label for="choroTextarea" class="form-label">
-        Define scale for each choropleth data column using
-        <a href="https://vega.github.io/vega/docs/scales/" target="_blank">vega specification</a>.
-        Futhermore, you may modify the legend title of each data column.
+  <div v-if="!store.choroSettings.isAdvanceMode">
+    <div class="mb-2">
+      <label for="choroColorSelect">
+        Scale Colors
+        <small>
+          (<a href="//vega.github.io/vega/docs/schemes/" target="_blank">examples</a>)
+        </small>
       </label>
-      <textarea
-        id="choroTextarea"
-        class="form-control"
-        rows="3"
-        v-model="state.spec"
-        v-bind:class="{ 'is-invalid': state.error }"
-        v-on:change="applySpec()"
-      ></textarea>
-      <div class="d-block invalid-feedback">{{ state.error }}</div>
+      <select
+        id="choroColorSelect"
+        class="form-select"
+        v-model="store.choroSettings.scheme"
+        v-bind:disabled="props.disabled"
+        v-on:change="onChange()"
+      >
+        <option disabled>Sequential Single-Hue</option>
+        <option v-for="scheme in cvega.sequentialSingleHueSchemes" v-bind:value="scheme">
+          {{ scheme }}
+        </option>
+        <option disabled>----------------</option>
+        <option disabled>Sequential Multi-Hue</option>
+        <option v-for="scheme in cvega.sequentialMultiHueSchemes" v-bind:value="scheme">
+          {{ scheme }}
+        </option>
+        <option disabled>----------------</option>
+        <option disabled>Diverging</option>
+        <option v-for="scheme in cvega.divergingSchemes" v-bind:value="scheme">
+          {{ scheme }}
+        </option>
+      </select>
     </div>
+    <div class="mb-2">
+      <label for="choroTypeSelect">Scale Type</label>
+      <select
+        id="choroTypeSelect"
+        class="form-select"
+        v-model="store.choroSettings.type"
+        v-bind:disabled="props.disabled"
+        v-on:change="onChange()"
+      >
+        <option v-for="type in cvega.scaleTypeDiscretizing" v-bind:value="type">
+          {{ type }}
+        </option>
+      </select>
+    </div>
+    <div class="mb-2" v-if="cvega.scaleTypeDiscretizing.includes(store.choroSettings.type)">
+      <label for="choroStepInput">Steps</label>
+      <input
+        id="choroStepInput"
+        class="form-control"
+        type="number"
+        min="1"
+        step="1"
+        v-model="store.choroSettings.step"
+        v-bind:disabled="props.disabled"
+        v-on:change="
+          () => {
+            store.choroSettings.step = Math.abs(Math.round(store.choroSettings.step))
+            onChange()
+          }
+        "
+      />
+    </div>
+  </div>
+  <div v-else class="mb-2">
+    <label for="choroTextarea" class="form-label">
+      Define scale for each choropleth data column using
+      <a href="https://vega.github.io/vega/docs/scales/" target="_blank">vega specification</a>.
+      Futhermore, you may modify the legend title of each data column.
+    </label>
+    <textarea
+      id="choroTextarea"
+      class="form-control"
+      rows="3"
+      v-model="state.spec"
+      v-bind:class="{ 'is-invalid': state.error }"
+      v-on:change="applySpec()"
+    ></textarea>
+    <div class="d-block invalid-feedback">{{ state.error }}</div>
   </div>
 </template>

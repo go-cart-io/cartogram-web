@@ -3,13 +3,14 @@ import { computed, toRaw } from 'vue'
 
 import * as config from '@/common/lib/config'
 import * as util from '../lib/util'
+import * as datatable from '../lib/datatable'
 
 import { useProjectStore } from '../stores/project'
 const store = useProjectStore()
 
 const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
 
-const emit = defineEmits(['labelChanged', 'valueChanged'])
+const emit = defineEmits(['colorFieldsChanged', 'labelChanged', 'valueChanged'])
 
 // Sample from uploaded data that cannot be matched with the map
 const sampleRegionDataKey = computed<string[]>(() => {
@@ -60,16 +61,14 @@ function removeColumn(index: number) {
   )
     return
 
-  const visType = store.dataTable.fields[index].vis
-  if (visType) {
-    store.visTypes[visType] = store.visTypes[visType].filter(
-      (item) => item !== store.dataTable.fields[index].label
-    )
-  }
+  if (store.dataTable.fields[index].vis === 'choropleth') emit('colorFieldsChanged')
 
-  const key = store.dataTable.fields[index].label
+  store.dataTable.items = util.deleteKeysInArray(
+    store.dataTable.items,
+    store.dataTable.fields[index].label
+  )
+
   store.dataTable.fields.splice(index, 1)
-  store.dataTable.items = util.deleteKeysInArray(store.dataTable.items, key)
 
   emit('labelChanged')
 }
@@ -80,35 +79,28 @@ function updateVisType(index: number, event: Event) {
   const newType = selectElement.value
   if (oldType === newType) return
 
-  if (!store.visTypes[newType]) store.visTypes[newType] = []
-
   // Check limitation
-  if (
-    newType === 'cartogram' &&
-    CARTOGRAM_CONFIG.maxCartogram &&
-    !isNaN(CARTOGRAM_CONFIG.maxCartogram) &&
-    store.visTypes['cartogram'].length >= CARTOGRAM_CONFIG.maxCartogram
-  ) {
-    selectElement.value = ''
-    store.dataTable.fields[index].vis = ''
-    alert(
-      'Limit of ' +
-        CARTOGRAM_CONFIG.maxCartogram +
-        ' cartograms per data set. For unlimited use, consider running Go-Cart locally with Docker (see https://guides.go-cart.io/#/tutorials/local).'
-    )
-    return
+  if (newType === 'cartogram') {
+    let cartogramFields = datatable.getColsByVisType(store.dataTable, 'cartogram')
+    if (
+      CARTOGRAM_CONFIG.maxCartogram &&
+      !isNaN(CARTOGRAM_CONFIG.maxCartogram) &&
+      cartogramFields.length >= CARTOGRAM_CONFIG.maxCartogram
+    ) {
+      selectElement.value = ''
+      store.dataTable.fields[index].vis = ''
+      alert(
+        'Limit of ' +
+          CARTOGRAM_CONFIG.maxCartogram +
+          ' cartograms per data set. For unlimited use, consider running Go-Cart locally with Docker (see https://guides.go-cart.io/#/tutorials/local).'
+      )
+      return
+    }
   }
 
-  if (oldType)
-    // Remove from existing list
-    store.visTypes[oldType] = store.visTypes[oldType].filter(
-      (item) => item !== store.dataTable.fields[index].label
-    )
-
-  // Update the list and data table
-  store.visTypes[newType].push(store.dataTable.fields[index].label)
-  store.visTypes[newType].sort()
+  // Update data table and preview
   store.dataTable.fields[index].vis = newType
+  if (oldType === 'choropleth' || newType === 'choropleth') emit('colorFieldsChanged')
 }
 
 function updateLabel(index: number, event: Event) {
@@ -125,9 +117,7 @@ function updateLabel(index: number, event: Event) {
   store.dataTable.items = util.renameKeyInArray(toRaw(store.dataTable.items), oldLabel, newLabel)
 
   // Update label in vis type
-  const visTpe = store.dataTable.fields[index].vis
-  if (visTpe)
-    store.visTypes[visTpe] = store.visTypes[visTpe].map((item) => item.replace(oldLabel, newLabel))
+  if (store.dataTable.fields[index].vis === 'choropleth') emit('colorFieldsChanged')
 
   // Update color column
   if (store.currentColorCol === oldLabel) store.currentColorCol = newLabel
@@ -177,10 +167,10 @@ function validateInput(event: Event) {
               v-on:change="updateVisType(index, $event)"
             >
               <option value="" selected disabled>Select visualization</option>
-              <option value="None">None</option>
+              <option value="none">None</option>
               <option disabled>----------------</option>
               <option disabled>Area: Cartogram</option>
-              <option value="cartogram">&nbsp;&nbsp;Contiguous</option>
+              <option value="contiguous">&nbsp;&nbsp;Contiguous</option>
               <option value="noncontiguous">&nbsp;&nbsp;Non-Contiguous</option>
               <option disabled>----------------</option>
               <option value="choropleth">Color: Choropleth</option>

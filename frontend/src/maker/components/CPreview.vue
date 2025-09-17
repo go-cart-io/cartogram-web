@@ -6,6 +6,8 @@ import * as config from '@/common/lib/config'
 import CColorLegend from '@/common/components/CColorLegend.vue'
 import CVisualizationArea from '@/common/components/CVisualizationArea.vue'
 
+import * as datatable from '../lib/datatable'
+
 import { useProjectStore } from '../stores/project'
 const store = useProjectStore()
 
@@ -15,13 +17,15 @@ const colorLegendEl = ref()
 const visAreaEl = ref()
 
 const state = reactive({
-  isInit: false
+  isInit: false,
+  colorFields: [] as string[]
 })
 
 defineExpose({
   reset,
   refresh,
   init,
+  updateColorFields,
   updateData,
   setDataItem,
   resolveRegionIssues
@@ -55,7 +59,6 @@ function refresh() {
 
 async function init(geojsonData: FeatureCollection, geojsonRegionCol: string) {
   reset()
-  store.updateChoroSpec()
   currentGeojsonData = geojsonData
   currentGeojsonRegionCol = geojsonRegionCol
 
@@ -78,8 +81,19 @@ async function init(geojsonData: FeatureCollection, geojsonRegionCol: string) {
   state.isInit = true
 }
 
+function updateColorFields(needRefresh = true) {
+  state.colorFields = datatable.getColsByVisType(store.dataTable, 'choropleth')
+  datatable.updateChoroSpec()
+
+  if (!state.colorFields.includes(store.currentColorCol)) {
+    store.currentColorCol = 'Region'
+    if (needRefresh) refresh()
+  }
+}
+
 async function updateData() {
   await nextTick() // Ensure that dataTable is updated
+  updateColorFields(false)
   refresh()
 }
 
@@ -181,7 +195,7 @@ function renameRegion(rIndex: number, action: string) {
     <div class="flex-grow-1">
       <c-color-legend
         ref="colorLegendEl"
-        v-bind:colorFields="store.visTypes['choropleth']"
+        v-bind:colorFields="state.colorFields"
         v-bind:currentColorCol="store.currentColorCol"
         v-on:change="
           (col: string) => {

@@ -1,11 +1,3 @@
-"""
-Project Data Parser Module
-
-This module provides functions to parse and validate project data from user input.
-It handles the extraction and validation of project components including handlers, keys,
-visualization types, and CSV data, with appropriate error handling and data cleaning.
-"""
-
 import json
 from io import StringIO
 
@@ -41,11 +33,10 @@ def parse_project(data: dict) -> tuple[str, str, dict, str, str | None]:
     """
     handler_name = parse_handler(data)
     string_key = parse_key(data)
-    vis_types = parse_vis_types(data)
-    datacsv = data["csv"] if "csv" in data else format_utils.get_csv(data)
 
+    datacsv = data["csv"] if "csv" in data else format_utils.get_csv(data)
     df = pd.read_csv(StringIO(datacsv))
-    cleaned_vis_types = format_utils.clean_map_types(vis_types, df.columns)
+    vis_types = parse_vis_types(data, df)
 
     # If regions are edited, handler should be custom
     edit_from = data.get("editedFrom", None)
@@ -57,7 +48,7 @@ def parse_project(data: dict) -> tuple[str, str, dict, str, str | None]:
         edit_from = handlers.get_gen_file(handler_name)
         handler_name = "custom"
 
-    return handler_name, string_key, cleaned_vis_types, datacsv, edit_from
+    return handler_name, string_key, vis_types, datacsv, edit_from
 
 
 def parse_handler(data: dict) -> str:
@@ -117,7 +108,7 @@ def parse_key(data: dict, required=True, must_unique=True) -> str:
     return string_key
 
 
-def parse_vis_types(data: dict) -> dict:
+def parse_vis_types(data: dict, df: pd.DataFrame) -> dict[str, str]:
     """
     Parse and validate visualization type specifications from project data.
 
@@ -127,6 +118,7 @@ def parse_vis_types(data: dict) -> dict:
 
     Args:
         data (dict): Project data containing visTypes as JSON string
+        df (pd.DataFrame): Dataframe of csv
 
     Returns:
         dict: Parsed visualization types mapping columns to visualization methods
@@ -140,17 +132,102 @@ def parse_vis_types(data: dict) -> dict:
     except Exception:
         raise CartoError("Invalid visualization specification.")
 
-    for key in vis_types:
-        for header in vis_types[key]:
-            file_utils.validate_filename(header)
+    count = 0
+    for col_name, col_type in vis_types.items():
+        file_utils.validate_filename(col_name)
 
-        if (
-            "cartogram" in vis_types
-            and settings.CARTOGRAM_COUNT_LIMIT
-            and len(vis_types["cartogram"]) >= settings.CARTOGRAM_COUNT_LIMIT
-        ):
+        if col_type == "cartogram":
+            count = count + 1
+
+        if settings.CARTOGRAM_COUNT_LIMIT and count > settings.CARTOGRAM_COUNT_LIMIT:
             raise CartoError(
                 f"Limit of {settings.CARTOGRAM_COUNT_LIMIT} cartograms per data set."
             )
 
+        if col_name not in df.columns:
+            raise CartoError(
+                f"{col_name} does not exist in the data", suggest_refresh=True
+            )
+
     return vis_types
+
+
+def parse_storage(data_path: str, types_str: str):
+    """
+    Parse storage data to create visualization configurations for the frontend viewer.
+
+    Args:
+        data_path (str): Path to the CSV data file
+        types_str (str): JSON string containing visualization type mappings for each column
+
+    Returns:
+        tuple: (carto_versions, choro_versions, carto_equal_area_bg)
+            - carto_versions (dict): List of columns and infomation for cartograms
+            - choro_versions (list): List of columns for choropleth maps
+            - carto_equal_area_bg (bool): Whether to use equal area background for cartographic display
+    """
+    # Parse the JSON string to get visualization types for each column
+    vis_types = json.loads(types_str)
+
+    # Load the CSV data using a safe path utility
+    df = pd.read_csv(file_utils.get_safepath(data_path))
+
+    # Initialize flag for equal area background (used for noncontiguous visualizations)
+    carto_equal_area_bg = False
+
+    # Initialize cartogram versions dictionary with geographic area entry
+    carto_versions = {}
+    carto_versions["0"] = {
+        "key": "0",
+        "header": "Geographic Area (sq. km)",
+        "name": "Geographic Area",
+        "unit": "sq. km",
+    }
+
+    # Offset counter for cartogram versions (starts at 1 since "0" is reserved)
+    offset = 1
+
+    # Initialize list to store columns suitable for choropleth mapping
+    choro_versions = []
+
+    # Iterate through all columns in the dataframe
+    for col in df.columns:
+        # Skip columns that are metadata or have no visualization type assigned
+        if (
+            col
+            in [
+                "Region",
+                "RegionLabel",
+                "Color",
+                "ColorGroup",
+                "Inset",
+            ]
+            or col.startswith("Geographic Area")  # Skip geographic area columns
+            or vis_types.get(col, "none") == "none"  # Skip columns with no vis type
+        ):
+            continue
+
+        # If column is designated for choropleth visualization, add to choropleth list
+        if vis_types[col] == "choropleth":
+            choro_versions.append(col)
+        else:
+            # Create cartographic version entry with metadata
+            info = format_utils.label_to_name_unit(col)
+
+            carto_versions[str(offset)] = {
+                "key": str(offset),
+                "header": info["header"],
+                "name": info["name"],
+                "unit": info["unit"],
+                "type": vis_types[col],
+            }
+
+        # Set equal area background flag if any column uses noncontiguous visualization
+        carto_equal_area_bg = (
+            True if vis_types[col] == "noncontiguous" else carto_equal_area_bg
+        )
+
+        # Increment offset for next cartogram version key
+        offset = offset + 1
+
+    return carto_versions, choro_versions, carto_equal_area_bg

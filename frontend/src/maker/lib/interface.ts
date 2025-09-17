@@ -1,7 +1,5 @@
 import type { StringObject } from '@/common/lib/interface'
 
-export type VisualizationTypes = { [key: string]: Array<string> }
-
 export type KeyValueArray = Array<{ [key: string]: any }>
 
 export type DataTable = {

@@ -2679,8 +2679,9 @@ cartogram_handlers = {
         "name": "United States",
         "regions": None,
         "types": {
-            "cartogram": ["Population (people)"],
-            "choropleth": ["Population Density (per sq. km)"],
+            "[Contiguous] Population (people)": "contiguous",
+            "[Noncontiguous] Population (people)": "noncontiguous",
+            "Population Density (per sq. km)": "choropleth",
         },
         "settings": {
             "isAdvanceMode": False,

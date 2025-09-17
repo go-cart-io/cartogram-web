@@ -6,7 +6,7 @@ import * as config from '@/common/lib/config'
 import * as util from '../lib/util'
 
 import { useProjectStore } from '../stores/project'
-import type { KeyValueArray, DataTable, VisualizationTypes } from './interface'
+import type { KeyValueArray, DataTable } from './interface'
 
 export function reset() {
   const store = useProjectStore()
@@ -86,32 +86,6 @@ export async function initDataTableWGeojson(
   }
 }
 
-function _getVisTypeForColumn(visTypes: VisualizationTypes, columnName: string): string {
-  for (const visType in visTypes) {
-    if (Object.prototype.hasOwnProperty.call(visTypes, visType)) {
-      const columns = visTypes[visType]
-      if (columns.includes(columnName)) {
-        return visType
-      }
-    }
-  }
-  return ''
-}
-
-function _filterVisTypesByHeaders(
-  visTypes: VisualizationTypes,
-  datatable: DataTable
-): VisualizationTypes {
-  const headerLabels = new Set(datatable.fields.map((header) => header.label))
-
-  return Object.fromEntries(
-    Object.entries(visTypes).map(([visType, labels]) => [
-      visType,
-      labels.filter((label) => headerLabels.has(label))
-    ])
-  )
-}
-
 export function initDataTableWArray(data: KeyValueArray, isReplace = true) {
   const store = useProjectStore()
   data = util.filterKeyValueInArray(data, config.RESERVE_FIELDS)
@@ -146,7 +120,7 @@ export function initDataTableWArray(data: KeyValueArray, isReplace = true) {
         name: fieldname,
         unit: unit,
         type: 'number',
-        vis: _getVisTypeForColumn(store.visTypes, keys[i]),
+        vis: '',
         editable: true,
         editableHead: true,
         show: true
@@ -161,6 +135,9 @@ export function updateDataTable(csvData: KeyValueArray) {
     return
   }
   const store = useProjectStore()
+
+  // Save visType of each column
+  const visTypes = getVisTypes(store.dataTable)
 
   const areaKey = Object.keys(csvData[0]).find((key) => key.startsWith('Geographic Area'))
   if (areaKey) {
@@ -181,11 +158,58 @@ export function updateDataTable(csvData: KeyValueArray) {
   store.dataTable.fields[config.COL_INSET].show = csvData[0].hasOwnProperty('Inset')
   initDataTableWArray(csvData, false)
 
-  // Remove obsolete column names in visTypes
-  store.visTypes = _filterVisTypesByHeaders(store.visTypes, store.dataTable)
+  // Restore visType of each column
+  store.dataTable.fields = assignVisTypes(store.dataTable, visTypes)
 
   store.cartoColorScheme = store.dataTable.fields[config.COL_COLOR].show
     ? 'custom'
     : store.cartoColorScheme
   store.useInset = store.dataTable.fields[config.COL_INSET].show
+}
+
+export function assignVisTypes(dataTable: DataTable, types: Record<string, string>) {
+  return dataTable.fields.map((item) => ({
+    ...item,
+    vis: types[item.label] ?? item.vis // keep old vis if not in map
+  }))
+}
+
+// Get the mapping of column name and visualization type {'column_name': 'visualization_type'}
+export function getVisTypes(dataTable: DataTable): Record<string, string> {
+  return dataTable.fields.reduce<Record<string, string>>((acc, item) => {
+    if (item.vis && item.vis !== 'none') {
+      acc[item.label] = item.vis
+    }
+    return acc
+  }, {})
+}
+
+// Get the column names with specified visualization type
+export function getColsByVisType(dataTable: DataTable, type: string): string[] {
+  return dataTable.fields.filter((item) => item.vis === type).map((item) => item.label)
+}
+
+export function updateChoroSpec(): void {
+  const store = useProjectStore()
+
+  // Do not override spec if the user is in advance mode
+  if (store.choroSettings.isAdvanceMode) return
+
+  let cols = getColsByVisType(store.dataTable, 'choropleth')
+  let jsonObj = { scales: [] as Array<any>, legend_titles: {} as { [key: string]: string } }
+  for (let i = 0; i < cols.length; i++) {
+    jsonObj.scales.push({
+      name: cols[i],
+      type: store.choroSettings.type,
+      domain: { data: 'source_csv', field: cols[i] },
+      range: { scheme: store.choroSettings.scheme, count: store.choroSettings.step }
+    })
+
+    jsonObj.legend_titles[cols[i]] = util.getNameUnitScale(
+      cols[i],
+      store.choroSettings.type,
+      store.choroSettings.step
+    )
+  }
+  store.choroSettings.spec = JSON.stringify(jsonObj, null, 2)
 }

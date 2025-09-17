@@ -63,7 +63,7 @@ def migrate_types():
             return
 
         for string_key in string_keys:
-            versions = []
+            vis_types = {}
             data_dir = os.path.join(base_userdata_dir, string_key)
             data_file = os.path.join(data_dir, "data.csv")
 
@@ -90,9 +90,9 @@ def migrate_types():
                         "ColorGroup",
                         "Inset",
                     ] and not column.startswith("Geographic Area"):
-                        versions.append(column)
+                        vis_types[column] = "contiguous"
 
-                types_str = json.dumps({"cartogram": versions})
+                types_str = json.dumps(vis_types)
                 session.execute(
                     sa.text(
                         "UPDATE cartogram_entry SET types = :types_str WHERE string_key = :string_key"

@@ -70,12 +70,11 @@ async function initContainer(canvasId: string) {
   )
 
   let underlyingJsonUrl = null
-  const isContiguous = CARTOGRAM_CONFIG.cartoVersions[state.versionKey].type === 'contiguous'
   if (window.CARTOGRAM_CONFIG.cartoEqualAreaBg)
     underlyingJsonUrl = util.getGeojsonURL(
       store.currentMapName,
       CARTOGRAM_CONFIG.mapDBKey,
-      isContiguous
+      CARTOGRAM_CONFIG.cartoVersions[state.versionKey].type === 'contiguous'
         ? CARTOGRAM_CONFIG.cartoVersions[state.versionKey].name + '.json'
         : 'Geographic Area.json'
     )
@@ -90,16 +89,16 @@ async function initContainer(canvasId: string) {
     CARTOGRAM_CONFIG.choroSpec
   )
 
-  if (isContiguous)
+  if (CARTOGRAM_CONFIG.cartoVersions[state.versionKey].type === 'noncontiguous')
     areaLegend.init(
-      CARTOGRAM_CONFIG.cartoVersions[state.versionKey].header,
-      visAreaEl.value.view().data('geo_1'),
+      CARTOGRAM_CONFIG.cartoVersions['0'].header,
+      visAreaEl.value.view().data('equal_area_geojson'),
       visAreaEl.value.view().data('source_csv')
     )
   else
     areaLegend.init(
-      CARTOGRAM_CONFIG.cartoVersions['0'].header,
-      visAreaEl.value.view().data('equal_area_geojson'),
+      CARTOGRAM_CONFIG.cartoVersions[state.versionKey].header,
+      visAreaEl.value.view().data('geo_1'),
       visAreaEl.value.view().data('source_csv')
     )
 }

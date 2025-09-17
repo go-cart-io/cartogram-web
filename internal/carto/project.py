@@ -1,4 +1,5 @@
 import json
+import os
 
 from carto import boundary
 from carto.datacsv import CartoCsv
@@ -36,41 +37,53 @@ def generate(
 
     # Set up progress reporter
     progress = CartoProgress(cartogram_key)
-    progress.setData(
-        vis_types.get("cartogram", []) + vis_types.get("noncontiguous", [])
-    )
+    progress.setData(datacsv.data_cols)
 
-    # Generate contiguous cartograms
-    # Must do before non-contiguous one since we need final_bbox
-    generator_contiguous.generate_all(
-        project_path,
-        equal_area_file,
-        equal_area_json.geoms_info["area"],
-        equal_area_json.geoms_info["centroid"],
-        area_data_path,
-        vis_types.get("cartogram", []),
-        datacsv.data_names,
-        final_bbox,
-        flags,
-        progress,
-    )
+    # Prepare data for noncontiguous
+    # Merge the geographic data with the statistical data on the "Region" column
+    # Uses left join to preserve all geographic regions even if no data exists
+    equal_area_cdf = CartoDataFrame.read_file(equal_area_file)
+    merged_cdf = equal_area_cdf.merge(datacsv.df, on="Region", how="left")
 
-    # Generate non-contiguous cartograms
-    generator_noncontiguous.generate_all(
-        project_path,
-        equal_area_file,
-        datacsv.df,
-        vis_types.get("noncontiguous", []),
-        datacsv.data_names,
-        final_bbox,
-        progress,
-    )
+    for data_col in datacsv.data_cols:
+        progress.start(data_col)
+
+        if vis_types.get(data_col) == "contiguous":
+            # Generate contiguous cartograms
+            final_bbox = generator_contiguous.generate(
+                project_path,
+                equal_area_file,
+                equal_area_json.geoms_info.get("area", 1),
+                equal_area_json.geoms_info.get("centroid", {"x": 0, "y": 0}),
+                area_data_path,
+                data_col,
+                datacsv.data_names.get(data_col, "Data"),
+                final_bbox,
+                flags,
+                progress,
+            )
+        elif vis_types.get(data_col) == "noncontiguous":
+            # Generate non-contiguous cartograms
+            generator_noncontiguous.generate(
+                project_path,
+                equal_area_cdf,
+                merged_cdf,
+                data_col,
+                datacsv.data_names.get(data_col, "Data"),
+                final_bbox,
+            )
+
+        progress.set(1, "", data_col, 1)
 
     # Update bbox so all visualized geojson have the same bounding box
-    for data_col in ["Geographic Area"] + vis_types.get("cartogram", []):
+    for data_col in ["Geographic Area"] + datacsv.data_cols:
         file_path = file_utils.get_safepath(
-            project_path, f"{datacsv.data_names[data_col]}.json"
+            project_path, f"{datacsv.data_names.get(data_col, 'Data')}.json"
         )
+
+        if not os.path.exists(file_path):
+            continue
+
         with open(file_path, "r") as f:
             geo_json = json.load(f)
         geo_json["bbox"] = final_bbox

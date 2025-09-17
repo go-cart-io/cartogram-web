@@ -18,7 +18,6 @@ import CPreview from './CPreview.vue'
 import CDataTable from './CDataTable.vue'
 
 import { useProjectStore } from '../stores/project'
-import type { VisualizationTypes } from '../lib/interface'
 const store = useProjectStore()
 
 const mapDBKey = util.generateShareKey(32)
@@ -30,7 +29,7 @@ const props = defineProps<{
   mapTitle?: string
   geoUrl?: string
   csvUrl?: string
-  mapTypes?: VisualizationTypes
+  mapTypes?: Record<string, string>
   cartoColorScheme?: string
   choroSettings?: any
 }>()
@@ -51,7 +50,6 @@ onMounted(() => {
   if (!props.mapName || !props.geoUrl || !props.csvUrl) return
 
   store.title = props.mapTitle ? props.mapTitle : ''
-  store.visTypes = props.mapTypes ? props.mapTypes : { cartogram: [], choropleth: [] }
   store.cartoColorScheme = props.cartoColorScheme ? props.cartoColorScheme : 'pastel1'
   if (props.choroSettings) store.choroSettings = { ...store.choroSettings, ...props.choroSettings }
 
@@ -59,6 +57,10 @@ onMounted(() => {
   HTTP.get(projectedUrl).then(async function (response: any) {
     await datatable.initDataTableWGeojson(response, 'Region', props.csvUrl)
     onGeoJsonChanged(props.mapName!, response, 'Region', true)
+    if (props.mapTypes) {
+      store.dataTable.fields = datatable.assignVisTypes(store.dataTable, props.mapTypes)
+      previewEl.value.updateColorFields(false)
+    }
   })
 })
 
@@ -125,8 +127,7 @@ async function getGeneratedCartogram() {
   store.dataTable.fields[config.COL_REGIONMAP].show = false
   store.dataTable.fields[config.COL_AREA].show = false
 
-  // Update and prepare vega settings
-  store.updateChoroSpec()
+  // Prepare vega settings
   let settings = JSON.parse(JSON.stringify(store.choroSettings))
   settings.spec = JSON.parse(settings.spec)
 
@@ -137,7 +138,7 @@ async function getGeneratedCartogram() {
       handler: state.handler,
       csv: csvData,
       geojsonRegionCol: state.geojsonRegionCol,
-      visTypes: JSON.stringify(store.visTypes),
+      visTypes: JSON.stringify(datatable.getVisTypes(store.dataTable)),
       settings: settings,
       mapDBKey: mapDBKey,
       persist: true,
@@ -348,6 +349,7 @@ async function getGeneratedCartogram() {
 
       <c-data-table
         v-if="state.isInitialized && store.dataTable.items.length > 0"
+        v-on:colorFieldsChanged="previewEl.updateColorFields()"
         v-on:labelChanged="previewEl.updateData()"
         v-on:valueChanged="(row, col, value) => previewEl.setDataItem(row, col, value)"
       />
