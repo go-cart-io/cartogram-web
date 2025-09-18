@@ -214,12 +214,20 @@ class CartoCsv:
                 f"Cannot process {column}: All rows are empty. Please enter some numeric values or remove the column."
             )
 
-        # Special validation for cartogram visualizations: sum cannot be zero
-        if self.vis_types.get(column) == "cartogram":
+        # Special validation for cartogram visualizations
+        if (
+            self.vis_types.get(column) == "contiguous"
+            or self.vis_types.get(column) == "noncontiguous"
+        ):
             column_sum = self.df[column].sum()
             if column_sum == 0:
                 raise CartoError(
                     f"Cannot process {column}: Sum is zero. Please ensure the sum of data is not zero."
+                )
+
+            if (self.df[column] < 0).any():
+                raise CartoError(
+                    f"{column} contains negative values. Cartogram data must be zero or positive."
                 )
 
         return name
