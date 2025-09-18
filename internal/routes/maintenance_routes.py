@@ -36,7 +36,13 @@ def cleanup():
             db.session.rollback()
 
     # Delete files in folder tmp that the created date is older than 1 days
-    for file in os.listdir("tmp"):
+    num_files = 0
+    num_folders = 0
+    tmp_folder_list = os.listdir(file_utils.get_safepath("tmp"))
+    for file in tmp_folder_list:
+        if file == ".gitignore":
+            continue
+
         file_path = file_utils.get_safepath("tmp", file)
         days_ago = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=1)
         try:
@@ -44,15 +50,15 @@ def cleanup():
             if mod_time < days_ago.timestamp():
                 if os.path.isfile(file_path):
                     os.unlink(file_path)
+                    num_files = num_files + 1
                 else:
                     shutil.rmtree(file_path)
+                    num_folders = num_folders + 1
 
         except Exception as e:
             print(e)
 
-    return "{} ({} records)".format(
-        year_ago.strftime("%d %B %Y - %H:%M:%S"), num_records
-    )
+    return f"Removed records older than {year_ago.strftime('%d %B %Y - %H:%M:%S')} ({num_records} records). Removed {num_files} files and {num_folders} folders that are older than 1 day."
 
 
 @maintenance_bp.route(
