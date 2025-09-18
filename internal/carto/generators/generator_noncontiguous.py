@@ -34,10 +34,10 @@ def generate(
 
     # Compute mean spatial density
     area_col = "Geographic Area (sq. km)"
+    dens_col = "Calculated Density"
     if "Geographic Area (sq. km)" not in merged_cdf.columns:
         area_col = "Calculated Area"
         merged_cdf[area_col] = round(merged_cdf.area / 10**6)
-
     merged_cdf[area_col] = pd.to_numeric(merged_cdf[area_col], errors="coerce")
     merged_cdf[data_col] = pd.to_numeric(merged_cdf[data_col], errors="coerce")
     observed = merged_cdf.copy().dropna(subset=[data_col])
@@ -50,8 +50,9 @@ def generate(
 
     # Calculate scaling factors
     # Values are normalized to 0-1 range based on the maximum value
-    max = merged_cdf[data_col].max()
-    scale_values = np.sqrt(merged_cdf[data_col].values / max)
+    merged_cdf[dens_col] = merged_cdf[data_col] / merged_cdf[area_col]
+    max = merged_cdf[dens_col].max()
+    scale_values = np.sqrt(merged_cdf[dens_col].values / max)
     scale_values = scale_values * scale_factor
 
     scaled_geoms = []
