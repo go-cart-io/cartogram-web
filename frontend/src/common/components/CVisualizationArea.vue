@@ -125,10 +125,8 @@ function switchMode() {
         }
       "
     >
-      <div style="mix-blend-mode: multiply">
-        <div v-bind:id="props.panelID + '-vis'" class="vis-area w-100 h-100"></div>
-        <div v-bind:id="props.panelID + '-offscreen'" class="vis-area offscreen w-100 h-100"></div>
-      </div>
+      <div v-bind:id="props.panelID + '-vis'" class="vis-area w-100 h-100"></div>
+      <div v-bind:id="props.panelID + '-offscreen'" class="vis-area offscreen w-100 h-100"></div>
       <slot></slot>
     </div>
 
@@ -156,6 +154,7 @@ function switchMode() {
   position: absolute !important;
   min-height: 100px;
   user-select: none;
+  mix-blend-mode: multiply;
 }
 
 .vis-area.offscreen {

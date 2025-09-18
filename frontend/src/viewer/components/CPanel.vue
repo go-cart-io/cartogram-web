@@ -220,12 +220,3 @@ async function switchGrid(key: number) {
     </div>
   </div>
 </template>
-
-<style>
-path {
-  mix-blend-mode: multiply;
-}
-path[aria-label='dividers'] {
-  mix-blend-mode: normal;
-}
-</style>

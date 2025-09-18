@@ -206,24 +206,6 @@
       "transform": [{ "type": "geoshape", "projection": "source_projection" }]
     },
     {
-      "name": "divider_mark_borders",
-      "type": "shape",
-      "style": ["geoshape"],
-      "from": { "data": "geo_1_dividers" },
-      "encode": {
-        "update": {
-          "description": {
-            "value": "divider_borders"
-          },
-          "stroke": { "value": "white" },
-          "strokeWidth": { "value": 8 },
-          "strokeCap": { "value": "round" },
-          "ariaRoleDescription": { "value": "geodivider" }
-        }
-      },
-      "transform": [{ "type": "geoshape", "projection": "source_projection" }]
-    },
-    {
       "name": "divider_marks",
       "type": "shape",
       "style": ["geoshape"],
