@@ -1,301 +1,222 @@
 <script setup lang="ts">
 /**
- * The map panel with functions for interactivity to manipulate viewport.
+ * The map panel with functions for interactivity to manipulate viewport and managing grid size.
  */
+import { onMounted, nextTick, reactive, watch, ref } from 'vue'
 
-import * as d3 from 'd3'
-import { ref, reactive } from 'vue'
+import CVisualizationArea from '@/common/components/CVisualizationArea.vue'
 
-import TouchInfo from '../lib/touchInfo'
+import * as animate from '../lib/animate'
 import * as util from '../lib/util'
-import CTouchVis from './CTouchVis.vue'
+import { useAreaLegend } from '../composables/useAreaLegend'
+
 import CPanelLegend from './CPanelLegend.vue'
 import CPanelSelectVersion from './CPanelSelectVersion.vue'
 import CPanelBtnDownload from './CPanelBtnDownload.vue'
 
-const touchInfo = new TouchInfo()
-let pointerangle: number | boolean, // (A)
-  pointerposition: number[] | null, // (B)
-  pointerdistance: number | boolean // (C)
-let lastTouch = 0
+import { useCartogramStore } from '../stores/cartogram'
+const store = useCartogramStore()
 
-const DELAY_THRESHOLD = 300
-const SUPPORT_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints
+const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
 
-const legendEl = ref()
+const legendLineEl = ref()
+const visAreaEl = ref()
 
-const props = withDefaults(
-  defineProps<{
-    panelID: string
-    defaultVersionKey: string
-    mapDBKey?: string
-  }>(),
-  {
-    mapDBKey: ''
-  }
-)
+const props = defineProps<{
+  panelID: string
+  defaultVersionKey: string
+}>()
+
+const areaLegend = useAreaLegend()
 
 const state = reactive({
   versionKey: props.defaultVersionKey,
-  cursor: 'grab',
-  isLockRatio: true,
-  touchLenght: 0,
-  lastMove: 0,
-  stretchDirection: 'x',
-  affineMatrix: util.getOriginalMatrix(),
-  affineScale: [1, 1] // Keep track of scale for scaling grid easily
+  currentGridIndex: 1
 })
 
-// https://observablehq.com/@d3/multitouch
-function onPointerdown(event: any) {
-  touchInfo.set(event)
-  state.touchLenght = touchInfo.length()
-
-  const now = new Date().getTime()
-  const timesince = now - lastTouch
-  if (touchInfo.length() === 1 && timesince < DELAY_THRESHOLD && timesince > 0) {
-    // Double tap
-    transformReset()
-  } else {
-    const t = touchInfo.getMergedPoints()
-    if (t.length > 0) {
-      pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
-      pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
-      pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
-    }
+watch(
+  () => store.highlightedRegionID,
+  (id) => {
+    visAreaEl.value.view()?.signal('active', id).runAsync()
   }
+)
 
-  lastTouch = new Date().getTime()
-  state.lastMove = lastTouch
-}
-
-function onPointerup(event: any) {
-  legendEl.value.$el.releasePointerCapture(event.pointerId)
-  touchInfo.clear(event)
-  state.touchLenght = touchInfo.length()
-
-  snapToBetterNumber()
-  if (touchInfo.length() === 0) {
-    pointerposition = null // signals mouse up
-  } else {
-    const t = touchInfo.getMergedPoints()
-    if (t.length > 0) {
-      pointerangle = t.length > 1 && Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (A)
-      pointerposition = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0] // (B)
-      pointerdistance = t.length > 1 && Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0]) // (C)
-    }
+watch(
+  () => store.options.numberOfPanels,
+  async () => {
+    visAreaEl.value.resize()
+    switchGrid(state.currentGridIndex)
   }
-}
+)
 
-function onPointermove(event: any) {
-  touchInfo.update(event)
-  if (touchInfo.length() < 1 || touchInfo.length() > 3 || !pointerposition) return
-
-  // Capture pointer so gesture can be beyond the panel
-  document.getElementById('vg-tooltip-element')?.classList.remove('visible')
-  legendEl.value.$el.setPointerCapture(event.pointerId)
-
-  const t = touchInfo.getMergedPoints()
-  let matrix = util.getOriginalMatrix()
-  let angle = 0
-  const position = [0, 0]
-  const scale = [1, 1]
-  const now = new Date().getTime()
-
-  // Order should be rotate, scale, translate
-  // https://gamedev.stackexchange.com/questions/16719/what-is-the-correct-order-to-multiply-scale-rotation-and-translation-matrices-f
-  if (
-    t.length > 1 &&
-    (touchInfo.length() === 3 || (touchInfo.length() === 2 && !state.isLockRatio))
-  ) {
-    // rotate
-    const pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
-    if (pointerangle && typeof pointerangle === 'number') angle = pointerangle2 - pointerangle
-    else angle = 0
-    pointerangle = pointerangle2
-    matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
-
-    // stretch
-    const pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
-    if (pointerdistance && typeof pointerdistance === 'number')
-      scale[0] = pointerdistance2 / pointerdistance
-    else scale[0] = 0
-    state.affineScale[0] *= scale[0]
-    pointerdistance = pointerdistance2
-    if (scale[0] !== 0) {
-      matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(pointerangle))
-      matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], 1))
-      matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(-pointerangle))
-    }
-  } else if (t.length > 1) {
-    // (B) rotate
-    if (pointerangle && typeof pointerangle === 'number') {
-      const pointerangle2 = Math.atan2(t[1][1] - t[0][1], t[1][0] - t[0][0])
-      angle = pointerangle2 - pointerangle
-      pointerangle = pointerangle2
-      matrix = util.multiplyMatrix(matrix, util.getRotateMatrix(angle))
-    }
-    // (C) scale
-    if (pointerdistance && typeof pointerdistance === 'number') {
-      const pointerdistance2 = Math.hypot(t[1][1] - t[0][1], t[1][0] - t[0][0])
-      scale[0] = pointerdistance2 / pointerdistance
-      scale[1] = pointerdistance2 / pointerdistance
-      state.affineScale[0] *= scale[0]
-      state.affineScale[1] *= scale[1]
-      pointerdistance = pointerdistance2
-      if (scale[0] !== 0 && scale[1] !== 0)
-        matrix = util.multiplyMatrix(matrix, util.getScaleMatrix(scale[0], scale[1]))
-    }
+watch(
+  () => store.currentColorCol,
+  () => {
+    init()
   }
+)
 
-  const timesince = now - lastTouch
-  if (touchInfo.length() > 1 || (touchInfo.length() === 1 && timesince > DELAY_THRESHOLD)) {
-    // (A) translate
-    const pointerposition2 = [d3.mean(t, (d) => d[0]) || 0, d3.mean(t, (d) => d[1]) || 0]
-    position[0] = pointerposition2[0] - pointerposition[0]
-    position[1] = pointerposition2[1] - pointerposition[1]
-    pointerposition = pointerposition2
-    matrix = util.multiplyMatrix(matrix, util.getTranslateMatrix(position[0], position[1]))
-  }
+onMounted(async () => {
+  await init()
+  switchGrid(state.currentGridIndex)
+})
 
-  transformVersion(matrix, state.affineMatrix)
-
-  state.lastMove = new Date().getTime()
-}
-
-function onWheel(event: any) {
-  let matrix: Array<Array<number>> = []
-  if (event.shiftKey) {
-    matrix = util.getRotateMatrix(event.wheelDelta / 1000)
-  } else {
-    const scale = 1 + event.wheelDelta / 1000
-    let scales
-
-    if (state.isLockRatio) {
-      scales = [scale, scale]
-    } else if (state.stretchDirection === 'x') {
-      scales = [scale, 1]
-    } else {
-      scales = [1, scale]
-    }
-
-    state.affineScale[0] *= scales[0]
-    state.affineScale[1] *= scales[1]
-    matrix = util.getScaleMatrix(scales[0], scales[1])
-  }
-  transformVersion(matrix, state.affineMatrix)
-}
-
-function switchMode() {
-  if (SUPPORT_TOUCH) {
-    state.isLockRatio = !state.isLockRatio
-  } else if (state.isLockRatio) {
-    state.stretchDirection = 'x'
-    state.isLockRatio = false
-  } else if (state.stretchDirection === 'x') {
-    state.stretchDirection = 'y'
-  } else {
-    state.isLockRatio = true
-  }
-}
-
-function transformVersion(matrix1: Array<Array<number>>, matrix2: Array<Array<number>>) {
-  state.affineMatrix = util.multiplyMatrix(matrix1, matrix2)
-
-  d3.selectAll('#' + props.panelID + ' g.root').attr(
-    'transform',
-    'matrix(' +
-      state.affineMatrix[0][0] +
-      ' ' +
-      state.affineMatrix[1][0] +
-      ' ' +
-      state.affineMatrix[0][1] +
-      ' ' +
-      state.affineMatrix[1][1] +
-      ' ' +
-      state.affineMatrix[0][2] +
-      ' ' +
-      state.affineMatrix[1][2] +
-      ')'
+async function initContainer(canvasId: string) {
+  const csvUrl = util.getCsvURL(store.currentMapName, CARTOGRAM_CONFIG.mapDBKey)
+  const jsonUrl = util.getGeojsonURL(
+    store.currentMapName,
+    CARTOGRAM_CONFIG.mapDBKey,
+    CARTOGRAM_CONFIG.cartoVersions[state.versionKey].name + '.json'
   )
+
+  let underlyingJsonUrl = null
+  if (window.CARTOGRAM_CONFIG.cartoEqualAreaBg)
+    underlyingJsonUrl = util.getGeojsonURL(
+      store.currentMapName,
+      CARTOGRAM_CONFIG.mapDBKey,
+      CARTOGRAM_CONFIG.cartoVersions[state.versionKey].type === 'contiguous'
+        ? CARTOGRAM_CONFIG.cartoVersions[state.versionKey].name + '.json'
+        : 'Geographic Area.json'
+    )
+
+  await visAreaEl.value.initWithURL(
+    canvasId,
+    csvUrl,
+    jsonUrl,
+    underlyingJsonUrl,
+    store.currentColorCol,
+    CARTOGRAM_CONFIG.cartoColorScheme || 'pastel1',
+    CARTOGRAM_CONFIG.choroSpec
+  )
+
+  if (CARTOGRAM_CONFIG.cartoVersions[state.versionKey].type === 'noncontiguous')
+    areaLegend.init(
+      CARTOGRAM_CONFIG.cartoVersions['0'].header,
+      visAreaEl.value.view().data('equal_area_geojson'),
+      visAreaEl.value.view().data('source_csv')
+    )
+  else
+    areaLegend.init(
+      CARTOGRAM_CONFIG.cartoVersions[state.versionKey].header,
+      visAreaEl.value.view().data('geo_1'),
+      visAreaEl.value.view().data('source_csv')
+    )
 }
 
-function transformReset() {
-  state.affineMatrix = util.getOriginalMatrix()
-  state.affineScale = [1, 1]
-  transformVersion(state.affineMatrix, state.affineMatrix)
+async function init() {
+  await initContainer(props.panelID + '-vis')
+  let visView = visAreaEl.value.view()
+
+  visView.addResizeListener(function () {
+    areaLegend.updateTotalArea(visView.data('geo_1'))
+    switchGrid(state.currentGridIndex)
+  })
+
+  visView.addSignalListener('active', function (name: string, value: any) {
+    store.highlightedRegionID = value
+  })
+
+  visView.addEventListener('pointerup', function (event: any, item: any) {
+    const value = item?.datum.cartogram_data
+    visView.tooltip()(visView, event, item, value)
+  })
 }
 
-function snapToBetterNumber() {
-  const value = legendEl.value.getCurrentScale()
-  if (value === 0) return
+async function switchVersion(versionKey: string) {
+  state.versionKey = versionKey
+  await initContainer(props.panelID + '-offscreen')
+  switchGrid(state.currentGridIndex)
 
-  const [scaleNiceNumber, scalePowerOf10] = util.findNearestNiceNumber(value)
-  const targetValue = scaleNiceNumber * Math.pow(10, scalePowerOf10)
-  const adjustedScale = Math.sqrt(value / targetValue)
+  function finalize() {
+    let visView = visAreaEl.value.view()
+    visView.runAfter(() => visAreaEl.value.transform.applyCurrent())
+    visView.initialize('#' + props.panelID + '-vis').runAsync()
+  }
 
-  state.affineScale[0] *= adjustedScale
-  state.affineScale[1] *= adjustedScale
-  const matrix = util.getScaleMatrix(adjustedScale, adjustedScale)
-  transformVersion(matrix, state.affineMatrix)
+  animate.geoTransition(props.panelID, finalize)
+}
+
+async function switchGrid(key: number) {
+  state.currentGridIndex = key
+  areaLegend.updateGridData()
+  await nextTick()
+  visAreaEl.value.transform.setGridScaleNiceNumber(
+    areaLegend.stateGridData.value[state.currentGridIndex]?.scaleNiceNumber
+  )
+  areaLegend.updateLegendValue(
+    state.currentGridIndex,
+    visAreaEl.value.transform.stateAffineScale.value
+  )
+  legendLineEl.value.setHandlePosition(areaLegend.stateGridData.value[key]?.width)
+  animate.gridTransition(props.panelID + '-grid', areaLegend.stateGridData.value[key]?.width)
 }
 </script>
 
 <template>
   <div class="card w-100">
     <div class="d-flex flex-column card-body">
-      <c-panel-legend
-        ref="legendEl"
-        style="touch-action: none"
-        v-bind:style="{ cursor: state.cursor }"
-        v-bind:panelID="props.panelID"
-        v-bind:mapDBKey="props.mapDBKey"
-        v-bind:versionKey="state.versionKey"
-        v-bind:affineScale="state.affineScale"
-        v-on:gridChanged="snapToBetterNumber"
-        v-on:pointerdown.stop.prevent="onPointerdown"
-        v-on:pointermove.stop.prevent="onPointermove"
-        v-on:pointerup.stop.prevent="onPointerup"
-        v-on:pointercancel.stop.prevent="onPointerup"
-        v-on:wheel.stop.prevent="onWheel"
-        v-on:versionUpdated="transformVersion(state.affineMatrix, util.getOriginalMatrix())"
-      >
-        <img class="position-absolute bottom-0 end-0 z-3" src="/static/img/by.svg" alt="cc-by" />
-      </c-panel-legend>
-      <div class="position-absolute end-0" style="width: 2.5rem">
-        <button
-          class="btn btn-secondary w-100 my-1"
-          v-on:click="switchMode()"
-          v-bind:title="state.isLockRatio ? 'Switch to free transform' : 'Switch to lock ratio'"
+      <div class="d-flex flex-column card-body p-0">
+        <div
+          class="position-absolute z-1"
+          v-bind:class="{
+            'd-flex': CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.type !== 'noncontiguous',
+            'd-none': CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.type === 'noncontiguous'
+          }"
         >
-          <i v-if="state.touchLenght === 3" class="fas fa-unlock"></i>
-          <i v-else-if="state.isLockRatio" class="fas fa-lock"></i>
-          <i v-else-if="SUPPORT_TOUCH" class="fas fa-unlock"></i>
-          <i v-else-if="state.stretchDirection === 'x'" class="fas fa-arrows-alt-h"></i>
-          <i v-else class="fas fa-arrows-alt-v"></i>
-        </button>
-        <button class="btn btn-secondary w-100 my-1" v-on:click="transformReset()" title="Reset">
-          <i class="fas fa-crosshairs"></i>
-        </button>
+          <c-panel-legend
+            ref="legendLineEl"
+            v-bind:panelID="props.panelID"
+            v-bind:gridIndex="state.currentGridIndex"
+            v-bind:gridData="areaLegend.stateGridData.value"
+            v-on:change="switchGrid"
+          />
+          <div v-bind:id="props.panelID + '-legend-text'" class="flex-fill p-1">
+            <div v-bind:id="props.panelID + '-legend-num'">
+              <span v-html="areaLegend.stateValue.value"></span>
+              {{ CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.unit }}
+            </div>
+            <div v-bind:id="props.panelID + '-legend-total'">
+              Total: <span v-html="areaLegend.stateTotalValue.value"></span>
+            </div>
+          </div>
+        </div>
+
+        <c-visualization-area
+          ref="visAreaEl"
+          v-bind:panelID="props.panelID"
+          v-on:transformChanged="
+            (transform) =>
+              areaLegend.updateLegendValue(state.currentGridIndex, transform.stateAffineScale.value)
+          "
+        >
+          <svg width="100%" height="100%" v-bind:id="props.panelID + '-grid-area'">
+            <defs>
+              <pattern v-bind:id="props.panelID + '-grid'" patternUnits="userSpaceOnUse">
+                <path
+                  fill="none"
+                  stroke="#5A5A5A"
+                  stroke-width="2"
+                  v-bind:stroke-opacity="store.options.gridOpacity"
+                ></path>
+              </pattern>
+            </defs>
+            <rect
+              width="100%"
+              height="100%"
+              v-bind:fill="'url(#' + props.panelID + '-grid)'"
+            ></rect>
+          </svg>
+        </c-visualization-area>
       </div>
     </div>
 
-    <div class="card-footer d-flex justify-content-between">
+    <div class="card-footer d-flex justify-content-between gap-2">
       <c-panel-select-version
-        v-bind:currentVersionName="state.versionKey"
-        v-on:version_changed="(version) => (state.versionKey = version)"
-      />
-      <c-panel-btn-download
-        v-bind:mapDBKey="props.mapDBKey"
-        v-bind:versionKey="state.versionKey"
         v-bind:panelID="props.panelID"
+        v-bind:currentVersionName="state.versionKey"
+        v-on:version_changed="(versionKey) => switchVersion(versionKey)"
       />
+      <c-panel-btn-download v-bind:versionKey="state.versionKey" v-bind:panelID="props.panelID" />
     </div>
   </div>
-
-  <c-touch-vis
-    v-bind:key="state.lastMove"
-    v-bind:touchInfo="touchInfo"
-    v-bind:touchLenght="state.touchLenght"
-  />
 </template>

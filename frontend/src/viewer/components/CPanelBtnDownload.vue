@@ -1,33 +1,38 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import * as util from '../lib/util'
+import * as svgUtil from '../lib/svgUtil'
 import CTextCitation from './CTextCitation.vue'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
+const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
+
 const props = defineProps<{
-  mapDBKey: string
   versionKey: string
   panelID: string
 }>()
 
 const version = computed(() => {
-  return store.versions[props.versionKey]
+  return CARTOGRAM_CONFIG.cartoVersions[props.versionKey]
 })
 
 const geolink = computed(() => {
   const ext =
-    store.versions[props.versionKey].name === 'Geographic Area' ? '.json' : '_simplified.json'
+    CARTOGRAM_CONFIG.cartoVersions[props.versionKey].name === 'Geographic Area' ||
+    CARTOGRAM_CONFIG.cartoVersions[props.versionKey].type === 'noncontiguous'
+      ? '.json'
+      : '_simplified.json'
   return util.getGeojsonURL(
     store.currentMapName,
-    props.mapDBKey,
-    store.versions[props.versionKey].name + ext
+    CARTOGRAM_CONFIG.mapDBKey,
+    CARTOGRAM_CONFIG.cartoVersions[props.versionKey].name + ext
   )
 })
 
 const csvlink = computed(() => {
-  return util.getCsvURL(store.currentMapName, props.mapDBKey)
+  return util.getCsvURL(store.currentMapName, CARTOGRAM_CONFIG.mapDBKey)
 })
 /**
  * Generates download links for the map(s) and/or cartogram(s) displayed on the left and
@@ -36,30 +41,13 @@ const csvlink = computed(() => {
  */
 function downloadSVG() {
   const svg_header = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'
-
-  const mapAreaSVG = document
-    .getElementById(props.panelID + '-vis')!
-    .querySelector('svg')!
-    .cloneNode(true) as SVGSVGElement
-
-  // Add SVG xml namespace to SVG element, so that the file can be opened with any web browser.
-  mapAreaSVG.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
-
-  const legendSVG = document
-    .getElementById(props.panelID + '-legend')!
-    .cloneNode(true) as HTMLElement
-  mapAreaSVG.appendChild(legendSVG)
-
-  const legendNumber = document.getElementById(props.panelID + '-legend-num')!.textContent || ''
-  const legendNumberSVG = document.createElement('text')
-  const legendNumberX = 2 + parseFloat(legendSVG.getAttribute('width')!)
-  legendNumberSVG.textContent = legendNumber.replace('Total:', ' / Total:')
-  legendNumberSVG.setAttribute('font-family', 'sans-serif')
-  legendNumberSVG.setAttribute('font-size', '12px')
-  legendNumberSVG.setAttribute('x', legendNumberX.toString())
-  legendNumberSVG.setAttribute('y', '20')
-  mapAreaSVG.appendChild(legendNumberSVG)
-  mapAreaSVG.appendChild(document.getElementById(props.panelID + '-grid-area')!.cloneNode(true))
+  const mapAreaSVG = svgUtil.createSVGElement(
+    props.panelID,
+    CARTOGRAM_CONFIG.cartoVersions[props.versionKey].name,
+    CARTOGRAM_CONFIG.cartoVersions[props.versionKey].unit,
+    store.currentColorCol,
+    CARTOGRAM_CONFIG.cartoVersions[props.versionKey].type === 'noncontiguous'
+  )
 
   // https://stackoverflow.com/questions/68122097/how-can-i-ensure-text-is-valid-for-an-svg
   const dummy = document.createElement('div')
@@ -68,6 +56,7 @@ function downloadSVG() {
     return dummy.textContent || ''
   })
 
+  // Trigger download
   const a = document.createElement('a')
   const svgBlob = new Blob([svg_header + svgData.replace(/×/g, '&#xD7;')], {
     type: 'image/svg+xml;charset=utf-8'
@@ -75,7 +64,11 @@ function downloadSVG() {
   const url = URL.createObjectURL(svgBlob)
   a.href = url
 
-  a.download = store.versions[props.versionKey].name + '.svg'
+  let filename = CARTOGRAM_CONFIG.cartoVersions[props.versionKey].name
+  filename += store.currentColorCol !== 'Region' ? `_${store.currentColorCol}` : ''
+  filename += '.svg'
+
+  a.download = filename
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
@@ -102,6 +95,7 @@ function downloadJson() {
   <button
     class="btn btn-primary"
     data-bs-toggle="modal"
+    v-bind:id="props.panelID + 'DownloadBtn'"
     v-bind:data-bs-target="'#downloadModal' + version.key"
     v-bind:title="'Download ' + version.name"
   >
@@ -137,6 +131,10 @@ function downloadJson() {
               >GeoJSON</a
             >
             <a v-bind:href="csvlink" download class="btn btn-lg btn-primary mx-3">CSV</a>
+          </p>
+          <p class="lead text-center">License</p>
+          <p class="text-center">
+            <img src="/static/img/by.png" alt="cc-by" width="100" />
           </p>
           <c-text-citation />
         </div>

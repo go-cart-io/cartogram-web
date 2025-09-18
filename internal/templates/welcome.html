@@ -4,15 +4,21 @@
 
 {% block content %}
 
-<div class="container-fluid p-3">
-  <div class="row align-items-center" id="welcome-row">
+<!-- Hero Section -->
+<section class="container-fluid align-items-center p-2">
+  <div class="row justify-content-center text-center">
     <div class="col-md-6">
-      <h1 class="text-primary text-center mb-3">Cartograms</h1>
-      <h3 class="text-success text-center mb-3">Maps and data reimagined</h3>
-      <div class="text-center mb-3">
-        <div><a href="/cartogram/create" class="btn btn-lg btn-primary">Make Your Cartogram</a></div>
-        or
-        <div><a href="/cartogram" class="btn btn-lg btn-secondary">View Examples</a></div>
+      <h1 class="text-primary text-center p-2">Maps and data reimagined</h1>
+      <div class="text-center p-2">
+        Transform your data into interactive maps. <strong>Free & Open Source.</strong>
+      </div>
+      <div class="text-center p-2">
+        <a href="/create" class="btn btn-lg btn-primary">Create Map Visualization Now</a>
+      </div>
+      <div class="text-center p-2"><a href="/view" class="btn btn-lg btn-outline-primary">See Examples</a></div>
+      <div class="text-center p-2">
+        <a href="http://guides.go-cart.io/" target="_blank" class="btn btn-lg btn-outline-primary">Read
+          Documentation</a>
       </div>
     </div>
     <div class="col-md-6">
@@ -22,22 +28,142 @@
       </div>
     </div>
   </div>
+</section>
 
-  <div class="d-none d-md-block">
-    <img src="{{ url_for('static', filename='img/infographic.svg') }}" class="img-fluid" />
+<!-- Features Section -->
+<section class="container-fluid bg-light p-2">
+  <div class="row text-center p-2">
+    <h2>Features</h2>
   </div>
 
-  <div class="text-center d-sm-block d-md-none">
-    <img src="{{ url_for('static', filename='img/infographic-mobile.svg') }}" class="img-fluid w-75" />
+  <div class="row g-4">
+    <div class="col-md-6 col-lg-4">
+      <div class="card card-feature h-100 border-0 p-4 text-center">
+        <div class="feature-icon">
+          <i class="fas fa-chart-bar"></i>
+        </div>
+        <h5 class="fw-bold mb-3">Data-Driven Visualization</h5>
+        <p class="text-muted">Create cartograms where region sizes reflect your data values, or build choropleth maps
+          with color-coded statistical information.</p>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+      <div class="card card-feature h-100 border-0 p-4 text-center">
+        <div class="feature-icon">
+          <i class="fas fa-map"></i>
+        </div>
+        <h5 class="fw-bold mb-3">Flexible Map Formats</h5>
+        <p class="text-muted">Upload your custom geographic data (GeoJSON/Shapefile) or choose from our library.</p>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+      <div class="card card-feature h-100 border-0 p-4 text-center">
+        <div class="feature-icon">
+          <i class="fas fa-edit"></i>
+        </div>
+        <h5 class="fw-bold mb-3">Custom Data Editing</h5>
+        <p class="text-muted">Upload CSV/Excel files or use our built-in editor to quickly manage your data.</p>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+      <div class="card card-feature h-100 border-0 p-4 text-center">
+        <div class="feature-icon">
+          <i class="fas fa-palette"></i>
+        </div>
+        <h5 class="fw-bold mb-3">Smart Color Palettes</h5>
+        <p class="text-muted">Topology-aware coloring ensures adjacent regions have distinct colors. Choose from
+          preset palettes or create your own custom schemes.</p>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+      <div class="card card-feature h-100 border-0 p-4 text-center">
+        <div class="feature-icon">
+          <i class="fas fa-search"></i>
+        </div>
+        <h5 class="fw-bold mb-3">Inset Maps & Labels</h5>
+        <p class="text-muted">Better visualize specific regions with inset maps. Region labels are automatically placed
+          and scaled according to area size for optimal readability.</p>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+      <div class="card card-feature h-100 border-0 p-4 text-center">
+        <div class="feature-icon">
+          <i class="fas fa-external-link-alt"></i>
+        </div>
+        <h5 class="fw-bold mb-3">Share & Embed</h5>
+        <p class="text-muted">Export your maps as SVG or JSON files, share via direct links, or embed visualizations in
+          websites with responsive iframe support.</p>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+      <div class="card card-feature h-100 border-0 p-4 text-center">
+        <div class="feature-icon">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <h5 class="fw-bold mb-3">Privacy Options</h5>
+        <p class="text-muted">Use our online service for convenience, or deploy offline via Docker/CLI for complete
+          data privacy. Your choice, your data.</p>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+      <div class="card card-feature h-100 border-0 p-4 text-center">
+        <div class="feature-icon">
+          <i class="fab fa-github"></i>
+        </div>
+        <h5 class="fw-bold mb-3">Free & Open Source</h5>
+        <p class="text-muted">Completely free to use with full source code available. Community-driven development
+          with no hidden costs or subscriptions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Demo Section -->
+<section class="container-fluid p-2">
+  <div class="row text-center p-2">
+    <h2>See It In Action</h2>
+    <p>Feel free to explore or edit our example below.</p>
   </div>
 
-  <p class="small mt-5 text-justify" id="disclaimer">
+  <div class="row justify-content-center mb-5">
+    <div class="col-lg-10">
+      <div class="card border-0 shadow-lg">
+        <div class="card-body p-4">
+          <iframe src="/view/map/usa-home-demo/embed?by=Population+Density+%28per+sq.+km%29" width="100%"
+            height="550"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center">
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+      <a href="/create" class="btn btn-primary">Create Your Own Visualization</a>
+      <a href="/view" class="btn btn-outline-primary">View More Examples</a>
+    </div>
+  </div>
+</section>
+
+<!-- Disclaimer -->
+<section class="container-fluid p-2 mt-5 small">
+  <div class="text-justify">
     *Region boundaries and population data for the world cartogram are sourced directly from
-    <a href="https://www.naturalearthdata.com">Natural Earth</a>,
-    which adopts boundaries based on defacto status. We do not adopt a political stance on these boundaries.
-  </p>
-</div>
-
+    <a href="https://www.naturalearthdata.com">Natural Earth</a>
+    which adopts boundaries based on defacto status.
+  </div>
+  <div class="text-justify">**We do not adopt a political stance on boundaries provided in our library.</div>
+  <div class="text-justify">**Our service is provided on an 'AS IS' basis. We make no guarantees regarding the
+    reliability or security of your data. By using this service, you acknowledge and accept that we are not liable
+    for any data loss or other damages.
+  </div>
+</section>
 
 {% endblock %}
 

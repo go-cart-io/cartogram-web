@@ -2,18 +2,41 @@
 
 {% block content %}
 
-<div id="cartogram-maker" class="d-flex flex-column flex-fill">
+<div id="cartogram-maker" class="container-fluid">
 </div>
 
 {% endblock %}
 
 {% block javascript %}
+
+{% if config['ENV'] == "production" %}
+
+{% for url in asset.all_cdn_scripts('app') %}
+<script src="{{ url }}"></script>
+{% endfor %}
+
+{% set assets = asset.all_vite_assets('src/maker.ts') %}
+{% for js in assets.js %}
+<script type="module" src="{{ url_for('static', filename=js) }}"></script>
+{% endfor %}
+
+{% else %}
+<script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/maker.ts') }}"></script>
+{% endif %}
+
 <script>
+	window.CARTOGRAM_CONFIG = {
+		maps: JSON.parse('{{ maps | default({}) | tojson | safe }}'),
+		maxCartogram: parseInt("{{ count_limit }}")
+	};
+
 	var mapName = "{{ map_name }}";
-	var maps = JSON.parse('{{ maps | default({}) | tojson | safe }}');
 	var mapTitle = "{{ map_title }}";
-	var mapColorScheme = "{{ map_color_scheme }}";
 	var geoUrl = "{{ geo_url }}";
 	var csvUrl = "{{ csv_url }}";
+	var mapTypes = JSON.parse('{{ map_types | default({}) | tojson | safe }}');
+	var cartoColorScheme = "{{ map_color_scheme }}";
+	var choroSettings = JSON.parse('{{ map_settings | default({}) | tojson | safe }}');
+	choroSettings.spec = JSON.stringify(choroSettings.spec, null, 2) || ""
 </script>
 {% endblock javascript %}

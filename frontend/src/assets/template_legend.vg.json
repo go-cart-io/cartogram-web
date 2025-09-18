@@ -1,0 +1,65 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v6.json",
+  "config": {
+    "text": { "font": "Roboto Condensed, Arial, sans-serif" }
+  },
+  "padding": { "left": 5, "right": 5 },
+  "autosize": { "type": "fit", "contains": "padding" },
+  "signals": [
+    {
+      "name": "width",
+      "init": "containerSize()[0]",
+      "on": [{ "events": "window:resize", "update": "containerSize()[0]" }]
+    },
+    {
+      "name": "height",
+      "init": "containerSize()[1]",
+      "on": [{ "events": "window:resize", "update": "containerSize()[1]" }]
+    },
+    {
+      "name": "active",
+      "value": null
+    },
+    {
+      "name": "color_scheme",
+      "value": "pastel1"
+    },
+    {
+      "name": "color_field",
+      "value": "ColorGroup"
+    }
+  ],
+  "data": [
+    {
+      "name": "source_csv",
+      "url": "",
+      "format": { "type": "csv", "delimiter": "," }
+    }
+  ],
+  "scales": [
+    {
+      "name": "color_group",
+      "type": "ordinal",
+      "domain": { "data": "source_csv", "field": "ColorGroup" },
+      "range": { "scheme": { "signal": "color_scheme" } }
+    }
+  ],
+  "legends": [
+    {
+      "type": "symbol",
+      "symbolType": "square",
+      "fill": "color_group",
+      "direction": "horizontal",
+      "orient": "bottom",
+      "offset": 0,
+      "padding": 0,
+      "titleLimit": { "signal": "width" },
+      "gradientLength": { "signal": "width" },
+      "gradientThickness": 10,
+      "symbolOpacity": {
+        "signal": "color_field === 'ColorGroup' || color_field === 'Color' ? 0:1"
+      },
+      "labelOpacity": { "signal": "color_field === 'ColorGroup' || color_field === 'Color' ? 0:1" }
+    }
+  ]
+}

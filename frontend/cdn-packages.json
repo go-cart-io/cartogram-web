@@ -1,0 +1,37 @@
+[
+  {
+    "name": "@popperjs/core",
+    "var": "Popper",
+    "path": "dist/umd/popper.min.js"
+  },
+  {
+    "name": "bootstrap",
+    "var": "bootstrap",
+    "path": "dist/js/bootstrap.min.js"
+  },
+  {
+    "name": "vue",
+    "var": "Vue",
+    "path": "dist/vue.global.prod.js"
+  },
+  {
+    "name": "d3",
+    "var": "d3",
+    "path": "dist/d3.min.js"
+  },
+  {
+    "name": "vega",
+    "var": "vega",
+    "path": "build/vega.min.js"
+  },
+  {
+    "name": "vega-embed",
+    "var": "vegaEmbed",
+    "path": "build/vega-embed.min.js"
+  },
+  {
+    "name": "vega-tooltip",
+    "var": "vegaTooltip",
+    "path": "build/vega-tooltip.min.js"
+  }
+]

@@ -2674,4 +2674,36 @@ cartogram_handlers = {
             "Zimbabwe": 183,
         },
     },
+    "usa-home-demo": {
+        "hidden": True,
+        "name": "United States",
+        "regions": None,
+        "types": {
+            "[Contiguous] Population (people)": "contiguous",
+            "[Noncontiguous] Population (people)": "noncontiguous",
+            "Population Density (per sq. km)": "choropleth",
+        },
+        "settings": {
+            "isAdvanceMode": False,
+            "scheme": "blues",
+            "type": "quantile",
+            "step": 5,
+            "spec": {
+                "scales": [
+                    {
+                        "name": "Population Density (per sq. km)",
+                        "type": "quantile",
+                        "domain": {
+                            "data": "source_csv",
+                            "field": "Population Density (per sq. km)",
+                        },
+                        "range": {"scheme": "blues", "count": 5},
+                    }
+                ],
+                "legend_titles": {
+                    "Population Density (per sq. km)": "Population Density (per sq. km, quintiles)"
+                },
+            },
+        },
+    },
 }

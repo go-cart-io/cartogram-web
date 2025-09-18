@@ -2,71 +2,16 @@
 <html lang="en" class="h-100">
 
 <head>
-  <script src="{{ url_for('static', filename='tracking.js') }}"></script>
-  <meta charset="utf-8" />
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no" />
-  <meta name="description"
-    content="Free Cartogram Generator - Make cartograms for different countries using your own data!" />
-  <meta name="author" content="Michael T. Gastner" />
-  <meta property="og:title" content="Creating Cartograms Online" />
-  <meta property="og:description"
-    content="Free Cartogram Generator - Make cartograms for different countries using your own data!" />
-  <meta property="og:site_name" content="go-cart.io" />
-  <meta name="twitter:title" content="Creating Cartograms Online" />
-  <meta name="twitter:description"
-    content="Free Cartogram Generator - Make cartograms for different countries using your own data!" />
-  <meta name="twitter:image" content="{{ url_for('static', filename='img/favicon.png') }}" />
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}" />
-
-  {% if config['ENV'] == "production" %}
-  <link rel="stylesheet" href="/static/dist/{{ asset.url_for('style.css').file }}" />
-  <script type="module" src="/static/dist/{{ asset.url_for('src/main.ts').file }}"></script>
-  {% else %}
-  <script type="module" src="{{ asset.webpack_url_for(request.host_url, '@vite/client') }}"></script>
-  <script type="module" src="{{ asset.webpack_url_for(request.host_url, 'src/main.ts') }}"></script>
-  {% endif %}
-
-  <title>Creating Cartograms Online</title>
-
-  <!-- Bootstrap core CSS -->
-  <!--<link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet">-->
-
-  <!-- Custom styles for this template -->
-  <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  {% include 'header.html' %}
   <base target="_parent" />
-  <style>
-    footer p {
-      font-size: small;
-    }
-  </style>
 </head>
 
 <body class="d-flex flex-column h-100">
-  <div id="cartogram-app" class="d-flex flex-column flex-fill">
+  <div id="cartogram-viewer" class="d-flex flex-column flex-fill">
   </div>
 
-  <div class="container-fluid">
-    <footer class="text-secondary">
-      &copy;
-      <script>document.write(new Date().getFullYear())</script> go-cart.io |
-      Algorithm: <a href="https://www.pnas.org/content/115/10/E2156">Gastner et al. (2018)</a> |
-      Code{{version}}: <a href="https://mit-license.org/">MIT</a> |
-      Generated visualization: <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a>
-    </footer>
-  </div>
-  <!-- /container -->
-
-  <script>
-    var mapName = "{{ map_name }}";
-    var maps = JSON.parse('{{ maps | default({}) | tojson | safe }}');
-    var mapTitle = "{{ map_title }}";
-    var mapColorScheme = "{{ map_color_scheme }}";
-    var mapDBKey = "{{ map_data_key }}";
-    var mode = "embed";
-  </script>
+  {% include 'footer.html' %}
+  {% include 'footer_viewer.html' %}
 </body>
 
 </html>

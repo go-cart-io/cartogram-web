@@ -1,63 +1,94 @@
 <script setup lang="ts">
-import type { MapHandlers } from '../../common/interface'
-import CMenuSelectMap from './CMenuSelectMap.vue'
+import { onMounted, reactive, ref } from 'vue'
+
+import CColorLegend from '@/common/components/CColorLegend.vue'
+
+import * as util from '../lib/util'
 import CMenuBtnShare from './CMenuBtnShare.vue'
 
 import { useCartogramStore } from '../stores/cartogram'
 const store = useCartogramStore()
 
-const props = withDefaults(
-  defineProps<{
-    isEmbed: boolean
-    maps: MapHandlers
-    mapTitle?: string
-    mapDBKey?: string
-  }>(),
-  {
-    isEmbed: false
-  }
-)
+const CARTOGRAM_CONFIG = window.CARTOGRAM_CONFIG
+const choroLenght = Object.keys(CARTOGRAM_CONFIG.choroVersions || []).length
+const colorLegendEl = ref()
+
+const state = reactive({
+  mapkey: -1
+})
 
 const emit = defineEmits(['map_changed'])
 
-function onMapChanged(data: any) {
-  emit('map_changed', data)
+onMounted(async () => {
+  switchMap()
+})
+
+function switchMap() {
+  state.mapkey = Date.now()
+  updateVis(store.currentColorCol)
+  emit('map_changed')
+}
+
+async function updateVis(value: string) {
+  store.currentColorCol = value
+  if (!colorLegendEl.value) return
+
+  let csvUrl = util.getCsvURL(store.currentMapName, CARTOGRAM_CONFIG.mapDBKey)
+  await colorLegendEl.value.initColorLegendWithURL(
+    csvUrl,
+    store.currentColorCol,
+    CARTOGRAM_CONFIG.choroSpec
+  )
 }
 </script>
 
 <template>
   <nav class="navbar bg-light p-0">
-    <div class="w-100 mw-100 d-flex justify-content-between">
-      <div class="p-2" v-if="props.isEmbed">
-        <img src="/static/img/gocart_final.svg" width="80" alt="go-cart.io logo" />
+    <div class="d-flex flex-wrap flex-sm-nowrap justify-content-between w-100 p-2 gap-2">
+      <!-- Title or Map selector -->
+      <div
+        v-if="!CARTOGRAM_CONFIG.mapDBKey || CARTOGRAM_CONFIG.mapTitle"
+        class="order-1 d-flex align-items-center"
+        style="max-width: 50%"
+      >
+        <select
+          v-if="!CARTOGRAM_CONFIG.mapDBKey && !CARTOGRAM_CONFIG.mapTitle"
+          id="mapSelect"
+          class="form-select"
+          v-model="store.currentMapName"
+          v-on:change="switchMap"
+          title="Select map"
+        >
+          <option
+            v-for="(mapItem, mapKey) in CARTOGRAM_CONFIG.maps"
+            v-bind:value="mapKey"
+            v-bind:key="mapKey"
+          >
+            {{ mapItem.name }}
+          </option>
+        </select>
+        <strong v-else class="text-truncate">{{ CARTOGRAM_CONFIG.mapTitle }}</strong>
+      </div>
+      <div v-else class="order-1"></div>
+
+      <!-- Color selector -->
+      <div
+        v-if="choroLenght > 0"
+        class="order-last order-sm-2 flex-grow-1"
+        style="min-width: 250px"
+      >
+        <c-color-legend
+          ref="colorLegendEl"
+          v-bind:key="state.mapkey"
+          v-bind:colorFields="CARTOGRAM_CONFIG.choroVersions || []"
+          v-bind:currentColorCol="store.currentColorCol"
+          v-on:change="updateVis"
+        />
       </div>
 
-      <c-menu-select-map
-        v-bind:maps="props.maps"
-        v-bind:mapTitle="props.mapTitle"
-        v-bind:mapDBKey="props.mapDBKey"
-        v-bind:isEmbed="props.isEmbed"
-        v-on:map_changed="onMapChanged"
-      />
-
       <!-- Menu -->
-      <div class="py-2 d-flex flex-nowrap">
-        <a
-          class="btn btn-primary me-2 d-flex align-items-center"
-          title="Edit cartogram"
-          v-bind:href="
-            props.mapDBKey
-              ? '/cartogram/edit/key/' + props.mapDBKey
-              : '/cartogram/edit/map/' + store.currentMapName
-          "
-        >
-          <span class="d-none d-md-block me-2">Edit</span>
-          <i class="far fa-edit"></i>
-        </a>
-
-        <c-menu-btn-share v-bind:mapDBKey="props.mapDBKey" />
-
-        <div class="dropdown me-2 d-flex">
+      <div class="order-3 d-flex flex-nowrap gap-2">
+        <div class="dropdown d-flex">
           <button
             class="btn btn-primary dropdown-toggle d-flex align-items-center"
             type="button"
@@ -65,30 +96,39 @@ function onMapChanged(data: any) {
             aria-expanded="false"
             title="Customize cartogram viewer"
           >
-            <span class="d-none d-md-block me-2">Customize</span>
+            <span class="d-none d-lg-block me-2">Customize</span>
             <i class="fas fa-cog"></i>
           </button>
-          <div class="dropdown-menu dropdown-menu-end p-2 container" style="width: 250px">
-            <div class="row">
-              <div class="col-8">
-                <label class="form-check-label" for="gridline-toggle-cartogram"
-                  >Show grid lines</label
-                >
-              </div>
-              <div class="col-4 text-end">
-                <input type="checkbox" class="form-check-input" v-model="store.options.showGrid" />
+          <div class="dropdown-menu dropdown-menu-end p-2 container">
+            <div class="row mb-2">
+              <label class="form-check-label" for="optionsGridline">Grid lines opacity</label>
+              <div>
+                <input
+                  id="optionsGridline"
+                  type="range"
+                  class="form-range"
+                  min="0"
+                  max="0.5"
+                  step="0.1"
+                  v-model="store.options.gridOpacity"
+                />
               </div>
             </div>
 
-            <div class="row">
-              <div class="col-8">
-                <label class="form-check-label" for="gridline-toggle-cartogram"
-                  >Number of panels</label
+            <div class="row mb-2">
+              <label class="form-label" for="optionsPanels">Number of panels</label>
+              <div>
+                <select
+                  id="optionsPanels"
+                  class="form-select"
+                  v-model="store.options.numberOfPanels"
+                  title="Select number of panels"
                 >
-              </div>
-              <div class="col-4 text-end">
-                <select class="form-select" v-model="store.options.numberOfPanels">
-                  <option v-for="number in [1, 2, 3, 4, 5]" v-bind:key="number" v-bind:value="number">
+                  <option
+                    v-for="number in [1, 2, 3, 4, 5]"
+                    v-bind:key="number"
+                    v-bind:value="number"
+                  >
                     {{ number }}
                   </option>
                 </select>
@@ -96,6 +136,23 @@ function onMapChanged(data: any) {
             </div>
           </div>
         </div>
+
+        <div class="vr"></div>
+
+        <a
+          class="btn btn-primary d-flex align-items-center"
+          title="Edit cartogram"
+          v-bind:href="
+            CARTOGRAM_CONFIG.mapDBKey
+              ? '/edit/key/' + CARTOGRAM_CONFIG.mapDBKey
+              : '/edit/map/' + store.currentMapName
+          "
+        >
+          <span class="d-none d-lg-block me-2">Edit</span>
+          <i class="far fa-edit"></i>
+        </a>
+
+        <c-menu-btn-share />
       </div>
     </div>
   </nav>

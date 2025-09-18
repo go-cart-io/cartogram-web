@@ -51,10 +51,28 @@ export function addKeyInArray(data: KeyValueArray, keyName: string, defaultValue
   })
 }
 
+export function copyKeyInArray(data: KeyValueArray, fromKey: string, toKey: string): KeyValueArray {
+  return data.map((obj) => {
+    if (fromKey in obj) {
+      return { ...obj, [toKey]: obj[fromKey] }
+    }
+    return { ...obj }
+  })
+}
+
+/**
+ * Filter an array of key-value objects so it only includes properties of the allowed type
+ * and of the except. If the allowed type is null, it only includes properties of the except.
+ * Empty value are also preserved.
+ * @param data Key-value array to be filtered
+ * @param except Specified keys to be preserved unconditionally
+ * @param allow Allowed type. Currently support only 'number' or null
+ * @returns Filtered array
+ */
 export function filterKeyValueInArray(
   data: KeyValueArray,
   except: Array<string>,
-  allow: string | null = 'number'
+  allow: 'number' | null = 'number'
 ): KeyValueArray {
   return data.map((item) => {
     return Object.keys(item).reduce((accumulator: { [key: string]: any }, key: string) => {
@@ -96,11 +114,50 @@ export function arrangeKeysInArray(
   })
 }
 
-export function mergeObjInArray(baseData: KeyValueArray, newData: KeyValueArray, mergeKey: string) {
-  return baseData.map((item) => {
-    const csvItems = newData.find((c) => c[mergeKey] === item[mergeKey])
-    return csvItems ? { ...item, ...csvItems } : item
+export function updateObjInArray(
+  baseData: KeyValueArray,
+  newData: KeyValueArray,
+  mergeKey: string
+) {
+  // Create a Map for efficient lookup of newData items by region.
+  // We'll use a copy of newData to modify it as we process items.
+  const newDataMap = new Map<string, { [key: string]: any }>()
+  newData.forEach((item) => {
+    newDataMap.set(item[mergeKey], { ...item })
   })
+
+  // Iterate through baseData to find matches and identify items only in baseData
+  let fields = [] as Array<string>
+  let updatedData = [] as KeyValueArray
+  let unupdatedIndex = [] as Array<number>
+  for (let i = 0; i < baseData.length; i++) {
+    let baseItem = baseData[i]
+    if (newDataMap.has(baseItem[mergeKey])) {
+      // If a match is found in newData, use the newData item for updatedData
+      const newItem = newDataMap.get(baseItem[mergeKey])!
+      const updatedItem = { ...baseItem, ...newItem }
+      updatedData.push({ ...baseItem, ...newItem })
+      newDataMap.delete(baseItem[mergeKey]) // Remove from map as it's been processed
+      if (fields.length === 0) fields = Object.keys(updatedItem) // Extract fields (headers)
+    } else {
+      // If no match in newData, this item is only in baseData
+      unupdatedIndex.push(i)
+      updatedData.push(baseItem)
+    }
+  }
+
+  // Any remaining items in newDataMap are only in newData
+  let unmatchedData = [] as KeyValueArray
+  newDataMap.forEach((item) => {
+    unmatchedData.push(item)
+  })
+
+  return {
+    updated: updatedData,
+    fields: fields,
+    unupdatedIndex: unupdatedIndex,
+    unmatched: unmatchedData
+  }
 }
 
 export function tableToArray(dataTable: DataTable): KeyValueArray {
@@ -134,6 +191,49 @@ export function getNameUnit(label: string): [string, string] {
   const unit = unitMatch ? unitMatch[1].trim() : ''
   const name = label.replace('(' + unit + ')', '').trim()
   return [name, unit]
+}
+
+export function getNameUnitScale(label: string, type: string, step: number): string {
+  if (type !== 'quantile') return label
+
+  const [name, unit] = getNameUnit(label)
+  let scaleName = unit ? `${unit}, ` : ''
+  switch (step) {
+    case 2:
+      scaleName += 'below/above median'
+      break
+    case 3:
+      scaleName += 'tertiles'
+      break
+    case 4:
+      scaleName += 'quartiles'
+      break
+    case 5:
+      scaleName += 'quintiles'
+      break
+    case 6:
+      scaleName += 'sextiles'
+      break
+    case 7:
+      scaleName += 'septiles'
+      break
+    case 8:
+      scaleName += 'octiles'
+      break
+    case 10:
+      scaleName += 'deciles'
+      break
+    default:
+      scaleName += step + '-quantiles'
+  }
+
+  return `${name} (${scaleName})`
+}
+
+export function sanitizeFilename(filename: string): string {
+  const invalidCharsRegex = /[\\/:*?'"<>|]/g
+  const sanitizedFilename = filename.replace(invalidCharsRegex, '_')
+  return sanitizedFilename
 }
 
 export async function getGeneratedCSV(dataTable: DataTable, isGetFile = false) {

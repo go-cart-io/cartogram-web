@@ -6,7 +6,9 @@ const citation =
 
 <template>
   <div>
-    <p class="lead text-center">Liked our work? Make sure to credit us using the citation below:</p>
+    <p class="text-center">
+      Please credit us using the citation below (preferred), or by linking back to go-cart.io:
+    </p>
     <div class="form-group">
       <a
         id="citation-text"

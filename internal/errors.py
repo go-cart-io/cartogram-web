@@ -5,12 +5,14 @@ import settings
 from flask import Response
 
 
-class CartogramError(Exception):
+class CartoError(Exception):
     """Custom exception for user-facing errors with automated logging. DO NOT include sensitive data."""
 
     SUGGEST_REFRESH_TXT = " Try refresh this page, then re-upload your map and data. If the issue persists, please contact us."
 
-    def __init__(self, message: str = "Error occurred", suggest_refresh=False):
+    def __init__(
+        self, message: str = "Error occurred", suggest_refresh=False, log=True
+    ):
         if not message.endswith("."):
             message = message + "."
 
@@ -18,11 +20,12 @@ class CartogramError(Exception):
             message = message + self.SUGGEST_REFRESH_TXT
 
         self.message = message
+        self.log = log
         super().__init__(message)
 
     def response(self, logger=None):
         # Log the full traceback if a logger is provided
-        if logger:
+        if self.log and logger:
             logger.error(self.message)
             if settings.IS_DEBUG:
                 logger.error(traceback.format_exc())
