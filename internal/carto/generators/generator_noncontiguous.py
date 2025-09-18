@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import shapely
 from carto.dataframe import CartoDataFrame
 from carto.datajson import CartoJson
@@ -30,6 +31,22 @@ def generate(
     """
     # Create a copy to avoid modifying original data
     scaled_cdf = equal_area_cdf.copy()
+
+    # Compute mean spatial density
+    area_col = "Geographic Area (sq. km)"
+    if "Geographic Area (sq. km)" not in merged_cdf.columns:
+        area_col = "Calculated Area"
+        merged_cdf[area_col] = round(merged_cdf.area / 10**6)
+
+    merged_cdf[area_col] = pd.to_numeric(merged_cdf[area_col], errors="coerce")
+    merged_cdf[data_col] = pd.to_numeric(merged_cdf[data_col], errors="coerce")
+    observed = merged_cdf.copy().dropna(subset=[data_col])
+    total_area = observed[area_col].sum()
+    total_value = observed[data_col].sum()
+    rho_bar = total_value / total_area
+
+    # Fill in missing value
+    merged_cdf[data_col] = merged_cdf[data_col].fillna(merged_cdf[area_col] * rho_bar)
 
     # Calculate scaling factors
     # Values are normalized to 0-1 range based on the maximum value
