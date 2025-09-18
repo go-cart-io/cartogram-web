@@ -5,7 +5,8 @@ from carto.dataframe import CartoDataFrame
 from carto.datajson import CartoJson
 from carto.generators.cpp_wrapper import run_binary
 from carto.storage import CartoStorage
-from utils import format_utils
+from errors import CartoError
+from utils import file_utils, format_utils
 
 
 def preprocess(input, mapDBKey: str = "temp_filename"):
@@ -25,12 +26,13 @@ def preprocess(input, mapDBKey: str = "temp_filename"):
 
     # Input can be anything that is supported by geopandas.read_file
     # Standardize input to geojson file path for consistent processing
-    file_path = storage.get_tmp_file_path("Input.json")
+    file_path = storage.get_safe_tmp_file_path("Input.json")
     storage.create_tmp()
     if isinstance(input, str):  # input is path
         input_path = input
+        input_path = file_utils.get_safepath(input_path)
     else:  # input is file object
-        input_path = storage.get_tmp_file_path(input.filename)
+        input_path = storage.get_safe_tmp_file_path(input.filename)
         input.save(input_path)
 
     # Load the geographic data into a CartoDataFrame and save as cartogram file
@@ -39,7 +41,10 @@ def preprocess(input, mapDBKey: str = "temp_filename"):
 
     # Remove the original file if input is file object
     if not isinstance(input, str):
-        os.remove(input_path)
+        if input_path.startswith(storage.tmp_path):
+            os.remove(input_path)
+        else:
+            raise CartoError("Attempted to remove file outside allowed temp directory")
 
     # Remove invalid geometries
     cdf = cdf[cdf.geometry.notnull()]

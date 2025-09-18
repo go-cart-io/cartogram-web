@@ -157,7 +157,7 @@ function _escapeScales(scales: Scale[]): Scale[] {
       'field' in scale.domain &&
       typeof scale.domain.field === 'string'
     ) {
-      scale.domain.field = scale.domain.field.replace(/\./g, '\\.')
+      scale.domain.field = scale.domain.field.replace(/\\/g, '\\\\').replace(/\./g, '\\.')
     }
   })
   return escapedScales

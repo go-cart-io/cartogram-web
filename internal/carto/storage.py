@@ -35,7 +35,7 @@ class CartoStorage:
         if not os.path.exists(self.tmp_path):
             os.mkdir(self.tmp_path)
 
-    def get_tmp_file_path(self, filename: str) -> str:
+    def get_safe_tmp_file_path(self, filename: str) -> str:
         """
         Generate a safe file path within the temporary directory.
 
@@ -57,7 +57,7 @@ class CartoStorage:
             data (str): String data to write to the file
         """
         self.create_tmp()
-        with open(self.get_tmp_file_path(filename), "w") as outfile:
+        with open(self.get_safe_tmp_file_path(filename), "w") as outfile:
             outfile.write(data)
 
     def standardize_tmp_input(
@@ -78,7 +78,7 @@ class CartoStorage:
         Raises:
             CartoError: If source files are not found or operations fail
         """
-        gen_file = self.get_tmp_file_path("Input.json")
+        gen_file = self.get_safe_tmp_file_path("Input.json")
 
         try:
             if handlers.has_handler(handler_name):
@@ -123,7 +123,7 @@ class CartoStorage:
 
         # Remove Input.json for non-custom handlers since they use cartdata
         if handler != "custom":
-            os.remove(self.get_tmp_file_path("Input.json"))
+            os.remove(self.get_safe_tmp_file_path("Input.json"))
 
         # Move temporary directory to permanent user data location
         user_path = file_utils.get_safepath("static/userdata", self.string_key)
