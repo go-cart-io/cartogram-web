@@ -37,7 +37,8 @@ def generate(
     dens_col = "Calculated Density"
     if "Geographic Area (sq. km)" not in merged_cdf.columns:
         area_col = "Calculated Area"
-        merged_cdf[area_col] = round(merged_cdf.area / 10**6)
+        merged_cdf[area_col] = merged_cdf.area
+
     merged_cdf[area_col] = pd.to_numeric(merged_cdf[area_col], errors="coerce")
     merged_cdf[data_col] = pd.to_numeric(merged_cdf[data_col], errors="coerce")
     observed = merged_cdf.copy().dropna(subset=[data_col])

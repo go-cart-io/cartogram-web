@@ -41,9 +41,13 @@ def generate(
 
     # Prepare data for noncontiguous
     # Merge the geographic data with the statistical data on the "Region" column
-    # Uses left join to preserve all geographic regions even if no data exists
+    # Uses left join to preserve all geographic regions
+    # For columns with the same names, use data from the csv
     equal_area_cdf = CartoDataFrame.read_file(equal_area_file)
-    merged_cdf = equal_area_cdf.merge(datacsv.df, on="Region", how="left")
+    merged_cdf = equal_area_cdf.merge(
+        datacsv.df, on="Region", how="left", suffixes=("_drop", None)
+    )
+    merged_cdf = merged_cdf.loc[:, ~merged_cdf.columns.str.endswith("_drop")]
 
     for data_col in datacsv.data_cols:
         progress.start(data_col)
