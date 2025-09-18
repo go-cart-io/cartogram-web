@@ -136,7 +136,7 @@ def parse_vis_types(data: dict, df: pd.DataFrame) -> dict[str, str]:
     for col_name, col_type in vis_types.items():
         file_utils.validate_filename(col_name)
 
-        if col_type == "cartogram":
+        if col_type == "contiguous":
             count = count + 1
 
         if settings.CARTOGRAM_COUNT_LIMIT and count > settings.CARTOGRAM_COUNT_LIMIT:
