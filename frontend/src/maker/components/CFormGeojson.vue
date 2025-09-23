@@ -21,7 +21,7 @@ const state = reactive({
   error: '',
   warnings: [] as Array<string>,
   handler: '',
-  mapType: 'other',
+  mapType: '',
   selectedFileName: '',
   geojsonUniqueProperties: [] as Array<string>,
   geojsonRegionCol: ''
@@ -170,7 +170,11 @@ async function onRegionColChanged() {
         </div>
       </div>
       <div>
-        <label for="geoFileInput" class="btn btn-outline-secondary">
+        <label
+          for="geoFileInput"
+          class="btn btn-outline-secondary"
+          v-bind:class="{ disabled: !state.mapType }"
+        >
           Choose file <i class="fa-solid fa-upload"></i>
         </label>
         <input
@@ -181,7 +185,10 @@ async function onRegionColChanged() {
           class="d-none"
           v-on:change="uploadGeoJson"
         />
-        <div id="geoFileName" class="small text-truncate text-muted">
+        <div v-if="!state.mapType" class="small text-truncate text-muted">
+          Please select the type first!
+        </div>
+        <div v-else id="geoFileName" class="small text-truncate text-muted">
           {{ state.selectedFileName || 'No file chosen' }}
         </div>
         <div class="d-block invalid-feedback">{{ state.error }}</div>
