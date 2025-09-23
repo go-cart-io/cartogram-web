@@ -184,9 +184,10 @@ def validate_options(options: list[str]) -> None:
     allowed_options = {
         "--output_equal_area_map",
         "--world",
-        "--output_shifted_insets",  # Note: There might be a typo here ("shifted" vs "shifted")
+        "--output_shifted_insets",
         "--skip_projection",
         "--area",
+        "--do_not_fail_on_intersections",
     }
 
     i = 0

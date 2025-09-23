@@ -54,7 +54,13 @@ def generate(
             equal_area_path,
             area_data_path,
             data_col,
-            flags + ["--skip_projection", "--area", data_col],
+            flags
+            + [
+                "--skip_projection",
+                "--area",
+                data_col,
+                "--do_not_fail_on_intersections",
+            ],
             progress,
         )
 
