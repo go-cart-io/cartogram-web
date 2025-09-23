@@ -38,4 +38,4 @@ To update the `cartogram` binary to:
 
 ## Contributing
 
-We welcome and encourage contributions! For details on setting up a development environment and contribution guidelines, please visit our [Developer Guide](https://guides.go-cart.io/developers).
+We welcome and encourage contributions! For details on setting up a development environment and contribution guidelines, please visit our [Developer Guide](https://guides.go-cart.io/#/developers).
