@@ -9,7 +9,7 @@ from errors import CartoError
 from utils import file_utils, format_utils
 
 
-def preprocess(input, mapDBKey: str = "temp_filename"):
+def preprocess(input, mapDBKey: str = "temp_filename", map_type=""):
     """
     Core preprocessing function for boundary data that handles file loading,
     geometry validation, and data preparation for creating equal area map.
@@ -35,8 +35,11 @@ def preprocess(input, mapDBKey: str = "temp_filename"):
         input_path = storage.get_safe_tmp_file_path(input.filename)
         input.save(input_path)
 
-    # Load the geographic data into a CartoDataFrame and save as cartogram file
+    # Load the geographic data into a CartoDataFrame, fix world flag, and save as cartogram file
     cdf = CartoDataFrame.read_file(input_path)
+    if map_type == "world":
+        cdf.extra_attributes["extent"] = "world"
+        cdf.is_world = True
     cdf.to_carto_file(file_path)
 
     # Remove the original file if input is file object
