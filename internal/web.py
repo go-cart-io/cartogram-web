@@ -31,11 +31,18 @@ def create_app():
         db.init_app(app)
         Migrate(app, db)
 
+    version_txt = ""
     try:
+        with open(
+            os.path.join(os.path.dirname(__file__), "executable/release-tag.txt")
+        ) as f:
+            version_txt = " cpp v" + f.read().strip()
         with open(os.path.join(os.path.dirname(__file__), "version.txt")) as f:
-            app.config["VERSION"] = " v" + f.read().strip()
+            version_txt = version_txt + " web v" + f.read().strip()
     except FileNotFoundError:
-        app.config["VERSION"] = ""
+        pass
+
+    app.config["VERSION"] = version_txt
 
     from routes.api_routes import api_bp
     from routes.cartogram_routes import cartogram_bp

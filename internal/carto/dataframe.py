@@ -31,7 +31,9 @@ class CartoDataFrame(gpd.GeoDataFrame):
         }
         object.__setattr__(self, "extra_attributes", filtered_extra_attributes or {})
 
-        self.is_projected = (
+        self.is_projected = extra_attributes.get("properties", {}).get(
+            "projected", False
+        ) or (
             extra_attributes.get("crs", {}).get("properties", {}).get("name")
             == "EPSG:cartesian"
         )
@@ -150,7 +152,7 @@ class CartoDataFrame(gpd.GeoDataFrame):
     def clean_properties(
         self,
         region_col,
-        base_columns=["Region", "label", "cartogram_id", "geometry"],
+        base_columns=["Region", "label", "cartogram_id", "geometry", "extent"],
         map_names_dict={},
     ):
         """

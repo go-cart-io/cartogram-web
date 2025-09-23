@@ -245,7 +245,7 @@ function onChange() {
     <label for="choroTextarea" class="form-label">
       Define scale for each choropleth data column using
       <a href="https://vega.github.io/vega/docs/scales/" target="_blank">vega specification</a>.
-      Futhermore, you may modify the legend title of each data column.
+      Furthermore, you may modify the legend title of each data column.
     </label>
     <textarea
       id="choroTextarea"

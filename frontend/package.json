@@ -27,7 +27,7 @@
     "pinia": "^3.0.1",
     "vega": "6.1.2",
     "vega-embed": "7.0.2",
-    "vega-tooltip": "^0.35.2",
+    "vega-tooltip": "0.35.2",
     "vue": "3.5.13",
     "xlsx": "npm:@e965/xlsx@^0.20.3"
   },

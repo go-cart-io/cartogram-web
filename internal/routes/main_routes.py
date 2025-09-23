@@ -1,12 +1,7 @@
-from flask import Blueprint, current_app, render_template, request
+from flask import Blueprint, render_template, request
 from views import contact, tracking
 
 main_bp = Blueprint("main", __name__)
-
-
-@main_bp.context_processor
-def inject_version():
-    return dict(version=current_app.config["VERSION"])
 
 
 @main_bp.route("/", methods=["GET"])

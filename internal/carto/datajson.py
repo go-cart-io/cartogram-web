@@ -12,7 +12,7 @@ class CartoJson:
     making it easier to work with frontend.
     """
 
-    def __init__(self, json_data: dict):
+    def __init__(self, json_data: dict, is_world=False):
         """
         Initialize the CartoJson object with GeoJSON data.
 
@@ -28,6 +28,10 @@ class CartoJson:
         ]
         #: Geometries information including bounding box, centriod, and total area of geojson.
         self.geoms_info = geojson_utils.get_geoms_info(self.geometries)
+
+        # Add flag for world geojson
+        if is_world:
+            self.json_data["extent"] = "world"
 
     def postprocess(
         self,
@@ -251,10 +255,6 @@ class CartoJson:
         import json
 
         filepath = file_utils.get_safepath(project_path, filename)
-
-        self.json_data = geojson_utils.add_attributes(
-            self.json_data, is_projected=is_projected
-        )
 
         with open(filepath, "w") as f:
             json.dump(self.json_data, f)

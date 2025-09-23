@@ -54,7 +54,13 @@ def generate(
             equal_area_path,
             area_data_path,
             data_col,
-            flags + ["--skip_projection", "--area", data_col],
+            flags
+            + [
+                "--skip_projection",
+                "--area",
+                data_col,
+                "--do_not_fail_on_intersections",
+            ],
             progress,
         )
 
@@ -67,8 +73,10 @@ def generate(
     if cartogram_gen_output_json is None:
         raise CartoError(f"Cannot generate cartogram for {data_col}.")
 
+    is_world = True if "--world" in flags else False
+
     # Extract and post-process the original cartogram data, save it to a file
-    cartogram_json = CartoJson(cartogram_gen_output_json["Original"])
+    cartogram_json = CartoJson(cartogram_gen_output_json["Original"], is_world)
     cartogram_json.postprocess(equal_area_area, equal_area_centroid)
     cartogram_json.save(project_path, f"{data_name}.json", is_projected=True)
 
@@ -78,7 +86,9 @@ def generate(
     )
 
     # Save the simplified version of the cartogram to a separate JSON file
-    cartogram_json_simplified = CartoJson(cartogram_gen_output_json["Simplified"])
+    cartogram_json_simplified = CartoJson(
+        cartogram_gen_output_json["Simplified"], is_world
+    )
     cartogram_json_simplified.save(
         project_path,
         f"{data_name}_simplified.json.json",
