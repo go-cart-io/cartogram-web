@@ -33,6 +33,9 @@ class CartoDataFrame(gpd.GeoDataFrame):
 
         self.is_projected = extra_attributes.get("properties", {}).get(
             "projected", False
+        ) or (
+            extra_attributes.get("crs", {}).get("properties", {}).get("name")
+            == "EPSG:cartesian"
         )
         self.is_world = extra_attributes.get("extent") == "world"
 
