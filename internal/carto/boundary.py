@@ -159,7 +159,7 @@ def generate_equal_area(
         # TODO: warn the user about projection failure
 
     # Apply post-processing
-    equal_area_json = CartoJson(equal_area_json)
+    equal_area_json = CartoJson(equal_area_json, cdf.is_world)
     equal_area_json.postprocess()
 
     return equal_area_json

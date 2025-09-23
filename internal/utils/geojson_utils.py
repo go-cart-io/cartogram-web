@@ -38,16 +38,3 @@ def union_bounding_boxes(bbox1, bbox2):
     new_x_max = max(x1_max, x2_max)
     new_y_max = max(y1_max, y2_max)
     return [new_x_min, new_y_min, new_x_max, new_y_max]
-
-
-def add_attributes(geojson, is_projected=False, is_world=False):
-    if is_projected:
-        geojson["crs"] = {"type": "name", "properties": {"name": "EPSG:cartesian"}}
-        geojson["properties"] = {
-            "note": "Created from go-cart.io with custom projection, not in EPSG:4326."
-        }
-
-    if is_world:
-        geojson["extent"] = "world"
-
-    return geojson

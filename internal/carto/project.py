@@ -48,6 +48,8 @@ def generate(
         datacsv.df, on="Region", how="left", suffixes=("_drop", None)
     )
     merged_cdf = merged_cdf.loc[:, ~merged_cdf.columns.str.endswith("_drop")]
+    if equal_area_cdf.is_world:
+        flags = flags + ["--world"]
 
     for data_col in datacsv.data_cols:
         progress.start(data_col)
