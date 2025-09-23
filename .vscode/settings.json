@@ -29,6 +29,8 @@
     "editor.defaultFormatter": "charliermarsh.ruff"
   },
   "python.analysis.typeCheckingMode": "standard",
+  "python.analysis.extraPaths": ["/root/internal"],
+  "python.autoComplete.extraPaths": ["/root/internal"],
   "conventionalCommits.scopes": [
     "backend",
     "ui",

@@ -3,6 +3,7 @@ import os
 import re
 import subprocess
 import threading
+from pathlib import Path
 from queue import Queue
 from typing import IO, Generator
 
@@ -97,9 +98,8 @@ def execute(
         CartoError: If the boundary file path is invalid
     """
     # Construct path to the cartogram executable
-    cartogram_exec = os.path.join(
-        os.path.dirname(__file__), "..", "..", "executable", "cartogram"
-    )
+    current_file = Path(__file__).resolve()
+    cartogram_path = current_file.parent.parent.parent / "executable" / "cartogram"
 
     # Validate the custom flags before proceeding
     validate_options(custom_flags)
@@ -110,7 +110,11 @@ def execute(
         raise CartoError(f"Invalid boundary file path: {input_path}")
 
     # Build command line arguments
-    args = [cartogram_exec, input_path, "--redirect_exports_to_stdout"] + custom_flags
+    args = [
+        str(cartogram_path),
+        input_path,
+        "--redirect_exports_to_stdout",
+    ] + custom_flags
 
     area_data_path = (
         file_utils.get_safepath(area_data_path) if area_data_path is not None else ""
