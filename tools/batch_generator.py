@@ -1,6 +1,7 @@
 # Script to regenerate cartograms in a folder or folders
 # Also include utility script to update cartdata folder with sample_data
 
+import argparse
 import os
 import shutil
 import subprocess
@@ -15,39 +16,77 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../internal/executable"
 
 from carto import boundary, project
 from carto.dataframe import CartoDataFrame
-from handler_metadata import cartogram_handlers
+from handler_metadata import cartogram_handlers  # type: ignore
 
 CARTDATA_PATH = os.path.join(os.path.dirname(__file__), "../internal/static/cartdata")
 KEY_COL = 0
 DATA_COL = 1
 
+parser = argparse.ArgumentParser(
+    description="Tools for adding maps and generating cartograms."
+)
+parser.add_argument(
+    "--overwrite",
+    action="store_true",
+    help="replace existing data with current one (default: skip processing if data already exists)",
+)
+parser.add_argument(
+    "--prompt_friendly_name",
+    action="store_true",
+    help="prompt for map friendly name (default: use the folder name)",
+)
+parser.add_argument(
+    "--vis_types",
+    help="the visualization configuration in the format { column_name: type }, "
+    'e.g., { "Population": "contiguous", "Population2": "noncontiguous", "Population density": "choropleth" }. '
+    "Leave it blank to make all data columns contiguous cartograms.",
+)
+subparsers = parser.add_subparsers(help="subcommand help")
 
-def print_usage():
-    usage = """Usage: python batch_generator.py <command> [options]
+parser_add_folders = subparsers.add_parser(
+    "add_folders",
+    help="copy subfolders from the based folder, generate cartograms for each subfolder, "
+    "then add each of them to the map list. Must have one geojson and at least one csv in each subfolder. "
+    "In each csv, the first column must be region names and the second column must be the data (e.g. population). "
+    "Use 'Label' column for labels in visualization.",
+)
+parser_add_folders.add_argument(
+    "based_folder", help="the based folder (e.g., cartogram-cpp/sample_data)"
+)
 
-Commands:
-  add        Add a new map in our handler.
-  gen        Generate cartograms for the specified handler.
-  gen-all    Generate cartograms for all maps in our handler.
+parser_add_map = subparsers.add_parser(
+    "add_map",
+    help="copy the specified folder, generate cartograms for each subfolder, "
+    "then add each of them to the map list. Must have one geojson and at least one csv in each subfolder. "
+    "In each csv, the first column must be region names and the second column must be the data (e.g. population). "
+    "Use 'Label' column for labels in visualization.",
+)
+parser_add_map.add_argument(
+    "src_map_folder",
+    help="the path to the specified folder (e.g., cartogram-cpp/sample_data/world_by_region_wo_antarctica)",
+)
 
-Examples:
-  batch_generator.py add handler-name [Input.json] [data.csv]
-  batch_generator.py gen handler-name
-  batch_generator.py gen-all
-"""
-    print(usage)
+parser_gen_map = subparsers.add_parser(
+    "gen_map",
+    help="regenerate cartograms for the specified map in internal/static/cartdata folder "
+    "(useful in case the map is already in the list but you want to update the cartogram only).",
+)
+parser_gen_map.add_argument(
+    "map_folder",
+    help="the name of a folder in cartdata (e.g., usa). "
+    "Use 'all' to regenerate cartograms for all folders in cartdata.",
+)
 
 
-def read_csv_with_encoding(file_path):
-    """Try to read CSV with different encodings"""
-    encodings = [
-        "utf-8",
-        "utf-8-sig",
-        "latin-1",
-        "iso-8859-1",
-        "windows-1252",
-        "cp1252",
-    ]
+def read_csv_with_encoding(file_path: str) -> pd.DataFrame | None:
+    """
+    Try to read a CSV file using several common encodings.
+    Returns a pandas DataFrame if successful, or None if all attempts fail.
+
+    Args:
+        file_path (str): Path to the csv file
+    """
+    encodings = ["utf-8", "utf-16", "latin-1", "iso-8859-1", "windows-1252"]
 
     for encoding in encodings:
         try:
@@ -69,36 +108,38 @@ def read_csv_with_encoding(file_path):
         return None
 
 
-def merge_csv_files(csv_files: list[Path], output_path: Path) -> list[str]:
+def merge_csv_files(csv_files: list[Path], output_path: Path) -> None:
     """
-    Merge multiple CSV files using the first column as key.
-    Drops empty columns before merging.
-
-    Assumption:
-        The first column contains region names. The second columns contains data.
+    Merge multiple CSV files using the first column as the key (region names).
+    Drops empty columns before merging. Handles label and inset columns if present.
+    Saves the merged result to output_path.
 
     Args:
         csv_files (List[Path]): List of CSV file paths to merge
         output_path (Path): Path where merged CSV should be saved
-
-    Returns:
-        list[str]: List of data column names
     """
     if not csv_files:
-        return []
+        return
 
     try:
-        data_cols = []
-
         # Read first CSV as base dataframe
-        merged_df = read_csv_with_encoding(csv_files[0])
+        merged_df = read_csv_with_encoding(str(csv_files[0]))
         if merged_df is None:
-            return []
+            return
 
         # Select first two columns plus "Inset" if it exists
         selected_cols = list(merged_df.columns[:2])
         if "Inset" in merged_df.columns and not merged_df["Inset"].isna().all():
             selected_cols.append("Inset")
+
+        # Deal with labels
+        if (
+            "RegionLabel" in merged_df.columns
+            and not merged_df["RegionLabel"].isna().all()
+        ):
+            selected_cols.append("RegionLabel")
+        elif "Label" in merged_df.columns and not merged_df["Label"].isna().all():
+            selected_cols.append("Label")
 
         merged_df = merged_df[selected_cols].copy()
         first_col = merged_df.columns[0]
@@ -106,7 +147,7 @@ def merge_csv_files(csv_files: list[Path], output_path: Path) -> list[str]:
         # Merge remaining CSVs
         if len(csv_files) > 1:
             for csv_file in csv_files[1:]:
-                df = read_csv_with_encoding(csv_file)
+                df = read_csv_with_encoding(str(csv_file))
                 if df is None:
                     continue
 
@@ -136,136 +177,185 @@ def merge_csv_files(csv_files: list[Path], output_path: Path) -> list[str]:
         # Save merged CSV
         merged_df.to_csv(output_path, index=False)
 
-        # Find data columns
-        priority = [first_col, "Inset", "Population (people)"]
-        priority = [col for col in priority if col in merged_df.columns]
-        data_cols = [col for col in merged_df.columns if col not in priority]
-        merged_df = merged_df[priority + data_cols]
-        data_cols = ["Population (people)"] + data_cols
-
-        print(f"CSV columns: {merged_df.columns}")
-        print(f"Data columns: {data_cols}")
-
-        return data_cols
-
     except Exception as e:
         traceback.format_exc()
         print(f"Error merging CSV files: {e}")
-        return []
 
 
-def process_folders(source_path, override=True):
+def copy_folder(src_dir: Path, dest_dir: Path, overwrite=False) -> bool:
     """
-    Copy directory structure and all .md files from source to destination.
-    Also merge CSV files in each subdirectory.
+    Copy geojson, markdown, and CSV files from src_dir to dest_dir.
+    Merges CSVs and standardizes file names for cartogram processing.
+    Returns True if successful, False otherwise.
 
     Args:
-        source_path (str): Path to the source folder
-        override (bool): If True, delete existing destination folder before copying
+        src_dir (Path): Source directory
+        dest_dir (Path): Destination directory
+        overwrite (bool): Remove existing folder
+    """
+    print(f"Copy files from {src_dir} to cartdata...")
+
+    if dest_dir.exists():
+        if overwrite:
+            try:
+                shutil.rmtree(dest_dir)
+            except Exception as e:
+                print(f"Error deleting destination folder: {e}")
+                return False
+        else:
+            print("Destination folder already exists. Skipping copy operation.")
+            return False
+
+    dest_dir.mkdir(parents=True, exist_ok=True)
+
+    # Copy geojson file
+    geojson_files = list(src_dir.glob("*.geojson"))
+    if not geojson_files:
+        print("Warning: geojson file not found. Please check!")
+        return False
+    else:
+        if len(geojson_files) > 1:
+            print("Warning: found multiple geojson files. Please check!")
+
+        source_file = geojson_files[0]
+        dest_file = dest_dir / "Input.json"
+
+        try:
+            shutil.copy2(source_file, dest_file)
+        except Exception as e:
+            print(f"Failed to copy {geojson_files[0]}: {e}")
+            return False
+
+    # Copy all .md files
+    md_files = list(src_dir.glob("*.md"))
+    for source_file in md_files:
+        dest_file = dest_dir / source_file.name
+
+        try:
+            shutil.copy2(source_file, dest_file)
+        except Exception as e:
+            print(f"Failed to copy {source_file}: {e}")
+
+    # Identify and process CSV files
+    csv_files = list(src_dir.glob("*.csv"))
+    csv_path = dest_dir / "data.csv"
+    merge_csv_files(csv_files, csv_path)
+
+    return True
+
+
+def add_folders(
+    source_path: str,
+    vis_types: dict[str, str] = {},
+    prompt_friendly_name=False,
+    overwrite=False,
+) -> None:
+    """
+    Add all subfolders in the source_path as new maps.
+    For each subfolder, copy files, merge CSVs, generate cartograms, and update handler metadata.
+
+    Args:
+        source_path (str): Source directory
+        vis_types (dict[str, str]): Visualization configuration
+        prompt_friendly_name (bool): Prompt for friendly name (otherwise, use the folder name)
+        overwrite (bool): Remove existing folder
     """
     source = Path(source_path)
-    destination = Path(CARTDATA_PATH)
 
-    # Check if source exists
-    if not source.exists() or not source.is_dir():
-        print(
-            f"Error: Source path '{source_path}' does not exist or is not a directory."
-        )
-        return
-
-    print(f"Copying from: {source}")
-    print(f"Copying to: {destination}")
-    print(f"Override mode: {override}")
-    print("-" * 60)
-
-    # Walk through all directories and subdirectories
+    # Copy and manage files in subdirectories
     for src_dir in source.iterdir():
         if not src_dir.is_dir():
             continue
 
-        # Create corresponding directory structure in destination
-        dest_dir = destination / src_dir.name
-
-        print(dest_dir)
-
-        if dest_dir.exists():
-            if override:
-                try:
-                    shutil.rmtree(dest_dir)
-                    print("Existing destination folder cleared.")
-                except Exception as e:
-                    print(f"Error deleting destination folder: {e}")
-                    continue
-            else:
-                print("Destination folder already exists. Skipping copy operation.")
-                continue
-
-        dest_dir.mkdir(parents=True, exist_ok=True)
-
-        # Copy geojson file
-        geojson_files = list(src_dir.glob("*.geojson"))
-        if not geojson_files:
-            print("Warning: geojson file not found. Please check!")
-            continue
-        else:
-            if len(geojson_files) > 1:
-                print("Warning: found multiple geojson files. Please check!")
-
-            source_file = geojson_files[0]
-            dest_file = dest_dir / "Input.json"
-
-            try:
-                shutil.copy2(source_file, dest_file)
-            except Exception as e:
-                print(f"Failed to copy {geojson_files[0]}: {e}")
-                continue
-
-        # Copy all .md files
-        md_files = list(src_dir.glob("*.md"))
-        for source_file in md_files:
-            dest_file = dest_dir / source_file.name
-
-            try:
-                shutil.copy2(source_file, dest_file)
-            except Exception as e:
-                print(f"Failed to copy {source_file}: {e}")
-
-        # Identify and process CSV files
-        csv_files = list(src_dir.glob("*.csv"))
-        csv_path = dest_dir / "data.csv"
-        data_cols = merge_csv_files(csv_files, csv_path)
-        vis_types = {key: "contiguous" for key in data_cols}
-
-        # Start processing
-        add_handler(src_dir.name, vis_types, skip_prompt=True, override=override)
+        add_map(
+            str(src_dir),
+            vis_types=vis_types,
+            prompt_friendly_name=prompt_friendly_name,
+            overwrite=overwrite,
+        )
         print("-" * 60)
-
-        break
 
     print("-" * 60)
     print("OPERATION COMPLETED!")
     print("-" * 60)
 
 
-def add_handler(handler, vis_types={}, skip_prompt=False, override=True):
-    if not override and handler in cartogram_handlers:
-        print("Error: Handler already exists.")
+def add_map(
+    source_path: str,
+    vis_types: dict[str, str] = {},
+    prompt_friendly_name=False,
+    overwrite=False,
+) -> None:
+    """
+    Add a single map from source_path.
+    Copies files, merges CSVs, generates cartograms, and updates handler metadata.
+
+    Args:
+        source_path (str): Source directory
+        vis_types (dict[str, str]): Visualization configuration
+        prompt_friendly_name (bool): Prompt for friendly name (otherwise, use the folder name)
+        overwrite (bool): Remove existing folder
+    """
+    print(f"Add {source_path}...")
+
+    src_dir = Path(source_path)
+    handler = src_dir.name
+
+    destination = Path(CARTDATA_PATH)
+    dest_dir = destination / handler
+
+    if not overwrite and handler in cartogram_handlers:
+        print("Skip: Handler already exists.")
         return
 
     user_friendly_name = handler
-    if not skip_prompt:
+    if prompt_friendly_name:
         user_friendly_name = (
             input((f"Enter a user friendly name for this map ({handler}): ")) or handler
         )
 
-    gen_cartograms(handler, vis_types)
-    modify_handler(handler, user_friendly_name, vis_types, override=override)
+    if not copy_folder(src_dir, dest_dir, overwrite=overwrite):
+        return
+
+    vis_types = gen_map(handler, vis_types)
+    modify_handler(handler, user_friendly_name, vis_types, overwrite=overwrite)
 
 
-def gen_cartograms(handler, vis_types={}):
-    print(f"Generate cartogram of {handler}...")
+def gen_map_wrapper(handler: str, vis_types: dict[str, str] = {}) -> None:
+    """
+    Regenerate cartograms for a specific handler or for all handlers if 'all' is specified.
 
-    handler = Path(f"{CARTDATA_PATH}/{handler}")
+    Args:
+        handler (str): The handler
+        vis_types (dict[str, str]): Visualization configuration
+    """
+    if handler == "all":
+        err = []
+        for handler in cartogram_handlers:
+            try:
+                gen_map(handler, vis_types)
+            except Exception as e:
+                print(e)
+                err = err + [handler]
+        print("Done! Please check the following folder for errors:")
+        print(err)
+    else:
+        gen_map(handler, vis_types)
+
+
+def gen_map(handler_str: str, vis_types: dict[str, str] = {}) -> dict[str, str]:
+    """
+    Generate cartogram data for a given handler (map folder).
+    Preprocesses geojson, merges with CSV data, and runs the cartogram generation logic.
+    Returns the visualization types used.
+
+    Args:
+        handler (str): The handler
+        vis_types (dict[str, str]): Visualization configuration
+    """
+    print(f"Generate cartogram of {handler_str}...")
+
+    handler = Path(f"{CARTDATA_PATH}/{handler_str}")
     json_input = handler / "Input.json"
 
     boundary.preprocess(str(json_input), "batch")
@@ -278,12 +368,38 @@ def gen_cartograms(handler, vis_types={}):
     shutil.move(tmp_path, str(handler))
 
     # Prepare data
-    data_df = pd.read_csv(handler / "data.csv")
-    region_col = data_df.columns[0]
-    data_df = data_df.rename(columns={region_col: "Region"})
+    data_df = read_csv_with_encoding(str(handler / "data.csv"))
+    if data_df is None:
+        return {}
+
+    first_col = "Region"
+    if "Region" not in data_df.columns:
+        first_col = data_df.columns[0]
+        data_df = data_df.rename(columns={first_col: "Region"})
+
+    if "Label" in data_df.columns:
+        data_df = data_df.rename(columns={"Label": "RegionLabel"})
+
+    # Make all data columns contiguous cartograms
+    if not vis_types:
+        reserved = [
+            "Region",
+            "RegionLabel",
+            "Color",
+            "ColorGroup",
+            "Inset",
+            "Geographic Area (sq. km)",
+        ]
+        data_cols = [col for col in data_df.columns if col not in reserved]
+        vis_types = {key: "contiguous" for key in data_cols}
+
     input_cdf = CartoDataFrame.read_file(handler / "Input.json")
     data_df["ColorGroup"] = input_cdf["ColorGroup"]
     data_df["Geographic Area (sq. km)"] = input_cdf["Geographic Area (sq. km)"]
+
+    flags = []
+    if str(handler.name).lower().startswith("world"):
+        flags = ["--world"]
 
     project.generate(
         data_df.to_csv(index=False),
@@ -291,13 +407,24 @@ def gen_cartograms(handler, vis_types={}):
         str(json_input),
         "batch",
         str(handler),
-        clean_by=region_col,
+        clean_by=first_col,
+        flags=flags,
     )
 
-    print("Done.")
+    return vis_types
 
 
-def modify_handler(map_name, user_friendly_name, vis_type={}, override=True):
+def modify_handler(
+    map_name: str,
+    user_friendly_name: str,
+    vis_type: dict[str, str] = {},
+    overwrite=False,
+) -> bool:
+    """
+    Update the handler metadata file to add or update a map handler entry.
+    Optionally formats the file using Ruff if available.
+    Returns True if successful, False otherwise.
+    """
     file_path = "internal/handler_metadata.py"
     try:
         print("Updating handler metadata...")
@@ -305,12 +432,15 @@ def modify_handler(map_name, user_friendly_name, vis_type={}, override=True):
         with open(file_path, "r") as f:
             exec(f.read(), globals())
 
-        # Now cartogram_handlers is available in global scope
         # Add new handler
-        if map_name not in cartogram_handlers or override:
+        if map_name not in cartogram_handlers or overwrite:
             cartogram_handlers[map_name] = {"name": user_friendly_name}
             if vis_type:
-                cartogram_handlers[map_name]["types"] = vis_type
+                # "types" can be a dict[str, str]
+                cartogram_handlers[map_name]["types"] = vis_type  # type: ignore
+        else:
+            print("The handler exists. Use argument ")
+            return False
 
         # Write back to file and format it
         try:
@@ -353,26 +483,28 @@ def modify_handler(map_name, user_friendly_name, vis_type={}, override=True):
         return False
 
 
-if len(sys.argv) < 2:
-    print_usage()
-    sys.exit(1)
+parser_add_folders.set_defaults(
+    func=lambda args: add_folders(
+        args.based_folder,
+        prompt_friendly_name=args.prompt_friendly_name,
+        overwrite=args.overwrite,
+    )
+)
+parser_add_map.set_defaults(
+    func=lambda args: add_map(
+        args.src_map_folder,
+        vis_types=args.vis_types,
+        prompt_friendly_name=args.prompt_friendly_name,
+        overwrite=args.overwrite,
+    )
+)
+parser_gen_map.set_defaults(
+    func=lambda args: gen_map_wrapper(args.map_folder, vis_types=args.vis_types)
+)
 
-if sys.argv[1] == "process":
-    process_folders(sys.argv[2])
-elif sys.argv[1] == "add":
-    add_handler(sys.argv[2])
-elif sys.argv[1] == "gen":
-    gen_cartograms(sys.argv[2])
-elif sys.argv[1] == "gen-all":
-    err = []
-    for handler in cartogram_handlers:
-        try:
-            gen_cartograms(handler)
-        except Exception as e:
-            print(e)
-            err = err + [handler]
-    print("Done! Please check the following folder for errors:")
-    print(err)
+args = parser.parse_args()
+
+if hasattr(args, "func"):
+    args.func(args)
 else:
-    print_usage()
-    sys.exit(1)
+    parser.print_help()
