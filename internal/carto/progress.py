@@ -52,6 +52,9 @@ class CartoProgress:
         self.redis_conn.set("cartprogress-{}".format(self.key), json.dumps(progress_db))
         self.redis_conn.expire("cartprogress-{}".format(self.key), 300)
 
+        if self.key == "batch":
+            print(overall_progress)
+
     def get(self) -> dict:
         current_progress = self.redis_conn.get("cartprogress-{}".format(self.key))
 

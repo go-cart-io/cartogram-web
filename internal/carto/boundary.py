@@ -9,7 +9,7 @@ from errors import CartoError
 from utils import file_utils, format_utils
 
 
-def preprocess(input, mapDBKey: str = "temp_filename", map_type=""):
+def preprocess(input, mapDBKey="temp_filename", map_type=""):
     """
     Core preprocessing function for boundary data that handles file loading,
     geometry validation, and data preparation for creating equal area map.

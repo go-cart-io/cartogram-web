@@ -42,5 +42,6 @@ internal/static/cartdata/test*
 internal/static/dist/*
 internal/executable/cartogram
 internal/tmp/*
+sample_data
 
 version.txt
