@@ -91,7 +91,7 @@ def generate(
     )
     cartogram_json_simplified.save(
         project_path,
-        f"{data_name}_simplified.json.json",
+        f"{data_name}_simplified.json",
         is_projected=True,
     )
 
