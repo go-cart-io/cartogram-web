@@ -394,8 +394,20 @@ def gen_map(handler_str: str, vis_types: dict[str, str] = {}) -> dict[str, str]:
         vis_types = {key: "contiguous" for key in data_cols}
 
     input_cdf = CartoDataFrame.read_file(handler / "Input.json")
-    data_df["ColorGroup"] = input_cdf["ColorGroup"]
-    data_df["Geographic Area (sq. km)"] = input_cdf["Geographic Area (sq. km)"]
+    if first_col == "Region":
+        data_df = data_df.merge(
+            input_cdf[["Region", "ColorGroup", "Geographic Area (sq. km)"]],
+            on="Region",
+            how="left",
+        )
+    else:
+        data_df = data_df.merge(
+            input_cdf[[first_col, "ColorGroup", "Geographic Area (sq. km)"]],
+            left_on="Region",
+            right_on=first_col,
+            how="left",
+        )
+        data_df.drop(columns=[first_col], inplace=True)
 
     flags = []
     if str(handler.name).lower().startswith("world"):
