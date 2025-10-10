@@ -2,6 +2,7 @@
 # Also include utility script to update cartdata folder with sample_data
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -246,7 +247,7 @@ def copy_folder(src_dir: Path, dest_dir: Path, overwrite=False) -> bool:
 
 def add_folders(
     source_path: str,
-    vis_types: dict[str, str] = {},
+    vis_types_str: str | None = None,
     prompt_friendly_name=False,
     overwrite=False,
 ) -> None:
@@ -256,7 +257,7 @@ def add_folders(
 
     Args:
         source_path (str): Source directory
-        vis_types (dict[str, str]): Visualization configuration
+        vis_types_str (str | None): Visualization configuration
         prompt_friendly_name (bool): Prompt for friendly name (otherwise, use the folder name)
         overwrite (bool): Remove existing folder
     """
@@ -269,7 +270,7 @@ def add_folders(
 
         add_map(
             str(src_dir),
-            vis_types=vis_types,
+            vis_types_str=vis_types_str,
             prompt_friendly_name=prompt_friendly_name,
             overwrite=overwrite,
         )
@@ -282,7 +283,7 @@ def add_folders(
 
 def add_map(
     source_path: str,
-    vis_types: dict[str, str] = {},
+    vis_types_str: str | None = None,
     prompt_friendly_name=False,
     overwrite=False,
 ) -> None:
@@ -292,7 +293,7 @@ def add_map(
 
     Args:
         source_path (str): Source directory
-        vis_types (dict[str, str]): Visualization configuration
+        vis_types_str (str | None): Visualization configuration
         prompt_friendly_name (bool): Prompt for friendly name (otherwise, use the folder name)
         overwrite (bool): Remove existing folder
     """
@@ -317,33 +318,33 @@ def add_map(
     if not copy_folder(src_dir, dest_dir, overwrite=overwrite):
         return
 
-    vis_types = gen_map(handler, vis_types)
+    vis_types = gen_map(handler, vis_types_str)
     modify_handler(handler, user_friendly_name, vis_types, overwrite=overwrite)
 
 
-def gen_map_wrapper(handler: str, vis_types: dict[str, str] = {}) -> None:
+def gen_map_wrapper(handler: str, vis_types_str: str | None = None) -> None:
     """
     Regenerate cartograms for a specific handler or for all handlers if 'all' is specified.
 
     Args:
         handler (str): The handler
-        vis_types (dict[str, str]): Visualization configuration
+        vis_types_str (str | None): Visualization configuration
     """
     if handler == "all":
         err = []
         for handler in cartogram_handlers:
             try:
-                gen_map(handler, vis_types)
+                gen_map(handler, vis_types_str)
             except Exception as e:
                 print(e)
                 err = err + [handler]
         print("Done! Please check the following folder for errors:")
         print(err)
     else:
-        gen_map(handler, vis_types)
+        gen_map(handler, vis_types_str)
 
 
-def gen_map(handler_str: str, vis_types: dict[str, str] = {}) -> dict[str, str]:
+def gen_map(handler_str: str, vis_types_str: str | None = None) -> dict[str, str]:
     """
     Generate cartogram data for a given handler (map folder).
     Preprocesses geojson, merges with CSV data, and runs the cartogram generation logic.
@@ -351,7 +352,7 @@ def gen_map(handler_str: str, vis_types: dict[str, str] = {}) -> dict[str, str]:
 
     Args:
         handler (str): The handler
-        vis_types (dict[str, str]): Visualization configuration
+        vis_types_str (str | None): Visualization configuration
     """
     print(f"Generate cartogram of {handler_str}...")
 
@@ -380,8 +381,10 @@ def gen_map(handler_str: str, vis_types: dict[str, str] = {}) -> dict[str, str]:
     if "Label" in data_df.columns:
         data_df = data_df.rename(columns={"Label": "RegionLabel"})
 
-    # Make all data columns contiguous cartograms
-    if not vis_types:
+    if isinstance(vis_types_str, str):
+        vis_types = json.loads(vis_types_str)
+    elif not vis_types_str:
+        # Make all data columns contiguous cartograms
         reserved = [
             "Region",
             "RegionLabel",
@@ -392,6 +395,8 @@ def gen_map(handler_str: str, vis_types: dict[str, str] = {}) -> dict[str, str]:
         ]
         data_cols = [col for col in data_df.columns if col not in reserved]
         vis_types = {key: "contiguous" for key in data_cols}
+    else:
+        vis_types = {}
 
     input_cdf = CartoDataFrame.read_file(handler / "Input.json")
     if first_col == "Region":
@@ -448,7 +453,6 @@ def modify_handler(
         if map_name not in cartogram_handlers or overwrite:
             cartogram_handlers[map_name] = {"name": user_friendly_name}
             if vis_type:
-                # "types" can be a dict[str, str]
                 cartogram_handlers[map_name]["types"] = vis_type  # type: ignore
         else:
             print("The handler exists. Use argument ")
@@ -505,13 +509,13 @@ parser_add_folders.set_defaults(
 parser_add_map.set_defaults(
     func=lambda args: add_map(
         args.src_map_folder,
-        vis_types=args.vis_types,
+        vis_types_str=args.vis_types,
         prompt_friendly_name=args.prompt_friendly_name,
         overwrite=args.overwrite,
     )
 )
 parser_gen_map.set_defaults(
-    func=lambda args: gen_map_wrapper(args.map_folder, vis_types=args.vis_types)
+    func=lambda args: gen_map_wrapper(args.map_folder, vis_types_str=args.vis_types)
 )
 
 args = parser.parse_args()
