@@ -1,7 +1,7 @@
 import os
 
 CARTOGRAM_EXE = os.environ.get('CARTOGRAM_EXE')
-CARTOGRAM_DATA_DIR = os.environ.get('CARTOGRAM_DATA_DIR')
+CARTOGRAM_DATA_DIR = os.environ.get('CARTOGRAM_DATA_DIR', "/root/data")
 CARTOGRAM_COLOR = os.environ.get('CARTOGRAM_COLOR')
 DEBUG = True if os.environ.get('CARTOGRAM_DEBUG').lower() == "true" else False
 

@@ -4,7 +4,7 @@ import csv
 import json
 import shutil
 import geojson_extrema
-import cartwrap
+from lambda_package import cartwrap
 import mappackify
 import random
 import string
@@ -60,7 +60,7 @@ def cleanup(map_name):
         shutil.rmtree("static/cartdata/{}".format(map_name), ignore_errors=True)
 
 
-def init(map_name):  
+def init(map_name, batch_test=False):  
 
     if os.path.exists("handlers/{}.py".format(map_name)) or os.path.exists("static/cartdata/{}".format(map_name)):
         is_overwrite = input(("It looks like a map with the name '{}' already exists. Do you want to overwrite (y/N): ").format(map_name))
@@ -68,44 +68,60 @@ def init(map_name):
             print('End the process.')
             return
 
-    user_friendly_name = input(("Enter a user friendly name for this map ({}): ").format(map_name)) or map_name
+    if batch_test:
+        user_friendly_name = map_name
+    else:
+        user_friendly_name = input(("Enter a user friendly name for this map ({}): ").format(map_name)) or map_name
 
     print()
-    print("Now I need to know where the .json and .csv files for this map are located. These files should be located in the CARTOGRAM_DATA_DIR directory. You should supply me with a path relative to CARTOGRAM_DATA_DIR.")
-    print("E.G: The .json file for this map is located at CARTOGRAM_DATA_DIR/map.json. Enter \"map.json\".")
+    print(f"You data directory is at {settings.CARTOGRAM_DATA_DIR}")
+    print(f"Now I need to know where the .json and .csv files for this map are located. These files should be located in the {settings.CARTOGRAM_DATA_DIR} directory. You should supply me with a path relative to {settings.CARTOGRAM_DATA_DIR}.")
+    print(f"E.G: The .json file for this map is located at {settings.CARTOGRAM_DATA_DIR}/map.json. Enter \"map.json\".")
     print()
 
-    map_gen_path = input(("Enter the location of the .json file for this map ({}.geojson): ").format(map_name)) or map_name + ".geojson"
-    map_dat_path = input(("Enter the location of the .csv file for this map ({}.csv): ").format(map_name)) or map_name + ".csv"
+    if batch_test:
+        map_gen_path = map_name + ".geojson"
+        map_dat_path = map_name + ".csv"
+    else:
+        map_gen_path = input(("Enter the location of the .json file for this map ({}.geojson): ").format(map_name)) or map_name + ".geojson"
+        map_dat_path = input(("Enter the location of the .csv file for this map ({}.csv): ").format(map_name)) or map_name + ".csv"
 
-    if not os.path.exists("{}/{}".format(os.environ["CARTOGRAM_DATA_DIR"], map_gen_path)):
+    if not os.path.exists("{}/{}".format(settings.CARTOGRAM_DATA_DIR, map_gen_path)):
         print("Error: It looks like the file {}/{} does not exist.".format(
-            os.environ["CARTOGRAM_DATA_DIR"], map_gen_path))
+            settings.CARTOGRAM_DATA_DIR, map_gen_path))
         return
 
-    if not os.path.exists("{}/{}".format(os.environ["CARTOGRAM_DATA_DIR"], map_dat_path)):
+    if not os.path.exists("{}/{}".format(settings.CARTOGRAM_DATA_DIR, map_dat_path)):
         print("Error: It looks like the file {}/{} does not exist.".format(
-            os.environ["CARTOGRAM_DATA_DIR"], map_dat_path))
+            settings.CARTOGRAM_DATA_DIR, map_dat_path))
         return
 
     if not os.path.exists("static/cartdata/{}".format(map_name)):
         os.mkdir("static/cartdata/{}".format(map_name))
 
-    region_identifier = input("What are the regions of this map called (e.g. State, Province) (Region)? ") or "Region"
-    dataset_names = input("What is the name of datasets. Note that only letter with no space is allowed and it should match collumn name is .csv file. Use comma to separate each dataset (Area,Population)? ") or "Area,Population"
-    name_array = dataset_names.split(",")
-    unit_names = input("What is unit of each dataset, in order (km.sq.,people)? ") or "km.sq.,people"
-    unit_array = unit_names.split(",")    
-    labeling_scheme = input("What is the labelling scheme (1):\n 1. Auto labelling\n 2. Manual labelling\n 3. No label\n ? ") or "1"
+    if batch_test:
+        region_identifier = "Name"
+        dataset_names = "2016,2020"
+        name_array = dataset_names.split(",")
+        unit_names = "people,people"
+        unit_array = unit_names.split(",")
+        labeling_scheme = "1"
+    else:
+        region_identifier = input("What are the regions of this map called (e.g. State, Province) (Region)? ") or "Region"
+        dataset_names = input("What is the name of datasets. Note that only letter with no space is allowed and it should match collumn name is .csv file. Use comma to separate each dataset (Area,Population)? ") or "Area,Population"
+        name_array = dataset_names.split(",")
+        unit_names = input("What is unit of each dataset, in order (km.sq.,people)? ") or "km.sq.,people"
+        unit_array = unit_names.split(",")    
+        labeling_scheme = input("What is the labelling scheme (1):\n 1. Auto labelling\n 2. Manual labelling\n 3. No label\n ? ") or "1"
 
     regions = get_regions_from_file(map_dat_path, name_array)
-    map_gen_file_path = "{}/{}".format(os.environ["CARTOGRAM_DATA_DIR"], map_gen_path)
+    map_gen_file_path = "{}/{}".format(settings.CARTOGRAM_DATA_DIR, map_gen_path)
 
     write_config(map_name, name_array)
     write_abbr(map_name, regions)
     write_colors(map_name, regions)
     write_template(map_name, regions, region_identifier, name_array[len(name_array) - 1], unit_array[len(name_array) - 1])
-    
+
     is_gen_label = False
     if os.path.exists("static/cartdata/{}/labels.json".format(map_name)): 
         os.remove("static/cartdata/{}/labels.json".format(map_name))
@@ -142,7 +158,7 @@ def init(map_name):
 
 def get_regions_from_file(map_dat_path, name_array):
     regions = []
-    with open("{}/{}".format(os.environ["CARTOGRAM_DATA_DIR"], map_dat_path), newline='') as dat_file:
+    with open("{}/{}".format(settings.CARTOGRAM_DATA_DIR, map_dat_path), newline='') as dat_file:
         reader = csv.DictReader(dat_file)
         for row in reader:
             region = {
@@ -305,10 +321,13 @@ def write_cartogram(map_gen_file_path, map_name, regions, data_name, data_unit, 
         return json.loads(gen_output)
 
     def self_generate():
+        with open("/tmp/areas.csv", "w") as areas_file:
+            areas_file.write(cartogram_data)
+        area_data_path = "/tmp/areas.csv"
 
         gen_output_lines = []
 
-        for source, line in cartwrap.generate_cartogram(cartogram_data, map_gen_file_path, os.environ["CARTOGRAM_EXE"], False, flags):
+        for source, line in cartwrap.generate_cartogram(area_data_path, map_gen_file_path, os.environ["CARTOGRAM_EXE"], False, flags):
 
             if source == "stdout":
                 gen_output_lines.append(line.decode().strip())
@@ -316,14 +335,20 @@ def write_cartogram(map_gen_file_path, map_name, regions, data_name, data_unit, 
                 print("Generating {} map: {}".format(
                     data_name, line.decode().strip()))
 
+        if not gen_output_lines:
+            return False
+        
         gen_output = "\n".join(gen_output_lines)
-
         # print("self")
         # print(gen_output)
         return json.loads(gen_output)
 
     cartogram_json = serverless_generate(
     ) if settings.CARTOGRAM_LOCAL_DOCKERIZED else self_generate()
+
+    if not cartogram_json:
+        print("Cannot generate cartogram")
+        return
 
     # Calculate the bounding box if necessary
     if "bbox" not in cartogram_json:
@@ -424,7 +449,7 @@ def gen_svg(map_gen_file_path, map_name, regions):
 
     print("Writing {}.svg...".format(map_name))
     try:
-        with open("{}/{}.svg".format(os.environ["CARTOGRAM_DATA_DIR"], map_name), "w") as svg_file:
+        with open("{}/{}.svg".format(settings.CARTOGRAM_DATA_DIR, map_name), "w") as svg_file:
             try:
                 max_x = geo_json["bbox"][2]
                 min_x = geo_json["bbox"][0]
@@ -529,7 +554,7 @@ def update_by_svg(map_name):
         print("Error: It looks like a map with the name '{}' doesn't exist (I didn't find static/cartdata/{}).".format(map_name, map_name))
         return
     
-    svg_file_path = "{}/{}.svg".format(os.environ["CARTOGRAM_DATA_DIR"], map_name)
+    svg_file_path = "{}/{}.svg".format(settings.CARTOGRAM_DATA_DIR, map_name)
     if not os.path.exists(svg_file_path):
         print("Error: It looks like {}.svg doesn't exist. I need this file to add color information to your new map.")
         return
@@ -594,7 +619,7 @@ elif sys.argv[1] == "batch":
     ids = sys.argv[2].split(":")
     for x in range(int(ids[0]), int(ids[1]) + 1):
         try:
-            init("test" + str(x))
+            init("test" + str(x), batch_test=True)
         except Exception as e:
             print(e)
 elif sys.argv[1] == "update":
