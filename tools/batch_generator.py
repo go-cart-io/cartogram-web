@@ -128,10 +128,16 @@ def merge_csv_files(csv_files: list[Path], output_path: Path) -> None:
         if merged_df is None:
             return
 
-        # Select first two columns plus "Inset" if it exists
+        # Select first two columns plus "Inset" and "ShapeName" if it exists
         selected_cols = list(merged_df.columns[:2])
         if "Inset" in merged_df.columns and not merged_df["Inset"].isna().all():
             selected_cols.append("Inset")
+        if (
+            merged_df.columns[0] != "ShapeName"
+            and "ShapeName" in merged_df.columns
+            and not merged_df["ShapeName"].isna().all()
+        ):
+            selected_cols.append("ShapeName")
 
         # Deal with labels
         if (
@@ -374,9 +380,15 @@ def gen_map(handler_str: str, vis_types_str: str | None = None) -> dict[str, str
         return {}
 
     first_col = "Region"
+
     if "Region" not in data_df.columns:
         first_col = data_df.columns[0]
         data_df = data_df.rename(columns={first_col: "Region"})
+
+    # If frindly region names exist, use them
+    if "ShapeName" in data_df.columns:
+        data_df = data_df.rename(columns={"Region": "RegionMap"})
+        data_df = data_df.rename(columns={"ShapeName": "Region"})
 
     if "Label" in data_df.columns:
         data_df = data_df.rename(columns={"Label": "RegionLabel"})
@@ -387,6 +399,7 @@ def gen_map(handler_str: str, vis_types_str: str | None = None) -> dict[str, str
         # Make all data columns contiguous cartograms
         reserved = [
             "Region",
+            "RegionMap",
             "RegionLabel",
             "Color",
             "ColorGroup",
@@ -405,6 +418,14 @@ def gen_map(handler_str: str, vis_types_str: str | None = None) -> dict[str, str
             on="Region",
             how="left",
         )
+    elif "RegionMap" in data_df.columns:
+        data_df = data_df.merge(
+            input_cdf[[first_col, "ColorGroup", "Geographic Area (sq. km)"]],
+            left_on="RegionMap",
+            right_on=first_col,
+            how="left",
+        )
+        data_df.drop(columns=[first_col], inplace=True)
     else:
         data_df = data_df.merge(
             input_cdf[[first_col, "ColorGroup", "Geographic Area (sq. km)"]],
