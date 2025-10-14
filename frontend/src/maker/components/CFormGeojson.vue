@@ -136,7 +136,7 @@ async function onRegionColChanged() {
         <option></option>
         <option
           v-for="(mapItem, mapKey) in CARTOGRAM_CONFIG.maps"
-          v-bind:value="mapKey"
+          v-bind:value="mapItem.key"
           v-bind:key="mapKey"
         >
           {{ mapItem.name }}

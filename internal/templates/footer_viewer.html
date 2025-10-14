@@ -16,7 +16,7 @@
 <script>
     window.CARTOGRAM_CONFIG = {
         mode: "{{ mode }}",
-        maps: JSON.parse('{{ maps | default({}) | tojson | safe }}'),
+        maps: JSON.parse('{{ maps | tojson | safe }}'),
         mapName: "{{ map_name }}",
         mapTitle: "{{ map_title }}",
         mapDBKey: "{{ map_data_key }}",
