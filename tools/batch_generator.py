@@ -435,9 +435,13 @@ def gen_map(handler_str: str, vis_types_str: str | None = None) -> dict[str, str
         )
         data_df.drop(columns=[first_col], inplace=True)
 
-    flags = []
+    # Deal with world
     if str(handler.name).lower().startswith("world"):
-        flags = ["--world"]
+        with open(str(json_input), "r", encoding="utf-8") as file:
+            data = json.load(file)
+        data["extent"] = "world"
+        with open(str(json_input), "w", encoding="utf-8") as file:
+            json.dump(data, file)
 
     project.generate(
         data_df.to_csv(index=False),
@@ -446,7 +450,6 @@ def gen_map(handler_str: str, vis_types_str: str | None = None) -> dict[str, str
         "batch",
         str(handler),
         clean_by=first_col,
-        flags=flags,
     )
 
     return vis_types
