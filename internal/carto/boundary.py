@@ -1,9 +1,9 @@
 import os
 
-import mapclassify
 from carto.dataframe import CartoDataFrame
 from carto.datajson import CartoJson
 from carto.generators.cpp_wrapper import run_binary
+from carto.mapcolor import assign_colors
 from carto.storage import CartoStorage
 from errors import CartoError
 from utils import file_utils, format_utils
@@ -68,9 +68,6 @@ def preprocess(input, mapDBKey="temp_filename", map_type=""):
         # Temporary project it so we can calculate the area
         # NSIDC EASE-Grid 2.0 Global https://epsg.io/6933
         cdf.to_crs("EPSG:6933", inplace=True)
-        color_method = "centroid"
-    else:
-        color_method = "count"
 
     tmp_cdf = cdf
 
@@ -80,10 +77,7 @@ def preprocess(input, mapDBKey="temp_filename", map_type=""):
         cdf["Geographic Area (sq. km)"] = cdf["Geographic Area (sq. km)"].astype(int)
 
     if "ColorGroup" not in cdf.columns:
-        cdf["ColorGroup"] = mapclassify.greedy(
-            tmp_cdf, min_colors=6, balance=color_method
-        )
-        cdf["ColorGroup"] = cdf["ColorGroup"].astype(int)
+        cdf["ColorGroup"] = assign_colors(tmp_cdf)
 
     if "cartogram_id" not in cdf.columns:
         cdf["cartogram_id"] = range(1, len(cdf) + 1)
