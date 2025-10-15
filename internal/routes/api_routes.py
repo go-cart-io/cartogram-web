@@ -120,7 +120,7 @@ def cartogram_gen():
     storage.save_tmp("data.csv", datacsv)
     gen_file = storage.standardize_tmp_input(handler_name, edit_from)
 
-    project.generate(
+    warning_msgs = project.generate(
         datacsv,
         vis_types,
         gen_file,
@@ -157,7 +157,7 @@ def cartogram_gen():
         raise
 
     return Response(
-        json.dumps({"mapDBKey": string_key}),
+        json.dumps({"mapDBKey": string_key, "warnings": warning_msgs}),
         status=200,
         content_type="application/json",
     )

@@ -39,6 +39,8 @@ const state = reactive({
   progressName: '',
   progressPercentage: 0,
   error: '',
+  warnings: [] as string[],
+  mapDBKey: '',
   handler: props.mapName ? props.mapName : '',
   geojsonRegionCol: '',
   isInitialized: false
@@ -175,7 +177,12 @@ async function getGeneratedCartogram() {
         window.clearInterval(progressUpdater)
         resolve(response)
         disableLeaveConfirmOnce()
-        window.location.href = '/view/key/' + response.mapDBKey + '/preview'
+        if (!response.warnings || response.warnings.length === 0) {
+          window.location.href = '/view/key/' + response.mapDBKey + '/preview'
+        } else {
+          state.warnings = response.warnings
+          state.mapDBKey = response.mapDBKey
+        }
       },
       function (error: any) {
         state.progressPercentage = 100
@@ -380,6 +387,20 @@ async function getGeneratedCartogram() {
               class="progress-bar bg-primary"
               v-bind:style="{ width: state.progressPercentage + '%' }"
             ></div>
+          </div>
+          <div v-if="state.warnings.length > 0" class="mt-2">
+            <div>Finished the generation with minor warning(s):</div>
+            <ul>
+              <li v-for="warning in state.warnings">{{ warning }}</li>
+            </ul>
+            <div>
+              <a
+                class="btn btn-primary"
+                target="_self"
+                v-bind:href="'/view/key/' + state.mapDBKey + '/preview'"
+                >View the result</a
+              >
+            </div>
           </div>
         </div>
       </div>

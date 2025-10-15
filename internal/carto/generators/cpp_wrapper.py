@@ -7,6 +7,7 @@ from pathlib import Path
 from queue import Queue
 from typing import IO, Generator
 
+import settings
 from carto.progress import CartoProgress
 from errors import CartoError
 from utils import file_utils
@@ -39,6 +40,7 @@ def run_binary(
     # Initialize output capture variables
     stdout = ""
     stderr = f"Process {data_name} ****************\n"
+    warning_msg_array = []
     error_msg = ""
     order = 0  # Counter for progress update ordering
 
@@ -53,7 +55,6 @@ def run_binary(
 
             # Parse progress information from stderr
             s = re.search(r"Progress: (.+)", line.decode())
-
             if s is not None:
                 # Update progress in database/tracking system
                 if progress:
@@ -62,6 +63,21 @@ def run_binary(
                 order += 1  # Increment order counter for next progress update
 
             else:
+                # Check for warning messages in stderr
+                e = re.search(r"WARNING: (.+)", line.decode())
+                if e is not None:
+                    warning_msg = e.groups(1)[0]
+                    warning_msg = (
+                        str(warning_msg)
+                        if not isinstance(warning_msg, str)
+                        else warning_msg
+                    )
+                    if (
+                        warning_msg
+                        != "`projected=true` property detected. Applying --skip_projection flag."
+                    ):
+                        warning_msg_array.append(warning_msg)
+
                 # Check for error messages in stderr
                 e = re.search(r"ERROR: (.+)", line.decode())
                 if e is not None:
@@ -77,7 +93,9 @@ def run_binary(
         return None
 
     # Parse and return JSON output from successful cartogram generation
-    return json.loads(stdout)
+    json_output = json.loads(stdout)
+    json_output["Warnings"] = warning_msg_array
+    return json_output
 
 
 def execute(
@@ -115,6 +133,9 @@ def execute(
         input_path,
         "--redirect_exports_to_stdout",
     ] + custom_flags
+
+    if settings.CARTOGRAM_TIME_LIMIT:
+        args = args + ["--timeout", settings.CARTOGRAM_TIME_LIMIT]
 
     area_data_path = (
         file_utils.get_safepath(area_data_path) if area_data_path is not None else ""
@@ -192,6 +213,7 @@ def validate_options(options: list[str]) -> None:
         "--skip_projection",
         "--area",
         "--do_not_fail_on_intersections",
+        "--timeout",
     }
 
     i = 0
@@ -207,6 +229,12 @@ def validate_options(options: list[str]) -> None:
         # If the option is --area, the next element can be arbitrary text that is safe for filename
         if option == "--area" and i + 1 < n:
             if not options[i + 1] == file_utils.sanitize_filename(options[i + 1]):
+                raise CartoError(f"Invalid cartogram option: {options[i + 1]}")
+            i += 1
+
+        # If the option is --timeout, the next element can be arbitrary number
+        if option == "--timeout" and i + 1 < n:
+            if not (options[i + 1]).isdigit():
                 raise CartoError(f"Invalid cartogram option: {options[i + 1]}")
             i += 1
 

@@ -96,4 +96,4 @@ def generate(
     )
 
     # Return the updated bounding box that encompasses the generated cartogram
-    return final_bbox
+    return final_bbox, cartogram_gen_output_json.get("Warnings", [])
