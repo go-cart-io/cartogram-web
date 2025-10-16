@@ -60,7 +60,7 @@ def generate(
             # Generate contiguous cartograms
             final_bbox, warning_msgs = generator_contiguous.generate(
                 project_path,
-                equal_area_file,
+                input_file,
                 equal_area_json.geoms_info.get("area", 1),
                 equal_area_json.geoms_info.get("centroid", {"x": 0, "y": 0}),
                 area_data_path,
