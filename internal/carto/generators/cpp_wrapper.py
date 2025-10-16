@@ -116,8 +116,15 @@ def execute(
         CartoError: If the boundary file path is invalid
     """
     # Construct path to the cartogram executable
+    uname = os.uname()
+    system = uname.sysname.lower()
+    machine = uname.machine.lower()
+    binary_name = "cartogram-linux-amd64"
+    if system == "linux" and ("aarch64" in machine or "arm64" in machine):
+        binary_name = "cartogram-linux-arm64"
+
     current_file = Path(__file__).resolve()
-    cartogram_path = current_file.parent.parent.parent / "executable" / "cartogram"
+    cartogram_path = current_file.parent.parent.parent / "executable" / binary_name
 
     # Validate the custom flags before proceeding
     validate_options(custom_flags)

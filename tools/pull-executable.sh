@@ -13,10 +13,12 @@ RESET='\033[0m'
 # Function to pull a specific release
 pull_release() {
     printf "\nPulling release tag: ${RED}$1${RESET}\n\n"
-    wget https://github.com/mgastner/cartogram-cpp/releases/download/$1/cartogram -O ../internal/executable/cartogram
+    wget https://github.com/mgastner/cartogram-cpp/releases/download/$1/cartogram-$1-linux-amd64 -O ../internal/executable/cartogram-linux-amd64
+    wget https://github.com/mgastner/cartogram-cpp/releases/download/$1/cartogram-$1-linux-arm64 -O ../internal/executable/cartogram-linux-arm64
 
     # Make the binary executable
-    chmod +x ../internal/executable/cartogram
+    chmod +x ../internal/executable/cartogram-linux-amd64
+    chmod +x ../internal/executable/cartogram-linux-arm64
 }
 
 # Function to pull the latest release
