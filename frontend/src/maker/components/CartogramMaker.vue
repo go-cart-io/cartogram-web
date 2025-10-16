@@ -154,13 +154,14 @@ async function getGeneratedCartogram() {
             '/api/v1/getprogress?key=' + encodeURIComponent(key) + '&time=' + Date.now()
           ).then(function (progress: any) {
             if (progress.progress === null) {
-              state.progressName = ''
-              state.progressPercentage = 8
+              state.progressName = '...'
+              state.progressPercentage = 5 // Start at 5% to show we are doing some work
               return
             }
 
             state.progressName = progress.name
-            state.progressPercentage = Math.floor(progress.progress * 100)
+            let rawPercentage = Math.floor(progress.progress * 100)
+            state.progressPercentage = 5 + 0.9 * rawPercentage
             // state.error += progress.stderr
             console.log(progress.stderr)
           })

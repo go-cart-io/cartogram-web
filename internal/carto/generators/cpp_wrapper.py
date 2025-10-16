@@ -1,6 +1,5 @@
 import json
 import os
-import re
 import subprocess
 import threading
 from pathlib import Path
@@ -42,6 +41,8 @@ def run_binary(
     stderr = f"Process {data_name} ****************\n"
     warning_msg_array = []
     error_msg = ""
+    last_factor = None
+    last_geo_div = ""
     order = 0  # Counter for progress update ordering
 
     # Run the cartogram binary and process its output line by line
@@ -51,40 +52,36 @@ def run_binary(
             stdout += line.decode()
         else:
             # Process stderr for progress updates and error messages
-            stderr += line.decode()
+            line_str = line.decode()
+            line_arr = line_str.split(":")
+            stderr += line_str
 
-            # Parse progress information from stderr
-            s = re.search(r"Progress: (.+)", line.decode())
-            if s is not None:
-                # Update progress in database/tracking system
-                if progress:
-                    progress.set(order, stderr, data_name, float(s.groups(1)[0]))
+            try:
+                match line_arr[0]:
+                    case "Progress":
+                        # Update progress in database/tracking system
+                        if progress:
+                            progress.set(order, stderr, data_name, float(line_arr[1]))
 
-                order += 1  # Increment order counter for next progress update
+                        order += 1  # Increment order counter for next progress update
 
-            else:
-                # Check for warning messages in stderr
-                e = re.search(r"WARNING: (.+)", line.decode())
-                if e is not None:
-                    warning_msg = e.groups(1)[0]
-                    warning_msg = (
-                        str(warning_msg)
-                        if not isinstance(warning_msg, str)
-                        else warning_msg
-                    )
-                    if (
-                        warning_msg
-                        != "`projected=true` property detected. Applying --skip_projection flag."
-                    ):
-                        warning_msg_array.append(warning_msg)
+                    case "Max. area err":
+                        # Max. area err: 0.00994953, GeoDiv: New Hampshire
+                        last_factor = float(line_arr[1].replace(", GeoDiv", ""))
+                        last_geo_div = line_arr[2]
 
-                # Check for error messages in stderr
-                e = re.search(r"ERROR: (.+)", line.decode())
-                if e is not None:
-                    error_msg = e.groups(1)[0]
-                    error_msg = (
-                        str(error_msg) if not isinstance(error_msg, str) else error_msg
-                    )
+                    case "WARNING":
+                        warning_msg = line_arr[1].strip()
+                        warning_msg_array.append(data_name + ": " + warning_msg)
+
+                    case "ERROR":
+                        error_msg = line_arr[1].strip()
+
+                    case _:
+                        pass
+
+            except:  # noqa: E722
+                pass
 
     # Handle processing results
     if error_msg != "":
@@ -94,7 +91,17 @@ def run_binary(
 
     # Parse and return JSON output from successful cartogram generation
     json_output = json.loads(stdout)
-    json_output["Warnings"] = warning_msg_array
+
+    if warning_msg_array:
+        if last_factor is not None and last_factor > 0.01:
+            last_factor = round(last_factor * 100, 2)
+            warning_msg_array.append(
+                f"{data_name}: The resulting cartogram contains areas that deviate from their ideal size. \
+                    {last_geo_div} is the most distorted, appearing at {last_factor}% of its expected area."
+            )
+
+        json_output["Warnings"] = warning_msg_array
+
     return json_output
 
 
