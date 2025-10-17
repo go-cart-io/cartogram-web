@@ -118,14 +118,23 @@ function updateColorAndDataTable(scheme: string, oldScheme: string) {
     }
 
     store.dataTable.fields[config.COL_COLOR].show = true
+
+    if (visAreaEl.value.view().signal('color_field') === 'ColorGroup')
+      visAreaEl.value.view().signal('color_field', 'Color')
   } else {
     for (let i = 0; i < store.dataTable.items.length; i++) {
       delete store.dataTable.items[i]['Color']
     }
 
     store.dataTable.fields[config.COL_COLOR].show = false
-    visAreaEl.value.view().signal('color_scheme', scheme).runAsync()
+
+    if (visAreaEl.value.view().signal('color_field') === 'Color')
+      visAreaEl.value.view().signal('color_field', 'ColorGroup')
+
+    visAreaEl.value.view().signal('color_scheme', scheme)
   }
+
+  visAreaEl.value.view().runAsync()
 }
 
 async function resolveRegionIssues() {
