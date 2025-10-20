@@ -1,17 +1,20 @@
 describe('View cartogram', () => {
   beforeEach(() => {
-    cy.visit('http://localhost:5000/view')
+    cy.visit('http://localhost:5005/view')
     cy.get('.consent-buttons > .btn-primary').click()
   })
 
   it('can switch to a specific map', () => {
-    cy.intercept('GET', '/static/cartdata/world/data.csv').as('gotoWorld')
-    cy.get('#mapSelect').select('world')
+    cy.intercept('GET', '/static/cartdata/world_by_region/data.csv').as('gotoWorld')
+    cy.get('#mapSelect').select('world_by_region')
     cy.wait('@gotoWorld').its('response.statusCode').should('be.oneOf', [200, 304])
   })
 
   it('can switch between datasets', () => {
-    cy.intercept('GET', '/static/cartdata/usa/Geographic%20Area.json').as('gotoGeographicArea')
+    cy.intercept(
+      'GET',
+      '/static/cartdata/conterminous_usa_by_state_since_1959/Geographic%20Area.json'
+    ).as('gotoGeographicArea')
     cy.get('#c-area2toV0Btn').click()
     cy.wait('@gotoGeographicArea').its('response.statusCode').should('be.oneOf', [200, 304])
     cy.get('#c-area2toV1Btn').click()
@@ -33,13 +36,17 @@ describe('View cartogram', () => {
     cy.get('#clipboard-link').click()
     cy.window().then((win) => {
       win.navigator.clipboard.readText().then((text) => {
-        expect(text).to.contain('http://localhost:5000/view/map/usa')
+        expect(text).to.contain(
+          'http://localhost:5005/view/map/conterminous_usa_by_state_since_1959'
+        )
       })
     })
     cy.get('#clipboard-embed').click()
     cy.window().then((win) => {
       win.navigator.clipboard.readText().then((text) => {
-        expect(text).to.contain('http://localhost:5000/view/map/usa/embed')
+        expect(text).to.contain(
+          'http://localhost:5005/view/map/conterminous_usa_by_state_since_1959/embed'
+        )
       })
     })
     cy.get('#shareModal > .modal-dialog > .modal-content > .modal-header > .btn-close').click()

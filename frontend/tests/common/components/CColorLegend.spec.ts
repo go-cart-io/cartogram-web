@@ -11,7 +11,7 @@ describe('CColorLegend', () => {
       }
     })
     // Legend container exists
-    expect(wrapper.find('#legend').exists()).toBe(true)
+    expect(wrapper.find('#color-legend').exists()).toBe(true)
     // Dropdown button exists
     expect(wrapper.find('.dropdown-toggle').exists()).toBe(true)
     // Region option is present and active
