@@ -40,6 +40,10 @@ async function updateVis(value: string) {
     CARTOGRAM_CONFIG.choroSpec
   )
 }
+
+function redirect() {
+  window.location.href = `/view/map/${store.currentMapName}`
+}
 </script>
 
 <template>
@@ -56,12 +60,12 @@ async function updateVis(value: string) {
           id="mapSelect"
           class="form-select"
           v-model="store.currentMapName"
-          v-on:change="switchMap"
+          v-on:change="redirect()"
           title="Select map"
         >
           <option
             v-for="(mapItem, mapKey) in CARTOGRAM_CONFIG.maps"
-            v-bind:value="mapKey"
+            v-bind:value="mapItem.key"
             v-bind:key="mapKey"
           >
             {{ mapItem.name }}

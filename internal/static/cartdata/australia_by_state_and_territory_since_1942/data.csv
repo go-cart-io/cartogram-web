@@ -1,0 +1,10 @@
+Region,RegionLabel,ColorGroup,Geographic Area (sq. km),Population (people)
+External Territories,ET,1,250,5100
+Australian Capital Territory,ACT,2,2359,453324
+New South Wales,NSW,0,801625,8095430
+Northern Territory,NT,3,1348436,249345
+Queensland,QLD,2,1729980,5265043
+South Australia,SA,1,984122,1806599
+Tasmania,TAS,0,68567,569827
+Victoria,VIC,4,227405,6559941
+Western Australia,WA,5,2528248,2762234

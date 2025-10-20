@@ -68,7 +68,7 @@ export function createSVGElement(
   const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect') as SVGRectElement
   rect.setAttribute('width', visAreaWidth)
   rect.setAttribute('height', visAreaHeight)
-  rect.setAttribute('fill', 'url(#c-area2-grid)')
+  rect.setAttribute('fill', 'url(#' + panelID + '-grid)')
   mainGroup.appendChild(gridPattern)
   mainGroup.appendChild(rect)
 

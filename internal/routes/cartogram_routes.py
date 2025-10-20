@@ -10,7 +10,7 @@ from views import tracking
 
 cartogram_bp = Blueprint("cartogram", __name__)
 db = current_app.extensions["sqlalchemy"]
-default_cartogram_handler = "usa"
+default_cartogram_handler = "conterminous_usa_by_state_since_1959"
 
 
 @cartogram_bp.route("/view", methods=["GET"])

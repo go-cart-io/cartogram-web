@@ -70,6 +70,11 @@ async function uploadCsvData(event: Event) {
 
   standardizeInset()
 
+  // Make it compatible with cartogram-cpp sample_data
+  if ('Label' in csvData[0]) {
+    csvData = util.renameKeyInArray(csvData, 'Label', 'RegionLabel')
+  }
+
   if ('Region' in csvData[0]) {
     state.csvRegionCol = 'Region'
     state.csvCols = []

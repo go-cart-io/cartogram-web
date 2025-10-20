@@ -15,9 +15,17 @@ def get_sorted_handler_names():
             "name": value["name"],
         }
 
-    return dict(
-        sorted(sub_cartogram_handlers.items(), key=lambda item: item[1]["name"])
-    )
+    sorted_data = [
+        {
+            "key": key,
+            "name": value["name"],
+        }
+        for key, value in sorted(
+            sub_cartogram_handlers.items(), key=lambda item: item[1]["name"]
+        )
+    ]
+
+    return sorted_data
 
 
 def get_handler(handler):

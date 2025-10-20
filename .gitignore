@@ -38,10 +38,8 @@
 **/.devcontainer
 
 internal/handler.py.bak
-internal/static/cartdata/test*
 internal/static/dist/*
-internal/executable/cartogram
-internal/tmp/*
-sample_data
+internal/executable/cartogram-linux-amd64
+internal/executable/cartogram-linux-arm64
 
 version.txt

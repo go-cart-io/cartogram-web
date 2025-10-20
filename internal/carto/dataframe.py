@@ -31,11 +31,15 @@ class CartoDataFrame(gpd.GeoDataFrame):
         }
         object.__setattr__(self, "extra_attributes", filtered_extra_attributes or {})
 
-        self.is_projected = extra_attributes.get("properties", {}).get(
-            "projected", False
-        ) or (
+        # For backward compatibility
+        if (
             extra_attributes.get("crs", {}).get("properties", {}).get("name")
             == "EPSG:cartesian"
+        ):
+            extra_attributes.setdefault("properties", {})["projected"] = True
+
+        self.is_projected = extra_attributes.get("properties", {}).get(
+            "projected", False
         )
         self.is_world = extra_attributes.get("extent") == "world"
 
@@ -107,6 +111,7 @@ class CartoDataFrame(gpd.GeoDataFrame):
         # Deal with topojson
         if gdf.crs is None:
             gdf.set_crs("EPSG:4326", inplace=True)
+
         if not gdf.is_simple.all():
             if extra_attributes.get("type", "") == "Topology":
                 raise CartoError(

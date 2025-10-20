@@ -17,7 +17,7 @@ def generate(
     project_path,
     clean_by=None,
     flags=[],
-):
+) -> list[str]:
     datacsv = CartoCsv(csv_string, vis_types)
     area_data_path = datacsv.save(project_path, "data.csv")
 
@@ -51,14 +51,16 @@ def generate(
     if equal_area_cdf.is_world:
         flags = flags + ["--world"]
 
+    all_warnings = []
+
     for data_col in datacsv.data_cols:
         progress.start(data_col)
 
         if vis_types.get(data_col) == "contiguous":
             # Generate contiguous cartograms
-            final_bbox = generator_contiguous.generate(
+            final_bbox, warning_msgs = generator_contiguous.generate(
                 project_path,
-                equal_area_file,
+                input_file,
                 equal_area_json.geoms_info.get("area", 1),
                 equal_area_json.geoms_info.get("centroid", {"x": 0, "y": 0}),
                 area_data_path,
@@ -68,6 +70,8 @@ def generate(
                 flags,
                 progress,
             )
+
+            all_warnings = all_warnings + warning_msgs
         elif vis_types.get(data_col) == "noncontiguous":
             # Generate non-contiguous cartograms
             generator_noncontiguous.generate(
@@ -96,4 +100,4 @@ def generate(
         with open(file_path, "w") as outfile:
             outfile.write(json.dumps(geo_json))
 
-    return
+    return all_warnings

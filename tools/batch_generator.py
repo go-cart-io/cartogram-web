@@ -2,6 +2,7 @@
 # Also include utility script to update cartdata folder with sample_data
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -127,10 +128,16 @@ def merge_csv_files(csv_files: list[Path], output_path: Path) -> None:
         if merged_df is None:
             return
 
-        # Select first two columns plus "Inset" if it exists
+        # Select first two columns plus "Inset" and "ShapeName" if it exists
         selected_cols = list(merged_df.columns[:2])
         if "Inset" in merged_df.columns and not merged_df["Inset"].isna().all():
             selected_cols.append("Inset")
+        if (
+            merged_df.columns[0] != "ShapeName"
+            and "ShapeName" in merged_df.columns
+            and not merged_df["ShapeName"].isna().all()
+        ):
+            selected_cols.append("ShapeName")
 
         # Deal with labels
         if (
@@ -246,7 +253,7 @@ def copy_folder(src_dir: Path, dest_dir: Path, overwrite=False) -> bool:
 
 def add_folders(
     source_path: str,
-    vis_types: dict[str, str] = {},
+    vis_types_str: str | None = None,
     prompt_friendly_name=False,
     overwrite=False,
 ) -> None:
@@ -256,7 +263,7 @@ def add_folders(
 
     Args:
         source_path (str): Source directory
-        vis_types (dict[str, str]): Visualization configuration
+        vis_types_str (str | None): Visualization configuration
         prompt_friendly_name (bool): Prompt for friendly name (otherwise, use the folder name)
         overwrite (bool): Remove existing folder
     """
@@ -269,7 +276,7 @@ def add_folders(
 
         add_map(
             str(src_dir),
-            vis_types=vis_types,
+            vis_types_str=vis_types_str,
             prompt_friendly_name=prompt_friendly_name,
             overwrite=overwrite,
         )
@@ -282,7 +289,7 @@ def add_folders(
 
 def add_map(
     source_path: str,
-    vis_types: dict[str, str] = {},
+    vis_types_str: str | None = None,
     prompt_friendly_name=False,
     overwrite=False,
 ) -> None:
@@ -292,7 +299,7 @@ def add_map(
 
     Args:
         source_path (str): Source directory
-        vis_types (dict[str, str]): Visualization configuration
+        vis_types_str (str | None): Visualization configuration
         prompt_friendly_name (bool): Prompt for friendly name (otherwise, use the folder name)
         overwrite (bool): Remove existing folder
     """
@@ -317,33 +324,33 @@ def add_map(
     if not copy_folder(src_dir, dest_dir, overwrite=overwrite):
         return
 
-    vis_types = gen_map(handler, vis_types)
+    vis_types = gen_map(handler, vis_types_str)
     modify_handler(handler, user_friendly_name, vis_types, overwrite=overwrite)
 
 
-def gen_map_wrapper(handler: str, vis_types: dict[str, str] = {}) -> None:
+def gen_map_wrapper(handler: str, vis_types_str: str | None = None) -> None:
     """
     Regenerate cartograms for a specific handler or for all handlers if 'all' is specified.
 
     Args:
         handler (str): The handler
-        vis_types (dict[str, str]): Visualization configuration
+        vis_types_str (str | None): Visualization configuration
     """
     if handler == "all":
         err = []
         for handler in cartogram_handlers:
             try:
-                gen_map(handler, vis_types)
+                gen_map(handler, vis_types_str)
             except Exception as e:
                 print(e)
                 err = err + [handler]
         print("Done! Please check the following folder for errors:")
         print(err)
     else:
-        gen_map(handler, vis_types)
+        gen_map(handler, vis_types_str)
 
 
-def gen_map(handler_str: str, vis_types: dict[str, str] = {}) -> dict[str, str]:
+def gen_map(handler_str: str, vis_types_str: str | None = None) -> dict[str, str]:
     """
     Generate cartogram data for a given handler (map folder).
     Preprocesses geojson, merges with CSV data, and runs the cartogram generation logic.
@@ -351,7 +358,7 @@ def gen_map(handler_str: str, vis_types: dict[str, str] = {}) -> dict[str, str]:
 
     Args:
         handler (str): The handler
-        vis_types (dict[str, str]): Visualization configuration
+        vis_types_str (str | None): Visualization configuration
     """
     print(f"Generate cartogram of {handler_str}...")
 
@@ -373,17 +380,26 @@ def gen_map(handler_str: str, vis_types: dict[str, str] = {}) -> dict[str, str]:
         return {}
 
     first_col = "Region"
+
     if "Region" not in data_df.columns:
         first_col = data_df.columns[0]
         data_df = data_df.rename(columns={first_col: "Region"})
 
+    # If frindly region names exist, use them
+    if "ShapeName" in data_df.columns:
+        data_df = data_df.rename(columns={"Region": "RegionMap"})
+        data_df = data_df.rename(columns={"ShapeName": "Region"})
+
     if "Label" in data_df.columns:
         data_df = data_df.rename(columns={"Label": "RegionLabel"})
 
-    # Make all data columns contiguous cartograms
-    if not vis_types:
+    if isinstance(vis_types_str, str):
+        vis_types = json.loads(vis_types_str)
+    elif not vis_types_str:
+        # Make all data columns contiguous cartograms
         reserved = [
             "Region",
+            "RegionMap",
             "RegionLabel",
             "Color",
             "ColorGroup",
@@ -392,14 +408,40 @@ def gen_map(handler_str: str, vis_types: dict[str, str] = {}) -> dict[str, str]:
         ]
         data_cols = [col for col in data_df.columns if col not in reserved]
         vis_types = {key: "contiguous" for key in data_cols}
+    else:
+        vis_types = {}
 
     input_cdf = CartoDataFrame.read_file(handler / "Input.json")
-    data_df["ColorGroup"] = input_cdf["ColorGroup"]
-    data_df["Geographic Area (sq. km)"] = input_cdf["Geographic Area (sq. km)"]
+    if first_col == "Region":
+        data_df = data_df.merge(
+            input_cdf[["Region", "ColorGroup", "Geographic Area (sq. km)"]],
+            on="Region",
+            how="left",
+        )
+    elif "RegionMap" in data_df.columns:
+        data_df = data_df.merge(
+            input_cdf[[first_col, "ColorGroup", "Geographic Area (sq. km)"]],
+            left_on="RegionMap",
+            right_on=first_col,
+            how="left",
+        )
+        data_df.drop(columns=[first_col], inplace=True)
+    else:
+        data_df = data_df.merge(
+            input_cdf[[first_col, "ColorGroup", "Geographic Area (sq. km)"]],
+            left_on="Region",
+            right_on=first_col,
+            how="left",
+        )
+        data_df.drop(columns=[first_col], inplace=True)
 
-    flags = []
+    # Deal with world
     if str(handler.name).lower().startswith("world"):
-        flags = ["--world"]
+        with open(str(json_input), "r", encoding="utf-8") as file:
+            data = json.load(file)
+        data["extent"] = "world"
+        with open(str(json_input), "w", encoding="utf-8") as file:
+            json.dump(data, file)
 
     project.generate(
         data_df.to_csv(index=False),
@@ -408,7 +450,6 @@ def gen_map(handler_str: str, vis_types: dict[str, str] = {}) -> dict[str, str]:
         "batch",
         str(handler),
         clean_by=first_col,
-        flags=flags,
     )
 
     return vis_types
@@ -436,7 +477,6 @@ def modify_handler(
         if map_name not in cartogram_handlers or overwrite:
             cartogram_handlers[map_name] = {"name": user_friendly_name}
             if vis_type:
-                # "types" can be a dict[str, str]
                 cartogram_handlers[map_name]["types"] = vis_type  # type: ignore
         else:
             print("The handler exists. Use argument ")
@@ -493,13 +533,13 @@ parser_add_folders.set_defaults(
 parser_add_map.set_defaults(
     func=lambda args: add_map(
         args.src_map_folder,
-        vis_types=args.vis_types,
+        vis_types_str=args.vis_types,
         prompt_friendly_name=args.prompt_friendly_name,
         overwrite=args.overwrite,
     )
 )
 parser_gen_map.set_defaults(
-    func=lambda args: gen_map_wrapper(args.map_folder, vis_types=args.vis_types)
+    func=lambda args: gen_map_wrapper(args.map_folder, vis_types_str=args.vis_types)
 )
 
 args = parser.parse_args()

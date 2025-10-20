@@ -1,12 +1,12 @@
 import json
 import os
-import re
 import subprocess
 import threading
 from pathlib import Path
 from queue import Queue
 from typing import IO, Generator
 
+import settings
 from carto.progress import CartoProgress
 from errors import CartoError
 from utils import file_utils
@@ -39,7 +39,10 @@ def run_binary(
     # Initialize output capture variables
     stdout = ""
     stderr = f"Process {data_name} ****************\n"
+    warning_msg_array = []
     error_msg = ""
+    last_factor = None
+    last_geo_div = ""
     order = 0  # Counter for progress update ordering
 
     # Run the cartogram binary and process its output line by line
@@ -49,26 +52,36 @@ def run_binary(
             stdout += line.decode()
         else:
             # Process stderr for progress updates and error messages
-            stderr += line.decode()
+            line_str = line.decode()
+            line_arr = line_str.split(":")
+            stderr += line_str
 
-            # Parse progress information from stderr
-            s = re.search(r"Progress: (.+)", line.decode())
+            try:
+                match line_arr[0]:
+                    case "Progress":
+                        # Update progress in database/tracking system
+                        if progress:
+                            progress.set(order, stderr, data_name, float(line_arr[1]))
 
-            if s is not None:
-                # Update progress in database/tracking system
-                if progress:
-                    progress.set(order, stderr, data_name, float(s.groups(1)[0]))
+                        order += 1  # Increment order counter for next progress update
 
-                order += 1  # Increment order counter for next progress update
+                    case "Max. area err":
+                        # Max. area err: 0.00994953, GeoDiv: New Hampshire
+                        last_factor = float(line_arr[1].replace(", GeoDiv", ""))
+                        last_geo_div = line_arr[2]
 
-            else:
-                # Check for error messages in stderr
-                e = re.search(r"ERROR: (.+)", line.decode())
-                if e is not None:
-                    error_msg = e.groups(1)[0]
-                    error_msg = (
-                        str(error_msg) if not isinstance(error_msg, str) else error_msg
-                    )
+                    case "WARNING":
+                        warning_msg = line_arr[1].strip()
+                        warning_msg_array.append(data_name + ": " + warning_msg)
+
+                    case "ERROR":
+                        error_msg = line_arr[1].strip()
+
+                    case _:
+                        pass
+
+            except:  # noqa: E722
+                pass
 
     # Handle processing results
     if error_msg != "":
@@ -77,7 +90,19 @@ def run_binary(
         return None
 
     # Parse and return JSON output from successful cartogram generation
-    return json.loads(stdout)
+    json_output = json.loads(stdout)
+
+    if warning_msg_array:
+        if last_factor is not None and last_factor > 0.01:
+            last_factor = round(last_factor * 100, 2)
+            warning_msg_array.append(
+                f"{data_name}: The resulting cartogram contains areas that deviate from their ideal size. \
+                    {last_geo_div} is the most distorted, appearing at {last_factor}% of its expected area."
+            )
+
+        json_output["Warnings"] = warning_msg_array
+
+    return json_output
 
 
 def execute(
@@ -98,8 +123,15 @@ def execute(
         CartoError: If the boundary file path is invalid
     """
     # Construct path to the cartogram executable
+    uname = os.uname()
+    system = uname.sysname.lower()
+    machine = uname.machine.lower()
+    binary_name = "cartogram-linux-amd64"
+    if system == "linux" and ("aarch64" in machine or "arm64" in machine):
+        binary_name = "cartogram-linux-arm64"
+
     current_file = Path(__file__).resolve()
-    cartogram_path = current_file.parent.parent.parent / "executable" / "cartogram"
+    cartogram_path = current_file.parent.parent.parent / "executable" / binary_name
 
     # Validate the custom flags before proceeding
     validate_options(custom_flags)
@@ -115,6 +147,9 @@ def execute(
         input_path,
         "--redirect_exports_to_stdout",
     ] + custom_flags
+
+    if settings.CARTOGRAM_TIME_LIMIT:
+        args = args + ["--timeout", settings.CARTOGRAM_TIME_LIMIT]
 
     area_data_path = (
         file_utils.get_safepath(area_data_path) if area_data_path is not None else ""
@@ -192,6 +227,7 @@ def validate_options(options: list[str]) -> None:
         "--skip_projection",
         "--area",
         "--do_not_fail_on_intersections",
+        "--timeout",
     }
 
     i = 0
@@ -207,6 +243,12 @@ def validate_options(options: list[str]) -> None:
         # If the option is --area, the next element can be arbitrary text that is safe for filename
         if option == "--area" and i + 1 < n:
             if not options[i + 1] == file_utils.sanitize_filename(options[i + 1]):
+                raise CartoError(f"Invalid cartogram option: {options[i + 1]}")
+            i += 1
+
+        # If the option is --timeout, the next element can be arbitrary number
+        if option == "--timeout" and i + 1 < n:
+            if not (options[i + 1]).isdigit():
                 raise CartoError(f"Invalid cartogram option: {options[i + 1]}")
             i += 1
 

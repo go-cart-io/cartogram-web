@@ -7,7 +7,7 @@ from utils import geojson_utils
 
 def generate(
     project_path: str,
-    equal_area_path: str,
+    input_path: str,
     equal_area_area: float,
     equal_area_centroid: dict[str, float],
     area_data_path: str,
@@ -26,7 +26,7 @@ def generate(
 
     Args:
         project_path: Directory path where output files will be saved
-        equal_area_path: Path to the equal area map to be used as an input
+        input_path: Path to the input map to be used as an input
         equal_area_area: Area value for the equal area projection (for adjusting the scale)
         equal_area_centroid: Dictionary containing x,y coordinates of the centroid (for adjusting the scale)
         area_data_path: Path to the csv input data file containing area information
@@ -51,12 +51,11 @@ def generate(
         # Run the cartogram generation binary with specified parameters
         # Skip projection since we're working with equal area data
         cartogram_gen_output_json = run_binary(
-            equal_area_path,
+            input_path,
             area_data_path,
             data_col,
             flags
             + [
-                "--skip_projection",
                 "--area",
                 data_col,
                 "--do_not_fail_on_intersections",
@@ -96,4 +95,4 @@ def generate(
     )
 
     # Return the updated bounding box that encompasses the generated cartogram
-    return final_bbox
+    return final_bbox, cartogram_gen_output_json.get("Warnings", [])

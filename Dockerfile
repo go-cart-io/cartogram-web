@@ -1,7 +1,6 @@
 FROM python:3.12-slim-bookworm
 
 RUN apt-get update && apt-get -y install cron wget
-RUN apt-get -y install gcc libgeos-dev libjpeg-dev zlib1g-dev libfftw3-dev nlohmann-json3-dev libcairo2-dev libomp-dev libcgal-dev
 RUN pip install --upgrade pip setuptools wheel
 
 # For frontend CDN information
