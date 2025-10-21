@@ -4,7 +4,7 @@ import traceback
 import warnings
 
 import settings
-from carto import boundary, parser, project
+from carto import boundary, parser, project, recommendator
 from carto.progress import CartoProgress
 from carto.storage import CartoStorage
 from errors import CartoError
@@ -12,6 +12,7 @@ from flask import Blueprint, Response, current_app, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from models import CartogramEntry
+from utils import format_utils
 from views import custom_captcha, tracking
 
 api_bp = Blueprint("api", __name__)
@@ -102,6 +103,19 @@ def cartogram_preprocess(mapDBKey):
 
 def cartogram_rate_limit():
     return settings.CARTOGRAM_RATE_LIMIT
+
+
+@api_bp.route("/api/v1/cartogram/recommend", methods=["POST"])
+def cartogram_recommend():
+    data = request.get_json()
+    datacsv = data["csv"] if "csv" in data else format_utils.get_csv(data)
+    results = recommendator.recommend(datacsv)
+
+    return Response(
+        json.dumps(results),
+        status=200,
+        content_type="application/json",
+    )
 
 
 @api_bp.route("/api/v1/cartogram", methods=["POST"])

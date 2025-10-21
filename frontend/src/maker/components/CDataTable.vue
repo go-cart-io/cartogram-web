@@ -5,6 +5,8 @@ import * as config from '@/common/lib/config'
 import * as util from '../lib/util'
 import * as datatable from '../lib/datatable'
 
+import CHelp from './CHelp.vue'
+
 import { useProjectStore } from '../stores/project'
 const store = useProjectStore()
 
@@ -156,33 +158,6 @@ function validateInput(event: Event) {
             v-show="field.show"
             v-bind:key="index"
           >
-            <select
-              class="form-select need-validation"
-              v-if="field.editableHead && field.name !== 'Geographic Area'"
-              required
-              v-bind:id="'dtable-vis-' + index"
-              v-bind:value="store.dataTable.fields[index].vis"
-              v-bind:disabled="store.choroSettings.isAdvanceMode"
-              v-on:blur="validateInput"
-              v-on:change="updateVisType(index, $event)"
-            >
-              <option value="" selected disabled>Select visualization</option>
-              <option value="none">None</option>
-              <option disabled>----------------</option>
-              <option disabled>Area: Cartogram</option>
-              <option value="contiguous">&nbsp;&nbsp;Contiguous</option>
-              <option value="noncontiguous">&nbsp;&nbsp;Non-Contiguous</option>
-              <option disabled>----------------</option>
-              <option value="choropleth">Color: Choropleth</option>
-            </select>
-          </th>
-        </tr>
-        <tr class="table-light">
-          <th
-            v-for="(field, index) in store.dataTable.fields"
-            v-show="field.show"
-            v-bind:key="index"
-          >
             <span v-if="!field.editableHead">{{ field.label }}</span>
             <div class="position-relative" v-else>
               <i
@@ -217,6 +192,39 @@ function validateInput(event: Event) {
               />
             </div>
           </th>
+        </tr>
+        <tr class="table-light">
+          <td
+            v-for="(field, index) in store.dataTable.fields"
+            v-show="field.show"
+            v-bind:key="index"
+          >
+            <select
+              class="form-select need-validation"
+              v-if="field.editableHead && field.name !== 'Geographic Area'"
+              required
+              v-bind:id="'dtable-vis-' + index"
+              v-bind:value="store.dataTable.fields[index].vis"
+              v-bind:disabled="store.choroSettings.isAdvanceMode"
+              v-on:blur="validateInput"
+              v-on:change="updateVisType(index, $event)"
+            >
+              <option value="" selected disabled>Select visualization</option>
+              <option value="none">None</option>
+              <option disabled>----------------</option>
+              <option disabled>Area: Cartogram</option>
+              <option value="contiguous">&nbsp;&nbsp;Contiguous</option>
+              <option value="noncontiguous">&nbsp;&nbsp;Non-Contiguous</option>
+              <option disabled>----------------</option>
+              <option value="choropleth">Color: Choropleth</option>
+            </select>
+            <div v-if="field.recommendation">
+              <span class="p-1 badge text-bg-info">
+                Suggestion: {{ field.recommendation.type }}
+              </span>
+              <c-help v-bind:title="field.recommendation.reason" />
+            </div>
+          </td>
         </tr>
       </thead>
       <tr v-for="(row, rIndex) in store.dataTable.items" v-show="row.Region" v-bind:key="rIndex">

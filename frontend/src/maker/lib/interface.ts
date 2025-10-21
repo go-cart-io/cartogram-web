@@ -9,6 +9,7 @@ export type DataTable = {
     unit?: string
     type: string
     vis?: string
+    recommendation?: { type: string; reason: string }
     options?: Array<{ text: string; value: string }>
     show: boolean
     editable: boolean
