@@ -75,9 +75,7 @@ def cartogram_preprocess(mapDBKey):
     # Capture warnings during preprocessing to provide user-friendly messages
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
-        processed_geojson = boundary.preprocess(
-            request.files["file"], mapDBKey, request.form.get("maptype", "")
-        )
+        processed_geojson = boundary.preprocess(request.files["file"], mapDBKey)
 
         processed_geojson["warnings"] = []
         for warning_message in w:

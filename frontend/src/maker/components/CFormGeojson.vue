@@ -21,7 +21,6 @@ const state = reactive({
   error: '',
   warnings: [] as Array<string>,
   handler: '',
-  mapType: '',
   selectedFileName: '',
   geojsonUniqueProperties: [] as Array<string>,
   geojsonRegionCol: ''
@@ -57,7 +56,6 @@ async function uploadGeoJson(event: Event) {
   state.isLoading = true
   const formData = new FormData()
   formData.append('file', files[0])
-  formData.append('maptype', state.mapType)
 
   const file = files[0]
   state.selectedFileName = 'Uploading...'
@@ -144,37 +142,9 @@ async function onRegionColChanged() {
       </select>
     </div>
     <div class="p-2">
-      OR specify the type of map and upload your GeoJSONs/Shapefiles (.shp, .shx, and .dbf in zip).
-      <div class="py-2">
-        <div class="form-check">
-          <input
-            class="form-check-input"
-            type="radio"
-            name="mapType"
-            id="mapTypeWorld"
-            v-model="state.mapType"
-            value="world"
-          />
-          <label class="form-check-label" for="mapTypeWorld"> World map</label>
-        </div>
-        <div class="form-check">
-          <input
-            class="form-check-input"
-            type="radio"
-            name="mapType"
-            id="mapTypeOther"
-            v-model="state.mapType"
-            value="other"
-          />
-          <label class="form-check-label" for="mapTypeOther"> Other</label>
-        </div>
-      </div>
+      OR upload your GeoJSONs/Shapefiles (.shp, .shx, and .dbf in zip).
       <div>
-        <label
-          for="geoFileInput"
-          class="btn btn-outline-secondary"
-          v-bind:class="{ disabled: !state.mapType }"
-        >
+        <label for="geoFileInput" class="btn btn-outline-secondary">
           Choose file <i class="fa-solid fa-upload"></i>
         </label>
         <input
@@ -185,10 +155,7 @@ async function onRegionColChanged() {
           class="d-none"
           v-on:change="uploadGeoJson"
         />
-        <div v-if="!state.mapType" class="small text-truncate text-muted">
-          Please select the type first!
-        </div>
-        <div v-else id="geoFileName" class="small text-truncate text-muted">
+        <div id="geoFileName" class="small text-truncate text-muted">
           {{ state.selectedFileName || 'No file chosen' }}
         </div>
         <div class="d-block invalid-feedback">{{ state.error }}</div>
