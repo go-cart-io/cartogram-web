@@ -396,6 +396,7 @@ async function getGeneratedCartogram() {
             </ul>
             <div>
               <a
+                id="view-result-btn"
                 class="btn btn-primary"
                 target="_self"
                 v-bind:href="'/view/key/' + state.mapDBKey + '/preview'"

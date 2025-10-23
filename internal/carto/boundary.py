@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 from carto.dataframe import CartoDataFrame
 from carto.datajson import CartoJson
 from carto.generators.cpp_wrapper import run_binary
@@ -9,7 +10,7 @@ from errors import CartoError
 from utils import file_utils, format_utils
 
 
-def preprocess(input, mapDBKey="temp_filename", map_type=""):
+def preprocess(input, mapDBKey="temp_filename"):
     """
     Core preprocessing function for boundary data that handles file loading,
     geometry validation, and data preparation for creating equal area map.
@@ -35,12 +36,8 @@ def preprocess(input, mapDBKey="temp_filename", map_type=""):
         input_path = storage.get_safe_tmp_file_path(input.filename)
         input.save(input_path)
 
-    # Load the geographic data into a CartoDataFrame, fix world flag, and save as cartogram file
+    # Load the geographic data into a CartoDataFrame
     cdf = CartoDataFrame.read_file(input_path)
-    if map_type == "world":
-        cdf.extra_attributes["extent"] = "world"
-        cdf.is_world = True
-    cdf.to_carto_file(file_path)
 
     # Remove the original file if input is file object
     if not isinstance(input, str):
@@ -85,10 +82,88 @@ def preprocess(input, mapDBKey="temp_filename", map_type=""):
     # Convert to WGS84 (EPSG:4326) before input to cpp
     if not cdf.is_projected:
         cdf.to_crs("EPSG:4326", inplace=True)
+        cdf = determine_world(cdf)
 
     equal_area_json = generate_equal_area(cdf, file_path, None)
 
     return {"geojson": equal_area_json.json_data, "unique": unique_columns}
+
+
+def determine_world(cdf: CartoDataFrame) -> CartoDataFrame:
+    """
+    Guess if the map is world map.
+
+    Args:
+        cdf: CartogramDataFrame containing the geographic data and metadata
+    """
+    # Don't guess if the data frame is not in lat-long format
+    if cdf.is_projected:
+        return cdf
+
+    # Don't guess if explicit world attribute is detected
+    if cdf.is_world:
+        return cdf
+
+    # Get bounding box after potential +360° fix for western polygons
+    adjusted_bbox = get_adjusted_bbox(cdf)
+
+    # Add world attribute
+    long_diff = adjusted_bbox[2] - adjusted_bbox[0]
+    if long_diff > 180:
+        cdf.extra_attributes["extent"] = "world"
+        cdf.is_world = True
+
+    return cdf
+
+
+def get_adjusted_bbox(cdf: CartoDataFrame):
+    """
+    Calculate the bounding box after adjusting for dual hemisphere layout.
+    If geometries span both hemispheres with sufficient gap, western hemisphere
+    bounds are translated by +360 degrees before computing the final bbox.
+
+    Parameters:
+    -----------
+    cdf : CartoDataFrame
+        CartoDataFrame with geometries in geographic coordinates (longitude/latitude)
+
+    Returns:
+    --------
+    tuple
+        (minx, miny, maxx, maxy) of adjusted bounding box
+    """
+    # Get all bounds of each polygons at once
+    cdf_exploded = cdf.explode(index_parts=True, ignore_index=True)
+    bounds = cdf_exploded.bounds
+
+    # Find hemisphere bounds
+    # max_lon_west = xmax < 0 ? std::max(xmax, max_lon_west) : max_lon_west;
+    west_mask = bounds["maxx"] < 0
+    east_mask = bounds["minx"] >= 0
+    max_lon_west = bounds.loc[west_mask, "maxx"].max() if west_mask.any() else -np.inf
+    min_lon_east = bounds.loc[east_mask, "minx"].min() if east_mask.any() else np.inf
+
+    # Check if adjustment is needed
+    if (
+        max_lon_west >= -180.0
+        and min_lon_east <= 180.0
+        and min_lon_east - max_lon_west >= 180
+    ):
+        # Adjust western hemisphere bounds by +360
+        adjusted_bounds = bounds.copy()
+        west_geom_mask = bounds["minx"] < 0
+        adjusted_bounds.loc[west_geom_mask, ["minx", "maxx"]] += 360
+
+        # Calculate final bounding box
+        return (
+            adjusted_bounds["minx"].min(),
+            adjusted_bounds["miny"].min(),
+            adjusted_bounds["maxx"].max(),
+            adjusted_bounds["maxy"].max(),
+        )
+
+    # No adjustment needed, return original total bounds
+    return cdf.total_bounds
 
 
 def generate_equal_area(

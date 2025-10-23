@@ -1,11 +1,11 @@
 describe('Make cartogram', () => {
   beforeEach(() => {
-    cy.visit('http://localhost:5000/create')
+    cy.visit('http://localhost:5005/create')
     cy.get('.consent-buttons > .btn-primary').click()
   })
 
   it('can create a cartogram from a predefined map', () => {
-    cy.get('#mapSelect').select('world')
+    cy.get('#mapSelect').select('world_by_region')
     cy.get('#dtable-cell-8-7').clear()
     cy.get('#dtable-cell-8-7').type('14239980190')
     cy.get('#colorDropdownBtn').click()
@@ -13,6 +13,24 @@ describe('Make cartogram', () => {
     cy.get('#dtable-vis-7', { timeout: 10000 }).select('contiguous')
 
     cy.get('#generateBtn').click()
+
+    // Function that checks either the button appears or we are redirected
+    const waitForResultOrRedirect = () => {
+      cy.log('Waiting for result or redirect...')
+
+      cy.get('body').then(($body) => {
+        if ($body.find('#view-result-btn').length > 0) {
+          cy.get('#view-result-btn').click()
+        } else {
+          // Retry after a short wait (polling every 5s)
+          cy.wait(5000).then(waitForResultOrRedirect)
+        }
+      })
+    }
+
+    // Start polling (for up to 3 minutes)
+    cy.wrap(null).then({ timeout: 180000 }, waitForResultOrRedirect)
+
     cy.location('pathname', { timeout: 20000 }).should('match', /\/view\/key\/[^/]+\/preview$/)
   })
 
@@ -31,5 +49,6 @@ describe('Make cartogram', () => {
     cy.get('#dtable-vis-7', { timeout: 10000 }).select('contiguous')
     cy.get('#dtable-vis-8', { timeout: 10000 }).select('contiguous')
     cy.get('#generateBtn').click()
+    cy.location('pathname', { timeout: 20000 }).should('match', /\/view\/key\/[^/]+\/preview$/)
   })
 })

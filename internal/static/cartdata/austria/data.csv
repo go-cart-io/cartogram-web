@@ -1,10 +1,10 @@
 Region,RegionLabel,ColorGroup,Geographic Area (sq. km),Population (people)
 Burgenland,BU,4,3965.0,288229.0
-Carinthia ,KA,2,9536.0,557371.0
-Lower Austria ,NO,2,19178.0,1636287.0
+Carinthia,KA,2,9536.0,557371.0
+Lower Austria,NO,2,19178.0,1636287.0
 Salzburg,SZ,6,7154.0,538258.0
-Styria ,ST,5,16401.0,1221014.0
-Tyrol ,TR,1,12648.0,728537.0
-Upper Austria ,OO,3,11982.0,1436791.0
+Styria,ST,5,16401.0,1221014.0
+Tyrol,TR,1,12648.0,728537.0
+Upper Austria,OO,3,11982.0,1436791.0
 Vienna,WI,1,415.0,1794770.0
 Vorarlberg,VO,5,2601.0,378490.0
