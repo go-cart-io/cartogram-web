@@ -72,7 +72,12 @@ def run_binary(
 
                     case "WARNING":
                         warning_msg = line_arr[1].strip()
-                        warning_msg_array.append(data_name + ": " + warning_msg)
+
+                        if (
+                            warning_msg
+                            != "`projected=true` property detected. Applying --skip_projection flag."
+                        ):
+                            warning_msg_array.append(data_name + ": " + warning_msg)
 
                     case "ERROR":
                         error_msg = line_arr[1].strip()
