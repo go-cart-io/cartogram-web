@@ -36,7 +36,8 @@ export const tooltipOptions = {
           new Intl.NumberFormat(LOCALE, {
             notation: 'compact',
             compactDisplay: 'short',
-            maximumFractionDigits: 3
+            minimumSignificantDigits: 3,
+            maximumSignificantDigits: 3
           }).format(num) + unit
       }
     }
