@@ -91,7 +91,7 @@ async function initContainer(canvasId: string) {
 
   if (CARTOGRAM_CONFIG.cartoVersions[state.versionKey].type === 'noncontiguous')
     areaLegend.init(
-      CARTOGRAM_CONFIG.cartoVersions['0'].header,
+      CARTOGRAM_CONFIG.cartoVersions[state.versionKey].header,
       visAreaEl.value.view().data('equal_area_geojson'),
       visAreaEl.value.view().data('source_csv')
     )
