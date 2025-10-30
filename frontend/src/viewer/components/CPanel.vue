@@ -181,6 +181,16 @@ async function switchGrid(key: number) {
           </div>
         </div>
 
+        <div
+          v-if="CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.type === 'noncontiguous'"
+          class="position-absolute z-1 p-1"
+        >
+          <div v-bind:id="props.panelID + '-legend-total'">
+            Total: <span v-html="areaLegend.stateTotalValue.value"></span>
+            {{ CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.unit }}
+          </div>
+        </div>
+
         <c-visualization-area
           ref="visAreaEl"
           v-bind:panelID="props.panelID"
@@ -189,7 +199,12 @@ async function switchGrid(key: number) {
               areaLegend.updateLegendValue(state.currentGridIndex, transform.stateAffineScale.value)
           "
         >
-          <svg width="100%" height="100%" v-bind:id="props.panelID + '-grid-area'">
+          <svg
+            v-if="CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.type !== 'noncontiguous'"
+            width="100%"
+            height="100%"
+            v-bind:id="props.panelID + '-grid-area'"
+          >
             <defs>
               <pattern v-bind:id="props.panelID + '-grid'" patternUnits="userSpaceOnUse">
                 <path
