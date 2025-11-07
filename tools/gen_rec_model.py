@@ -165,7 +165,13 @@ def predict(train, test, features):
     y_test = test["Type"]
 
     # Use a small decision tree for explainability and stable results
-    model = DecisionTreeClassifier(criterion="entropy", max_depth=3, random_state=42)
+    model = DecisionTreeClassifier(
+        criterion="entropy",
+        max_depth=3,
+        min_samples_split=5,
+        min_samples_leaf=2,
+        random_state=42,
+    )
 
     # Train the classifier on the training data
     model.fit(X_train, y_train)
