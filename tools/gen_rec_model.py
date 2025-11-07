@@ -3,10 +3,11 @@ import sys
 from pathlib import Path
 
 import joblib
+import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, plot_tree
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../internal"))
 
@@ -14,6 +15,7 @@ from carto import recommendator
 from handler_metadata import cartogram_handlers  # type: ignore
 
 SCRIPT_DIR = Path(__file__).parent
+MODEL_DIR = SCRIPT_DIR.parent / "internal" / "carto" / "models"
 
 
 """Create and persist a small ML recommendator model for cartogram visualization.
@@ -175,6 +177,20 @@ def predict(train, test, features):
     f1 = f1_score(y_test, y_pred, average="macro")
     print("F1:", f1)
 
+    # Visualize the tree
+    plt.figure(figsize=(20, 10))  # Adjust size for better readability
+    plot_tree(
+        model,
+        feature_names=[recommendator.FEATURE_NAME],
+        class_names=[
+            "extensive",
+            "intensive",
+        ],  # Names of each of the target classes in ascending numerical order
+        filled=True,  # Color nodes to indicate the majority class
+    )
+    plt.savefig(MODEL_DIR / (recommendator.FEATURE_NAME + ".png"))
+    plt.close()
+
     return model
 
 
@@ -186,11 +202,5 @@ data = pd.concat([data1, data2])
 train, test = train_test_split(data, test_size=0.2, random_state=42)
 model = predict(train, test, [recommendator.FEATURE_NAME])
 
-model_file = (
-    SCRIPT_DIR.parent
-    / "internal"
-    / "carto"
-    / "models"
-    / (recommendator.FEATURE_NAME + ".pkl")
-)
+model_file = MODEL_DIR / (recommendator.FEATURE_NAME + ".pkl")
 joblib.dump(model, model_file)

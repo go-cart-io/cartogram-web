@@ -5,37 +5,6 @@ import pandas as pd
 import pytest
 from carto import recommendator
 
-# class FakeModel:
-#     """A fake classifier returning labels based on CV threshold.
-
-#     For simplicity, treat any CV < 10 as 'intensive', >= 10 as 'extensive'.
-#     The real model consumes a DataFrame with a column named 'CV (%)'.
-#     """
-
-#     def predict(self, X):
-#         # X is expected to be a DataFrame with index=column names
-#         cvs = X["CV (%)"].to_numpy()
-#         out = []
-#         for v in cvs:
-#             if np.isnan(v):
-#                 out.append("unknown")
-#             elif v < 10:
-#                 out.append("intensive")
-#             else:
-#                 out.append("extensive")
-#         return out
-
-
-# @pytest.fixture(autouse=True)
-# def patch_joblib_load(monkeypatch):
-#     """Patch joblib.load so tests do not depend on a real model file."""
-
-#     def fake_load(path):
-#         return FakeModel()
-
-#     monkeypatch.setattr(recommendator.joblib, "load", fake_load)
-#     yield
-
 
 def make_csv(areas, col1, col2):
     """Helper to construct CSV string with a Geographic Area column and two data columns."""
