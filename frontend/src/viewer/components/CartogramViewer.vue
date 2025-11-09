@@ -21,6 +21,12 @@ const state = reactive({
 onBeforeMount(() => {
   store.currentMapName = CARTOGRAM_CONFIG.mapName ? CARTOGRAM_CONFIG.mapName : ''
 
+  // Get default opacity
+  let hasNoncontiguous = Object.values(CARTOGRAM_CONFIG.cartoVersions).some(
+    (version) => version.type === 'noncontiguous'
+  )
+  if (hasNoncontiguous) store.options.gridOpacity = 0
+
   // Get default color from query string
   const urlParams = new URLSearchParams(window.location.search)
   const defaultBy = urlParams.get('by')
