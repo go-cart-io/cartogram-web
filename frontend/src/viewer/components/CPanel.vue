@@ -89,18 +89,11 @@ async function initContainer(canvasId: string) {
     CARTOGRAM_CONFIG.choroSpec
   )
 
-  if (CARTOGRAM_CONFIG.cartoVersions[state.versionKey].type === 'noncontiguous')
-    areaLegend.init(
-      CARTOGRAM_CONFIG.cartoVersions['0'].header,
-      visAreaEl.value.view().data('equal_area_geojson'),
-      visAreaEl.value.view().data('source_csv')
-    )
-  else
-    areaLegend.init(
-      CARTOGRAM_CONFIG.cartoVersions[state.versionKey].header,
-      visAreaEl.value.view().data('geo_1'),
-      visAreaEl.value.view().data('source_csv')
-    )
+  areaLegend.init(
+    CARTOGRAM_CONFIG.cartoVersions[state.versionKey].header,
+    visAreaEl.value.view().data('geo_1'),
+    visAreaEl.value.view().data('source_csv')
+  )
 }
 
 async function init() {
@@ -138,6 +131,11 @@ async function switchVersion(versionKey: string) {
 
 async function switchGrid(key: number) {
   state.currentGridIndex = key
+  let currentGridOpacity =
+    CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.type === 'noncontiguous'
+      ? 0
+      : store.options.gridOpacity
+
   areaLegend.updateGridData()
   await nextTick()
   visAreaEl.value.transform.setGridScaleNiceNumber(
@@ -148,7 +146,11 @@ async function switchGrid(key: number) {
     visAreaEl.value.transform.stateAffineScale.value
   )
   legendLineEl.value.setHandlePosition(areaLegend.stateGridData.value[key]?.width)
-  animate.gridTransition(props.panelID + '-grid', areaLegend.stateGridData.value[key]?.width)
+  animate.gridTransition(
+    props.panelID + '-grid',
+    areaLegend.stateGridData.value[key]?.width,
+    currentGridOpacity
+  )
 }
 </script>
 
@@ -192,12 +194,7 @@ async function switchGrid(key: number) {
           <svg width="100%" height="100%" v-bind:id="props.panelID + '-grid-area'">
             <defs>
               <pattern v-bind:id="props.panelID + '-grid'" patternUnits="userSpaceOnUse">
-                <path
-                  fill="none"
-                  stroke="#5A5A5A"
-                  stroke-width="2"
-                  v-bind:stroke-opacity="store.options.gridOpacity"
-                ></path>
+                <path fill="none" stroke="#5A5A5A" stroke-width="2"></path>
               </pattern>
             </defs>
             <rect
