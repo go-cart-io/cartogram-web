@@ -60,7 +60,7 @@ function playVersions() {
       <i
         class="fas fa-check"
         v-if="
-          CARTOGRAM_CONFIG.cartoVersions.length === 2 &&
+          Object.keys(CARTOGRAM_CONFIG.cartoVersions).length === 2 &&
           props.currentVersionName === index.toString()
         "
       ></i>
