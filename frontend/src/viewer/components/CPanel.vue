@@ -50,6 +50,15 @@ watch(
 )
 
 watch(
+  () => store.options.gridOpacity,
+  async () => {
+    let currentGridOpacity = getCurrentGridOpacity()
+    const gridPattern = document.getElementById(props.panelID + '-grid')
+    gridPattern?.setAttribute('stroke-opacity', currentGridOpacity.toString())
+  }
+)
+
+watch(
   () => store.currentColorCol,
   () => {
     init()
@@ -115,6 +124,12 @@ async function init() {
   })
 }
 
+function getCurrentGridOpacity() {
+  return CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.type === 'noncontiguous'
+    ? 0
+    : store.options.gridOpacity
+}
+
 async function switchVersion(versionKey: string) {
   state.versionKey = versionKey
   await initContainer(props.panelID + '-offscreen')
@@ -131,10 +146,7 @@ async function switchVersion(versionKey: string) {
 
 async function switchGrid(key: number) {
   state.currentGridIndex = key
-  let currentGridOpacity =
-    CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.type === 'noncontiguous'
-      ? 0
-      : store.options.gridOpacity
+  let currentGridOpacity = getCurrentGridOpacity()
 
   areaLegend.updateGridData()
   await nextTick()
