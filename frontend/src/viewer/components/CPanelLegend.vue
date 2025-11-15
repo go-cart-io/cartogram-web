@@ -63,45 +63,47 @@ function onHandleUp(event: any) {
 </script>
 
 <template>
-  <svg
-    v-if="props.gridData[config.NUM_GRID_OPTIONS]"
-    ref="legendSvgEl"
-    class="d-flex position-absolute z-2"
-    style="cursor: pointer; top: -15px; touch-action: none"
-    height="30px"
-    stroke="#AAAAAA"
-    stroke-width="2px"
-    v-bind:id="props.panelID + '-slider'"
-    v-bind:width="props.gridData[config.NUM_GRID_OPTIONS].width + 15"
-    v-on:pointerdown.stop.prevent="onHandleDown"
-    v-on:pointermove.stop.prevent="onHandleMove"
-    v-on:pointerup.stop.prevent="onHandleUp"
-  >
-    <line x1="0" y1="15" v-bind:x2="props.gridData[config.NUM_GRID_OPTIONS].width" y2="15"></line>
-    <line
-      v-for="(grid, index) in props.gridData"
-      v-bind:x1="grid.width"
-      y1="8"
-      v-bind:x2="grid.width"
-      y2="16"
-      v-bind:key="index"
-    ></line>
-    <circle id="handle" r="5" v-bind:cx="state.handlePosition" cy="15" stroke-width="0px" />
-  </svg>
-  <svg
-    v-if="props.gridData[config.NUM_GRID_OPTIONS]"
-    v-bind:id="props.panelID + '-legend'"
-    style="cursor: pointer; opacity: 0.5"
-    v-bind:width="props.gridData[gridIndex].width + 2"
-    v-bind:height="props.gridData[gridIndex].width + 2"
-  >
-    <g stroke-width="2px" fill="#EEEEEE" stroke="#AAAAAA">
-      <rect
-        x="1"
-        y="1"
-        v-bind:width="props.gridData[gridIndex].width"
-        v-bind:height="props.gridData[gridIndex].width"
-      ></rect>
-    </g>
-  </svg>
+  <div>
+    <svg
+      v-if="props.gridData[config.NUM_GRID_OPTIONS]"
+      ref="legendSvgEl"
+      class="d-flex position-absolute z-2"
+      style="cursor: pointer; top: -15px; touch-action: none"
+      height="30px"
+      stroke="#AAAAAA"
+      stroke-width="2px"
+      v-bind:id="props.panelID + '-slider'"
+      v-bind:width="props.gridData[config.NUM_GRID_OPTIONS].width + 15"
+      v-on:pointerdown.stop.prevent="onHandleDown"
+      v-on:pointermove.stop.prevent="onHandleMove"
+      v-on:pointerup.stop.prevent="onHandleUp"
+    >
+      <line x1="0" y1="15" v-bind:x2="props.gridData[config.NUM_GRID_OPTIONS].width" y2="15"></line>
+      <line
+        v-for="(grid, index) in props.gridData"
+        v-bind:x1="grid.width"
+        y1="8"
+        v-bind:x2="grid.width"
+        y2="16"
+        v-bind:key="index"
+      ></line>
+      <circle id="handle" r="5" v-bind:cx="state.handlePosition" cy="15" stroke-width="0px" />
+    </svg>
+    <svg
+      v-if="props.gridData[config.NUM_GRID_OPTIONS]"
+      v-bind:id="props.panelID + '-legend'"
+      style="cursor: pointer; opacity: 0.5"
+      v-bind:width="props.gridData[gridIndex].width + 2"
+      v-bind:height="props.gridData[gridIndex].width + 2"
+    >
+      <g stroke-width="2px" fill="#EEEEEE" stroke="#AAAAAA">
+        <rect
+          x="1"
+          y="1"
+          v-bind:width="props.gridData[gridIndex].width"
+          v-bind:height="props.gridData[gridIndex].width"
+        ></rect>
+      </g>
+    </svg>
+  </div>
 </template>
