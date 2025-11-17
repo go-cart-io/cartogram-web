@@ -77,9 +77,10 @@ def get_WB():
         on="Indicator.Code.x",
         how="inner",
     )
+    merged_df.rename(columns={"Indicator.Code.x": "Name"}, inplace=True)
 
     # Return only the target 'Type' and the single computed feature column
-    return merged_df[["Type", recommendator.FEATURE_NAME]]
+    return merged_df[["Name", "Type", recommendator.FEATURE_NAME]]
 
 
 def get_gocart():
@@ -99,7 +100,7 @@ def get_gocart():
         os.path.dirname(__file__), "../internal/static/cartdata"
     )
     data_folder = Path(CARTDATA_PATH)
-    data = {"Type": [], recommendator.FEATURE_NAME: []}
+    data = {"Name": [], "Type": [], recommendator.FEATURE_NAME: []}
 
     for handler in cartogram_handlers:
         csv_path = data_folder / handler / "data.csv"
@@ -125,6 +126,7 @@ def get_gocart():
             vis_types["Population Density (per sq. km)"] = "choropleth"
 
         for col in vis_types:
+            data["Name"].append(handler + " " + col)
             if vis_types[col] == "choropleth":
                 data["Type"].append("intensive")
             elif vis_types[col] == "contiguous" or vis_types[col] == "noncontiguous":
@@ -203,9 +205,10 @@ def predict(train, test, features):
 data1 = get_WB()
 data2 = get_gocart()
 data = pd.concat([data1, data2])
+data.to_csv(SCRIPT_DIR.parent / "internal" / "tmp" / "indicator_data.csv", index=False)
 # print(data)
 
-train, test = train_test_split(data, test_size=0.2, random_state=42)
+train, test = train_test_split(data[["Type", "Slope"]], test_size=0.2, random_state=42)
 model = predict(train, test, [recommendator.FEATURE_NAME])
 
 model_file = MODEL_DIR / (recommendator.FEATURE_NAME + ".pkl")
