@@ -47,42 +47,14 @@ class TrackingHTTP {
   }
 }
 
-class TrackingDynamicLoading {
-  /**
-   * Loads a script and performs an action upon load
-   * @param url The URL of the script
-   * @param implementationCode The function to be run after loading
-   * @param location The element to assign the script tag to
-   */
-  static loadScript(url, implementationCode, location) {
-    let scriptTag = document.createElement("script");
-    scriptTag.src = url;
-
-    scriptTag.onload = implementationCode;
-    scriptTag.onreadystatechange = implementationCode;
-
-    location.appendChild(scriptTag);
-  }
-}
-
 class Tracking {
   /**
-   * Load the Google Analytics tracking script
-   * @param tracking_id The GA tracking ID
+   * Enable Google Analytics storage
    */
-  static beginTracking(tracking_id) {
-    TrackingDynamicLoading.loadScript(
-      "https://www.googletagmanager.com/gtag/js?id=" + tracking_id,
-      () => {
-        window.dataLayer = window.dataLayer || [];
-        window.gtag = function () {
-          window.dataLayer.push(arguments);
-        };
-        window.gtag("js", new Date());
-        window.gtag("config", tracking_id);
-      },
-      document.head
-    );
+  static beginTracking() {
+      gtag("consent", "update", {
+        "analytics_storage": "granted"        	  
+      });
   }
 
   static consentToTracking() {
@@ -92,7 +64,7 @@ class Tracking {
     TrackingHTTP.post("/api/v1/consent", form).then(
       (response) => {
         document.getElementById("cookie-consent").style.display = "none";
-        Tracking.beginTracking(response.tracking_id);
+        Tracking.beginTracking();
       },
       (err) => console.log(err)
     );
