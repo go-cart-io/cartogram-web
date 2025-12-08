@@ -39,3 +39,7 @@ To update the `cartogram` binary to:
 ## Contributing
 
 We welcome and encourage contributions! For details on setting up a development environment and contribution guidelines, please visit our [Developer Guide](https://guides.go-cart.io/#/developers).
+
+## Funding
+
+Development of this software has been supported by the Ministry of Education, Singapore, under its Academic Research Fund Tier 2 (EP2) programme (Award No. MOE-T2EP20221-0007). The views expressed in this repository are those of the authors and do not necessarily reflect the views of the Ministry of Education, Singapore.
