@@ -129,7 +129,7 @@ async function init() {
 }
 
 function getCurrentGridOpacity() {
-  return isNoncontiguous ? 0 : store.options.gridOpacity
+  return isNoncontiguous.value ? 0 : store.options.gridOpacity
 }
 
 async function switchVersion(versionKey: string) {
