@@ -92,6 +92,13 @@ def cartogram_preprocess(mapDBKey):
                     "Multiple map layers found. If the preview isn't what you expected, please remove unwanted map layers and re-upload your boundary file."
                 )
 
+            elif "Invalid geometry detected" in str(warning_message.message):
+                processed_geojson["warnings"].append(
+                    "Invalid geometry detected in your boundary file. "
+                    "Self-intersections and other issues were automatically repaired. "
+                    "Please verify the map preview looks correct."
+                )
+
     current_app.logger.info(f"Finish preprocessing map for {mapDBKey}")
     return Response(
         json.dumps(processed_geojson),
