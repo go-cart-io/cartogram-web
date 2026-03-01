@@ -1,10 +1,8 @@
 import json
-import warnings
 from typing import Any
 
 import geopandas as gpd
 from errors import CartoError
-from shapely.validation import make_valid
 from utils import file_utils
 
 
@@ -119,27 +117,10 @@ class CartoDataFrame(gpd.GeoDataFrame):
                 raise CartoError(
                     "TopoJSON is not fully supported. Please convert your file to GeoJSON and try again."
                 )
-
-            # Auto-fix invalid/non-simple geometries using Shapely's make_valid
-            invalid_mask = ~gdf.is_simple
-            invalid_count = invalid_mask.sum()
-            gdf.loc[invalid_mask, "geometry"] = gdf.loc[
-                invalid_mask, "geometry"
-            ].apply(make_valid)
-
-            # Verify the fix worked
-            if not gdf.is_simple.all():
+            else:
                 raise CartoError(
-                    "Geometries are not simple and could not be automatically repaired. "
-                    "Fix the boundary file and try again."
+                    "Geometries are not simple. Fix the boundary file and try again."
                 )
-
-            warnings.warn(
-                f"Invalid geometry detected: {invalid_count} geometry(ies) had "
-                f"self-intersections or other issues and were automatically repaired.",
-                UserWarning,
-                stacklevel=2,
-            )
 
         return cls(gdf, extra_attributes=extra_attributes)
 
