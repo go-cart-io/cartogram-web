@@ -213,4 +213,6 @@ class CartoDataFrame(gpd.GeoDataFrame):
         )
 
         if "label" in self.columns:
-            self["label"] = self["label"].apply(json.loads)
+            self["label"] = self["label"].apply(
+                lambda x: x if isinstance(x, dict) else json.loads(x)
+            )
