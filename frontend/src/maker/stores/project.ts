@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
+import type { FeatureCollection } from 'geojson'
 import type { DataTable } from '../lib/interface'
 
 export const useProjectStore = defineStore('project', () => {
@@ -17,6 +18,8 @@ export const useProjectStore = defineStore('project', () => {
   const dataTable = ref<DataTable>({ fields: [], items: [] })
   const regionWarnings = ref(new Set() as Set<number>)
   const regionData = ref([] as Array<{ [key: string]: any }>)
+  const geojsonData = ref<FeatureCollection | null>(null)
+  const geojsonRegionCol = ref('')
 
   return {
     title,
@@ -26,6 +29,8 @@ export const useProjectStore = defineStore('project', () => {
     choroSettings,
     dataTable,
     regionWarnings,
-    regionData
+    regionData,
+    geojsonData,
+    geojsonRegionCol
   }
 })

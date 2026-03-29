@@ -75,6 +75,8 @@ async function onGeoJsonChanged(
   state.handler = handler
   state.geojsonRegionCol = regionCol
   state.isInitialized = isInitialized
+  store.geojsonData = geojsonData
+  store.geojsonRegionCol = regionCol
   await previewEl.value.init(geojsonData, regionCol)
 
   if (isInitialized) collapseStep('1')
