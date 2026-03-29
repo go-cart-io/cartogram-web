@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { reactive, nextTick } from 'vue'
+import { reactive, ref, computed, nextTick } from 'vue'
 import { Tooltip } from 'bootstrap'
 
 import * as config from '@/common/lib/config'
 import * as util from '../lib/util'
 import HTTP from '../lib/http'
 
+import CSenseCheck from './CSenseCheck.vue'
 import { useProjectStore } from '../stores/project'
 const store = useProjectStore()
 
@@ -17,6 +18,18 @@ const state = reactive({
   isProcessing: false,
   isExist: false,
   error: ''
+})
+
+const senseCheckRef = ref<InstanceType<typeof CSenseCheck> | null>(null)
+
+// Columns that have a recommendation of 'area' or 'color' (not 'none')
+const senseCheckColumns = computed(() => {
+  return store.dataTable.fields
+    .map((field, index) => ({ index, label: field.label, recommendation: field.recommendation }))
+    .filter(
+      (col) =>
+        col.recommendation && (col.recommendation.type === 'area' || col.recommendation.type === 'color')
+    ) as Array<{ index: number; label: string; recommendation: { type: string; reason: string; confidence?: number | null } }>
 })
 
 async function getRecommendations() {
@@ -66,6 +79,11 @@ async function getRecommendations() {
     const tooltipList = [...tooltipTriggerList].map(
       (tooltipTriggerEl) => new Tooltip(tooltipTriggerEl)
     )
+
+    // Open sense-check modal if there are columns to verify
+    if (senseCheckColumns.value.length > 0) {
+      nextTick(() => senseCheckRef.value?.open())
+    }
   }
 }
 </script>
@@ -114,4 +132,10 @@ async function getRecommendations() {
       </div>
     </div>
   </div>
+
+  <CSenseCheck
+    ref="senseCheckRef"
+    :columns="senseCheckColumns"
+    @done="() => {}"
+  />
 </template>
