@@ -60,7 +60,14 @@ def recommend(csv_string):
             continue
 
         # 3) Compute the feature (e.g. Slope or CV). Return none if can't compute.
-        feature_value = FEATURE_FUNC(df, col)
+        feature_result = FEATURE_FUNC(df, col)
+
+        # Unpack tuple (slope, r_squared) or handle scalar for CV
+        if isinstance(feature_result, tuple):
+            feature_value, r_squared = feature_result
+        else:
+            feature_value = feature_result
+            r_squared = np.nan
 
         if not feature_value or np.isnan(feature_value):
             results[col] = {
@@ -68,6 +75,9 @@ def recommend(csv_string):
                 "reason": f"Cannot calculate {FEATURE_NAME}. Unfortunately, we cannot make the recommendation.",
             }
             continue
+
+        # Confidence is R² (0–1), how well log(area) explains this variable
+        confidence = round(float(r_squared), 3) if not np.isnan(r_squared) else None
 
         # 4) Ask the model for a prediction. The model returns a label such as 'intensive' or 'extensive'.
         feature_df = pd.DataFrame({FEATURE_NAME: [feature_value]})
@@ -91,6 +101,7 @@ def recommend(csv_string):
                 "type": "color",
                 "reason": reason
                 + "We recommend using color to represent this variable in your visualization.",
+                "confidence": confidence,
             }
         elif prediction == "extensive":
             # Extensive variables (counts, totals) map naturally to area/cartograms.
@@ -98,6 +109,7 @@ def recommend(csv_string):
                 "type": "area",
                 "reason": reason
                 + "We recommend using area to represent this variable in your visualization.",
+                "confidence": confidence,
             }
 
             # If the series contains negative values, area-based mapping may
@@ -233,8 +245,8 @@ def calculate_slope(df: pd.DataFrame, value_col: str, area_col="AreaLog", max_p=
 
     Returns
     -------
-    float
-        The slope of the regression line, or NaN if insufficient data or
+    tuple[float, float]
+        A tuple of (slope, r_squared). Both are NaN if insufficient data or
         if significance criteria are not met.
     """
 
@@ -258,10 +270,10 @@ def calculate_slope(df: pd.DataFrame, value_col: str, area_col="AreaLog", max_p=
         # If max_p is provided treat p-value as a filter for statistical
         # significance; otherwise accept the slope regardless of p-value.
         if not max_p or res.pvalue < max_p:  # type: ignore
-            return res.slope  # type: ignore
+            return res.slope, res.rvalue ** 2  # type: ignore
 
     # If any check fails return NaN to signal an unavailable slope.
-    return np.nan
+    return np.nan, np.nan
 
 
 def calculate_cv(df: pd.DataFrame, value_col: str):
