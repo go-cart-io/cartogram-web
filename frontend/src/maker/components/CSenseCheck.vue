@@ -41,52 +41,51 @@ const regionPair = computed(() => {
     }
   }
 
-  // Try to find two regions with different values, prefer adjacent ones
-  // but fall back to any two distinct-valued regions
-  let bestPair: {
-    regionA: string
-    regionB: string
-    valueA: number
-    valueB: number
-    featureA: Feature
-    featureB: Feature
-  } | null = null
+  // Build candidates: regions with valid data values and geographic area
+  const areaLabel = store.dataTable.fields.find(
+    (f: any) => f.name === 'Geographic Area' || f.label === 'Geographic Area'
+  )?.label ?? 'Geographic Area'
 
-  for (let i = 0; i < items.length && i < 20; i++) {
-    for (let j = i + 1; j < items.length && j < 20; j++) {
-      const valA = parseFloat(items[i][label])
-      const valB = parseFloat(items[j][label])
-      if (isNaN(valA) || isNaN(valB) || valA === valB) continue
-      if (!items[i].Region || !items[j].Region) continue
+  const candidates = items
+    .filter((item: any) => {
+      const val = parseFloat(item[label])
+      const area = parseFloat(item[areaLabel])
+      return !isNaN(val) && val > 0 && !isNaN(area) && area > 0
+        && item.Region && featuresByRegion.has(item.Region as string)
+    })
+    .map((item: any) => ({
+      region: item.Region as string,
+      value: parseFloat(item[label]),
+      feature: featuresByRegion.get(item.Region as string)!,
+      area: parseFloat(item[areaLabel])
+    }))
 
-      const fA = featuresByRegion.get(items[i].Region as string)
-      const fB = featuresByRegion.get(items[j].Region as string)
-      if (!fA || !fB) continue
+  // Score all pairs, balancing geographic area (so the mini-map is legible)
+  // with percentage value difference (so sum vs. average is intuitive).
+  // Score = min(Aᵢ, Aⱼ) · |vᵢ − vⱼ| / min(vᵢ, vⱼ)
+  const top = candidates
+  let bestPair: typeof candidates[0] extends infer T ? { a: T; b: T; score: number } | null : never = null
 
-      if (!bestPair) {
-        bestPair = {
-          regionA: items[i].Region as string,
-          regionB: items[j].Region as string,
-          valueA: valA,
-          valueB: valB,
-          featureA: fA,
-          featureB: fB
-        }
-      }
-      // Prefer both positive and reasonably different
-      if (valA > 0 && valB > 0 && Math.abs(valA - valB) > Math.min(valA, valB) * 0.1) {
-        return {
-          regionA: items[i].Region as string,
-          regionB: items[j].Region as string,
-          valueA: valA,
-          valueB: valB,
-          featureA: fA,
-          featureB: fB
-        }
+  for (let i = 0; i < top.length; i++) {
+    for (let j = i + 1; j < top.length; j++) {
+      const a = top[i], b = top[j]
+      const relDiff = Math.abs(a.value - b.value) / Math.min(a.value, b.value)
+      const sizeScore = Math.min(a.area, b.area)
+      const score = sizeScore * relDiff
+      if (!bestPair || score > bestPair.score) {
+        bestPair = { a, b, score }
       }
     }
   }
-  return bestPair
+
+  if (bestPair) {
+    return {
+      regionA: bestPair.a.region, regionB: bestPair.b.region,
+      valueA: bestPair.a.value, valueB: bestPair.b.value,
+      featureA: bestPair.a.feature, featureB: bestPair.b.feature
+    }
+  }
+  return null
 })
 
 const sumValue = computed(() => {
@@ -158,22 +157,19 @@ function drawMiniMap() {
     .attr('height', height)
     .attr('viewBox', `0 0 ${width} ${height}`)
 
-  // Create a focused projection around the two highlighted regions
+  // The geojson data is already projected (equal-area), so use geoIdentity
+  // with reflectY (projected coords have Y increasing upward, SVG has Y downward).
+  // Zoom into the two selected regions with padding for context.
   const focusCollection: FeatureCollection = {
     type: 'FeatureCollection',
     features: [pair.featureA, pair.featureB]
   }
 
-  const projection = d3.geoMercator().fitSize([width, height], focusCollection)
-
-  // Expand bounds to show some context
-  const contextProjection = d3.geoMercator().fitSize(
-    [width * 0.5, height * 0.5],
+  const padding = 20
+  const projection = d3.geoIdentity().reflectY(true).fitExtent(
+    [[padding, padding], [width - padding, height - padding]],
     focusCollection
   )
-  // Use the focused projection but zoom out a bit for context
-  const scale = projection.scale()
-  projection.scale(scale * 0.45)
 
   const path = d3.geoPath().projection(projection)
 
@@ -209,39 +205,34 @@ function drawMiniMap() {
     .attr('stroke-width', 1.5)
     .attr('opacity', 0.85)
 
-  // Add labels for the two regions
+  // Add value labels with background pills for legibility
+  function addLabel(cx: number, cy: number, text: string, bgColor: string) {
+    if (!cx || !cy) return
+    const g = svg.append('g').attr('transform', `translate(${cx},${cy})`)
+    // Render text first to measure, then add background
+    const textEl = g.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('dominant-baseline', 'central')
+      .attr('font-size', '13px')
+      .attr('font-weight', 'bold')
+      .attr('font-family', 'system-ui, sans-serif')
+      .attr('fill', '#fff')
+      .text(text)
+    const bbox = (textEl.node() as SVGTextElement).getBBox()
+    g.insert('rect', 'text')
+      .attr('x', bbox.x - 4)
+      .attr('y', bbox.y - 2)
+      .attr('width', bbox.width + 8)
+      .attr('height', bbox.height + 4)
+      .attr('rx', 3)
+      .attr('fill', bgColor)
+      .attr('opacity', 0.9)
+  }
+
   const centroidA = path.centroid(pair.featureA as any)
   const centroidB = path.centroid(pair.featureB as any)
-
-  if (centroidA[0] && centroidA[1]) {
-    svg
-      .append('text')
-      .attr('x', centroidA[0])
-      .attr('y', centroidA[1])
-      .attr('text-anchor', 'middle')
-      .attr('dominant-baseline', 'central')
-      .attr('font-size', '11px')
-      .attr('font-weight', 'bold')
-      .attr('fill', '#fff')
-      .attr('stroke', '#1a6aa5')
-      .attr('stroke-width', 0.3)
-      .text(formatNum(pair.valueA))
-  }
-
-  if (centroidB[0] && centroidB[1]) {
-    svg
-      .append('text')
-      .attr('x', centroidB[0])
-      .attr('y', centroidB[1])
-      .attr('text-anchor', 'middle')
-      .attr('dominant-baseline', 'central')
-      .attr('font-size', '11px')
-      .attr('font-weight', 'bold')
-      .attr('fill', '#fff')
-      .attr('stroke', '#a84b1e')
-      .attr('stroke-width', 0.3)
-      .text(formatNum(pair.valueB))
-  }
+  addLabel(centroidA[0], centroidA[1], formatNum(pair.valueA), '#268bd2')
+  addLabel(centroidB[0], centroidB[1], formatNum(pair.valueB), '#d76127')
 }
 
 // Redraw map when the step or phase changes
@@ -337,7 +328,7 @@ function drawMiniMapAll() {
     .attr('height', height)
     .attr('viewBox', `0 0 ${width} ${height}`)
 
-  const projection = d3.geoMercator().fitSize([width - 16, height - 16], store.geojsonData)
+  const projection = d3.geoIdentity().reflectY(true).fitSize([width - 16, height - 16], store.geojsonData)
   const path = d3.geoPath().projection(projection)
 
   svg
@@ -359,32 +350,22 @@ defineExpose({ open })
   <div ref="modalEl" class="modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
       <div class="modal-content" v-if="currentCol">
-        <div class="modal-header">
+        <div class="modal-header bg-warning-subtle border-warning">
           <h5 class="modal-title">
-            Sense-check: <strong>{{ currentCol.label }}</strong>
+            <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>
+            <strong>{{ currentCol.label }}</strong> may not be suitable for a cartogram
           </h5>
-          <span class="badge text-bg-secondary ms-2">
-            {{ currentStep + 1 }} / {{ columns.length }}
-          </span>
         </div>
         <div class="modal-body">
-          <p class="text-muted mb-2">
-            Our algorithm suggests
-            <strong>{{ algoSuggestion === 'area' ? 'cartogram (area)' : 'choropleth (color)' }}</strong>
-            <span
-              v-if="currentCol.recommendation.confidence != null"
-              class="badge ms-1"
-              :class="
-                currentCol.recommendation.confidence >= 0.5
-                  ? 'text-bg-success'
-                  : currentCol.recommendation.confidence >= 0.2
-                    ? 'text-bg-warning'
-                    : 'text-bg-danger'
-              "
-            >
-              {{ Math.round(currentCol.recommendation.confidence * 100) }}% fit
-            </span>.
-            Help us verify:
+          <p class="mb-1">
+            In a cartogram, each region's area represents its data value.
+            When two regions are combined, their areas add up — so the data
+            must also add up for the map to remain meaningful. This property
+            is called <strong>extensivity</strong>.
+          </p>
+          <p class="mb-2">
+            Our statistical model suggests <strong>{{ currentCol.label }}</strong>
+            may violate extensivity. Please verify:
           </p>
 
           <div v-if="regionPair">
@@ -418,13 +399,13 @@ defineExpose({ open })
                 <button class="btn btn-outline-primary text-start sense-btn" @click="answer('sum')">
                   <span class="sense-btn-value">~{{ formatNum(sumValue) }}{{ currentUnit }}</span>
                   <span class="sense-btn-hint">
-                    The sum — like total population, GDP, number of hospitals
+                    The sum — like total population, regionwide GDP, number of hospitals
                   </span>
                 </button>
                 <button class="btn btn-outline-primary text-start sense-btn" @click="answer('average')">
                   <span class="sense-btn-value">~{{ formatNum(avgValue) }}{{ currentUnit }}</span>
                   <span class="sense-btn-hint">
-                    Somewhere between the two — like temperature, density, life expectancy
+                    Somewhere between the two — like temperature, population density (people per km²), average life expectancy
                   </span>
                 </button>
                 <button class="btn btn-link text-muted text-start small" @click="answer('skip')">
@@ -454,7 +435,7 @@ defineExpose({ open })
                     ~{{ formatNum(mapTotal.avg) }}{{ currentUnit }} (the average)
                   </span>
                   <span class="sense-btn-hint">
-                    Summing doesn't make sense — e.g. temperature, life expectancy, percentages
+                    Summing doesn't make sense — e.g. temperature, average life expectancy, percentages
                   </span>
                 </button>
                 <button class="btn btn-link text-muted text-start small" @click="answer('skip')">
@@ -469,12 +450,8 @@ defineExpose({ open })
             <button class="btn btn-link" @click="answer('skip')">Skip</button>
           </div>
         </div>
-        <div class="modal-footer justify-content-between">
-          <span class="text-muted small">
-            Additive data (totals, counts) → cartogram &nbsp;|&nbsp;
-            Non-additive data (rates, densities) → choropleth
-          </span>
-          <button class="btn btn-secondary btn-sm" @click="close()">Skip all</button>
+        <div class="modal-footer justify-content-end">
+          <button class="btn btn-secondary btn-sm" @click="close()">Dismiss</button>
         </div>
       </div>
     </div>

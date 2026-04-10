@@ -218,26 +218,7 @@ function validateInput(event: Event) {
               <option disabled>----------------</option>
               <option value="choropleth">Color: Choropleth</option>
             </select>
-            <div v-if="field.recommendation">
-              <span class="p-1 badge text-bg-info">
-                Suggestion: {{ field.recommendation.type }}
-              </span>
-              <span
-                v-if="field.recommendation.confidence != null"
-                class="p-1 badge ms-1"
-                :class="
-                  field.recommendation.confidence >= 0.5
-                    ? 'text-bg-success'
-                    : field.recommendation.confidence >= 0.2
-                      ? 'text-bg-warning'
-                      : 'text-bg-danger'
-                "
-                :title="'R² = ' + field.recommendation.confidence.toFixed(3)"
-              >
-                {{ Math.round(field.recommendation.confidence * 100) }}% fit
-              </span>
-              <c-help v-bind:title="field.recommendation.reason" />
-            </div>
+            <!-- recommendation badges removed -->
           </td>
         </tr>
       </thead>
