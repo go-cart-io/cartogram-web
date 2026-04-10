@@ -2,13 +2,15 @@
 Extensivity guardrail: test whether a variable scales linearly with
 geographic area using a Gamma GAM with log link.
 
-This is a Python translation of the R implementation at
-cartogram-extensivity-guardrail/R/.
+Uses a custom thin-plate regression spline (TPRS) implementation that
+closely matches R's mgcv (Wood 2003). No external GAM library needed.
 """
 
 import warnings
 import numpy as np
 import pandas as pd
+
+from carto.tprs import fit_gam_gamma_log
 
 # z_crit for one-sided alpha=0.05
 _Z_CRIT = 1.6448536269514729  # scipy.stats.norm.ppf(0.95)
@@ -26,8 +28,9 @@ def check_extensivity(
     """
     Test whether a variable satisfies area-extensivity using a GAM.
 
-    Fits y ~ l(x) + s(z) with Gamma(log) for each k in [4,6,8],
+    Fits y ~ x + s(z, k, bs="tp") with Gamma(log) for each k in [4,6,8],
     where x = log(area) and z = log(population/area).
+    Uses thin-plate regression splines matching R's mgcv.
 
     Returns dict with:
     - "extensivity_violated": bool
@@ -36,17 +39,6 @@ def check_extensivity(
     - "gamma_hat": float or None
     - "se_gamma": float or None
     """
-    try:
-        from pygam import GAM, l, s  # noqa: E741
-    except ImportError:
-        return {
-            "extensivity_violated": None,
-            "gamma_max": None,
-            "reason_code": "abstain:pygam_not_installed",
-            "gamma_hat": None,
-            "se_gamma": None,
-        }
-
     # ── Validate columns exist ─────────────────────────────
     required = [value_col, population_col, area_col]
     missing = [c for c in required if c not in df.columns]
@@ -80,7 +72,7 @@ def check_extensivity(
         / clean[area_col].values.astype(float)
     )
 
-    X = np.column_stack([x, z])
+    X_linear = x.reshape(-1, 1)
 
     # ── Fit GAM for each k ─────────────────────────────────
     results = []
@@ -88,16 +80,13 @@ def check_extensivity(
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                gam = GAM(
-                    l(0) + s(1, n_splines=k_val),
-                    distribution="gamma",
-                    link="log",
-                )
-                gam.fit(X, y)
+                fit = fit_gam_gamma_log(X_linear, z, y, k_val)
 
-            gamma_hat = float(gam.coef_[0])
-            V = gam.statistics_["cov"]
-            se_gamma = float(np.sqrt(V[0, 0]))
+            if not fit["converged"]:
+                continue
+
+            gamma_hat = float(fit["linear_coef"][0])
+            se_gamma = float(fit["linear_se"][0])
 
             if np.isfinite(gamma_hat) and np.isfinite(se_gamma):
                 gamma_max = gamma_hat + _Z_CRIT * se_gamma
