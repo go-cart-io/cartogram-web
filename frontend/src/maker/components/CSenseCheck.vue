@@ -110,7 +110,7 @@ const mapTotal = computed(() => {
   return { sum, avg: count > 0 ? sum / count : 0, count }
 })
 
-const questionPhase = ref<'merge' | 'total'>('merge')
+const questionPhase = ref<'merge' | 'total' | 'result'>('merge')
 
 function formatNum(n: number): string {
   const abs = Math.abs(n)
@@ -273,11 +273,25 @@ function answer(userAnswer: 'sum' | 'average' | 'skip') {
   const finalVote =
     totalVote !== 'skip' ? totalVote : mergeVote.value !== 'skip' ? mergeVote.value : 'skip'
 
-  // If user confirmed it's not additive (average), mark for choropleth switch
   if (finalVote === 'average') {
     columnsToSwitch.value.push(currentCol.value.label)
+    questionPhase.value = 'result'
+  } else {
+    advanceToNextColumn()
   }
+}
 
+function onResultSkip() {
+  // User chose to create cartogram anyway — undo the switch
+  if (currentCol.value) {
+    const idx = columnsToSwitch.value.indexOf(currentCol.value.label)
+    if (idx >= 0) columnsToSwitch.value.splice(idx, 1)
+  }
+  advanceToNextColumn()
+}
+
+function onResultChoropleth() {
+  // Column already marked for switch in answer()
   advanceToNextColumn()
 }
 
@@ -390,6 +404,29 @@ defineExpose({ open })
                 </button>
               </div>
             </template>
+
+            <!-- PHASE 3: Result — extensivity violated -->
+            <template v-else-if="questionPhase === 'result'">
+              <div class="text-center py-3">
+                <i class="fa-solid fa-circle-exclamation text-warning fa-2x mb-3"></i>
+                <p class="fs-5">
+                  <strong>{{ currentCol.label }}</strong> does not appear to be
+                  suitable for a cartogram.
+                </p>
+                <p class="text-muted">
+                  This data is not additive — combining regions would not produce
+                  a meaningful sum. A choropleth (color) map is more appropriate.
+                </p>
+              </div>
+              <div class="d-flex flex-column gap-2">
+                <button class="btn btn-primary" @click="onResultChoropleth()">
+                  Try a choropleth instead
+                </button>
+                <button class="btn btn-link text-muted small" @click="onResultSkip()">
+                  Skip — create cartogram anyway
+                </button>
+              </div>
+            </template>
           </div>
 
           <div v-else class="text-muted">
@@ -397,7 +434,7 @@ defineExpose({ open })
             <button class="btn btn-link" @click="answer('skip')">Skip</button>
           </div>
         </div>
-        <div class="modal-footer justify-content-end">
+        <div class="modal-footer justify-content-end" v-if="questionPhase !== 'result'">
           <button class="btn btn-outline-warning btn-sm" @click="switchAll()">
             Try a choropleth instead
           </button>
