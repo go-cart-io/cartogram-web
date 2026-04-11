@@ -133,12 +133,11 @@ async function getGeneratedCartogram() {
     store.dataTable.fields[config.COL_AREA].show = false
 
     try {
-      const checkResult: Record<string, { extensivity_violated: boolean | null; gamma_max: number | null }> =
-        await HTTP.post(
+      const checkResult = (await HTTP.post(
           '/api/v1/cartogram/check-extensivity',
           JSON.stringify({ csv: csvForCheck, columns: cartogramCols }),
           { 'Content-type': 'application/json' }
-        )
+        )) as Record<string, { extensivity_violated: boolean | null; gamma_max: number | null }>
 
       const violated = Object.entries(checkResult)
         .filter(([, v]) => v.extensivity_violated === true)
