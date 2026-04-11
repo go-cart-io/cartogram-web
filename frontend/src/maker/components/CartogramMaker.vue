@@ -120,8 +120,11 @@ async function getGeneratedCartogram() {
     )
       return
 
-  // Check extensivity for columns selected as cartogram (area)
-  const cartogramCols = datatable.getColsByVisType(store.dataTable, 'area')
+  // Check extensivity for columns selected as cartogram (contiguous or non-contiguous)
+  const cartogramCols = [
+    ...datatable.getColsByVisType(store.dataTable, 'contiguous'),
+    ...datatable.getColsByVisType(store.dataTable, 'noncontiguous'),
+  ]
   if (cartogramCols.length > 0) {
     store.dataTable.fields[config.COL_REGIONMAP].show = true
     store.dataTable.fields[config.COL_AREA].show = true
@@ -162,7 +165,7 @@ function onSenseCheckSwitch() {
   // Switch violated columns from area to color
   for (const violated of violatedColumns.value) {
     const field = store.dataTable.fields.find((f) => f.label === violated.label)
-    if (field) field.vis = 'color'
+    if (field) field.vis = 'choropleth'
   }
   previewEl.value.updateColorFields(false)
   doGenerate()
