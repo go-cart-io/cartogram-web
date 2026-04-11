@@ -25,7 +25,7 @@ const mapDBKey = util.generateShareKey(32)
 const csvFormEl = ref()
 const previewEl = ref()
 const senseCheckRef = ref<InstanceType<typeof CSenseCheck> | null>(null)
-const violatedColumns = ref<Array<{ label: string; gamma_max: number | null }>>([])
+const violatedColumns = ref<Array<{ index: number; label: string }>>([])
 
 const props = defineProps<{
   mapName?: string
@@ -141,7 +141,11 @@ async function getGeneratedCartogram() {
 
       const violated = Object.entries(checkResult)
         .filter(([, v]) => v.extensivity_violated === true)
-        .map(([label, v]) => ({ label, gamma_max: v.gamma_max }))
+        .map(([label]) => ({
+          label,
+          index: store.dataTable.fields.findIndex((f) => f.label === label)
+        }))
+        .filter((v) => v.index >= 0)
 
       if (violated.length > 0) {
         violatedColumns.value = violated
@@ -156,17 +160,15 @@ async function getGeneratedCartogram() {
   doGenerate()
 }
 
-function onSenseCheckProceed() {
-  doGenerate()
-}
-
-function onSenseCheckSwitch() {
-  // Switch violated columns from area to color
-  for (const violated of violatedColumns.value) {
-    const field = store.dataTable.fields.find((f) => f.label === violated.label)
-    if (field) field.vis = 'choropleth'
+function onSenseCheckProceed(switchColumns: string[]) {
+  // Switch columns the user confirmed as non-additive to choropleth
+  if (switchColumns.length > 0) {
+    for (const label of switchColumns) {
+      const field = store.dataTable.fields.find((f) => f.label === label)
+      if (field) field.vis = 'choropleth'
+    }
+    previewEl.value.updateColorFields(false)
   }
-  previewEl.value.updateColorFields(false)
   doGenerate()
 }
 
@@ -438,7 +440,6 @@ async function doGenerate() {
     ref="senseCheckRef"
     :columns="violatedColumns"
     @proceed="onSenseCheckProceed"
-    @switch="onSenseCheckSwitch"
   />
 
   <div class="modal" id="progressBackdrop" tabindex="-1" aria-hidden="true">
