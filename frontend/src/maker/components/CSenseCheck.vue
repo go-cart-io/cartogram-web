@@ -16,6 +16,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   proceed: [switchColumns: string[]]
+  backToData: []
 }>()
 
 let modalInstance: Modal | null = null
@@ -23,7 +24,6 @@ const modalEl = ref<HTMLElement | null>(null)
 const mapContainer = ref<HTMLElement | null>(null)
 const currentStep = ref(0)
 
-// Track which columns the user confirmed as non-additive (should switch to choropleth)
 const columnsToSwitch = ref<string[]>([])
 
 const currentCol = computed(() => props.columns[currentStep.value] ?? null)
@@ -56,7 +56,7 @@ const regionPair = computed(() => {
     })
     .map((item: any) => ({
       region: item.Region as string,
-      value: parseFloat(item[label]),
+      value: parseFloat(item[label] as string),
       feature: featuresByRegion.get(item.Region as string)!,
       area: parseFloat(item[areaLabel])
     }))
@@ -243,9 +243,18 @@ function open() {
   }
 }
 
-function finish() {
+function close() {
   modalInstance?.hide()
+}
+
+function finish() {
+  close()
   emit('proceed', columnsToSwitch.value)
+}
+
+function backToData() {
+  close()
+  emit('backToData')
 }
 
 const mergeVote = ref<'sum' | 'average' | 'skip'>('skip')
@@ -258,7 +267,7 @@ function advanceToNextColumn() {
   }
 }
 
-function answer(userAnswer: 'sum' | 'average' | 'skip') {
+function answer(userAnswer: 'sum' | 'average') {
   if (!currentCol.value) return
 
   if (questionPhase.value === 'merge') {
@@ -268,10 +277,10 @@ function answer(userAnswer: 'sum' | 'average' | 'skip') {
     return
   }
 
-  // Phase 'total' — combine both votes
-  const totalVote = userAnswer
-  const finalVote =
-    totalVote !== 'skip' ? totalVote : mergeVote.value !== 'skip' ? mergeVote.value : 'skip'
+  // Phase 'total' — the second answer is authoritative.
+  // If user said "sum" then "average" (or vice versa), trust the second answer
+  // since the total question is more holistic.
+  const finalVote = userAnswer
 
   if (finalVote === 'average') {
     columnsToSwitch.value.push(currentCol.value.label)
@@ -281,28 +290,18 @@ function answer(userAnswer: 'sum' | 'average' | 'skip') {
   }
 }
 
-function onResultSkip() {
-  // User chose to create cartogram anyway — undo the switch
-  if (currentCol.value) {
-    const idx = columnsToSwitch.value.indexOf(currentCol.value.label)
-    if (idx >= 0) columnsToSwitch.value.splice(idx, 1)
-  }
-  advanceToNextColumn()
-}
-
 function onResultChoropleth() {
   // Column already marked for switch in answer()
   advanceToNextColumn()
 }
 
-function switchAll() {
-  // Mark all remaining columns for choropleth switch
-  for (let i = currentStep.value; i < props.columns.length; i++) {
-    if (!columnsToSwitch.value.includes(props.columns[i].label)) {
-      columnsToSwitch.value.push(props.columns[i].label)
-    }
+function onResultCartogram() {
+  // User overrides — undo the switch
+  if (currentCol.value) {
+    const idx = columnsToSwitch.value.indexOf(currentCol.value.label)
+    if (idx >= 0) columnsToSwitch.value.splice(idx, 1)
   }
-  finish()
+  advanceToNextColumn()
 }
 
 defineExpose({ open })
@@ -359,18 +358,11 @@ defineExpose({ open })
               <div class="d-flex flex-column gap-2">
                 <button class="btn btn-outline-primary text-start sense-btn" @click="answer('sum')">
                   <span class="sense-btn-value">~{{ formatNum(sumValue) }}{{ currentUnit }}</span>
-                  <span class="sense-btn-hint">
-                    The sum — like total population, regionwide GDP, number of hospitals
-                  </span>
+                  <span class="sense-btn-hint">The sum</span>
                 </button>
                 <button class="btn btn-outline-primary text-start sense-btn" @click="answer('average')">
                   <span class="sense-btn-value">~{{ formatNum(avgValue) }}{{ currentUnit }}</span>
-                  <span class="sense-btn-hint">
-                    Somewhere between the two — like temperature, population density (people per km²), average life expectancy
-                  </span>
-                </button>
-                <button class="btn btn-link text-muted text-start small" @click="answer('skip')">
-                  Not sure — skip
+                  <span class="sense-btn-hint">Somewhere between the two</span>
                 </button>
               </div>
             </template>
@@ -387,20 +379,11 @@ defineExpose({ open })
                   <span class="sense-btn-value">
                     ~{{ formatNum(mapTotal.sum) }}{{ currentUnit }} (the sum)
                   </span>
-                  <span class="sense-btn-hint">
-                    Adding up makes sense — e.g. total population, total exports, number of hospitals
-                  </span>
                 </button>
                 <button class="btn btn-outline-primary text-start sense-btn" @click="answer('average')">
                   <span class="sense-btn-value">
                     ~{{ formatNum(mapTotal.avg) }}{{ currentUnit }} (the average)
                   </span>
-                  <span class="sense-btn-hint">
-                    Summing doesn't make sense — e.g. temperature, average life expectancy, percentages
-                  </span>
-                </button>
-                <button class="btn btn-link text-muted text-start small" @click="answer('skip')">
-                  Not sure — create cartogram anyway
                 </button>
               </div>
             </template>
@@ -422,8 +405,8 @@ defineExpose({ open })
                 <button class="btn btn-primary" @click="onResultChoropleth()">
                   Try a choropleth instead
                 </button>
-                <button class="btn btn-link text-muted small" @click="onResultSkip()">
-                  Skip — create cartogram anyway
+                <button class="btn btn-outline-secondary" @click="onResultCartogram()">
+                  Create cartogram anyway
                 </button>
               </div>
             </template>
@@ -431,13 +414,14 @@ defineExpose({ open })
 
           <div v-else class="text-muted">
             Not enough data to generate a question for this column.
-            <button class="btn btn-link" @click="answer('skip')">Skip</button>
+            <button class="btn btn-link" @click="advanceToNextColumn()">Continue</button>
           </div>
         </div>
-        <div class="modal-footer justify-content-end" v-if="questionPhase !== 'result'">
-          <button class="btn btn-outline-warning btn-sm" @click="switchAll()">
-            Try a choropleth instead
+        <div class="modal-footer justify-content-between" v-if="questionPhase !== 'result'">
+          <button class="btn btn-outline-secondary btn-sm" @click="backToData()">
+            Back to data
           </button>
+          <span></span>
         </div>
       </div>
     </div>

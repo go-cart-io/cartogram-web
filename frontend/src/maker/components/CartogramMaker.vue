@@ -440,6 +440,7 @@ async function doGenerate() {
     ref="senseCheckRef"
     :columns="violatedColumns"
     @proceed="onSenseCheckProceed"
+    @backToData="() => {}"
   />
 
   <div class="modal" id="progressBackdrop" tabindex="-1" aria-hidden="true">
