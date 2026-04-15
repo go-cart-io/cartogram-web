@@ -216,7 +216,7 @@ function drawPieChart() {
 
   // Group small slices into "Others" (< 2.5% of total, matching original)
   const total = allData.reduce((s, d) => s + d.value, 0)
-  const othersThreshold = total * 0.025
+  const othersThreshold = total * 0.01
 
   const colors = d3.schemeTableau10
   let colorIdx = 0
@@ -533,10 +533,11 @@ defineExpose({ open })
           <!-- PHASE 3: Result — own layout with pie chart -->
           <template v-else>
             <p class="mb-2">
-              Both a cartogram and a pie chart represent each region's value
-              as a proportional area. If the pie chart below is not a meaningful
-              visualization for <strong>{{ currentCol.label }}</strong>,
-              then a cartogram will not be either.
+              Based on your answers, <strong>{{ currentCol.label }}</strong>
+              does not add up when regions are combined — it behaves more like
+              an average. Both a cartogram and a pie chart represent values as
+              proportional area. If the pie chart below is not meaningful for
+              your data, then a cartogram will not be either.
             </p>
 
             <div
