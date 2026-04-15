@@ -196,29 +196,38 @@ function drawMiniMap() {
   addLabel(centroidB[0], centroidB[1], formatNum(pair.valueB), '#d76127')
 }
 
-function drawChoroplethPreview() {
-  if (!mapContainer.value || !store.geojsonData || !currentCol.value) return
+function drawPieChart() {
+  if (!mapContainer.value || !currentCol.value) return
 
   const container = mapContainer.value
   container.innerHTML = ''
 
-  const width = container.clientWidth || 320
-  const height = 180
   const label = currentCol.value.label
-  const regionCol = store.geojsonRegionCol
 
-  // Build value lookup
-  const valueMap = new Map<string, number>()
+  // Collect region/value pairs, sorted by value descending
+  const data: Array<{ region: string; value: number }> = []
   for (const item of store.dataTable.items) {
     const val = parseFloat(item[label] as string)
-    if (!isNaN(val) && item.Region) {
-      valueMap.set(item.Region as string, val)
+    if (!isNaN(val) && val > 0 && item.Region) {
+      data.push({ region: item.Region as string, value: val })
     }
   }
+  data.sort((a, b) => b.value - a.value)
 
-  const values = Array.from(valueMap.values())
-  const colorScale = d3.scaleSequential(d3.interpolateYlOrRd)
-    .domain([d3.min(values) ?? 0, d3.max(values) ?? 1])
+  // Take top 10 + "Other" if many regions
+  let pieData: Array<{ region: string; value: number }>
+  if (data.length > 10) {
+    const top = data.slice(0, 9)
+    const rest = data.slice(9)
+    const otherSum = rest.reduce((s, d) => s + d.value, 0)
+    pieData = [...top, { region: `Other (${rest.length})`, value: otherSum }]
+  } else {
+    pieData = data
+  }
+
+  const width = container.clientWidth || 320
+  const height = 180
+  const radius = Math.min(width / 2, height) / 2 - 10
 
   const svg = d3
     .select(container)
@@ -227,54 +236,47 @@ function drawChoroplethPreview() {
     .attr('height', height)
     .attr('viewBox', `0 0 ${width} ${height}`)
 
-  const padding = 10
-  const projection = d3.geoIdentity().reflectY(true).fitExtent(
-    [[padding, padding], [width - padding, height - padding]],
-    store.geojsonData
-  )
-  const path = d3.geoPath().projection(projection)
+  const g = svg.append('g')
+    .attr('transform', `translate(${width / 3},${height / 2})`)
 
-  svg
-    .selectAll('path')
-    .data(store.geojsonData.features)
+  const color = d3.scaleOrdinal(d3.schemeTableau10)
+  const pie = d3.pie<{ region: string; value: number }>()
+    .value(d => d.value)
+    .sort(null)
+  const arc = d3.arc<d3.PieArcDatum<{ region: string; value: number }>>()
+    .innerRadius(0)
+    .outerRadius(radius)
+
+  const arcs = g.selectAll('path')
+    .data(pie(pieData))
     .enter()
     .append('path')
-    .attr('d', path as any)
-    .attr('fill', (d: any) => {
-      const region = d.properties?.[regionCol]
-      const val = region ? valueMap.get(region) : undefined
-      return val !== undefined ? colorScale(val) : '#e9ecef'
-    })
+    .attr('d', arc as any)
+    .attr('fill', (_: any, i: number) => color(String(i)))
     .attr('stroke', '#fff')
-    .attr('stroke-width', 0.5)
+    .attr('stroke-width', 1.5)
 
-  // Add a small legend
-  const legendWidth = 100
-  const legendHeight = 8
-  const lx = width - legendWidth - padding
-  const ly = height - legendHeight - padding
+  // Legend on the right side
+  const legendX = width * 2 / 3 - 20
+  const legendY = 10
+  const lineHeight = 16
 
-  const defs = svg.append('defs')
-  const gradient = defs.append('linearGradient').attr('id', 'choro-grad')
-  gradient.append('stop').attr('offset', '0%').attr('stop-color', colorScale(d3.min(values) ?? 0))
-  gradient.append('stop').attr('offset', '100%').attr('stop-color', colorScale(d3.max(values) ?? 1))
+  pieData.forEach((d, i) => {
+    const y = legendY + i * lineHeight
+    if (y + lineHeight > height) return
 
-  svg.append('rect')
-    .attr('x', lx).attr('y', ly)
-    .attr('width', legendWidth).attr('height', legendHeight)
-    .attr('fill', 'url(#choro-grad)')
-    .attr('rx', 2)
+    svg.append('rect')
+      .attr('x', legendX).attr('y', y)
+      .attr('width', 10).attr('height', 10)
+      .attr('rx', 2)
+      .attr('fill', color(String(i)))
 
-  svg.append('text')
-    .attr('x', lx).attr('y', ly - 3)
-    .attr('font-size', '9px').attr('fill', '#666')
-    .text(formatNum(d3.min(values) ?? 0))
-
-  svg.append('text')
-    .attr('x', lx + legendWidth).attr('y', ly - 3)
-    .attr('text-anchor', 'end')
-    .attr('font-size', '9px').attr('fill', '#666')
-    .text(formatNum(d3.max(values) ?? 0))
+    svg.append('text')
+      .attr('x', legendX + 14).attr('y', y + 9)
+      .attr('font-size', '10px')
+      .attr('fill', '#333')
+      .text(`${d.region}: ${formatNum(d.value)}`)
+  })
 }
 
 function drawMiniMapAll() {
@@ -362,7 +364,7 @@ function answer(userAnswer: 'sum' | 'average') {
   if (userAnswer === 'average') {
     columnsToSwitch.value.push(currentCol.value.label)
     questionPhase.value = 'result'
-    nextTick(() => drawChoroplethPreview())
+    nextTick(() => drawPieChart())
   } else {
     advanceToNextColumn()
   }
@@ -494,7 +496,7 @@ defineExpose({ open })
             <template v-else-if="questionPhase === 'result'">
               <p class="mb-2">
                 <strong>{{ currentCol.label }}</strong> does not appear to be
-                suitable for a cartogram. Here's how it would look as a choropleth instead:
+                suitable for a cartogram. The values across regions are shown below:
               </p>
               <div class="d-flex flex-column gap-2">
                 <button class="btn btn-primary" @click="onResultChoropleth()">
@@ -517,11 +519,11 @@ defineExpose({ open })
             Back to data
           </button>
           <div class="d-flex gap-2" v-if="questionPhase !== 'result'">
-            <button class="btn btn-secondary btn-sm" @click="skipChoropleth()">
-              Choropleth instead
+            <button class="btn btn-outline-secondary btn-sm" @click="skipChoropleth()">
+              Skip — Try a Choropleth Instead
             </button>
-            <button class="btn btn-secondary btn-sm" @click="skipCartogram()">
-              Cartogram anyway
+            <button class="btn btn-outline-secondary btn-sm" @click="skipCartogram()">
+              Skip — Make Cartogram Anyway
             </button>
           </div>
         </div>
