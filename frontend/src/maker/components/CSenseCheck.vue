@@ -204,29 +204,59 @@ function drawPieChart() {
 
   const label = currentCol.value.label
 
-  // Collect region/value pairs, sorted by value descending
-  const data: Array<{ region: string; value: number }> = []
+  // Collect region/value pairs
+  const allData: Array<{ region: string; value: number; color: string }> = []
   for (const item of store.dataTable.items) {
     const val = parseFloat(item[label] as string)
     if (!isNaN(val) && val > 0 && item.Region) {
-      data.push({ region: item.Region as string, value: val })
+      allData.push({ region: item.Region as string, value: val, color: '' })
     }
   }
-  data.sort((a, b) => b.value - a.value)
+  allData.sort((a, b) => b.value - a.value)
 
-  // Take top 10 + "Other" if many regions
-  let pieData: Array<{ region: string; value: number }>
-  if (data.length > 10) {
-    const top = data.slice(0, 9)
-    const rest = data.slice(9)
-    const otherSum = rest.reduce((s, d) => s + d.value, 0)
-    pieData = [...top, { region: `Other (${rest.length})`, value: otherSum }]
-  } else {
-    pieData = data
+  // Group small slices into "Others" (< 2.5% of total, matching original)
+  const total = allData.reduce((s, d) => s + d.value, 0)
+  const othersThreshold = total * 0.025
+
+  const colors = d3.schemeTableau10
+  let colorIdx = 0
+  const main: typeof allData = []
+  let othersValue = 0
+  let othersCount = 0
+
+  for (const d of allData) {
+    if (d.value < othersThreshold) {
+      othersValue += d.value
+      othersCount++
+    } else {
+      d.color = colors[colorIdx % colors.length]
+      colorIdx++
+      main.push(d)
+    }
+  }
+
+  // Smart color reordering: avoid adjacent slices with the same color
+  for (let i = 0; i < main.length; i++) {
+    if (main[i].color === main[(i + 1) % main.length]?.color) {
+      for (let j = i + 2; j < main.length; j++) {
+        if (main[j].color !== main[i].color &&
+            main[(j + 1) % main.length]?.color !== main[(i + 1) % main.length]?.color) {
+          const temp = main[j]
+          main[j] = main[(i + 1) % main.length]
+          main[(i + 1) % main.length] = temp
+          break
+        }
+      }
+    }
+  }
+
+  const pieData = [...main]
+  if (othersValue > 0) {
+    pieData.push({ region: `Others (${othersCount})`, value: othersValue, color: '#aaaaaa' })
   }
 
   const width = container.clientWidth || 320
-  const height = 180
+  const height = 200
   const radius = Math.min(width / 2, height) / 2 - 10
 
   const svg = d3
@@ -239,37 +269,36 @@ function drawPieChart() {
   const g = svg.append('g')
     .attr('transform', `translate(${width / 3},${height / 2})`)
 
-  const color = d3.scaleOrdinal(d3.schemeTableau10)
-  const pie = d3.pie<{ region: string; value: number }>()
+  const pie = d3.pie<typeof pieData[0]>()
     .value(d => d.value)
     .sort(null)
-  const arc = d3.arc<d3.PieArcDatum<{ region: string; value: number }>>()
+  const arc = d3.arc<d3.PieArcDatum<typeof pieData[0]>>()
     .innerRadius(0)
     .outerRadius(radius)
 
-  const arcs = g.selectAll('path')
+  g.selectAll('path')
     .data(pie(pieData))
     .enter()
     .append('path')
     .attr('d', arc as any)
-    .attr('fill', (_: any, i: number) => color(String(i)))
+    .attr('fill', d => d.data.color)
     .attr('stroke', '#fff')
     .attr('stroke-width', 1.5)
 
-  // Legend on the right side
+  // Legend on the right side (scrollable via limiting entries)
   const legendX = width * 2 / 3 - 20
-  const legendY = 10
-  const lineHeight = 16
+  const legendY = 6
+  const lineHeight = 15
+  const maxLegendItems = Math.floor((height - 12) / lineHeight)
 
-  pieData.forEach((d, i) => {
+  pieData.slice(0, maxLegendItems).forEach((d, i) => {
     const y = legendY + i * lineHeight
-    if (y + lineHeight > height) return
 
     svg.append('rect')
       .attr('x', legendX).attr('y', y)
       .attr('width', 10).attr('height', 10)
       .attr('rx', 2)
-      .attr('fill', color(String(i)))
+      .attr('fill', d.color)
 
     svg.append('text')
       .attr('x', legendX + 14).attr('y', y + 9)
@@ -492,11 +521,22 @@ defineExpose({ open })
               </div>
             </template>
 
-            <!-- PHASE 3: Result — extensivity violated, show choropleth preview -->
+            <!-- PHASE 3: Result — extensivity violated, show pie chart -->
             <template v-else-if="questionPhase === 'result'">
               <p class="mb-2">
                 <strong>{{ currentCol.label }}</strong> does not appear to be
-                suitable for a cartogram. The values across regions are shown below:
+                suitable for a cartogram.
+              </p>
+              <p class="mb-2 text-muted small">
+                A cartogram represents each region's value as area — just like a
+                pie chart represents each value as a slice. Consider the pie chart
+                below: if it is not a meaningful visualization for your data,
+                then a cartogram will not be either.
+              </p>
+              <p class="mb-2 text-muted small">
+                Your data sums to an approximate total of
+                <strong>{{ formatNum(mapTotal.sum) }}{{ currentUnit }}</strong>.
+                Is this a meaningful quantity?
               </p>
               <div class="d-flex flex-column gap-2">
                 <button class="btn btn-primary" @click="onResultChoropleth()">
@@ -535,7 +575,7 @@ defineExpose({ open })
 <style scoped>
 .sense-check-map {
   width: 100%;
-  height: 180px;
+  min-height: 180px;
   background: #f8f9fa;
   overflow: hidden;
 }
