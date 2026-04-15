@@ -358,11 +358,15 @@ defineExpose({ open })
               <div class="d-flex flex-column gap-2">
                 <button class="btn btn-outline-primary text-start sense-btn" @click="answer('sum')">
                   <span class="sense-btn-value">~{{ formatNum(sumValue) }}{{ currentUnit }}</span>
-                  <span class="sense-btn-hint">The sum</span>
+                  <span class="sense-btn-hint">
+                    The sum — like total population, regionwide GDP, number of hospitals
+                  </span>
                 </button>
                 <button class="btn btn-outline-primary text-start sense-btn" @click="answer('average')">
                   <span class="sense-btn-value">~{{ formatNum(avgValue) }}{{ currentUnit }}</span>
-                  <span class="sense-btn-hint">Somewhere between the two</span>
+                  <span class="sense-btn-hint">
+                    Somewhere between the two — like temperature, population density (people per km²), average life expectancy
+                  </span>
                 </button>
               </div>
             </template>
@@ -379,10 +383,16 @@ defineExpose({ open })
                   <span class="sense-btn-value">
                     ~{{ formatNum(mapTotal.sum) }}{{ currentUnit }} (the sum)
                   </span>
+                  <span class="sense-btn-hint">
+                    Adding up makes sense — e.g. total population, total exports, number of hospitals
+                  </span>
                 </button>
                 <button class="btn btn-outline-primary text-start sense-btn" @click="answer('average')">
                   <span class="sense-btn-value">
                     ~{{ formatNum(mapTotal.avg) }}{{ currentUnit }} (the average)
+                  </span>
+                  <span class="sense-btn-hint">
+                    Summing doesn't make sense — e.g. temperature, average life expectancy, percentages
                   </span>
                 </button>
               </div>
