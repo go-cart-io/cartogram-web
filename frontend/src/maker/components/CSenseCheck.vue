@@ -214,26 +214,18 @@ function drawPieChart() {
   }
   allData.sort((a, b) => b.value - a.value)
 
-  // Group small slices into "Others" (< 2.5% of total, matching original)
+  // Top 8 slices + Others
   const total = allData.reduce((s, d) => s + d.value, 0)
-  const othersThreshold = total * 0.01
+  const TOP_N = 8
 
   const colors = d3.schemeTableau10
-  let colorIdx = 0
-  const main: typeof allData = []
-  let othersValue = 0
-  let othersCount = 0
-
-  for (const d of allData) {
-    if (d.value < othersThreshold) {
-      othersValue += d.value
-      othersCount++
-    } else {
-      d.color = colors[colorIdx % colors.length]
-      colorIdx++
-      main.push(d)
-    }
-  }
+  const main = allData.slice(0, TOP_N).map((d, i) => ({
+    ...d,
+    color: colors[i % colors.length]
+  }))
+  const rest = allData.slice(TOP_N)
+  const othersValue = rest.reduce((s, d) => s + d.value, 0)
+  const othersCount = rest.length
 
   // Smart color reordering: avoid adjacent slices with the same color
   for (let i = 0; i < main.length; i++) {
