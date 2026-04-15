@@ -196,6 +196,87 @@ function drawMiniMap() {
   addLabel(centroidB[0], centroidB[1], formatNum(pair.valueB), '#d76127')
 }
 
+function drawChoroplethPreview() {
+  if (!mapContainer.value || !store.geojsonData || !currentCol.value) return
+
+  const container = mapContainer.value
+  container.innerHTML = ''
+
+  const width = container.clientWidth || 320
+  const height = 180
+  const label = currentCol.value.label
+  const regionCol = store.geojsonRegionCol
+
+  // Build value lookup
+  const valueMap = new Map<string, number>()
+  for (const item of store.dataTable.items) {
+    const val = parseFloat(item[label] as string)
+    if (!isNaN(val) && item.Region) {
+      valueMap.set(item.Region as string, val)
+    }
+  }
+
+  const values = Array.from(valueMap.values())
+  const colorScale = d3.scaleSequential(d3.interpolateYlOrRd)
+    .domain([d3.min(values) ?? 0, d3.max(values) ?? 1])
+
+  const svg = d3
+    .select(container)
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height)
+    .attr('viewBox', `0 0 ${width} ${height}`)
+
+  const padding = 10
+  const projection = d3.geoIdentity().reflectY(true).fitExtent(
+    [[padding, padding], [width - padding, height - padding]],
+    store.geojsonData
+  )
+  const path = d3.geoPath().projection(projection)
+
+  svg
+    .selectAll('path')
+    .data(store.geojsonData.features)
+    .enter()
+    .append('path')
+    .attr('d', path as any)
+    .attr('fill', (d: any) => {
+      const region = d.properties?.[regionCol]
+      const val = region ? valueMap.get(region) : undefined
+      return val !== undefined ? colorScale(val) : '#e9ecef'
+    })
+    .attr('stroke', '#fff')
+    .attr('stroke-width', 0.5)
+
+  // Add a small legend
+  const legendWidth = 100
+  const legendHeight = 8
+  const lx = width - legendWidth - padding
+  const ly = height - legendHeight - padding
+
+  const defs = svg.append('defs')
+  const gradient = defs.append('linearGradient').attr('id', 'choro-grad')
+  gradient.append('stop').attr('offset', '0%').attr('stop-color', colorScale(d3.min(values) ?? 0))
+  gradient.append('stop').attr('offset', '100%').attr('stop-color', colorScale(d3.max(values) ?? 1))
+
+  svg.append('rect')
+    .attr('x', lx).attr('y', ly)
+    .attr('width', legendWidth).attr('height', legendHeight)
+    .attr('fill', 'url(#choro-grad)')
+    .attr('rx', 2)
+
+  svg.append('text')
+    .attr('x', lx).attr('y', ly - 3)
+    .attr('font-size', '9px').attr('fill', '#666')
+    .text(formatNum(d3.min(values) ?? 0))
+
+  svg.append('text')
+    .attr('x', lx + legendWidth).attr('y', ly - 3)
+    .attr('text-anchor', 'end')
+    .attr('font-size', '9px').attr('fill', '#666')
+    .text(formatNum(d3.max(values) ?? 0))
+}
+
 function drawMiniMapAll() {
   if (!mapContainer.value || !store.geojsonData) return
 
@@ -277,31 +358,42 @@ function answer(userAnswer: 'sum' | 'average') {
     return
   }
 
-  // Phase 'total' — the second answer is authoritative.
-  // If user said "sum" then "average" (or vice versa), trust the second answer
-  // since the total question is more holistic.
-  const finalVote = userAnswer
-
-  if (finalVote === 'average') {
+  // Phase 'total' — the second answer is authoritative
+  if (userAnswer === 'average') {
     columnsToSwitch.value.push(currentCol.value.label)
     questionPhase.value = 'result'
+    nextTick(() => drawChoroplethPreview())
   } else {
     advanceToNextColumn()
   }
 }
 
 function onResultChoropleth() {
-  // Column already marked for switch in answer()
   advanceToNextColumn()
 }
 
 function onResultCartogram() {
-  // User overrides — undo the switch
   if (currentCol.value) {
     const idx = columnsToSwitch.value.indexOf(currentCol.value.label)
     if (idx >= 0) columnsToSwitch.value.splice(idx, 1)
   }
   advanceToNextColumn()
+}
+
+function skipChoropleth() {
+  // Mark all columns for choropleth switch and finish
+  for (const col of props.columns) {
+    if (!columnsToSwitch.value.includes(col.label)) {
+      columnsToSwitch.value.push(col.label)
+    }
+  }
+  finish()
+}
+
+function skipCartogram() {
+  // Keep all as cartogram and finish
+  columnsToSwitch.value = []
+  finish()
 }
 
 defineExpose({ open })
@@ -384,7 +476,7 @@ defineExpose({ open })
                     ~{{ formatNum(mapTotal.sum) }}{{ currentUnit }} (the sum)
                   </span>
                   <span class="sense-btn-hint">
-                    Adding up makes sense — e.g. total population, total exports, number of hospitals
+                    Adding up makes sense — e.g. total CO₂ emissions, total land area, number of schools
                   </span>
                 </button>
                 <button class="btn btn-outline-primary text-start sense-btn" @click="answer('average')">
@@ -392,25 +484,18 @@ defineExpose({ open })
                     ~{{ formatNum(mapTotal.avg) }}{{ currentUnit }} (the average)
                   </span>
                   <span class="sense-btn-hint">
-                    Summing doesn't make sense — e.g. temperature, average life expectancy, percentages
+                    Summing doesn't make sense — e.g. average rainfall, literacy rate, median income
                   </span>
                 </button>
               </div>
             </template>
 
-            <!-- PHASE 3: Result — extensivity violated -->
+            <!-- PHASE 3: Result — extensivity violated, show choropleth preview -->
             <template v-else-if="questionPhase === 'result'">
-              <div class="text-center py-3">
-                <i class="fa-solid fa-circle-exclamation text-warning fa-2x mb-3"></i>
-                <p class="fs-5">
-                  <strong>{{ currentCol.label }}</strong> does not appear to be
-                  suitable for a cartogram.
-                </p>
-                <p class="text-muted">
-                  This data is not additive — combining regions would not produce
-                  a meaningful sum. A choropleth (color) map is more appropriate.
-                </p>
-              </div>
+              <p class="mb-2">
+                <strong>{{ currentCol.label }}</strong> does not appear to be
+                suitable for a cartogram. Here's how it would look as a choropleth instead:
+              </p>
               <div class="d-flex flex-column gap-2">
                 <button class="btn btn-primary" @click="onResultChoropleth()">
                   Try a choropleth instead
@@ -427,11 +512,18 @@ defineExpose({ open })
             <button class="btn btn-link" @click="advanceToNextColumn()">Continue</button>
           </div>
         </div>
-        <div class="modal-footer justify-content-between" v-if="questionPhase !== 'result'">
+        <div class="modal-footer justify-content-between">
           <button class="btn btn-outline-secondary btn-sm" @click="backToData()">
             Back to data
           </button>
-          <span></span>
+          <div class="d-flex gap-2" v-if="questionPhase !== 'result'">
+            <button class="btn btn-secondary btn-sm" @click="skipChoropleth()">
+              Choropleth instead
+            </button>
+            <button class="btn btn-secondary btn-sm" @click="skipCartogram()">
+              Cartogram anyway
+            </button>
+          </div>
         </div>
       </div>
     </div>
