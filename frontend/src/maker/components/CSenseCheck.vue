@@ -441,118 +441,122 @@ defineExpose({ open })
           </h5>
         </div>
         <div class="modal-body">
-          <p class="mb-1">
-            In a cartogram, each region's area represents its data value.
-            When two regions are combined, their areas add up — so the data
-            must also add up for the map to remain meaningful. This property
-            is called <strong>extensivity</strong>.
-          </p>
-          <p class="mb-2">
-            Our statistical model suggests <strong>{{ currentCol.label }}</strong>
-            may violate extensivity. Please verify:
-          </p>
+          <!-- Phases 1 & 2: question flow with map -->
+          <template v-if="questionPhase !== 'result'">
+            <p class="mb-1">
+              In a cartogram, each region's area represents its data value.
+              When two regions are combined, their areas add up — so the data
+              must also add up for the map to remain meaningful. This property
+              is called <strong>extensivity</strong>.
+            </p>
+            <p class="mb-2">
+              Our statistical model suggests <strong>{{ currentCol.label }}</strong>
+              may violate extensivity. Please verify:
+            </p>
 
-          <div v-if="regionPair">
+            <div v-if="regionPair">
+              <div
+                ref="mapContainer"
+                class="sense-check-map border rounded mb-3"
+              ></div>
+
+              <!-- PHASE 1: Merge question -->
+              <template v-if="questionPhase === 'merge'">
+                <div class="d-flex gap-3 mb-3">
+                  <span>
+                    <span class="sense-dot sense-dot-a"></span>
+                    {{ regionPair.regionA }}:
+                    <strong>{{ formatNum(regionPair.valueA) }}{{ currentUnit }}</strong>
+                  </span>
+                  <span>
+                    <span class="sense-dot sense-dot-b"></span>
+                    {{ regionPair.regionB }}:
+                    <strong>{{ formatNum(regionPair.valueB) }}{{ currentUnit }}</strong>
+                  </span>
+                </div>
+
+                <p class="mb-2">
+                  <strong>If these two regions merged, would the combined
+                  <em>{{ currentCol.label }}</em> be closer to…</strong>
+                </p>
+
+                <div class="d-flex flex-column gap-2">
+                  <button class="btn btn-outline-primary text-start sense-btn" @click="answer('sum')">
+                    <span class="sense-btn-value">~{{ formatNum(sumValue) }}{{ currentUnit }}</span>
+                    <span class="sense-btn-hint">
+                      The sum — like total population, regionwide GDP, number of hospitals
+                    </span>
+                  </button>
+                  <button class="btn btn-outline-primary text-start sense-btn" @click="answer('average')">
+                    <span class="sense-btn-value">~{{ formatNum(avgValue) }}{{ currentUnit }}</span>
+                    <span class="sense-btn-hint">
+                      Somewhere between the two — like temperature, population density (people per km²), average life expectancy
+                    </span>
+                  </button>
+                </div>
+              </template>
+
+              <!-- PHASE 2: Total for the entire map -->
+              <template v-else-if="questionPhase === 'total'">
+                <p class="mb-2">
+                  <strong>Now consider all {{ mapTotal.count }} regions together.
+                  Is <em>{{ currentCol.label }}</em> for the whole map closer to…</strong>
+                </p>
+
+                <div class="d-flex flex-column gap-2">
+                  <button class="btn btn-outline-primary text-start sense-btn" @click="answer('sum')">
+                    <span class="sense-btn-value">
+                      ~{{ formatNum(mapTotal.sum) }}{{ currentUnit }} (the sum)
+                    </span>
+                    <span class="sense-btn-hint">
+                      Adding up makes sense — e.g. total CO₂ emissions, total land area, number of schools
+                    </span>
+                  </button>
+                  <button class="btn btn-outline-primary text-start sense-btn" @click="answer('average')">
+                    <span class="sense-btn-value">
+                      ~{{ formatNum(mapTotal.avg) }}{{ currentUnit }} (the average)
+                    </span>
+                    <span class="sense-btn-hint">
+                      Summing doesn't make sense — e.g. average rainfall, literacy rate, median income
+                    </span>
+                  </button>
+                </div>
+              </template>
+            </div>
+
+            <div v-else class="text-muted">
+              Not enough data to generate a question for this column.
+              <button class="btn btn-link" @click="advanceToNextColumn()">Continue</button>
+            </div>
+          </template>
+
+          <!-- PHASE 3: Result — own layout with pie chart -->
+          <template v-else>
+            <p class="mb-2">
+              Both a cartogram and a pie chart represent each region's value
+              as a proportional area. If the pie chart below is not a meaningful
+              visualization for <strong>{{ currentCol.label }}</strong>,
+              then a cartogram will not be either.
+            </p>
+
             <div
               ref="mapContainer"
               class="sense-check-map border rounded mb-3"
             ></div>
 
-            <!-- PHASE 1: Merge question -->
-            <template v-if="questionPhase === 'merge'">
-              <div class="d-flex gap-3 mb-3">
-                <span>
-                  <span class="sense-dot sense-dot-a"></span>
-                  {{ regionPair.regionA }}:
-                  <strong>{{ formatNum(regionPair.valueA) }}{{ currentUnit }}</strong>
-                </span>
-                <span>
-                  <span class="sense-dot sense-dot-b"></span>
-                  {{ regionPair.regionB }}:
-                  <strong>{{ formatNum(regionPair.valueB) }}{{ currentUnit }}</strong>
-                </span>
-              </div>
+            <p class="mb-3 text-muted small">
+              Total: <strong>{{ formatNum(mapTotal.sum) }}{{ currentUnit }}</strong>
+            </p>
 
-              <p class="mb-2">
-                <strong>If these two regions merged, would the combined
-                <em>{{ currentCol.label }}</em> be closer to…</strong>
-              </p>
-
-              <div class="d-flex flex-column gap-2">
-                <button class="btn btn-outline-primary text-start sense-btn" @click="answer('sum')">
-                  <span class="sense-btn-value">~{{ formatNum(sumValue) }}{{ currentUnit }}</span>
-                  <span class="sense-btn-hint">
-                    The sum — like total population, regionwide GDP, number of hospitals
-                  </span>
-                </button>
-                <button class="btn btn-outline-primary text-start sense-btn" @click="answer('average')">
-                  <span class="sense-btn-value">~{{ formatNum(avgValue) }}{{ currentUnit }}</span>
-                  <span class="sense-btn-hint">
-                    Somewhere between the two — like temperature, population density (people per km²), average life expectancy
-                  </span>
-                </button>
-              </div>
-            </template>
-
-            <!-- PHASE 2: Total for the entire map -->
-            <template v-else-if="questionPhase === 'total'">
-              <p class="mb-2">
-                <strong>Now consider all {{ mapTotal.count }} regions together.
-                Is <em>{{ currentCol.label }}</em> for the whole map closer to…</strong>
-              </p>
-
-              <div class="d-flex flex-column gap-2">
-                <button class="btn btn-outline-primary text-start sense-btn" @click="answer('sum')">
-                  <span class="sense-btn-value">
-                    ~{{ formatNum(mapTotal.sum) }}{{ currentUnit }} (the sum)
-                  </span>
-                  <span class="sense-btn-hint">
-                    Adding up makes sense — e.g. total CO₂ emissions, total land area, number of schools
-                  </span>
-                </button>
-                <button class="btn btn-outline-primary text-start sense-btn" @click="answer('average')">
-                  <span class="sense-btn-value">
-                    ~{{ formatNum(mapTotal.avg) }}{{ currentUnit }} (the average)
-                  </span>
-                  <span class="sense-btn-hint">
-                    Summing doesn't make sense — e.g. average rainfall, literacy rate, median income
-                  </span>
-                </button>
-              </div>
-            </template>
-
-            <!-- PHASE 3: Result — extensivity violated, show pie chart -->
-            <template v-else-if="questionPhase === 'result'">
-              <p class="mb-2">
-                <strong>{{ currentCol.label }}</strong> does not appear to be
-                suitable for a cartogram.
-              </p>
-              <p class="mb-2 text-muted small">
-                A cartogram represents each region's value as area — just like a
-                pie chart represents each value as a slice. Consider the pie chart
-                below: if it is not a meaningful visualization for your data,
-                then a cartogram will not be either.
-              </p>
-              <p class="mb-2 text-muted small">
-                Your data sums to an approximate total of
-                <strong>{{ formatNum(mapTotal.sum) }}{{ currentUnit }}</strong>.
-                Is this a meaningful quantity?
-              </p>
-              <div class="d-flex flex-column gap-2">
-                <button class="btn btn-primary" @click="onResultChoropleth()">
-                  Try a choropleth instead
-                </button>
-                <button class="btn btn-outline-secondary" @click="onResultCartogram()">
-                  Create cartogram anyway
-                </button>
-              </div>
-            </template>
-          </div>
-
-          <div v-else class="text-muted">
-            Not enough data to generate a question for this column.
-            <button class="btn btn-link" @click="advanceToNextColumn()">Continue</button>
-          </div>
+            <div class="d-flex flex-column gap-2">
+              <button class="btn btn-primary" @click="onResultChoropleth()">
+                Try a choropleth instead
+              </button>
+              <button class="btn btn-outline-secondary" @click="onResultCartogram()">
+                Create cartogram anyway
+              </button>
+            </div>
+          </template>
         </div>
         <div class="modal-footer justify-content-between">
           <button class="btn btn-outline-secondary btn-sm" @click="backToData()">
