@@ -1,4 +1,5 @@
 import json
+import warnings
 
 from carto.dataframe import CartoDataFrame
 
@@ -58,3 +59,41 @@ def test_clean_properties_with_other_region_column(test_data_dir):
     assert "Region" in carto_json["features"][0]["properties"]
     assert "99" == carto_json["features"][0]["properties"]["Region"]
     assert "prop_non_unique" not in carto_json["features"][0]["properties"]
+
+
+def test_invalid_geometry_auto_repair(test_data_dir):
+    """Test that invalid (self-intersecting) geometries are automatically repaired with a warning."""
+    geojson_file = test_data_dir / "invalid_geometry.geojson"
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        carto_df = CartoDataFrame.read_file(str(geojson_file))
+
+        # Should have emitted a warning about invalid geometry
+        geometry_warnings = [
+            x for x in w if "Invalid geometry detected" in str(x.message)
+        ]
+        assert len(geometry_warnings) == 1
+        assert "1 geometry(ies)" in str(geometry_warnings[0].message)
+        assert "automatically repaired" in str(geometry_warnings[0].message)
+
+    # The resulting dataframe should have valid, simple geometries
+    assert isinstance(carto_df, CartoDataFrame)
+    assert carto_df.is_simple.all()
+    assert len(carto_df) == 2
+
+
+def test_valid_geometry_no_warning(test_data_dir):
+    """Test that valid geometries don't trigger any geometry repair warning."""
+    geojson_file = test_data_dir / "usa_by_state_since_1959.geojson"
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        carto_df = CartoDataFrame.read_file(str(geojson_file))
+
+        geometry_warnings = [
+            x for x in w if "Invalid geometry detected" in str(x.message)
+        ]
+        assert len(geometry_warnings) == 0
+
+    assert isinstance(carto_df, CartoDataFrame)

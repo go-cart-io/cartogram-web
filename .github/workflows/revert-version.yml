@@ -1,0 +1,33 @@
+name: Revert to a specific version on go-cart.io
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to deploy (e.g. 4.4.0)"
+        required: true
+
+jobs:
+  revert-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy version ${{ github.event.inputs.version }} to go-cart.io
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.SERVER_HOSTNAME }}
+          username: cartogram
+          key: ${{ secrets.SERVER_SSH_ACCESS_KEY }}
+          script: |
+            cd ~/cartogram-docker
+            git fetch origin
+            git reset --hard origin/main
+            git pull origin main
+
+            export TAG=":${{ github.event.inputs.version }}"
+            docker compose -f docker-compose.yml pull web
+            docker compose -f docker-compose.yml up -d
+
+            # Clean up old images
+            docker image prune -a -f
+
+            echo "Deployed image: $(docker inspect --format='{{.Config.Image}}' cartogram-docker-web-1)"

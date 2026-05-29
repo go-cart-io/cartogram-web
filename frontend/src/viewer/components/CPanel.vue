@@ -2,7 +2,7 @@
 /**
  * The map panel with functions for interactivity to manipulate viewport and managing grid size.
  */
-import { onMounted, nextTick, reactive, watch, ref } from 'vue'
+import { onMounted, nextTick, reactive, watch, ref, computed } from 'vue'
 
 import CVisualizationArea from '@/common/components/CVisualizationArea.vue'
 
@@ -50,11 +50,24 @@ watch(
 )
 
 watch(
+  () => store.options.gridOpacity,
+  async () => {
+    let currentGridOpacity = getCurrentGridOpacity()
+    const gridPattern = document.getElementById(props.panelID + '-grid')
+    gridPattern?.setAttribute('stroke-opacity', currentGridOpacity.toString())
+  }
+)
+
+watch(
   () => store.currentColorCol,
   () => {
     init()
   }
 )
+
+const isNoncontiguous = computed(() => {
+  return CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.type === 'noncontiguous'
+})
 
 onMounted(async () => {
   await init()
@@ -89,18 +102,11 @@ async function initContainer(canvasId: string) {
     CARTOGRAM_CONFIG.choroSpec
   )
 
-  if (CARTOGRAM_CONFIG.cartoVersions[state.versionKey].type === 'noncontiguous')
-    areaLegend.init(
-      CARTOGRAM_CONFIG.cartoVersions['0'].header,
-      visAreaEl.value.view().data('equal_area_geojson'),
-      visAreaEl.value.view().data('source_csv')
-    )
-  else
-    areaLegend.init(
-      CARTOGRAM_CONFIG.cartoVersions[state.versionKey].header,
-      visAreaEl.value.view().data('geo_1'),
-      visAreaEl.value.view().data('source_csv')
-    )
+  areaLegend.init(
+    CARTOGRAM_CONFIG.cartoVersions[state.versionKey].header,
+    visAreaEl.value.view().data('geo_1'),
+    visAreaEl.value.view().data('source_csv')
+  )
 }
 
 async function init() {
@@ -122,6 +128,10 @@ async function init() {
   })
 }
 
+function getCurrentGridOpacity() {
+  return isNoncontiguous.value ? 0 : store.options.gridOpacity
+}
+
 async function switchVersion(versionKey: string) {
   state.versionKey = versionKey
   await initContainer(props.panelID + '-offscreen')
@@ -138,6 +148,8 @@ async function switchVersion(versionKey: string) {
 
 async function switchGrid(key: number) {
   state.currentGridIndex = key
+  let currentGridOpacity = getCurrentGridOpacity()
+
   areaLegend.updateGridData()
   await nextTick()
   visAreaEl.value.transform.setGridScaleNiceNumber(
@@ -148,7 +160,11 @@ async function switchGrid(key: number) {
     visAreaEl.value.transform.stateAffineScale.value
   )
   legendLineEl.value.setHandlePosition(areaLegend.stateGridData.value[key]?.width)
-  animate.gridTransition(props.panelID + '-grid', areaLegend.stateGridData.value[key]?.width)
+  animate.gridTransition(
+    props.panelID + '-grid',
+    areaLegend.stateGridData.value[key]?.width,
+    currentGridOpacity
+  )
 }
 </script>
 
@@ -156,22 +172,20 @@ async function switchGrid(key: number) {
   <div class="card w-100">
     <div class="d-flex flex-column card-body">
       <div class="d-flex flex-column card-body p-0">
-        <div
-          class="position-absolute z-1"
-          v-bind:class="{
-            'd-flex': CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.type !== 'noncontiguous',
-            'd-none': CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.type === 'noncontiguous'
-          }"
-        >
+        <div class="d-flex position-absolute z-1">
           <c-panel-legend
             ref="legendLineEl"
             v-bind:panelID="props.panelID"
             v-bind:gridIndex="state.currentGridIndex"
             v-bind:gridData="areaLegend.stateGridData.value"
             v-on:change="switchGrid"
+            v-bind:class="{
+              'd-flex': !isNoncontiguous,
+              'd-none': isNoncontiguous
+            }"
           />
           <div v-bind:id="props.panelID + '-legend-text'" class="flex-fill p-1">
-            <div v-bind:id="props.panelID + '-legend-num'">
+            <div v-if="!isNoncontiguous" v-bind:id="props.panelID + '-legend-num'">
               <span v-html="areaLegend.stateValue.value"></span>
               {{ CARTOGRAM_CONFIG.cartoVersions[state.versionKey]?.unit }}
             </div>
@@ -192,12 +206,7 @@ async function switchGrid(key: number) {
           <svg width="100%" height="100%" v-bind:id="props.panelID + '-grid-area'">
             <defs>
               <pattern v-bind:id="props.panelID + '-grid'" patternUnits="userSpaceOnUse">
-                <path
-                  fill="none"
-                  stroke="#5A5A5A"
-                  stroke-width="2"
-                  v-bind:stroke-opacity="store.options.gridOpacity"
-                ></path>
+                <path fill="none" stroke="#5A5A5A" stroke-width="2"></path>
               </pattern>
             </defs>
             <rect

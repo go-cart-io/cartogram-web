@@ -6,7 +6,15 @@ interface CartogramConfig {
   mapName?: string
   mapTitle?: string
   mapDBKey?: string
-  cartoVersions?: any
+  cartoVersions: {
+    [key: string]: {
+      header: string
+      key: string
+      name: string
+      unit: string
+      type?: 'noncontiguous' | 'contiguous' | 'choropleth' // 'type' is optional as seen in key "0"
+    }
+  }
   cartoEqualAreaBg?: boolean
   cartoColorScheme?: string
   choroVersions?: Array<string>

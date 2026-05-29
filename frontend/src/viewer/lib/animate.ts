@@ -78,7 +78,7 @@ function createTransition(
     })
 }
 
-export function gridTransition(id: string, gridWidth: number) {
+export function gridTransition(id: string, gridWidth: number, gridOpacity: number) {
   const gridPattern = d3.select('#' + id)
   if (isNaN(gridWidth) || !gridPattern) return
 
@@ -93,7 +93,11 @@ export function gridTransition(id: string, gridWidth: number) {
       .duration(1000)
       .attr('width', gridWidth)
       .attr('height', gridWidth)
+      .attr('stroke-opacity', gridOpacity)
   } else {
-    gridPattern.attr('width', gridWidth).attr('height', gridWidth)
+    gridPattern
+      .attr('width', gridWidth)
+      .attr('height', gridWidth)
+      .attr('stroke-opacity', gridOpacity)
   }
 }

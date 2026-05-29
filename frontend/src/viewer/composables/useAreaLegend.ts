@@ -55,7 +55,7 @@ export const useAreaLegend = () => {
 
     const totalScalePowerOfTen = Math.floor(Math.log10(totalValue))
     const totalNiceNumber = totalValue / Math.pow(10, totalScalePowerOfTen)
-    stateTotalValue.value = _formatLegendText(totalNiceNumber, totalScalePowerOfTen)
+    stateTotalValue.value = _formatLegendText(totalNiceNumber, totalScalePowerOfTen, 3, 3)
   }
 
   const updateLegendValue = (gridIndex: number, affineScale: Array<number>) => {
@@ -113,12 +113,24 @@ export const useAreaLegend = () => {
     valueScalePowerOf10 = scalePowerOf10
   }
 
-  const _formatLegendText = (value: number, scalePowerOf10: number): string => {
+  const _formatLegendText = (
+    value: number,
+    scalePowerOf10: number,
+    minSigDigits?: number,
+    maxSigDigits?: number
+  ): string => {
     const originalValue = value * Math.pow(10, scalePowerOf10)
-    const formatter = Intl.NumberFormat(config.LOCALE, {
+    const formatterOptions: Intl.NumberFormatOptions = {
       notation: 'compact',
       compactDisplay: 'short'
-    })
+    }
+    if (minSigDigits !== undefined) {
+      formatterOptions.minimumSignificantDigits = minSigDigits
+    }
+    if (maxSigDigits !== undefined) {
+      formatterOptions.maximumSignificantDigits = maxSigDigits
+    }
+    const formatter = Intl.NumberFormat(config.LOCALE, formatterOptions)
     let formated = ''
     formated += formatter.format(originalValue)
     return formated

@@ -70,8 +70,8 @@ def preprocess(input, mapDBKey="temp_filename"):
 
     # Fill in attributes
     if not any(cdf.columns.str.startswith("Geographic Area")):
-        cdf["Geographic Area (sq. km)"] = round(tmp_cdf.area / 10**6)
-        cdf["Geographic Area (sq. km)"] = cdf["Geographic Area (sq. km)"].astype(int)
+        cdf["Geographic Area (sq. km)"] = tmp_cdf.area / 10**6
+        cdf["Geographic Area (sq. km)"] = cdf["Geographic Area (sq. km)"].astype(float)
 
     if "ColorGroup" not in cdf.columns:
         cdf["ColorGroup"] = assign_colors(tmp_cdf)
