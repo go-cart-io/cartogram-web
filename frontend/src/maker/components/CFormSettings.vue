@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import * as config from '@/common/lib/config'
+import { reactive } from 'vue'
 
+import * as config from '@/common/lib/config'
 import { useProjectStore } from '../stores/project'
 const store = useProjectStore()
 

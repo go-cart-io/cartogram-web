@@ -2,7 +2,15 @@
 @import 'bootstrap/scss/variables';
 @import 'bootstrap/scss/variables-dark';
 
-$primary: #d76127;
+$primary: #d76127; // Burnt orange — energetic and warm
+$secondary: #6c757d; // Neutral gray for text and borders
+$success: #4caf50; // Natural green — pairs well with orange
+$info: #268bd2; // Calm blue — strong contrast to orange
+$warning: #f0ad4e; // Soft amber — complements orange hue
+$danger: #c0392b; // Deep red — fits warm color family
+$light: #f8f9fa; // Light background / neutral surface
+$dark: #343a40; // Dark text and contrast background
+
 $theme-colors: (
   'primary': $primary,
   'secondary': $secondary,
@@ -54,7 +62,7 @@ $dropdown-link-active-bg: $secondary;
 @import 'bootstrap/scss/close';
 @import 'bootstrap/scss/toasts';
 @import 'bootstrap/scss/modal'; // Requires transitions
-// @import "bootstrap/scss/tooltip";
+@import 'bootstrap/scss/tooltip';
 // @import "bootstrap/scss/popover";
 // @import "bootstrap/scss/carousel";
 @import 'bootstrap/scss/spinners';
