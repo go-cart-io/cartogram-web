@@ -2,6 +2,29 @@
 <html lang="en">
 
 <head>
+
+  <!-- Google Analytics tracking code -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+
+    gtag("consent", "default", {
+         "ad_storage": "denied",
+         "ad_user_data": "denied",
+         "ad_personalization": "denied",
+         "analytics_storage": "denied",
+         "wait_for_update": 500
+    });
+  </script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ tracking.tracking_id }}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+
+    gtag("js", new Date());
+    gatg("config", "{{ tracking.tracking_id }}");
+  </script>
+  
   {% include 'header.html' %}
 
   <script src="{{ url_for('static', filename='tracking.js') }}"></script>
@@ -95,7 +118,7 @@
 
   {% elif tracking.action == "track" %}
 
-  <script>Tracking.beginTracking("{{ tracking.tracking_id }}");</script>
+  <script>Tracking.beginTracking();</script>
 
   {% endif %}
 
