@@ -16,6 +16,7 @@ import CFormCartogram from './CFormCartogram.vue'
 import CFormChoropleth from './CFormChoropleth.vue'
 import CPreview from './CPreview.vue'
 import CDataTable from './CDataTable.vue'
+import CSenseCheck from './CSenseCheck.vue'
 
 import { useProjectStore } from '../stores/project'
 const store = useProjectStore()
@@ -23,6 +24,8 @@ const store = useProjectStore()
 const mapDBKey = util.generateShareKey(32)
 const csvFormEl = ref()
 const previewEl = ref()
+const senseCheckRef = ref<InstanceType<typeof CSenseCheck> | null>(null)
+const violatedColumns = ref<Array<{ index: number; label: string }>>([])
 
 const props = defineProps<{
   mapName?: string
@@ -75,6 +78,8 @@ async function onGeoJsonChanged(
   state.handler = handler
   state.geojsonRegionCol = regionCol
   state.isInitialized = isInitialized
+  store.geojsonData = geojsonData
+  store.geojsonRegionCol = regionCol
   await previewEl.value.init(geojsonData, regionCol)
 
   if (isInitialized) collapseStep('1')
@@ -115,6 +120,59 @@ async function getGeneratedCartogram() {
     )
       return
 
+  // Check extensivity for columns selected as cartogram (contiguous or non-contiguous)
+  const cartogramCols = [
+    ...datatable.getColsByVisType(store.dataTable, 'contiguous'),
+    ...datatable.getColsByVisType(store.dataTable, 'noncontiguous'),
+  ]
+  if (cartogramCols.length > 0) {
+    store.dataTable.fields[config.COL_REGIONMAP].show = true
+    store.dataTable.fields[config.COL_AREA].show = true
+    const csvForCheck = await util.getGeneratedCSV(store.dataTable)
+    store.dataTable.fields[config.COL_REGIONMAP].show = false
+    store.dataTable.fields[config.COL_AREA].show = false
+
+    try {
+      const checkResult = (await HTTP.post(
+          '/api/v1/cartogram/check-extensivity',
+          JSON.stringify({ csv: csvForCheck, columns: cartogramCols }),
+          { 'Content-type': 'application/json' }
+        )) as Record<string, { extensivity_violated: boolean | null; gamma_max: number | null }>
+
+      const violated = Object.entries(checkResult)
+        .filter(([, v]) => v.extensivity_violated === true)
+        .map(([label]) => ({
+          label,
+          index: store.dataTable.fields.findIndex((f) => f.label === label)
+        }))
+        .filter((v) => v.index >= 0)
+
+      if (violated.length > 0) {
+        violatedColumns.value = violated
+        senseCheckRef.value?.open()
+        return
+      }
+    } catch {
+      // If the check fails, proceed anyway
+    }
+  }
+
+  doGenerate()
+}
+
+function onSenseCheckProceed(switchColumns: string[]) {
+  // Switch columns the user confirmed as non-additive to choropleth
+  if (switchColumns.length > 0) {
+    for (const label of switchColumns) {
+      const field = store.dataTable.fields.find((f) => f.label === label)
+      if (field) field.vis = 'choropleth'
+    }
+    previewEl.value.updateColorFields(false)
+  }
+  doGenerate()
+}
+
+async function doGenerate() {
   state.isProcessing = true
   const progressModal = new Modal('#progressBackdrop', {
     backdrop: 'static',
@@ -377,6 +435,13 @@ async function getGeneratedCartogram() {
       <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
     </div>
   </div>
+
+  <CSenseCheck
+    ref="senseCheckRef"
+    :columns="violatedColumns"
+    @proceed="onSenseCheckProceed"
+    @backToData="() => {}"
+  />
 
   <div class="modal" id="progressBackdrop" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">

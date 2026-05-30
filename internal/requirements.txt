@@ -18,6 +18,8 @@ geopandas==1.0.1
 pandas==2.2.3
 libpysal==4.12.1
 gcol==2.0
+scikit-learn==1.7.2
+scipy>=1.10.0
 
 #alembic==1.13.1
 #async-timeout==4.0.3
