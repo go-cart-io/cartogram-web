@@ -4,7 +4,7 @@ import traceback
 import warnings
 
 import settings
-from carto import boundary, parser, project, recommendator
+from carto import boundary, parser, project
 from carto.extensivity import check_extensivity_csv
 from carto.progress import CartoProgress
 from carto.storage import CartoStorage
@@ -111,19 +111,6 @@ def cartogram_preprocess(mapDBKey):
 
 def cartogram_rate_limit():
     return settings.CARTOGRAM_RATE_LIMIT
-
-
-@api_bp.route("/api/v1/cartogram/recommend", methods=["POST"])
-def cartogram_recommend():
-    data = request.get_json()
-    datacsv = data["csv"] if "csv" in data else format_utils.get_csv(data)
-    results = recommendator.recommend(datacsv)
-
-    return Response(
-        json.dumps(results),
-        status=200,
-        content_type="application/json",
-    )
 
 
 @api_bp.route("/api/v1/cartogram/check-extensivity", methods=["POST"])

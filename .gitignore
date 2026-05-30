@@ -36,6 +36,7 @@
 **/.docker
 
 **/.devcontainer
+**/.copilot
 
 internal/handler.py.bak
 internal/static/dist/*
